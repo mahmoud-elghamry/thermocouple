@@ -25,6 +25,7 @@ $commonSources = [ordered]@{
     'mcal_board'      = 'mcal\board.c'
     'hal_lcd'         = 'hal\lcd.c'
     'hal_alarm'       = 'hal\alarm_output.c'
+    'app_logic'       = 'app\app_logic.c'
     'app_main'        = 'app\main.c'
 }
 
@@ -63,6 +64,27 @@ if ($LASTEXITCODE -ne 0) { throw 'MAX31856 size report failed.' }
 Write-Host 'MAX6675 image:'
 & $size '-C' '--mcu=atmega32' $max6675Elf
 if ($LASTEXITCODE -ne 0) { throw 'MAX6675 size report failed.' }
+
+$hostBuild = Join-Path $build 'host_tests'
+$testExe = Join-Path $hostBuild 'test_app_logic.exe'
+$testSource = Join-Path $PSScriptRoot 'tests\test_app_logic.c'
+$appLogicSource = Join-Path $PSScriptRoot 'src\app\app_logic.c'
+$vswhere = 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe'
+if (-not (Test-Path -LiteralPath $vswhere)) {
+    throw 'Visual Studio Build Tools not found; cannot run host logic tests.'
+}
+$vsInstall = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($vsInstall)) {
+    throw 'MSVC C compiler not found; cannot run host logic tests.'
+}
+$vsDevCmd = Join-Path $vsInstall 'Common7\Tools\VsDevCmd.bat'
+New-Item -ItemType Directory -Path $hostBuild -Force | Out-Null
+$compileCommand = "call `"$vsDevCmd`" -arch=x64 -no_logo && cl /nologo /std:c11 /W4 /WX /I`"$include`" `"$testSource`" `"$appLogicSource`" /Fe:`"$testExe`" /Fo:$hostBuild\"
+& $env:ComSpec /d /s /c $compileCommand
+if ($LASTEXITCODE -ne 0) { throw 'Application logic test compilation failed.' }
+& $testExe
+if ($LASTEXITCODE -ne 0) { throw "Application logic tests failed: $LASTEXITCODE" }
+Write-Host 'Application logic tests: PASS'
 
 Write-Host "Built: $max31856Hex"
 Write-Host "Built: $max6675Hex"

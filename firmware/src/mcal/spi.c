@@ -1,6 +1,10 @@
 #include "mcal/spi.h"
 
 #include <avr/io.h>
+#include <stddef.h>
+#include <stdint.h>
+
+#define MCAL_SPI_TIMEOUT_LOOPS UINT16_MAX
 
 void mcal_spi_master_init(mcal_spi_mode_t mode)
 {
@@ -22,10 +26,21 @@ void mcal_spi_master_init(mcal_spi_mode_t mode)
     SPSR = 0u;
 }
 
-uint8_t mcal_spi_transfer(uint8_t value)
+bool mcal_spi_transfer(uint8_t value, uint8_t *received)
 {
+    uint16_t timeout = MCAL_SPI_TIMEOUT_LOOPS;
+
+    if (received == NULL) {
+        return false;
+    }
+
     SPDR = value;
     while ((SPSR & (uint8_t)(1u << SPIF)) == 0u) {
+        if (timeout == 0u) {
+            return false;
+        }
+        --timeout;
     }
-    return SPDR;
+    *received = SPDR;
+    return true;
 }

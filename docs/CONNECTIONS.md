@@ -23,6 +23,12 @@ There are two deliberately separate variants:
 MAX31856 DNC pin 6 is left unconnected. DRDY and FAULT are brought to test
 points. BIAS pin 2 is connected to the filtered T- node.
 
+At startup, the MAX31856 firmware selects K-type, enables the 50 Hz rejection
+filter and a 10 ms open-circuit test once every 16 conversions. It reads CR0 and
+CR1 back before accepting the sensor as ready. A failed read/write is reported
+as `FAULT: SPI` or `FAULT: INIT`; the associated temperature is marked invalid
+instead of being shown or used for the alarm decision.
+
 ## ATmega32A to LCD 16x2
 
 | LCD signal | LCD pin | ATmega32A |
@@ -98,7 +104,8 @@ The same application logic is compiled into both HEX variants. The alarm uses
 - It turns ON when the measured/displayed temperature reaches `100.0 C`.
 - It stays ON while the temperature is between `95.0 C` and `100.0 C`.
 - It turns OFF at `95.0 C` or below.
-- Any sensor fault forces it OFF.
+- By default any invalid/faulty sample forces it OFF. This is the safe policy
+  for a heater and is controlled by `APP_ALARM_ON_SENSOR_FAULT`.
 
 The separate ON and OFF temperatures are hysteresis. They stop a relay from
 rapidly clicking when the reading moves slightly around 100 C.

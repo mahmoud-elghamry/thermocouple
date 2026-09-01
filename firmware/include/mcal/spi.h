@@ -1,6 +1,7 @@
 #ifndef MCAL_SPI_H
 #define MCAL_SPI_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 typedef enum {
@@ -12,6 +13,6 @@ typedef enum {
 
 /* ATmega32 hardware SPI, master, MSB first, fCPU/16. */
 void mcal_spi_master_init(mcal_spi_mode_t mode);
-uint8_t mcal_spi_transfer(uint8_t value);
+bool mcal_spi_transfer(uint8_t value, uint8_t *received);
 
 #endif

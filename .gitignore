@@ -1,6 +1,12 @@
 # Firmware intermediate build products
 firmware/build/*.o
 firmware/build/*.elf
+firmware/build/**/*.o
+firmware/build/**/*.elf
+firmware/build/*.d
+firmware/build/**/*.d
+firmware/build/**/*.obj
+firmware/build/**/*.exe
 
 # KiCad local/session and backup files
 *.kicad_prl

@@ -19,5 +19,11 @@ ATmega32A temperature meter with a 16x2 LCD, K-type thermocouple and a
 The two MAX devices are intentionally not mixed: MAX6675 is the stable Proteus
 simulation fallback; MAX31856 is the requested final hardware.
 
+The firmware builds both variants with warnings treated as errors, runs host
+tests for the alarm/formatting logic, validates the MAX31856 configuration at
+startup, rejects faulty samples and uses a watchdog plus bounded SPI waits.
+Run everything locally with `firmware/build.ps1`; the same build is also defined
+in `.github/workflows/firmware.yml` for GitHub Actions.
+
 The relay contact area is labelled for **low-voltage loads only**. The PCB has
 passed KiCad DRC, but it has not yet been manufactured or electrically tested.

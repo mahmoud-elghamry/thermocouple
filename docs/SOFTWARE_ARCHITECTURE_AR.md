@@ -7,7 +7,7 @@ MAX6675 إلى MAX31856، تتغير طبقة Driver واحدة فقط، ويب�
 كما هو. ولو تغير ATmega32 لاحقًا، نستبدل MCAL بدل إعادة كتابة التطبيق كله.
 
 ```text
-APP: main + 100/95 C decision
+APP: main + pure logic + 100/95 C decision
              |
 HAL: LCD | temperature sensor | alarm output
              |
@@ -25,8 +25,8 @@ Hardware: ATmega32A registers and pins
 |---|---|
 | `include/mcal/gpio.h` | أنواع ودوال عامة لضبط اتجاه الرجل وكتابتها وقراءتها. |
 | `src/mcal/gpio.c` | تنفيذ GPIO باستخدام DDRx وPORTx وPINx. |
-| `include/mcal/spi.h` | واجهة بدء SPI ونقل بايت. |
-| `src/mcal/spi.c` | إعداد SPI Hardware في ATmega32 وتنفيذ النقل. |
+| `include/mcal/spi.h` | واجهة بدء SPI ونقل بايت مع نتيجة نجاح/فشل. |
+| `src/mcal/spi.c` | إعداد SPI Hardware ونقل بانتظار محدود يمنع التعليق الدائم. |
 | `include/mcal/board.h` | أسماء أرجل اللوحة: LCD وCS وPB3. |
 | `src/mcal/board.c` | ربط الأسماء بأرجل PORTA وPORTB الحقيقية. |
 
@@ -42,7 +42,7 @@ Hardware: ATmega32A registers and pins
 |---|---|
 | `include/hal/lcd.h` | واجهة بدء الشاشة وطباعة سطر. |
 | `src/hal/lcd.c` | HD44780 في 4-bit mode وإرسال البايت على مرحلتين. |
-| `include/hal/temperature_sensor.h` | واجهة موحدة لعينة حرارة + Fault + نص حالة. |
+| `include/hal/temperature_sensor.h` | واجهة موحدة لعينة فيها حرارة وصلاحية وبتات Fault. |
 | `src/hal/temperature_max6675.c` | Driver محاكاة Proteus: إطار 16-bit وOpen fault. |
 | `src/hal/temperature_max31856.c` | Driver اللوحة: تهيئة K-Type وقراءة الحرارة والأعطال. |
 | `include/hal/alarm_output.h` | واجهة تشغيل/فصل خرج الإنذار. |
@@ -56,8 +56,10 @@ Hardware: ATmega32A registers and pins
 
 | الملف | الوظيفة |
 |---|---|
-| `include/app/app_config.h` | حدود التشغيل 1000 والفصل 950 بعُشر الدرجة. |
-| `src/app/main.c` | تسلسل البرنامج، تنسيق LCD، Hysteresis، والتعامل مع Fault. |
+| `include/app/app_config.h` | حدود 1000/950 وسياسة الخرج عند عطل الحساس مع فحص Compile-time. |
+| `include/app/app_logic.h` | واجهة المنطق المستقل القابل للاختبار. |
+| `src/app/app_logic.c` | Hysteresis وتنسيق القراءة ورسائل Fault بلا سجلات AVR. |
+| `src/app/main.c` | التهيئة، القراءة الدورية، إعادة المحاولة، LCD والـWatchdog. |
 
 APP تنفذ السياسة التالية:
 
@@ -77,6 +79,9 @@ T بين 95 و100       -> احتفظ بالحالة السابقة
 
 يستخدم البناء `-Wall -Wextra -Werror`؛ أي Warning يعامل كخطأ. كما يحذف فقط
 ملفات البناء `.o/.elf/.hex` قبل البناء حتى لا يبقى HEX قديم لا يطابق السورس.
+بعد بناء AVR، يبني ويشغّل `tests/test_app_logic.c` على الكمبيوتر لاختبار حدود
+100/95، الأعطال، الدرجات السالبة وتنسيق LCD. وMakefile ينشئ Dependency files
+حتى يؤدي تغيير Header إلى إعادة بناء الملفات التابعة له بدل استعمال Object قديم.
 
 أمر البناء على هذا الجهاز:
 
@@ -93,7 +98,10 @@ T بين 95 و100       -> احتفظ بالحالة السابقة
 
 ## النتيجة الحالية
 
-- MAX31856: البناء ناجح، Program 1954 bytes، Data 161 bytes.
-- MAX6675: البناء ناجح، Program 1602 bytes، Data 109 bytes.
+- MAX31856: البناء ناجح، Program 2454 bytes، Data 191 bytes.
+- MAX6675: البناء ناجح، Program 1932 bytes، Data 189 bytes.
 - لا توجد أخطاء أو تحذيرات Compile.
-- اختبار PB3 داخل Proteus متروك للمستخدم بإضافة LED على الرجل الفعلية 4.
+- اختبارات Application logic تعمل وتنجح محليًا، وملف GitHub Actions يعيد
+  البناء والاختبار عند كل Push أو Pull Request بعد رفع التعديلات.
+- الزيادة الصغيرة في الحجم مقابل النسخة السابقة هي ثمن اكتشاف Faults، فحص
+  إعداد MAX31856، Timeout، رسائل آمنة وWatchdog؛ وما زالت الذاكرة بعيدة عن الحد.
