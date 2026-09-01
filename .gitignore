@@ -1,0 +1,15 @@
+# Firmware intermediate build products
+firmware/build/*.o
+firmware/build/*.elf
+
+# KiCad local/session and backup files
+*.kicad_prl
+*.kicad_sch-bak
+*.kicad_pcb-bak
+*-backups/
+~*.lck
+pcb/.history/
+
+# Operating-system files
+Thumbs.db
+.DS_Store

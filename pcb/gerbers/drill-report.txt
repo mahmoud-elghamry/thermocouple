@@ -1,0 +1,26 @@
+Drill report for thermocouple_meter.kicad_pcb
+Created on 2026-09-01T04:04:53
+
+Copper Layer Stackup:
+    =============================================================
+    L1 :  F.Cu                      front
+    L2 :  B.Cu                      back
+
+
+Drill file 'thermocouple_meter-PTH.drl' contains
+    plated through holes:
+    =============================================================
+    T1  0.300mm  0.0118"  (30 holes))
+    T2  0.800mm  0.0315"  (43 holes))
+    T3  1.000mm  0.0394"  (24 holes))
+    T4  1.300mm  0.0512"  (4 holes))
+
+    Total plated holes count 101
+
+
+Drill file 'thermocouple_meter-NPTH.drl' contains
+    unplated through holes:
+    =============================================================
+    T1  3.200mm  0.1260"  (4 holes))
+
+    Total unplated holes count 4

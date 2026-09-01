@@ -1,0 +1,26 @@
+Reference,Quantity,Value,Package,Notes
+U1,1,ATmega32A-PU,DIP-40,Internal 8 MHz clock
+U2,1,MAX31856MUD+,TSSOP-14,Precision thermocouple converter
+U3,1,AMS1117-3.3,SOT-223,3.3 V regulator
+J1,1,5V regulated input,2-pin 5.00mm terminal block,Observe polarity
+J2,1,LCD 16x2,1x16 2.54mm header,HD44780-compatible
+J3,1,K-type thermocouple,2-pin 5.00mm terminal block,Use thermocouple-compatible connector if accuracy is critical
+J4,1,AVR ISP,2x3 2.54mm header,3.3 V programming
+J5,1,Relay contacts,3-pin 5.00mm terminal block,COM / NO / NC; low-voltage loads only
+RV1,1,10k,3296W trimmer,LCD contrast
+R1 R2,2,100R 0.1%,0805,Matched thermocouple input resistors
+R3,1,10k,0805,RESET pull-up
+R4,1,1k,0805,Q1 base current limit
+R5,1,10k,0805,Q1 base pull-down keeps relay off during reset
+R6,1,1k,0805,Alarm LED current limit
+R7,1,100R,0805,LCD backlight current limit
+C1 C2,2,10uF 10V,1210,Regulator input/output
+C3 C4 C5 C6 C10,5,100nF,0805,Supply and AREF bypass
+C7,1,100nF C0G,0805,Differential thermocouple filter
+C8 C9,2,10nF C0G,0805,Common-mode thermocouple filter
+TP1 TP2,2,Test point,THT 2mm,DRDY and FAULT
+Q1,1,2N3904,TO-92 E-B-C,Relay low-side driver; verify the purchased part pinout
+D1,1,1N4007,DO-41,Flyback diode across relay coil
+D2,1,Alarm LED,LED 5mm,Lights when PB3 alarm output is active
+K1,1,SRD-05VDC-SL-C,Songle SRD SPDT THT,5 V coil; footprint and contact ratings must match purchased relay
+H1 H2 H3 H4,4,M3 mounting hole,3.2mm drill,
