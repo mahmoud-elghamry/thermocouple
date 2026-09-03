@@ -7,10 +7,15 @@ ATmega32A temperature meter with a 16x2 LCD, K-type thermocouple and a
 
 - Proteus simulation: use MAX6675 with
   `firmware/build/thermocouple_meter_max6675.hex`.
+- Eight-channel Proteus prototype: use
+  `firmware/build/thermocouple_meter_max6675_8ch.hex`; its complete pin map and
+  fail-safe RUN_PERMIT behavior are in `docs/CONNECTIONS.md`.
 - Final physical design: use the MAX31856 KiCad PCB in
   `pcb/thermocouple_meter.kicad_pcb`.
 - Manufacturing archive: `pcb/output/thermocouple_meter_gerbers.zip`.
 - Full Arabic explanation: `docs/PROJECT_GUIDE_AR.md`.
+- Industrial 8-channel requirements and safety plan:
+  `docs/INDUSTRIAL_8CH_PLAN_AR.md`.
 - MCAL/HAL/APP explanation: `docs/SOFTWARE_ARCHITECTURE_AR.md`.
 - Pin-by-pin tables: `docs/CONNECTIONS.md`.
 - Real mistakes and faster workflow: `docs/LESSONS_LEARNED_AR.md`.

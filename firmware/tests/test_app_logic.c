@@ -1,4 +1,5 @@
 #include "app/app_logic.h"
+#include "app/protection.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -89,6 +90,87 @@ static int test_fault_text(void)
     return 0;
 }
 
+static int test_eight_channel_protection(void)
+{
+    app_protection_state_t state;
+    hal_temperature_sample_t samples[8];
+    uint8_t index;
+
+    for (index = 0u; index < 8u; ++index) {
+        samples[index].temperature_x10 = 500;
+        samples[index].faults = HAL_TEMPERATURE_FAULT_NONE;
+        samples[index].valid = true;
+    }
+    app_protection_reset(&state);
+    if (app_protection_output_permitted(false, &state) ||
+        !app_protection_output_permitted(true, &state)) {
+        return 29;
+    }
+    app_protection_evaluate(&state, samples, 8u, 1000);
+    if (!app_protection_run_permitted(&state)) {
+        return 30;
+    }
+
+    samples[4].temperature_x10 = 1000;
+    app_protection_evaluate(&state, samples, 8u, 1000);
+    if (!state.latched || state.first_channel != 4u ||
+        state.cause != APP_TRIP_CAUSE_TEMPERATURE ||
+        app_protection_run_permitted(&state)) {
+        return 31;
+    }
+    app_protection_evaluate(&state, samples, 8u, 2000);
+    if (!state.latched) {
+        return 36;
+    }
+    samples[4].temperature_x10 = 960;
+    if (app_protection_try_ack(&state, samples, 8u, 950)) {
+        return 32;
+    }
+    samples[4].temperature_x10 = 950;
+    if (!app_protection_try_ack(&state, samples, 8u, 950) || state.latched) {
+        return 33;
+    }
+
+    samples[2].valid = false;
+    samples[2].faults = HAL_TEMPERATURE_FAULT_OPEN;
+    app_protection_evaluate(&state, samples, 8u, 1000);
+    if (!state.latched || state.first_channel != 2u ||
+        state.cause != APP_TRIP_CAUSE_SENSOR_FAULT) {
+        return 34;
+    }
+    if (app_protection_try_ack(&state, samples, 8u, 950)) {
+        return 35;
+    }
+    app_protection_reset(&state);
+    app_protection_evaluate(&state, NULL, 0u, 1000);
+    if (!state.latched || state.cause != APP_TRIP_CAUSE_SENSOR_FAULT) {
+        return 37;
+    }
+    return 0;
+}
+
+static int test_channel_format(void)
+{
+    char text[17];
+    hal_temperature_sample_t sample = {
+        .temperature_x10 = 1000,
+        .faults = HAL_TEMPERATURE_FAULT_NONE,
+        .valid = true,
+    };
+
+    app_format_channel_line(text, 4u, &sample);
+    if (strcmp(text, "CH5:+ 100.0\337C OK") != 0) {
+        return 40;
+    }
+    sample.valid = false;
+    sample.faults = HAL_TEMPERATURE_FAULT_OPEN;
+    app_format_channel_line(text, 1u, &sample);
+    if (strcmp(text, "CH2:---.-C OPEN ") != 0) {
+        return 41;
+    }
+    return 0;
+}
+
 int main(void)
 {
     int result = test_alarm_hysteresis();
@@ -99,5 +181,13 @@ int main(void)
     if (result != 0) {
         return result;
     }
-    return test_fault_text();
+    result = test_fault_text();
+    if (result != 0) {
+        return result;
+    }
+    result = test_eight_channel_protection();
+    if (result != 0) {
+        return result;
+    }
+    return test_channel_format();
 }

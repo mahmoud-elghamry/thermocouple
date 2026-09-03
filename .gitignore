@@ -16,6 +16,12 @@ firmware/build/**/*.exe
 ~*.lck
 pcb/.history/
 
+# Proteus local workspace and automatic backup files.  Keep the main .pdsprj
+# project tracked; only machine/session state and generated backups are ignored.
+**/Project Backups/
+*.workspace
+*.pdsbak
+
 # Operating-system files
 Thumbs.db
 .DS_Store

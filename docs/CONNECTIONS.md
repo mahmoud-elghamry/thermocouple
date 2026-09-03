@@ -129,3 +129,70 @@ Do not connect a relay coil directly to PB3. For a relay simulation use:
 
 The physical KiCad board already contains this driver as R4, R5, Q1, D1, K1,
 plus status LED D2/R6. Relay contacts are exported on J5 as COM, NO and NC.
+
+## Eight-channel MAX6675 Proteus prototype
+
+Load `firmware/build/thermocouple_meter_max6675_8ch.hex` into the ATmega32 and
+keep its clock at 8 MHz.  The eight MAX6675 devices share the clock and data
+lines, but each device must have a separate chip-select:
+
+| Channel | MAX6675 CS pin 6 -> ATmega32 | TCK |
+|---:|---|---|
+| 1 | PB0, DIP pin 1 | T+ -> pin 3, T- -> pin 2 and GND |
+| 2 | PB1, DIP pin 2 | T+ -> pin 3, T- -> pin 2 and GND |
+| 3 | PB2, DIP pin 3 | T+ -> pin 3, T- -> pin 2 and GND |
+| 4 | PB4, DIP pin 5 | T+ -> pin 3, T- -> pin 2 and GND |
+| 5 | PC0, DIP pin 22 | T+ -> pin 3, T- -> pin 2 and GND |
+| 6 | PC1, DIP pin 23 | T+ -> pin 3, T- -> pin 2 and GND |
+| 7 | PC6, DIP pin 28 | T+ -> pin 3, T- -> pin 2 and GND |
+| 8 | PC7, DIP pin 29 | T+ -> pin 3, T- -> pin 2 and GND |
+
+For **every** MAX6675:
+
+- SCK pin 5 -> PB7, ATmega DIP pin 8.
+- SO pin 7 -> PB6, ATmega DIP pin 7.
+- Never connect two CS pins together.  Only one converter may drive SO at a
+  time; the firmware deselects all eight before starting SPI.
+
+### Buttons for the eight-channel image
+
+Each pushbutton is connected directly between the listed pin and GND.  No
+external pull-up is required in Proteus because the firmware enables the AVR
+internal pull-ups.
+
+| Function | ATmega32 pin |
+|---|---|
+| NEXT / channel | PD2, DIP pin 16 |
+| UP | PD3, DIP pin 17 |
+| DOWN | PD4, DIP pin 18 |
+| SET / enter | PD5, DIP pin 19 |
+| ACK / reset trip | PD6, DIP pin 20 |
+
+Press SET to enter/leave setpoint editing. UP/DOWN change the global setpoint
+by 1 C. Its current default is 200 C and can be changed centrally through
+`APP_8CH_DEFAULT_TRIP_TEMP_X10` in `firmware/include/app/app_config.h`. NEXT
+selects a channel immediately; otherwise the display advances
+automatically every two seconds.  All channels are scanned every 500 ms, which
+leaves conversion-time margin for a real MAX6675 as well as Proteus. The
+setpoint is RAM-only in this simulation build and returns to the configured
+200 C default after a reset.
+
+### Eight-channel protection behavior
+
+PB3 / DIP pin 4 changes meaning in the eight-channel image: it is an
+**energized-to-run RUN_PERMIT**, not an active-high alarm LED.
+
+- It stays LOW during boot and until one complete eight-channel scan succeeds.
+- It becomes HIGH only while all eight samples are valid and below the trip
+  setpoint.
+- Any channel at or above the setpoint, or any open/invalid channel, latches a
+  trip and immediately forces PB3 LOW.
+- ACK clears the latch only after every channel is valid and at least 5 C below
+  the setpoint.  ACK does not force a motor to start.
+- A simple LED from PB3 through 330 ohm to GND therefore means **permit/safe**:
+  illuminated is safe, extinguished is trip or loss of controller power.
+
+This fail-safe polarity is deliberate.  The final dry contact should use a
+relay energized in the safe state so loss of board power also removes the run
+permission.  The Proteus prototype verifies firmware logic only; it does not
+prove isolation, 50 m cable behavior, EMC, or industrial safety compliance.
