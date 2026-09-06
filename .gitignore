@@ -1,29 +1,105 @@
-# Firmware intermediate build products
+# What belongs in this repository: sources, the engineering record, and the few
+# outputs that cannot be regenerated. Everything a tool rebuilds stays out, so a
+# diff shows real design changes and not the noise of the last run.
+#
+# Tracked on purpose, even though they look like "working files":
+#   AGENTS.md, CLAUDE.md   the entry point every agent and every new session
+#                          reads. Uncommitted, a fresh clone has no context and
+#                          the problem they solve comes straight back.
+#   docs/                  goal, open issues, decision records. This is the
+#                          engineering record of a safety device, not scratch.
+
+# --- Firmware build products -------------------------------------------------
+# The three .hex images stay tracked: they are what Proteus runs and what the
+# plan refers to. Object files and linker output do not.
 firmware/build/*.o
-firmware/build/*.elf
 firmware/build/**/*.o
+firmware/build/*.elf
 firmware/build/**/*.elf
 firmware/build/*.d
 firmware/build/**/*.d
+firmware/build/*.map
+firmware/build/**/*.map
+firmware/build/*.lss
+firmware/build/*.eep
 firmware/build/**/*.obj
 firmware/build/**/*.exe
+firmware/build/**/*.ilk
+firmware/build/**/*.pdb
 
-# KiCad local/session and backup files
+# --- KiCad ---------------------------------------------------------------------
+# fp-lib-table and sym-lib-table are project configuration and stay tracked.
 *.kicad_prl
 *.kicad_sch-bak
 *.kicad_pcb-bak
 *-backups/
+_autosave-*
+fp-info-cache
+*-cache.lib
+*-rescue.lib
 ~*.lck
-pcb/.history/
+.history/
 
-# Proteus local workspace and automatic backup files.  Keep the main .pdsprj
-# project tracked; only machine/session state and generated backups are ignored.
+# Specctra files handed to and returned by the autorouter.
+*.dsn
+*.ses
+
+# --- Proteus ------------------------------------------------------------------
+# The .pdsprj project is tracked; per-user workspace and auto-backups are not.
 **/Project Backups/
 *.workspace
 *.pdsbak
 
-# Operating-system files
+# --- Python -------------------------------------------------------------------
+**/__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# --- Generated hardware output ------------------------------------------------
+# production/ is where a release is assembled. Nothing in it is a source.
+production/
+hardware/8ch/output/
+hardware/8ch/gerbers/
+hardware/8ch/tmp/
+hardware/8ch/route.log
+hardware/8ch/*.net
+hardware/8ch/BOM.csv
+
+# Check reports. Rewritten on every run; their numbers are quoted in
+# docs/STATE.md, which is the thing worth reviewing.
+**/drc-report.rpt
+**/erc-report.rpt
+**/drc-report.txt
+**/*-report.rpt
+
+# Renders, layer PDFs and tool analysis dumps. All regenerable, and the
+# kicad-happy JSON alone is 1.3 MB of machine output nobody reads.
+hardware/**/output/*.png
+hardware/**/output/*.pdf
+hardware/**/output/*.json
+hardware/**/output/*.svg
+hardware/**/output/*.step
+hardware/**/output/*.wrl
+docs/reference/analysis/
+
+# hardware/single-channel/gerbers/ and output/thermocouple_meter_gerbers.zip are
+# deliberately NOT ignored: they are the archive of what was actually
+# fabricated. Once the sources move on those files cannot be reproduced, and
+# they are how a board in the field is identified.
+
+# --- Editors and scratch --------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*~
+*.bak
+*.orig
+*.rej
+*.tmp
+*.log
+
+# --- Operating system ------------------------------------------------------------
 Thumbs.db
 .DS_Store
-
-project_code_bundle.txt
