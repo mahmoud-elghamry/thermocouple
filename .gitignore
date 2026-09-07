@@ -68,6 +68,10 @@ production/
 hardware/8ch/output/
 hardware/8ch/gerbers/
 hardware/8ch/tmp/
+hardware/8ch/tmp-*/
+# Scratch an agent leaves behind. On 2026-09-07 a delegated run's experiment
+# folder and seven half-built sheet files were swept into a commit by
+# `git add -A` while that agent was still writing them.
 hardware/8ch/route.log
 hardware/8ch/*.net
 # ...but netlist-baseline-reva0.json IS tracked. It is the connectivity
