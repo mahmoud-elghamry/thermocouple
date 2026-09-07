@@ -30,6 +30,26 @@ Get-ChildItem -LiteralPath $build -File -Recurse | Where-Object {
     $_.Extension -in @('.o', '.elf', '.hex')
 } | Remove-Item -Force
 
+# Windows PowerShell promotes a native tool's stderr to an error record, and
+# under ErrorActionPreference = Stop that aborts the script even when the tool
+# succeeded.  VsDevCmd.bat writes a harmless "vswhere.exe is not recognized"
+# line to stderr, which made this script report failure while all three test
+# suites passed - a gate that cries wolf is a gate people learn to ignore.
+# Everything native therefore goes through here and is judged on its exit code.
+function Invoke-Native {
+    param([Parameter(Mandatory)][string]$FilePath,
+          [string[]]$Arguments = @(),
+          [Parameter(Mandatory)][string]$What)
+    $previous = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        & $FilePath @Arguments 2>&1 | ForEach-Object { Write-Host "$_" }
+    } finally {
+        $ErrorActionPreference = $previous
+    }
+    if ($LASTEXITCODE -ne 0) { throw "$What failed (exit $LASTEXITCODE)." }
+}
+
 $commonFlags = @(
     '-std=c11', '-Os', '-Wall', '-Wextra', '-Werror', '-mmcu=atmega32',
     '-DF_CPU=8000000UL', "-I$include", '-ffunction-sections', '-fdata-sections'
@@ -107,18 +127,20 @@ $vswhere = 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe
 if (-not (Test-Path -LiteralPath $vswhere)) {
     throw 'Visual Studio Build Tools not found; cannot run host logic tests.'
 }
-$vsInstall = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
-if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($vsInstall)) {
+$previousPreference = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
+$vsInstall = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath 2>$null
+$vswhereExit = $LASTEXITCODE
+$ErrorActionPreference = $previousPreference
+if ($vswhereExit -ne 0 -or [string]::IsNullOrWhiteSpace($vsInstall)) {
     throw 'MSVC C compiler not found; cannot run host logic tests.'
 }
 $vsDevCmd = Join-Path $vsInstall 'Common7\Tools\VsDevCmd.bat'
 New-Item -ItemType Directory -Path $hostBuild -Force | Out-Null
 $quotedSources = ($hostSources | ForEach-Object { "`"$_`"" }) -join ' '
 $compileCommand = "call `"$vsDevCmd`" -arch=x64 -no_logo && cl /nologo /std:c11 /W4 /WX /I`"$include`" `"$testSource`" $quotedSources /Fe:`"$testExe`" /Fo:$hostBuild\"
-& $env:ComSpec /d /s /c $compileCommand
-if ($LASTEXITCODE -ne 0) { throw 'Application logic test compilation failed.' }
-& $testExe
-if ($LASTEXITCODE -ne 0) { throw "Application logic tests failed: $LASTEXITCODE" }
+Invoke-Native $env:ComSpec @('/d', '/s', '/c', $compileCommand) 'Application logic test compilation'
+Invoke-Native $testExe @() 'Application logic tests'
 
 # --- Host integration tests (I-042) --------------------------------------------
 # Runs main_8ch.c itself against HAL doubles (AVR headers resolved to
@@ -133,10 +155,8 @@ function Run-HostIntegrationTest([string]$name, [string]$listName,
     $quoted = ($extraSources | ForEach-Object { "`"$_`"" }) -join ' '
     $includeFlags = ($extraIncludes | ForEach-Object { "/I`"$_`"" }) -join ' '
     $cmd = "call `"$vsDevCmd`" -arch=x64 -no_logo && cl /nologo /std:c11 /W4 /WX $includeFlags /I`"$include`" `"$source`" $quoted /Fe:`"$exe`" /Fo:$hostBuild\"
-    & $env:ComSpec /d /s /c $cmd
-    if ($LASTEXITCODE -ne 0) { throw "$name compilation failed." }
-    & $exe
-    if ($LASTEXITCODE -ne 0) { throw "$name failed: $LASTEXITCODE" }
+    Invoke-Native $env:ComSpec @('/d', '/s', '/c', $cmd) "$name compilation"
+    Invoke-Native $exe @() "$name tests"
 }
 
 Run-HostIntegrationTest 'test_app_integration' 'host_test_app' @($hostMocks)

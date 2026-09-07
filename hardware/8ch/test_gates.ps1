@@ -43,3 +43,8 @@ Assert-Rejected { Assert-DrcReport $drc }
 'partial output' | Set-Content $drc
 Assert-Rejected { Assert-DrcReport $drc }
 Write-Output "Hardware gate fault injection: $passed checks passed. Fixtures: $tempRoot"
+
+# Explicit success exit.  The injected-failure fixtures above deliberately run
+# a command that exits 17, and $LASTEXITCODE keeps that value, so without this
+# line a fully passing gate reports failure to CI and to anyone reading $?.
+exit 0
