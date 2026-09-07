@@ -1,37 +1,72 @@
-# K-type thermocouple meter
+# Thermo — 8-channel thermocouple protection unit
 
 > Working on this repository with an AI agent? Start at **`AGENTS.md`**,
-> then `docs/STATE.md`. The active board is `hardware/8ch/`.
+> then `docs/STATE.md`.
 
-ATmega32A temperature meter with a 16x2 LCD, K-type thermocouple and a
-100 C alarm output that drives an LED and a 5 V relay.
+A protection unit that reads eight K-type thermocouples — one per cylinder of an
+engine — and opens a dry contact when any of them exceeds an operator-set
+temperature. It is being built to go on real equipment.
 
-## What to submit
+The output is **energised to run**: loss of power, a reset, a sensor fault or a
+missing setpoint all open the contact, so the engine cannot start.
 
-- Proteus simulation: use MAX6675 with
-  `firmware/build/thermocouple_meter_max6675.hex`.
-- Eight-channel Proteus prototype: use
-  `firmware/build/thermocouple_meter_max6675_8ch.hex`; its complete pin map and
-  fail-safe RUN_PERMIT behavior are in `docs/reference/CONNECTIONS.md`.
-- Final physical design: use the MAX31856 KiCad PCB in
-  `hardware/single-channel/thermocouple_meter.kicad_pcb`.
-- Manufacturing archive: `hardware/single-channel/output/thermocouple_meter_gerbers.zip`.
-- Full Arabic explanation: `docs/reference/PROJECT_GUIDE_AR.md`.
-- Industrial 8-channel requirements and safety plan:
-  `docs/reference/INDUSTRIAL_8CH_PLAN_AR.md`.
-- MCAL/HAL/APP explanation: `docs/reference/SOFTWARE_ARCHITECTURE_AR.md`.
-- Pin-by-pin tables: `docs/reference/CONNECTIONS.md`.
-- Real mistakes and faster workflow: `docs/reference/LESSONS_LEARNED_AR.md`.
-- Component list: `hardware/single-channel/BOM.csv`.
+## Where things are
 
-The two MAX devices are intentionally not mixed: MAX6675 is the stable Proteus
-simulation fallback; MAX31856 is the requested final hardware.
+| | |
+|---|---|
+| **The active board** | `hardware/8ch/` — 4-layer, placed, routed, DRC-clean, Gerbers in `production/8ch/` |
+| **The firmware for it** | `firmware/`, target `thermo_8ch_max31856` |
+| **Programming a unit** | `firmware/fuses.md`, then `firmware/program.ps1` |
+| **What is done and what is next** | `docs/STATE.md` |
+| **Open problems** | `docs/ISSUES.md` |
+| **Why things are the way they are** | `docs/decisions/` |
+| **Commands that actually work here** | `docs/TOOLS.md` |
 
-The firmware builds both variants with warnings treated as errors, runs host
-tests for the alarm/formatting logic, validates the MAX31856 configuration at
-startup, rejects faulty samples and uses a watchdog plus bounded SPI waits.
-Run everything locally with `firmware/build.ps1`; the same build is also defined
-in `.github/workflows/firmware.yml` for GitHub Actions.
+`hardware/single-channel/` is a **superseded** board kept only as the record of
+what was fabricated earlier. Do not work from it and do not modify it.
 
-The relay contact area is labelled for **low-voltage loads only**. The PCB has
-passed KiCad DRC, but it has not yet been manufactured or electrically tested.
+## Build
+
+```powershell
+pwsh -File firmware\build.ps1
+```
+
+Builds four images with warnings as errors and runs the host tests:
+
+| Image | For |
+|---|---|
+| `thermo_8ch_max31856` | **the real board** |
+| `thermo_8ch_max6675_sim` | Proteus simulation — Proteus has no MAX31856 model |
+| `legacy_1ch_max31856` | the superseded single-channel board |
+| `legacy_1ch_max6675` | the same, Proteus |
+
+```powershell
+pwsh -File hardware\8ch\run_all.ps1
+```
+
+Regenerates and re-checks the board end to end. **Read `docs/STATE.md` first** —
+the board is frozen at REV A0 and this rewrites it.
+
+> **The images are not interchangeable.** The eight-channel image drives PB3
+> HIGH only while it is *safe to run*. The legacy single-channel images drive
+> the same pin HIGH on *over-temperature*. Flashing the wrong one inverts the
+> safety function with no visible symptom. `program.ps1` warns you.
+
+## State
+
+This is an **engineering prototype**, not a finished product. It has never been
+built or electrically tested. Specifically:
+
+- The isolation barrier has never been measured (`I-004`), and the rules in
+  `.kicad_dru` are functional, not qualified against any standard.
+- The trip time is calculated at 623 ms against a 1 s requirement, but has not
+  been measured on hardware (`I-013`).
+- The schematic produces a correct netlist and passes ERC, but it is not a
+  drawing anyone can review or sign (`I-002`).
+- Modbus RTU is deferred: there is no crystal, and the internal RC oscillator
+  is not accurate enough for a reliable UART (`docs/decisions/0010`).
+- The relay contact is marked **low-voltage loads only** and the clearances
+  match that, not a mains rating.
+
+`docs/ISSUES.md` is the full list. Nothing here is claimed as done without a
+report to back it.

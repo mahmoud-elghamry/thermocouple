@@ -10,8 +10,13 @@
 #                          engineering record of a safety device, not scratch.
 
 # --- Firmware build products -------------------------------------------------
-# The three .hex images stay tracked: they are what Proteus runs and what the
-# plan refers to. Object files and linker output do not.
+# Nothing in build/ is tracked any more. The .hex images used to be, because
+# they were "what Proteus runs" - but a tracked binary goes stale silently, and
+# two of these images drive PB3 with OPPOSITE meanings: the eight-channel image
+# asserts it to permit running, the legacy single-channel image asserts it on
+# over-temperature. Flashing the wrong stale file inverts the safety function
+# with no visible symptom (I-031). Build them: firmware/build.ps1.
+firmware/build/
 firmware/build/*.o
 firmware/build/**/*.o
 firmware/build/*.elf
@@ -65,6 +70,12 @@ hardware/8ch/gerbers/
 hardware/8ch/tmp/
 hardware/8ch/route.log
 hardware/8ch/*.net
+# ...but netlist-baseline-reva0.json IS tracked. It is the connectivity
+# contract of the board that was routed and had Gerbers made: 167 components,
+# 154 nets, 555 pins. Any schematic edit is checked against it with
+# netlist_fingerprint.py, and a match proves the PCB does not need
+# regenerating. That is how a redraw is kept honest (I-002).
+!hardware/8ch/netlist-baseline-reva0.json
 hardware/8ch/BOM.csv
 
 # Check reports. Rewritten on every run; their numbers are quoted in

@@ -3,21 +3,33 @@
 #include <stddef.h>
 #include <stdint.h>
 
+static void write_word(char *out, const char *word, uint8_t length)
+{
+    uint8_t index;
+
+    for (index = 0u; index < length; ++index) {
+        out[index] = word[index];
+    }
+}
+
+/* Five characters at out[11..15].  Ordered by what an operator most needs to
+   know first: a blind channel outranks a range complaint. */
 static void write_fault_word(char out[17], uint8_t faults)
 {
     const char *word = "FAULT";
-    uint8_t index;
 
     if ((faults & HAL_TEMPERATURE_FAULT_OPEN) != 0u) {
         word = "OPEN ";
     } else if ((faults & HAL_TEMPERATURE_FAULT_COMMUNICATION) != 0u) {
         word = "SPI  ";
+    } else if ((faults & HAL_TEMPERATURE_FAULT_STUCK) != 0u) {
+        word = "STUCK";
+    } else if ((faults & HAL_TEMPERATURE_FAULT_RATE) != 0u) {
+        word = "RATE ";
     } else if ((faults & HAL_TEMPERATURE_FAULT_RANGE) != 0u) {
         word = "RANGE";
     }
-    for (index = 0u; index < 5u; ++index) {
-        out[11u + index] = word[index];
-    }
+    write_word(&out[11], word, 5u);
 }
 
 void app_protection_reset(app_protection_state_t *state)
@@ -26,8 +38,39 @@ void app_protection_reset(app_protection_state_t *state)
         return;
     }
     state->latched = false;
+    state->config_locked = false;
     state->first_channel = 0u;
     state->cause = APP_TRIP_CAUSE_NONE;
+}
+
+void app_protection_config_lock(app_protection_state_t *state)
+{
+    if (state == NULL) {
+        return;
+    }
+    state->config_locked = true;
+    state->latched = true;
+    state->first_channel = 0u;
+    state->cause = APP_TRIP_CAUSE_CONFIG;
+}
+
+void app_protection_config_unlock(app_protection_state_t *state)
+{
+    if (state == NULL) {
+        return;
+    }
+    state->config_locked = false;
+}
+
+void app_protection_note_drive_fault(app_protection_state_t *state)
+{
+    if (state == NULL) {
+        return;
+    }
+    /* A drive fault outranks whatever is already latched: it says the unit
+       cannot stop the machine at all, which the operator has to see. */
+    state->latched = true;
+    state->cause = APP_TRIP_CAUSE_DRIVE;
 }
 
 void app_protection_evaluate(app_protection_state_t *state,
@@ -71,6 +114,16 @@ bool app_protection_try_ack(app_protection_state_t *state,
     uint8_t channel;
 
     if (state == NULL || samples == NULL || count == 0u) {
+        return false;
+    }
+    /* No setpoint, no acknowledgement.  Otherwise a blank unit could be
+       cleared straight into permitting the machine to run. */
+    if (state->config_locked) {
+        return false;
+    }
+    /* A drive fault is not the operator's to clear: the hardware has to be
+       repaired and the unit power-cycled. */
+    if (state->cause == APP_TRIP_CAUSE_DRIVE) {
         return false;
     }
     for (channel = 0u; channel < count; ++channel) {
@@ -146,4 +199,71 @@ void app_format_channel_line(char out[17],
     out[14] = 'O';
     out[15] = 'K';
     out[16] = '\0';
+}
+
+void app_format_status_line(char out[17],
+                            const app_protection_state_t *state,
+                            int16_t setpoint_x10,
+                            bool editing)
+{
+    uint16_t whole;
+    uint8_t digit_start;
+    uint8_t index;
+
+    if (out == NULL || state == NULL) {
+        return;
+    }
+    whole = (setpoint_x10 < 0) ? 0u : (uint16_t)((uint16_t)setpoint_x10 / 10u);
+
+    for (index = 0u; index < 16u; ++index) {
+        out[index] = ' ';
+    }
+    out[16] = '\0';
+
+    /* A unit with no stored setpoint tells the operator what to do about it
+       rather than showing a trip they cannot clear. */
+    if (state->config_locked) {
+        write_word(&out[0], "SET SETPOINT", 12u);
+        return;
+    }
+
+    if (state->latched) {
+        switch (state->cause) {
+        case APP_TRIP_CAUSE_DRIVE:
+            write_word(&out[0], "TRIP RELAY FAIL", 15u);
+            return;
+        case APP_TRIP_CAUSE_TEMPERATURE:
+            write_word(&out[0], "TRIP CH", 7u);
+            out[7] = (char)('1' + state->first_channel);
+            write_word(&out[9], "TEMP", 4u);
+            return;
+        default:
+            write_word(&out[0], "TRIP CH", 7u);
+            out[7] = (char)('1' + state->first_channel);
+            write_word(&out[9], "FAULT", 5u);
+            return;
+        }
+    }
+
+    if (editing) {
+        write_word(&out[0], "EDIT", 4u);
+        write_word(&out[5], "SP:", 3u);
+        digit_start = 8u;
+    } else {
+        write_word(&out[0], "SP:", 3u);
+        digit_start = 3u;
+        write_word(&out[11], "SAFE", 4u);
+    }
+    out[digit_start] = (whole >= 1000u)
+                           ? (char)('0' + ((whole / 1000u) % 10u))
+                           : ' ';
+    out[digit_start + 1u] = (whole >= 100u)
+                                ? (char)('0' + ((whole / 100u) % 10u))
+                                : ' ';
+    out[digit_start + 2u] = (whole >= 10u)
+                                ? (char)('0' + ((whole / 10u) % 10u))
+                                : ' ';
+    out[digit_start + 3u] = (char)('0' + (whole % 10u));
+    out[digit_start + 4u] = (char)-33;
+    out[digit_start + 5u] = 'C';
 }

@@ -1,0 +1,55 @@
+# Hardware gate (I-021).
+#
+# The firmware has had CI since the start; the board has had none, so a change
+# to the schematic or the generator could move the circuit while CI stayed
+# green.
+#
+# What this protects: the PCB is frozen at REV A0 (docs/decisions/0010). The
+# schematic may still be edited - it is being redrawn for readability (I-002) -
+# but the connectivity it produces must not move, because the board was placed
+# and routed from it and the Gerbers were made. This job exports the netlist
+# from the committed schematic and compares it against the committed
+# connectivity contract: 167 components, 154 nets, 555 pins.
+#
+# A failure here means either the schematic changed the circuit, or the
+# baseline needs updating deliberately. Never update the baseline to make this
+# pass - that is the check working.
+
+name: Hardware
+
+on:
+  push:
+    paths:
+      - 'hardware/**'
+      - '.github/workflows/hardware.yml'
+  pull_request:
+    paths:
+      - 'hardware/**'
+      - '.github/workflows/hardware.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  connectivity-unchanged:
+    runs-on: ubuntu-latest
+    container:
+      image: kicad/kicad:9.0
+      options: --user root
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Export the netlist from the committed schematic
+        run: |
+          kicad-cli sch export netlist \
+            --output /tmp/current.net \
+            hardware/8ch/thermocouple_8ch.kicad_sch
+
+      - name: Compare against the REV A0 connectivity contract
+        run: |
+          python3 hardware/8ch/netlist_fingerprint.py \
+            hardware/8ch/netlist-baseline-reva0.json \
+            /tmp/current.net
+
+      - name: Every passive still has an orderable part number
+        run: python3 hardware/8ch/source_passives.py --check

@@ -1,0 +1,8 @@
+hal/run_permit.c
+hal/buttons.c
+hal/tc_decode.c
+hal/settings_store.c
+app/settings.c
+app/sensor_monitor.c
+app/protection.c
+app/main_8ch.c

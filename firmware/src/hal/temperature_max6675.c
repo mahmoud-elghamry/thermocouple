@@ -1,9 +1,16 @@
 #include "hal/temperature_sensor.h"
+#include "hal/tc_decode.h"
 #include "mcal/board.h"
 #include "mcal/gpio.h"
 #include "mcal/spi.h"
 
 #include <stdint.h>
+
+/* See temperature_max6675_bank.c: mode 0 is the silicon, mode 1 is what the
+   Proteus model needs, and the simulation target overrides it (I-018). */
+#ifndef HAL_MAX6675_SPI_MODE
+#define HAL_MAX6675_SPI_MODE MCAL_SPI_MODE_0
+#endif
 
 static bool max6675_read_frame(uint16_t *frame)
 {
@@ -27,15 +34,13 @@ bool hal_temperature_sensor_init(void)
 {
     mcal_gpio_write(&BOARD_SENSOR_CS, true);
     mcal_gpio_output(&BOARD_SENSOR_CS);
-    /* MAX6675 data is sampled on SCK's falling edge. */
-    mcal_spi_master_init(MCAL_SPI_MODE_1);
+    mcal_spi_master_init(HAL_MAX6675_SPI_MODE);
     return true;
 }
 
 hal_temperature_sample_t hal_temperature_sensor_read(void)
 {
     uint16_t frame;
-    uint16_t counts;
     bool open;
     hal_temperature_sample_t sample;
 
@@ -46,9 +51,8 @@ hal_temperature_sample_t hal_temperature_sensor_read(void)
         return sample;
     }
 
-    counts = (uint16_t)((frame & 0x7FF8u) >> 3);
-    open = (frame & (uint16_t)(1u << 2)) != 0u;
-    sample.temperature_x10 = (int16_t)(((uint32_t)counts * 10u) / 4u);
+    open = tc_max6675_frame_open(frame);
+    sample.temperature_x10 = tc_max6675_decode_x10(frame);
     sample.faults = open ? HAL_TEMPERATURE_FAULT_OPEN
                          : HAL_TEMPERATURE_FAULT_NONE;
     sample.valid = !open;

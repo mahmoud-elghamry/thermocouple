@@ -11,6 +11,11 @@
 #define HAL_TEMPERATURE_FAULT_THRESHOLD     0x08u
 #define HAL_TEMPERATURE_FAULT_COMMUNICATION 0x10u
 #define HAL_TEMPERATURE_FAULT_INIT          0x20u
+/* Plausibility faults raised by app/sensor_monitor.c, not by the converter.
+   A frozen ADC or a shorted junction reads perfectly well-formed data
+   forever, so the converter itself can never report these (I-011). */
+#define HAL_TEMPERATURE_FAULT_STUCK         0x40u
+#define HAL_TEMPERATURE_FAULT_RATE          0x80u
 
 typedef struct {
     int16_t temperature_x10;
@@ -18,7 +23,8 @@ typedef struct {
     bool valid;
 } hal_temperature_sample_t;
 
-/* The build links exactly one backend: MAX6675 or MAX31856. */
+/* Single-channel backend, used by the superseded single-channel board only.
+   The eight-channel board uses hal/temperature_bank.h instead. */
 bool hal_temperature_sensor_init(void);
 hal_temperature_sample_t hal_temperature_sensor_read(void);
 const char *hal_temperature_sensor_name(void);
