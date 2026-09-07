@@ -39,6 +39,7 @@ void app_protection_reset(app_protection_state_t *state)
     }
     state->latched = false;
     state->config_locked = false;
+    state->save_fault_recovered = false;
     state->first_channel = 0u;
     state->cause = APP_TRIP_CAUSE_NONE;
 }
@@ -71,6 +72,33 @@ void app_protection_note_drive_fault(app_protection_state_t *state)
        cannot stop the machine at all, which the operator has to see. */
     state->latched = true;
     state->cause = APP_TRIP_CAUSE_DRIVE;
+}
+
+void app_protection_note_save_fault(app_protection_state_t *state)
+{
+    if (state == NULL) {
+        return;
+    }
+    /* A trip already showing for any other reason outranks a save failure:
+       a temperature, sensor or drive fault must stay visible, not be
+       replaced by an operator's rejected edit (I-036). */
+    if (state->latched && state->cause != APP_TRIP_CAUSE_SAVE_FAILED) {
+        return;
+    }
+    state->latched = true;
+    state->cause = APP_TRIP_CAUSE_SAVE_FAILED;
+    state->save_fault_recovered = false;
+    state->first_channel = 0u;
+}
+
+void app_protection_note_save_recovered(app_protection_state_t *state)
+{
+    if (state == NULL) {
+        return;
+    }
+    if (state->cause == APP_TRIP_CAUSE_SAVE_FAILED) {
+        state->save_fault_recovered = true;
+    }
 }
 
 void app_protection_evaluate(app_protection_state_t *state,
@@ -125,6 +153,15 @@ bool app_protection_try_ack(app_protection_state_t *state,
        repaired and the unit power-cycled. */
     if (state->cause == APP_TRIP_CAUSE_DRIVE) {
         return false;
+    }
+    /* A save failure has nothing to do with temperature, so it is cleared on
+       its own condition: a retry must have succeeded first (I-036). */
+    if (state->cause == APP_TRIP_CAUSE_SAVE_FAILED) {
+        if (!state->save_fault_recovered) {
+            return false;
+        }
+        app_protection_reset(state);
+        return true;
     }
     for (channel = 0u; channel < count; ++channel) {
         if (!samples[channel].valid ||
@@ -220,14 +257,23 @@ void app_format_status_line(char out[17],
     }
     out[16] = '\0';
 
-    /* A unit with no stored setpoint tells the operator what to do about it
-       rather than showing a trip they cannot clear. */
-    if (state->config_locked) {
+    /* The candidate value being entered must always be visible, even on a
+       blank unit (config_locked) or while a save-failure trip is waiting on
+       a retry - those are the only two latched causes editing is allowed to
+       start from (I-037).  The caller only opens editing under one of those
+       two conditions or with nothing latched at all, and closes it the
+       moment a temperature, sensor or drive trip latches, so this ordering
+       can never hide one of those behind the edit screen. */
+    if (editing) {
+        write_word(&out[0], "EDIT", 4u);
+        write_word(&out[5], "SP:", 3u);
+        digit_start = 8u;
+    } else if (state->config_locked) {
+        /* A unit with no stored setpoint tells the operator what to do about
+           it rather than showing a trip they cannot clear. */
         write_word(&out[0], "SET SETPOINT", 12u);
         return;
-    }
-
-    if (state->latched) {
+    } else if (state->latched) {
         switch (state->cause) {
         case APP_TRIP_CAUSE_DRIVE:
             write_word(&out[0], "TRIP RELAY FAIL", 15u);
@@ -237,18 +283,28 @@ void app_format_status_line(char out[17],
             out[7] = (char)('1' + state->first_channel);
             write_word(&out[9], "TEMP", 4u);
             return;
+        case APP_TRIP_CAUSE_SAVE_FAILED:
+            /* Same wording whether the save just failed or a retry has since
+               succeeded and is waiting on ACK - only the second word differs,
+               so a partial read of the display cannot mistake one for the
+               other. */
+            write_word(&out[0],
+                       state->save_fault_recovered ? "SAVE OK ACK"
+                                                    : "SAVE FAILED",
+                       11u);
+            return;
+        case APP_TRIP_CAUSE_CONFIG:
+            /* Reachable only after a first-time save has succeeded and
+               lifted config_locked: the value is stored, but the trip still
+               needs the same acknowledgement as any other. */
+            write_word(&out[0], "SAVE OK ACK", 11u);
+            return;
         default:
             write_word(&out[0], "TRIP CH", 7u);
             out[7] = (char)('1' + state->first_channel);
             write_word(&out[9], "FAULT", 5u);
             return;
         }
-    }
-
-    if (editing) {
-        write_word(&out[0], "EDIT", 4u);
-        write_word(&out[5], "SP:", 3u);
-        digit_start = 8u;
     } else {
         write_word(&out[0], "SP:", 3u);
         digit_start = 3u;

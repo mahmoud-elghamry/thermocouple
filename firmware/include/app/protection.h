@@ -17,7 +17,13 @@ typedef enum {
     /* The run-permit read-back disagreed with the pin: stuck output, open
        coil or failed transistor.  The unit can no longer prove it is able to
        stop the machine (I-016). */
-    APP_TRIP_CAUSE_DRIVE
+    APP_TRIP_CAUSE_DRIVE,
+    /* A candidate setpoint failed to persist (EEPROM write or read-back
+       mismatch).  The previously active setpoint is unaffected - this cause
+       only exists to make the failure visible and stop the unit until an
+       operator has both retried it successfully and acknowledged the
+       recovery (I-036). */
+    APP_TRIP_CAUSE_SAVE_FAILED
 } app_trip_cause_t;
 
 typedef struct {
@@ -25,6 +31,11 @@ typedef struct {
     /* While set, no acknowledgement can clear the latch.  Only storing a
        valid setpoint lifts it. */
     bool config_locked;
+    /* Set once a save that failed has since been retried successfully.
+       Meaningful only while cause == APP_TRIP_CAUSE_SAVE_FAILED: it is what
+       app_protection_try_ack() requires before it will clear the trip
+       (I-036). */
+    bool save_fault_recovered;
     uint8_t first_channel;
     app_trip_cause_t cause;
 } app_protection_state_t;
@@ -41,6 +52,17 @@ void app_protection_config_unlock(app_protection_state_t *state);
 
 /* Latches a drive-fault trip.  Idempotent. */
 void app_protection_note_drive_fault(app_protection_state_t *state);
+
+/* Latches a save-failure trip: a candidate setpoint was rejected by
+   persistence (I-036).  A no-op if a higher-priority trip (temperature,
+   sensor fault, config or drive) is already showing, so editing or saving
+   can never erase a safety trip that is already latched. */
+void app_protection_note_save_fault(app_protection_state_t *state);
+
+/* Marks a save-failure trip as resolved by a successful retry.  Does not
+   itself clear the latch - app_protection_try_ack() still requires an
+   explicit acknowledgement (I-036). */
+void app_protection_note_save_recovered(app_protection_state_t *state);
 
 void app_protection_evaluate(app_protection_state_t *state,
                              const hal_temperature_sample_t *samples,

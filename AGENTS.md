@@ -11,9 +11,10 @@ others read it directly; `CLAUDE.md` imports it for Claude Code.
 
 ## What this project is
 
-A protection unit that reads eight K-type thermocouples and opens a dry contact
-when any of them exceeds a setpoint. **It is being built to go on a real
-machine.** Treat every decision as safety-relevant.
+A protection unit that reads eight K-type thermocouples on the cylinder bodies
+of one engine and opens a dry contact when any exceeds a setpoint. The unit is
+in its own panel, with roughly 50 m cables and no VFD in the installation.
+**It is being built to go on a real machine.** Treat decisions as safety-relevant.
 
 The output is energised-to-run: loss of power, reset, or a fault means the
 contact opens and the machine cannot start.
@@ -84,7 +85,7 @@ placement files, renders and netlists belong in `production/` or are ignored.
 Full details in `docs/TOOLS.md`. The short version:
 
 ```powershell
-pwsh -File hardware\8ch\run_all.ps1      # schematic -> ERC -> rules -> board -> route -> DRC
+pwsh -File hardware\8ch\run_all.ps1      # validate a snapshot; source hardware stays unchanged
 ```
 
 ```powershell
@@ -92,6 +93,8 @@ pwsh -File firmware\build.ps1       # firmware build + host tests
 ```
 
 Both must be run before claiming anything about the current state.
+`run_all.ps1 -Regenerate` rewrites the board and is not authorized while REV A0
+remains frozen by the owner (`docs/decisions/0010`).
 
 ## Hard constraints — do not design around these
 
@@ -100,8 +103,8 @@ Both must be run before claiming anything about the current state.
 - **The sensor island isolates the group, not the channels.** All eight
   thermocouples share one isolated ground. This is accepted (see
   `docs/decisions/`), not solved.
-- **Cables may run 50 m near a motor/VFD.** Layout symmetry and plane pairs
-  improve the odds; only measurement settles it.
+- **Cables run roughly 50 m from the engine to a separate panel; no VFD.**
+  Layout symmetry and plane pairs help; only measurement settles performance.
 - **The isolation rules in `.kicad_dru` are functional, not certified.** No
   creepage/clearance analysis against IEC 61010 has been done.
 - **The dry contact is marked LOW-VOLTAGE LOAD ONLY** and the clearances match

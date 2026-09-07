@@ -3,9 +3,10 @@
 > Working on this repository with an AI agent? Start at **`AGENTS.md`**,
 > then `docs/STATE.md`.
 
-A protection unit that reads eight K-type thermocouples — one per cylinder of an
-engine — and opens a dry contact when any of them exceeds an operator-set
-temperature. It is being built to go on real equipment.
+A protection unit that reads eight K-type thermocouples — one per cylinder body
+of an engine — and opens a dry contact when any reaches an operator-set
+temperature. It sits in a separate panel with roughly 50 m sensor cables and
+no VFD in the installation. It is being built to go on real equipment.
 
 The output is **energised to run**: loss of power, a reset, a sensor fault or a
 missing setpoint all open the contact, so the engine cannot start.
@@ -14,7 +15,7 @@ missing setpoint all open the contact, so the engine cannot start.
 
 | | |
 |---|---|
-| **The active board** | `hardware/8ch/` — 4-layer, placed, routed, DRC-clean, Gerbers in `production/8ch/` |
+| **The active board** | `hardware/8ch/` — 4-layer engineering prototype; check evidence in `docs/STATE.md`, prior Gerbers in `production/8ch/` |
 | **The firmware for it** | `firmware/`, target `thermo_8ch_max31856` |
 | **Programming a unit** | `firmware/fuses.md`, then `firmware/program.ps1` |
 | **What is done and what is next** | `docs/STATE.md` |
@@ -44,8 +45,9 @@ Builds four images with warnings as errors and runs the host tests:
 pwsh -File hardware\8ch\run_all.ps1
 ```
 
-Regenerates and re-checks the board end to end. **Read `docs/STATE.md` first** —
-the board is frozen at REV A0 and this rewrites it.
+Checks a fresh snapshot, including ERC, connectivity contract and DRC with zone
+refill on the copy. Source hardware remains unchanged. `-Regenerate` rewrites
+the board and is not authorized while the owner keeps REV A0 frozen.
 
 > **The images are not interchangeable.** The eight-channel image drives PB3
 > HIGH only while it is *safe to run*. The legacy single-channel images drive
@@ -65,6 +67,10 @@ built or electrically tested. Specifically:
   drawing anyone can review or sign (`I-002`).
 - Modbus RTU is deferred: there is no crystal, and the internal RC oscillator
   is not accurate enough for a reliable UART (`docs/decisions/0010`).
+- EEPROM setpoint persistence is implemented; application integration status
+  and the I-036/I-037 fixes are recorded in `docs/STATE.md`.
+- Sensor diagnostics are partial: plausibility checks do not prove detection
+  of every thermocouple short or every stale-data failure.
 - The relay contact is marked **low-voltage loads only** and the clearances
   match that, not a mains rating.
 

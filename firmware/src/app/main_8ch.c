@@ -50,7 +50,9 @@ static void read_all_channels(void)
 }
 
 /* Stores the setpoint and lifts the config lock.  A write that cannot be read
-   back is not a stored setpoint, so the lock stays on. */
+   back is not a stored setpoint, so the lock stays on.  The caller decides
+   what a false return means for the active setpoint - this function never
+   touches it (I-036). */
 static bool persist_setpoint(app_protection_state_t *protection,
                              int16_t setpoint_x10)
 {
@@ -61,6 +63,7 @@ static bool persist_setpoint(app_protection_state_t *protection,
         return false;
     }
     app_protection_config_unlock(protection);
+    app_protection_note_save_recovered(protection);
     return true;
 }
 
@@ -69,7 +72,12 @@ int main(void)
     app_protection_state_t protection;
     app_settings_t settings;
     char lcd_line[17];
-    int16_t setpoint_x10;
+    /* active_setpoint_x10 is the only value protection ever evaluates
+       against.  UP/DOWN never touch it - they touch candidate_setpoint_x10,
+       which is promoted to active only after a successful, read-back-verified
+       EEPROM save (I-036). */
+    int16_t active_setpoint_x10;
+    int16_t candidate_setpoint_x10;
     uint8_t selected_channel = 0u;
     uint8_t scan_ticks = 0u;
     uint8_t page_ticks = 0u;
@@ -98,11 +106,12 @@ int main(void)
        safe hard-coded temperature for someone else's engine (R-8, I-012). */
     setpoint_stored = hal_settings_store_load(&settings);
     if (setpoint_stored) {
-        setpoint_x10 = settings.setpoint_x10;
+        active_setpoint_x10 = settings.setpoint_x10;
     } else {
-        setpoint_x10 = APP_8CH_DEFAULT_TRIP_TEMP_X10;
+        active_setpoint_x10 = APP_8CH_DEFAULT_TRIP_TEMP_X10;
         app_protection_config_lock(&protection);
     }
+    candidate_setpoint_x10 = active_setpoint_x10;
 
     hal_lcd_print_line(0u, hal_temperature_bank_name());
     hal_lcd_print_line(1u, "Initializing...");
@@ -123,34 +132,46 @@ int main(void)
         }
 
         /* SET enters edit mode, and leaving it is what commits the setpoint.
-           Editing is allowed while config-locked - that is the only way to
-           get a blank unit running. */
+           Editing is allowed while config-locked or while a previous save
+           has failed and not yet been acknowledged - those are the only two
+           ways in that a latched unit may still open the edit screen
+           (I-036, I-037). */
         if ((events & HAL_BUTTON_EVENT_SET) != 0u &&
-            (!protection.latched || protection.config_locked)) {
+            (!protection.latched || protection.config_locked ||
+             protection.cause == APP_TRIP_CAUSE_SAVE_FAILED)) {
             if (editing) {
                 editing = false;
-                (void)persist_setpoint(&protection, setpoint_x10);
+                if (persist_setpoint(&protection, candidate_setpoint_x10)) {
+                    active_setpoint_x10 = candidate_setpoint_x10;
+                } else {
+                    /* Discard the candidate, not the active setpoint: the
+                       previously stored value keeps protecting the machine,
+                       and the operator sees the failure and may retry
+                       (I-036). */
+                    app_protection_note_save_fault(&protection);
+                }
             } else {
+                candidate_setpoint_x10 = active_setpoint_x10;
                 editing = true;
             }
         }
         if (editing &&
             (events & HAL_BUTTON_EVENT_UP) != 0u &&
-            setpoint_x10 <= (APP_8CH_MAX_SETPOINT_X10 -
-                             APP_8CH_SETPOINT_STEP_X10)) {
-            setpoint_x10 += APP_8CH_SETPOINT_STEP_X10;
+            candidate_setpoint_x10 <= (APP_8CH_MAX_SETPOINT_X10 -
+                                       APP_8CH_SETPOINT_STEP_X10)) {
+            candidate_setpoint_x10 += APP_8CH_SETPOINT_STEP_X10;
         }
         if (editing &&
             (events & HAL_BUTTON_EVENT_DOWN) != 0u &&
-            setpoint_x10 >= (APP_8CH_MIN_SETPOINT_X10 +
-                             APP_8CH_SETPOINT_STEP_X10)) {
-            setpoint_x10 -= APP_8CH_SETPOINT_STEP_X10;
+            candidate_setpoint_x10 >= (APP_8CH_MIN_SETPOINT_X10 +
+                                       APP_8CH_SETPOINT_STEP_X10)) {
+            candidate_setpoint_x10 -= APP_8CH_SETPOINT_STEP_X10;
         }
         if ((events & HAL_BUTTON_EVENT_ACK) != 0u) {
             int16_t reset_temperature_x10 =
-                (setpoint_x10 >= APP_8CH_HYSTERESIS_X10)
-                    ? (int16_t)(setpoint_x10 - APP_8CH_HYSTERESIS_X10)
-                    : setpoint_x10;
+                (active_setpoint_x10 >= APP_8CH_HYSTERESIS_X10)
+                    ? (int16_t)(active_setpoint_x10 - APP_8CH_HYSTERESIS_X10)
+                    : active_setpoint_x10;
 
             (void)app_protection_try_ack(&protection,
                                          samples,
@@ -166,8 +187,12 @@ int main(void)
             app_protection_evaluate(&protection,
                                     samples,
                                     HAL_TEMPERATURE_BANK_CHANNELS,
-                                    setpoint_x10);
-            if (protection.latched && !protection.config_locked) {
+                                    active_setpoint_x10);
+            /* A real trip closes the edit screen so it cannot hide behind
+               it.  Config-lock and a pending save retry are the two states
+               editing is meant to survive (I-036, I-037). */
+            if (protection.latched && !protection.config_locked &&
+                protection.cause != APP_TRIP_CAUSE_SAVE_FAILED) {
                 editing = false;
             }
 
@@ -205,7 +230,10 @@ int main(void)
                                 selected_channel,
                                 &samples[selected_channel]);
         hal_lcd_print_line(0u, lcd_line);
-        app_format_status_line(lcd_line, &protection, setpoint_x10, editing);
+        app_format_status_line(lcd_line, &protection,
+                               editing ? candidate_setpoint_x10
+                                       : active_setpoint_x10,
+                               editing);
         hal_lcd_print_line(1u, lcd_line);
 
         _delay_ms(APP_8CH_LOOP_PERIOD_MS);

@@ -1,86 +1,59 @@
 # Current state
 
-**Read this second, after `AGENTS.md`. Update it before you finish a session.**
-
-**Hard limit: 60 lines.** If it does not fit, the detail belongs in
-`docs/ISSUES.md`.
-
----
+**Read second, after `AGENTS.md`. Update before finishing. Hard limit: 60 lines.**
 
 **Last updated:** 2026-09-07
 
 ## Last session
 
-Full review, then sixteen issues closed. **No hardware file was touched** - the
-board is frozen at REV A0 (`docs/decisions/0010`) and the schematic is
-unchanged.
+Architecture and implementation review requested by the user. No product code,
+schematic or PCB changed; REV A0 remains frozen (`docs/decisions/0010`).
+Actual application/driver sources were exercised with host peripheral doubles.
+New findings are `I-036` through `I-042` in `docs/ISSUES.md`.
 
-`I-030` was the big one: the eight-channel application linked the **MAX6675**
-bank driver, so the MAX31856 board had no firmware at all. It has one now. With
-it: EEPROM setpoint behind a CRC, and a blank unit refuses to run rather than
-invent a limit (`I-012`); stuck and impossible readings detected (`I-011`); the
-SPI timeout no longer slips the byte stream (`I-014`); a fuse map (`I-015`) -
-which found that the factory `CKSEL` default runs the part at 1 MHz, making
-every delay eight times too long and the trip four times too slow, silently.
+The MAX31856 bank driver, EEPROM CRC/read-back and config lock ARE implemented.
+However, failed saves leave edited limits active (`I-036`), first-time setup
+hides the limit (`I-037`), and post-init MISO LOW passes as valid 0 C until the
+stuck monitor trips on bad scan 121 in the reproduced 20 C case (`I-038`).
+The existing tests pass but do not cover these integration paths (`I-042`).
+Proteus still loads an obsolete HEX filename (`I-041`).
 
-Sourcing the passives (`I-007`) turned up `I-035`, a blocker: **100 nF C0G does
-not exist in 0805** - that is `C1` and its seven siblings. `I-002` was attempted
-and reverted; see below.
+## Evidence from this session
 
-## Measured, not claimed
+Artifacts: `production/analysis-20260907/` (ignored, regenerate locally).
 
-`hardware/8ch/` is placed, routed and has fabrication output - an **engineering
-prototype**. None of the `AGENTS.md` hard constraints is closed by that: the
-barrier has never been measured and nothing has been built or EMC tested.
-
-| Check | Now |
+| Check | Result / basis |
 |---|---|
-| DRC errors / unconnected / parity | **0 / 0 / 0** |
-| DRC warnings | 9 (8 silkscreen, 1 dangling via) |
-| ERC errors / warnings | **0** / 171, all `endpoint_off_grid` (`I-002`) |
-| `check_board.py` | all six pass |
-| Netlist vs REV A0 contract | **167 components, 154 nets, 555 pins - IDENTICAL** |
-| Firmware, 4 images, host tests | builds `-Werror`, **all checks passed** |
+| Firmware build | 4 images, `-Werror`; existing host suite: all checks passed |
+| Real 8ch image | 5230 B flash, 376 B static RAM (excludes stack), 6 B EEPROM |
+| Source lists | 8 lists / 19 C files accounted for; checked manually |
+| New host reproductions | I-036/I-037 application loop; I-038 bank + monitor |
+| Fresh netlist vs A0 | IDENTICAL: 167 components / 154 nets / 555 connected pins |
+| Fresh ERC | 0 errors / 171 endpoint_off_grid warnings; wrapper exit 5 |
+| Schematic wires | 0, queried through kicad-tool |
+| Last saved DRC | 2026-09-07 01:40:45: 0 errors, 9 warnings, 0 unconnected/parity |
 
-## Next actions, in order
+The DRC row is historical, not rerun this session. Full `run_all.ps1` was NOT
+run because it regenerates the frozen board. No fresh manufacturing release,
+EMC, SPICE, thermal, Gerber or physical/datasheet pin audit was performed.
+No hardware measurement or Proteus execution was performed.
 
-1. **`I-035`** — decide the differential filter capacitor. The catalog already
-   resolves it to X7R with the reasoning; what is needed is a decision and the
-   `Value` text corrected in the schematic.
-2. **`I-028`** — decide where the 24 V comes from. A panel supply needs no
-   change; the engine's own battery needs a wider-input regulator. It is the
-   only open item that can still change the circuit.
-3. **`I-002`** — redraw the schematic as a real drawing: 171 symbols, 543
-   labels, **zero wires**. Independent of the layer count.
-4. **`I-012`** — store the setpoint in EEPROM. The user states plainly that it
-   must be operator-settable and survive a power cycle; today any reset returns
-   it to 200 degC.
-5. **`I-025`** — 2-layer versus ordering 4-layer abroad. Layout only.
-6. **`I-013`** — measure the trip time on hardware. The budget says 623 ms;
-   nothing has confirmed it.
+## Next actions
 
-## `I-002` — for whoever picks it up
+1. Fix I-036/I-037/I-038 with maintained application/driver regression tests.
+2. Add explicit pipeline exit gates and wire in source-list checks (I-039/I-042).
+3. Repair Proteus image binding (I-041); reconcile stale live docs (I-040).
+4. Resolve I-035 capacitor specification/catalog mismatch before ordering.
+5. Confirm 24 V source (I-028) and layer sourcing (I-025) with the owner.
+6. Redraw schematic I-002 without connectivity changes; retain A0 contract.
+7. Measure isolation, isolated supply and trip time (I-004/I-003/I-013).
 
-Delegated once and reverted: it produced seven hierarchical sheets with 612
-wires and **a netlist of zero components**, because the symbols were written
-without the instance data KiCad needs. Four things are known now:
+## Preserve for I-002 and hardware work
 
-- `kicad-tool sch edit` has `wire add` and `junction add`. Generate through it;
-  do not write `.kicad_sch` as text - that is where the attempt went wrong.
-- A wire between two pins that already share a label cannot change the netlist,
-  so the work can be verified step by step.
-- **The obstacle is the grid, not the wires.** Pins land on 28.19, 6.92 because
-  symbols sit at integer millimetres. Re-place them on the 1.27 mm grid first;
-  that is also what clears the 171 warnings.
-- `prune_dangling_labels()` drops any label not on a pin, so re-running
-  `populate_schematic.py --refresh-properties` after a move is self-healing.
-
-Gate: `netlist_fingerprint.py netlist-baseline-reva0.json <new>.net` must print
-`IDENTICAL`. Never edit the baseline to make it pass.
-
-## Careful
-
-`generate_board.py` clears every track, via, zone and drawing. Anything routed
-by hand in KiCad is erased on the next run, so fixes belong in the pipeline.
-One session on the hardware at a time; close KiCad before running anything that
-writes the board.
+Previous hierarchical redraw was reverted: missing KiCad instance data exported
+zero components. Use kicad-tool, move symbols to the 1.27 mm grid, and verify
+each step with `netlist_fingerprint.py`; never alter the baseline to pass.
+`prune_dangling_labels()` assumes labels sit on pins; account for wired labels.
+No board regeneration without revisiting the owner's A0 freeze. Only one
+hardware writer, and close KiCad before a permitted board write. Hand routing
+is erased by the generator; durable layout fixes belong in `board/` or `route.py`.

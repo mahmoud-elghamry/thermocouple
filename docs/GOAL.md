@@ -41,10 +41,10 @@ between the engine and the panel.
 | R-3 | Energised to run — power loss, reset or fault must stop the machine | design complete |
 | R-4 | Show the readings and the state locally | design complete (16x2 LCD, 5 buttons) |
 | R-5 | Latch a trip until it is acknowledged | firmware, tested on host |
-| R-6 | Detect a broken or shorted sensor and treat it as a trip | partial — see `I-011` |
+| R-6 | Detect a broken or shorted sensor and treat it as a trip | partial — plausibility checks do not prove detection of every short; see `I-011` |
 | R-7 | Survive an engine installation and 50 m cable runs | **not proven — needs measurement** |
-| R-8 | Setpoint is operator-settable and survives a power cycle — never hard-coded | **not done — see `I-012`** |
-| R-9 | Communicate over RS-485 (Modbus RTU planned) | hardware ready, protocol not written |
+| R-8 | Setpoint is operator-settable and survives a power cycle — never hard-coded | EEPROM implementation exists; integration validation and I-036/I-037 status in `STATE.md` |
+| R-9 | Communicate over RS-485 (Modbus RTU planned) | deferred for REV A0 by decision `0010`; protocol not written |
 
 ## What it must not do
 

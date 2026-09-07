@@ -31,17 +31,30 @@
      scan latency         456 ms  APP_8CH_LOOP_PERIOD_MS * APP_8CH_SCAN_TICKS
      loop overhead         57 ms  one more pass, LCD writes included
      relay drop-out        10 ms  G5LE-1 release time
+     config verification     5 ms  two extra register reads per channel, all
+                                    eight, every scan (I-038); at fCPU/16 SPI
+                                    each byte clocks in ~16 us regardless of
+                                    what answers, so 32 extra bytes is well
+                                    under 1 ms - 5 ms keeps a wide margin
      ------------------------------------
-     worst case           623 ms  against the 1 s requirement in docs/GOAL.md
+     worst case           628 ms  against the 1 s requirement in docs/GOAL.md
 
    These are calculated, not measured.  Measuring them on hardware is still
    open - see I-013.  They are only valid with an 8 MHz clock: on the factory
    CKSEL default the part runs at 1 MHz and every delay here is eight times
-   longer, which blows the budget by four times (I-032, firmware/fuses.md). */
+   longer, which blows the budget by four times (I-032, firmware/fuses.md).
+
+   A setpoint save (I-036) is not in this budget: it only runs while an
+   operator is in the edit screen committing a value, never while the unit is
+   merely watching temperature, so it cannot delay a trip that is already in
+   progress. eeprom_update_block plus the mandatory read-back is bounded by
+   the ATmega32A's own EEPROM write time (a few ms per changed byte, six
+   bytes here) and blocks only the loop iteration that requested it. */
 #define APP_8CH_LOOP_PERIOD_MS  50u
 #define APP_8CH_SCAN_TICKS       8u
 #define APP_8CH_AUTO_PAGE_TICKS 40u
 #define APP_8CH_TRIP_BUDGET_MS 1000u
+#define APP_8CH_CONFIG_CHECK_MARGIN_MS 5u
 
 /* ---- Sensor plausibility (I-011) ---------------------------------------- */
 /* A cylinder body cannot move 50 degC in one 456 ms scan.  Anything that
@@ -81,8 +94,8 @@
 
 /* The calculated worst case must stay inside the requirement, or the numbers
    in the comment above have drifted from the constants below them. */
-#if (APP_8CH_LOOP_PERIOD_MS * (APP_8CH_SCAN_TICKS + 1u)) + 170u > \
-    APP_8CH_TRIP_BUDGET_MS
+#if (APP_8CH_LOOP_PERIOD_MS * (APP_8CH_SCAN_TICKS + 1u)) + 170u + \
+    APP_8CH_CONFIG_CHECK_MARGIN_MS > APP_8CH_TRIP_BUDGET_MS
 #error "Scan timing no longer fits the trip budget in docs/GOAL.md."
 #endif
 

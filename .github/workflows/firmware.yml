@@ -13,8 +13,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install AVR toolchain
-        run: sudo apt-get update && sudo apt-get install -y gcc-avr avr-libc binutils-avr make
+        run: sudo apt-get update && sudo apt-get install -y gcc-avr avr-libc binutils-avr make python3
+      - name: Check source lists (I-022, I-042)
+        run: python3 firmware/sources/check_lists.py
       - name: Build both sensor variants
         run: make -C firmware all
-      - name: Run application logic tests
+      - name: Run host tests (application logic, application integration, bank driver)
         run: make -C firmware test

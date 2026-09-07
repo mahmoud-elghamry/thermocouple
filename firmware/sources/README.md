@@ -20,3 +20,5 @@ Blank lines and `#` comments are ignored.
 | `sensor_max31856.txt` | single-channel MAX31856 backend for the legacy app |
 | `sensor_max6675.txt` | single-channel MAX6675 backend for the legacy app |
 | `host_test.txt` | the pure modules the host tests link natively |
+| `host_test_app.txt` | `main_8ch.c`'s application modules, linked natively against HAL doubles alongside `main_8ch.c` itself (pulled in by `#include`, not listed here - see the list's own comment) (I-042) |
+| `host_test_driver.txt` | the MAX31856 bank driver, linked natively against a register model (I-042) |

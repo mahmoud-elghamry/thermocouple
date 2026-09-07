@@ -12,8 +12,18 @@ $size = Join-Path $avrRoot 'bin\avr-size.exe'
 $include = Join-Path $PSScriptRoot 'include'
 $build = Join-Path $PSScriptRoot 'build'
 $sources = Join-Path $PSScriptRoot 'sources'
+$hostMocks = Join-Path $PSScriptRoot 'tests\host_mocks'
 
 New-Item -ItemType Directory -Path $build -Force | Out-Null
+
+# Fails if a source list names a missing file, or a src/*.c file is in no
+# list at all - the second half is what would have caught I-030 (I-022,
+# I-042).
+$python = Get-Command python -ErrorAction SilentlyContinue
+if (-not $python) { $python = Get-Command python3 -ErrorAction SilentlyContinue }
+if (-not $python) { throw 'python not found; cannot run sources/check_lists.py' }
+& $python.Source (Join-Path $sources 'check_lists.py')
+if ($LASTEXITCODE -ne 0) { throw 'Source list check failed (I-022, I-042).' }
 
 # Remove only generated firmware products, never source files.
 Get-ChildItem -LiteralPath $build -File -Recurse | Where-Object {
@@ -110,8 +120,32 @@ if ($LASTEXITCODE -ne 0) { throw 'Application logic test compilation failed.' }
 & $testExe
 if ($LASTEXITCODE -ne 0) { throw "Application logic tests failed: $LASTEXITCODE" }
 
+# --- Host integration tests (I-042) --------------------------------------------
+# Runs main_8ch.c itself against HAL doubles (AVR headers resolved to
+# tests/host_mocks/), and the MAX31856 bank driver against a register model.
+function Run-HostIntegrationTest([string]$name, [string]$listName,
+    [string[]]$extraIncludes) {
+    $exe = Join-Path $hostBuild "$name.exe"
+    $source = Join-Path $PSScriptRoot "tests\$name.c"
+    $extraSources = Get-SourceList $listName | ForEach-Object {
+        Join-Path $PSScriptRoot (Join-Path 'src' $_)
+    }
+    $quoted = ($extraSources | ForEach-Object { "`"$_`"" }) -join ' '
+    $includeFlags = ($extraIncludes | ForEach-Object { "/I`"$_`"" }) -join ' '
+    $cmd = "call `"$vsDevCmd`" -arch=x64 -no_logo && cl /nologo /std:c11 /W4 /WX $includeFlags /I`"$include`" `"$source`" $quoted /Fe:`"$exe`" /Fo:$hostBuild\"
+    & $env:ComSpec /d /s /c $cmd
+    if ($LASTEXITCODE -ne 0) { throw "$name compilation failed." }
+    & $exe
+    if ($LASTEXITCODE -ne 0) { throw "$name failed: $LASTEXITCODE" }
+}
+
+Run-HostIntegrationTest 'test_app_integration' 'host_test_app' @($hostMocks)
+Run-HostIntegrationTest 'test_bank_driver' 'host_test_driver' @()
+
 Write-Host ''
 Write-Host 'Application logic tests: PASS'
+Write-Host 'Application integration tests: PASS'
+Write-Host 'Bank driver integration tests: PASS'
 foreach ($image in $builtElfs.Keys) {
     Write-Host "Built: $(Join-Path $build "$image.hex")"
 }

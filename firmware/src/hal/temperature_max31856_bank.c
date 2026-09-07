@@ -8,6 +8,16 @@
  * that fails to answer is re-configured on the next scan instead of dragging
  * the whole bank down, and it reads as a fault while it is down, so the
  * protection layer latches rather than trusting a stale number.
+ *
+ * The relevant configuration registers are re-checked before every sample is
+ * accepted, not only right after writing them, because a completed SPI
+ * transfer does not mean the slave answered (I-038): AVR SPIF marks the
+ * master's own clocking done, so a MISO line stuck at a fixed level after a
+ * successful configure_channel() still reads as eight clean bytes forever.
+ * This catches a stuck MISO and a converter whose registers drifted or reset
+ * - including the averaging bits, which the read-back never checked before -
+ * but it is not exhaustive: a stuck value that happens to still satisfy the
+ * configuration masks would not be caught by it.
  */
 
 #include "hal/temperature_bank.h"
@@ -38,9 +48,16 @@
 #define CR0_RUN_CONFIG   (CR0_CMODE | CR0_STOP_CONFIG)
 
 /* CR1: K type, no averaging.  Averaging would multiply the conversion time
-   and eat into the 1 s trip budget for no accuracy this unit needs. */
+   and eat into the 1 s trip budget for no accuracy this unit needs.
+   Bits [6:4] are the averaging field and bits [3:0] the type - the read-back
+   checks must cover both, or a converter that drifts into averaging still
+   passes as configured (I-038). */
 #define CR1_K_TYPE      0x03u
 #define CR1_TYPE_MASK   0x0Fu
+#define CR1_AVG_1SAMPLE 0x00u
+#define CR1_AVG_MASK    0x70u
+#define CR1_CONFIG_MASK (CR1_AVG_MASK | CR1_TYPE_MASK)
+#define CR1_RUN_CONFIG  (CR1_AVG_1SAMPLE | CR1_K_TYPE)
 
 /* Fault mask register: 0x00 unmasks every fault so the status register
    reports all of them.  FAULT and DRDY are unconnected on this board
@@ -48,6 +65,10 @@
 #define MASK_ALL_FAULTS 0x00u
 
 static uint8_t configured;   /* one bit per channel */
+/* Set when a channel's conversion was just (re)started.  Its very next
+   result is still the pre-restart register image, not a real reading, so
+   that one scan is reported as a fault instead of trusted (I-038). */
+static uint8_t settling;
 
 static void select_channel(uint8_t channel)
 {
@@ -101,6 +122,28 @@ static bool read_sample_bytes(uint8_t channel, uint8_t data[4])
     return ok;
 }
 
+/* Reads CR0 and CR1 back and checks them against what this driver always
+ * configures.  This is the only defence against a converter that answers
+ * every SPI transfer - so mcal_spi_transfer never times out - without the
+ * bytes actually coming from the slave: AVR SPIF marks the master's own
+ * clocking done, not that anything answered, so a MISO line stuck at a
+ * fixed level after configure_channel() succeeded once still looks like a
+ * completed transfer forever (I-038, I-014).  A MISO stuck at a level that
+ * happens to still satisfy both masks - which excludes 0x00 and 0xFF, the
+ * two failure modes actually seen - would not be caught by this check;
+ * register read-back is not a substitute for verifying the physical bus.
+ */
+static bool configuration_ok(uint8_t channel)
+{
+    uint8_t cr0;
+    uint8_t cr1;
+
+    return read_register(channel, REG_CR0, &cr0) &&
+           read_register(channel, REG_CR1, &cr1) &&
+           (cr0 & CR0_CONFIG_MASK) == CR0_RUN_CONFIG &&
+           (cr1 & CR1_CONFIG_MASK) == CR1_RUN_CONFIG;
+}
+
 /* Write the configuration while conversion is stopped, read it back, then
    start converting.  Reading it back is what turns a dead or mis-wired
    channel into a fault instead of a plausible number. */
@@ -110,15 +153,14 @@ static bool configure_channel(uint8_t channel)
     uint8_t cr1;
 
     if (!write_register(channel, REG_CR0, CR0_STOP_CONFIG) ||
-        !write_register(channel, REG_CR1, CR1_K_TYPE) ||
+        !write_register(channel, REG_CR1, CR1_RUN_CONFIG) ||
         !write_register(channel, REG_MASK, MASK_ALL_FAULTS) ||
         !read_register(channel, REG_CR0, &cr0) ||
         !read_register(channel, REG_CR1, &cr1) ||
         (cr0 & CR0_CONFIG_MASK) != CR0_STOP_CONFIG ||
-        (cr1 & CR1_TYPE_MASK) != CR1_K_TYPE ||
+        (cr1 & CR1_CONFIG_MASK) != CR1_RUN_CONFIG ||
         !write_register(channel, REG_CR0, CR0_RUN_CONFIG) ||
-        !read_register(channel, REG_CR0, &cr0) ||
-        (cr0 & CR0_CONFIG_MASK) != CR0_RUN_CONFIG) {
+        !configuration_ok(channel)) {
         return false;
     }
     return true;
@@ -153,9 +195,11 @@ bool hal_temperature_bank_init(void)
     mcal_spi_master_init(MCAL_SPI_MODE_1);
 
     configured = 0u;
+    settling = 0u;
     for (channel = 0u; channel < HAL_TEMPERATURE_BANK_CHANNELS; ++channel) {
         if (configure_channel(channel)) {
             configured |= (uint8_t)(1u << channel);
+            settling |= (uint8_t)(1u << channel);
         } else {
             all_ok = false;
         }
@@ -182,6 +226,28 @@ hal_temperature_sample_t hal_temperature_bank_read(uint8_t channel)
             return invalid_sample(HAL_TEMPERATURE_FAULT_INIT);
         }
         configured |= mask;
+        /* The conversion this channel is about to report was still running,
+           or had not even started, at the moment it was configured.  Skip
+           exactly one scan so only this channel is delayed while it
+           settles - the other seven are read normally in the same sweep
+           (I-038).  Falls into the settling check below instead of
+           returning here directly, so a channel that was already configured
+           at boot and a channel recovered mid-scan both get exactly one
+           invalid scan, not two. */
+        settling |= mask;
+    }
+
+    if ((settling & mask) != 0u) {
+        settling &= (uint8_t)~mask;
+        return invalid_sample(HAL_TEMPERATURE_FAULT_INIT);
+    }
+
+    /* Re-validate every scan, not just once after writing it: a channel can
+       drift out of configuration - or MISO can stick at a fixed level -
+       without a single SPI transfer ever reporting failure (I-038). */
+    if (!configuration_ok(channel)) {
+        configured &= (uint8_t)~mask;
+        return invalid_sample(HAL_TEMPERATURE_FAULT_INIT);
     }
 
     if (!read_sample_bytes(channel, data)) {

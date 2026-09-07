@@ -1,0 +1,7 @@
+# main_8ch.c is not listed here: tests/test_app_integration.c pulls it in by
+# #include, with its own main() renamed out of the way, so it must not also
+# be compiled as a separate translation unit (that would link two mains).
+# It is already accounted for by app_8ch.txt.
+app/protection.c
+app/sensor_monitor.c
+app/settings.c

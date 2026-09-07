@@ -76,7 +76,9 @@ current cannot become a measurement ground loop.
 | `route.py` | DSN → Freerouting → SES, then pours, stitching and finishing |
 | `close_gaps.py` | joins anything DRC still reports as unconnected |
 | `check_board.py` | structural checks DRC cannot make (islands, barriers, decoupling, cold junction, filter symmetry) |
-| `run_all.ps1` | the whole sequence, end to end |
+| `run_all.ps1` | snapshot validation by default; explicit regeneration after owner authorization |
+| `validate.ps1` / `check_commands.ps1` | fresh copy, source hashes, checked native exits and report gates |
+| `test_gates.ps1` | fault injection for native-command and report failures |
 
 Design rules live in the **project**, not in the scripts. Anyone opening
 `thermocouple_8ch.kicad_pro` in KiCad sees the same track widths, via sizes and
@@ -84,13 +86,17 @@ clearances the generator used.
 
 ---
 
-## Rebuilding
+## Validating and rebuilding
 
 ```powershell
 pwsh -File hardware\8ch\run_all.ps1
 ```
 
-Or step by step, from this directory:
+The default validates a fresh snapshot under `production/` without changing the
+source hardware, including zone refill on the copy before DRC. Errors stop the
+pipeline; warnings remain visible. Full regeneration requires `-Regenerate` and
+is not authorized during the owner's REV A0 freeze. The commands below are the
+historical regeneration sequence, for a later authorized revision:
 
 ```bash
 python populate_schematic.py --labels-only
@@ -105,7 +111,8 @@ kicad-cli pcb drc --output drc-report.rpt --severity-error --severity-warning --
 ```
 
 `generate_board.py` and `route.py` need KiCad 10's bundled Python (`pcbnew`).
-Every step is idempotent; re-running the whole sequence reproduces the board.
+Re-running regeneration discards the existing routing. Snapshot validation
+checks the current saved board without relying on regeneration reproducibility.
 
 ### External tools
 
@@ -190,13 +197,14 @@ open and none of them can be closed by DRC, ERC, or a 3D render:
   a mains-rated separation.
 - **The dry contact is marked LOW-VOLTAGE LOAD ONLY** and its clearances are
   chosen to match that, not a mains rating.
-- **No noise, EMC or real-sensor testing has been done.** Cables may run 50 m
-  in a motor/VFD environment. Layout symmetry and a plane pair improve the odds;
+- **No noise, EMC or real-sensor testing has been done.** Cables run about 50 m
+  from engine cylinder bodies to a separate panel, with no VFD in the installation.
+  Layout symmetry and a plane pair improve the odds;
   they do not substitute for measurement.
 - **The unregulated isolated DC-DC needs review.** IA0505S is an unregulated
   ±5 V module. At the ~12 % load this island draws, its output can sit well
-  above 5 V, and AP2112K's recommended input maximum is 6 V. Either confirm the
-  real output voltage on hardware or move to a regulated isolated module.
+  above 5 V. The AP2112K was replaced by LP2985-3.3 with a higher input rating
+  (decision 0002), but the converter's real output still needs measurement.
 - **DRDY and FAULT are not brought to the MCU.** Both isolators are fully
   allocated (ISO7760: 6/6 forward; ISO7761: 5 forward + 1 reverse for MISO), so
   crossing sixteen more signals needs a second isolator plus fault-OR logic.
@@ -206,6 +214,8 @@ open and none of them can be closed by DRC, ERC, or a 3D render:
   generated as symbols plus net labels with no wires, on one sheet. It produces
   a correct netlist and it passes ERC, but no engineer can review or sign it in
   that form. Redrawing it as wired hierarchical sheets is outstanding work.
-- **Passives have no MPNs.** `BOM.csv` carries value, tolerance, dielectric and
-  voltage, which is enough to select parts, but not distributor part numbers.
-  Sourcing has to happen before an assembly order.
+- **The passive catalog exists, but the filter specification still conflicts.**
+  `passives_catalog.json` records MPNs and sourcing snapshots. The eight 100 nF
+  differential capacitors still say C0G in the schematic while the catalog
+  selects X7R (`I-035`). Resolve that discrepancy before ordering; stock and
+  price snapshots are not a live availability guarantee.

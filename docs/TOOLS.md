@@ -20,13 +20,29 @@ working, fix it here rather than working around it in a session.
 Freerouting and the JRE are **not** in the repository. Override the paths with
 `FREEROUTING_JAR` and `FREEROUTING_JAVA` if they move.
 
-## Hardware — full rebuild
+## Hardware — source-preserving validation
 
 ```powershell
 pwsh -File hardware\8ch\run_all.ps1
 ```
 
-Step by step, from `hardware/8ch/`:
+This is now the default: copy the four KiCad source files into a fresh
+`production/validation-*` directory, run ERC and the A0 netlist contract, then
+refill and DRC the copy. The source hashes must remain unchanged. Errors,
+unconnected pads and parity failures stop the run; warnings are reported.
+KiCad ERC exit 5 can mean warnings, so its report is parsed before accepting it.
+
+```powershell
+pwsh -File hardware\8ch\test_gates.ps1  # injected native/report failures
+```
+
+## Hardware — regeneration (frozen on REV A0)
+
+The explicit `run_all.ps1 -Regenerate` path checks every native exit and report,
+and refuses while KiCad editors are open. It is **not authorized during the
+owner's REV A0 freeze**. The source-preserving default was tested this session;
+regeneration was deliberately not run. The historical individual commands below
+remain useful after an approved revision change, from `hardware/8ch/`:
 
 ```powershell
 $py  = 'C:\Program Files\KiCad\10.0\bin\python.exe'

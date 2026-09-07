@@ -17,6 +17,8 @@ APP_LEGACY_SOURCES  := $(call read_list,app_legacy)
 SENSOR_31856_SOURCES := $(call read_list,sensor_max31856)
 SENSOR_6675_SOURCES  := $(call read_list,sensor_max6675)
 HOST_TEST_SOURCES   := $(call read_list,host_test)
+HOST_TEST_APP_SOURCES    := $(call read_list,host_test_app)
+HOST_TEST_DRIVER_SOURCES := $(call read_list,host_test_driver)
 
 CFLAGS := -std=c11 -Os -Wall -Wextra -Werror -mmcu=$(MCU) -DF_CPU=$(F_CPU) \
 	-Iinclude -ffunction-sections -fdata-sections -MMD -MP
@@ -48,11 +50,20 @@ ALL_OBJECTS := $(sort $(BASE_OBJECTS) $(APP_8CH_OBJECTS) \
 DEPENDENCIES := $(ALL_OBJECTS:.o=.d)
 
 TEST_TARGET := build/test_app_logic
+TEST_APP_TARGET := build/test_app_integration
+TEST_DRIVER_TARGET := build/test_bank_driver
+HOST_MOCKS := tests/host_mocks
 
-.PHONY: all clean size test
+.PHONY: all clean size test check-sources
 
-all: $(TARGET_8CH).hex $(TARGET_8CH_SIM).hex \
+all: check-sources $(TARGET_8CH).hex $(TARGET_8CH_SIM).hex \
 	$(TARGET_LEGACY_31856).hex $(TARGET_LEGACY_6675).hex size
+
+# Fails if a source list names a missing file, or a src/*.c file is in no
+# list at all - the second half is what would have caught I-030 (I-022,
+# I-042).
+check-sources:
+	python3 sources/check_lists.py
 
 build/%.o: src/%.c
 	@mkdir -p $(dir $@)
@@ -87,8 +98,23 @@ $(TEST_TARGET): tests/test_app_logic.c $(addprefix src/,$(HOST_TEST_SOURCES))
 	@mkdir -p $(dir $@)
 	$(HOST_CC) -std=c11 -Wall -Wextra -Werror -Iinclude $^ -o $@
 
-test: $(TEST_TARGET)
+# Runs main_8ch.c itself against HAL doubles; the three AVR headers it
+# includes resolve to tests/host_mocks/ instead (I-042).
+$(TEST_APP_TARGET): tests/test_app_integration.c \
+	$(addprefix src/,$(HOST_TEST_APP_SOURCES))
+	@mkdir -p $(dir $@)
+	$(HOST_CC) -std=c11 -Wall -Wextra -Werror -I$(HOST_MOCKS) -Iinclude $^ -o $@
+
+# Runs the MAX31856 bank driver against a register model (I-042).
+$(TEST_DRIVER_TARGET): tests/test_bank_driver.c \
+	$(addprefix src/,$(HOST_TEST_DRIVER_SOURCES))
+	@mkdir -p $(dir $@)
+	$(HOST_CC) -std=c11 -Wall -Wextra -Werror -Iinclude $^ -o $@
+
+test: check-sources $(TEST_TARGET) $(TEST_APP_TARGET) $(TEST_DRIVER_TARGET)
 	./$(TEST_TARGET)
+	./$(TEST_APP_TARGET)
+	./$(TEST_DRIVER_TARGET)
 
 clean:
 	rm -rf build
