@@ -1,0 +1,4 @@
+hal/alarm_output.c
+hal/tc_decode.c
+app/app_logic.c
+app/main.c

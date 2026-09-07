@@ -48,6 +48,25 @@ const mcal_gpio_pin_t BOARD_ALARM_OUTPUT = {
     .bit = PB3,
 };
 
+/* Same physical pin as BOARD_ALARM_OUTPUT, under the name the eight-channel
+   board actually uses.  The two are never linked into the same image; see
+   hal/run_permit.h for why the alarm name must not travel to this board. */
+const mcal_gpio_pin_t BOARD_RUN_PERMIT = {
+    .port = &PORTB,
+    .ddr = &DDRB,
+    .pin_register = &PINB,
+    .bit = PB3,
+};
+
+/* Divider from the Q1 drain (RELAY_LOW, 0 V or +24 V) through R53/R54.
+   PC2 is JTAG TCK until JTAGEN is unprogrammed - see firmware/fuses.md. */
+const mcal_gpio_pin_t BOARD_RUN_PERMIT_SENSE = {
+    .port = &PORTC,
+    .ddr = &DDRC,
+    .pin_register = &PINC,
+    .bit = PC2,
+};
+
 const mcal_gpio_pin_t BOARD_BUTTON_NEXT = {
     .port = &PORTD, .ddr = &DDRD, .pin_register = &PIND, .bit = PD2,
 };

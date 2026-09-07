@@ -1,0 +1,28 @@
+(kicad_sch (version 20211014) (generator kiutils)
+
+  (uuid 4c2de210-aa72-4022-9f01-7d4cfddad532)
+
+  (paper "A4")
+  (lib_symbols)
+
+  (sheet (at 30.48 30.48) (size 50.8 25.4)
+    (stroke (width 0))
+    (fill (color 0 0 0 0))
+    (uuid 10d98570-ec49-4268-aa4f-069f76871284)
+    (property "Sheetname" "Child" (at 33.02 27.94 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Sheetfile" "child.kicad_sch" (at 33.02 58.42 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (instances
+      (project "thermocouple_8ch"
+        (path "/10d98570-ec49-4268-aa4f-069f76871284" (page "2"))
+      )
+    )
+  )
+
+  (sheet_instances
+    (path "/" (page "1"))
+  )
+)

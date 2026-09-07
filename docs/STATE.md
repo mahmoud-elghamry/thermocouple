@@ -11,15 +11,20 @@
 
 ## Last session
 
-Closed `I-001`. The nine open connections were three separate causes, not nine
-routing problems: `add_plane_stitching` filtered on `+3V3_SENS` and skipped five
-of the six plane nets, `finish()` poured the outer grounds after the stitching
-pass so their isolated pieces did not exist yet, and `C56`/`C57`/`R33` sat in a
-1 mm strip. Added `stitch_pour_islands`, reordered the finishing steps, added a
-0.6 mm via fallback, moved that row 1 mm. `docs/decisions/0007`.
+Full review across structure, firmware, schematic and board. The hardware
+record held up: the MCU pin map in the netlist matches `mcal/board.c` exactly,
+the energised-to-run chain is right (`R30` gate stopper, `R31` 100k pull-down,
+`Q1` source on `GND_CTRL`, `D3` flyback), the eight CS lines carry 10k
+fail-safe pull-ups on the isolated side, and the input filters keep the
+10:1 differential-to-common-mode capacitor ratio that CMRR depends on.
 
-**Fabrication output is generated** in `production/8ch/` — eleven Gerber layers,
-Excellon drill and map, `.gbrjob`, placement CSV and an IPC-D-356 netlist.
+Three findings were not on the record. `I-030` (blocker): the 8-channel
+application links the **MAX6675** bank driver, so the MAX31856 board has no
+firmware at all. `I-031`: the two apps drive `PB3` with opposite polarity and
+both images are tracked. `I-032`: no crystal, and at the factory `CKSEL`
+default the 8 MHz build runs at 1 MHz, which turns the 500 ms scan into 4 s.
+Also `I-033` (root `README.md` still names the superseded board as final) and
+`I-034` (the ERC report predates the last board run).
 
 ## Where the work is
 
@@ -48,24 +53,20 @@ completeness. Zero courtyard overlaps, zero parts off the board edge.
 
 ## Next actions, in order
 
-1. **`I-028`** — decide where the 24 V comes from. A panel supply needs no
+1. **`I-030`** — write the MAX31856 bank driver. Until it exists the board
+   cannot be brought up at all, and `I-011`/`I-012`/`I-014` are fixes to a
+   driver that does not target this hardware.
+2. **`I-028`** — decide where the 24 V comes from. A panel supply needs no
    change; the engine's own battery needs a wider-input regulator. It is the
    only open item that can still change the circuit.
-2. **`I-002`** — redraw the schematic as a real drawing: 171 symbols, 543
+3. **`I-002`** — redraw the schematic as a real drawing: 171 symbols, 543
    labels, **zero wires**. Independent of the layer count.
-3. **`I-012`** — store the setpoint in EEPROM. The user states plainly that it
+4. **`I-012`** — store the setpoint in EEPROM. The user states plainly that it
    must be operator-settable and survive a power cycle; today any reset returns
    it to 200 degC.
-4. **`I-025`** — 2-layer versus ordering 4-layer abroad. Layout only.
-5. **`I-014`** — the rest of the firmware safety items.
-
-## Corrected on 2026-09-07
-
-Two facts in the record were wrong, both from assuming instead of asking:
-there is **no VFD** (it is an engine), and the eight sensors are on **eight
-different cylinders of one engine**, not one cylinder. The board lives in its
-own panel 50 m away, so vibration and ambient heat are not constraints and the
-socketed MCU is fine. `docs/decisions/0009`.
+5. **`I-025`** — 2-layer versus ordering 4-layer abroad. Layout only.
+6. **`I-032`** — fix the clock: fuse map first, crystal decision second.
+7. **`I-014`** — the rest of the firmware safety items.
 
 ## Careful
 

@@ -1,4 +1,5 @@
 #include "hal/temperature_sensor.h"
+#include "hal/tc_decode.h"
 #include "mcal/board.h"
 #include "mcal/gpio.h"
 #include "mcal/spi.h"
@@ -20,15 +21,6 @@
 #define CR1_TYPE_MASK   0x0Fu
 #define CR0_STOP_CONFIG (CR0_OCFAULT_10MS | CR0_FILTER_50HZ)
 #define CR0_RUN_CONFIG  (CR0_CMODE | CR0_STOP_CONFIG)
-
-#define FAULT_OPEN     0x01u
-#define FAULT_OVUV     0x02u
-#define FAULT_TCLOW    0x04u
-#define FAULT_TCHIGH   0x08u
-#define FAULT_CJLOW    0x10u
-#define FAULT_CJHIGH   0x20u
-#define FAULT_TCRANGE  0x40u
-#define FAULT_CJRANGE  0x80u
 
 static void max_select(void)
 {
@@ -79,41 +71,6 @@ static bool max_read_sample_bytes(uint8_t data[4])
     return ok;
 }
 
-static int16_t max_decode_temperature_x10(const uint8_t data[3])
-{
-    int32_t raw;
-
-    raw = (int32_t)data[0] << 16;
-    raw |= (int32_t)data[1] << 8;
-    raw |= (int32_t)data[2];
-
-    if ((raw & 0x00800000L) != 0) {
-        raw |= (int32_t)0xFF000000L;
-    }
-    raw >>= 5;
-    return (int16_t)((raw * 10L) / 128L);
-}
-
-static uint8_t max_fault_flags(uint8_t fault)
-{
-    uint8_t flags = HAL_TEMPERATURE_FAULT_NONE;
-
-    if ((fault & FAULT_OPEN) != 0u) {
-        flags |= HAL_TEMPERATURE_FAULT_OPEN;
-    }
-    if ((fault & FAULT_OVUV) != 0u) {
-        flags |= HAL_TEMPERATURE_FAULT_VOLTAGE;
-    }
-    if ((fault & (FAULT_TCRANGE | FAULT_CJRANGE)) != 0u) {
-        flags |= HAL_TEMPERATURE_FAULT_RANGE;
-    }
-    if ((fault & (FAULT_TCHIGH | FAULT_CJHIGH |
-                  FAULT_TCLOW | FAULT_CJLOW)) != 0u) {
-        flags |= HAL_TEMPERATURE_FAULT_THRESHOLD;
-    }
-    return flags;
-}
-
 bool hal_temperature_sensor_init(void)
 {
     uint8_t cr0;
@@ -152,8 +109,8 @@ hal_temperature_sample_t hal_temperature_sensor_read(void)
         return sample;
     }
 
-    sample.temperature_x10 = max_decode_temperature_x10(data);
-    sample.faults = max_fault_flags(data[3]);
+    sample.temperature_x10 = tc_max31856_decode_x10(data);
+    sample.faults = tc_max31856_fault_flags(data[3]);
     sample.valid = sample.faults == HAL_TEMPERATURE_FAULT_NONE;
     return sample;
 }

@@ -1,3 +1,8 @@
+# Firmware build and host tests.
+#
+# The source lists come from sources/*.txt, which the Makefile reads as well.
+# Neither build system carries its own copy of the list any more (I-022).
+
 $ErrorActionPreference = 'Stop'
 
 $avrRoot = 'C:\Program Files (x86)\Labcenter Electronics\Proteus 8 Professional\Tools\ARDUINO\hardware\tools\avr'
@@ -6,11 +11,12 @@ $objcopy = Join-Path $avrRoot 'bin\avr-objcopy.exe'
 $size = Join-Path $avrRoot 'bin\avr-size.exe'
 $include = Join-Path $PSScriptRoot 'include'
 $build = Join-Path $PSScriptRoot 'build'
+$sources = Join-Path $PSScriptRoot 'sources'
 
 New-Item -ItemType Directory -Path $build -Force | Out-Null
 
 # Remove only generated firmware products, never source files.
-Get-ChildItem -LiteralPath $build -File | Where-Object {
+Get-ChildItem -LiteralPath $build -File -Recurse | Where-Object {
     $_.Extension -in @('.o', '.elf', '.hex')
 } | Remove-Item -Force
 
@@ -19,81 +25,74 @@ $commonFlags = @(
     '-DF_CPU=8000000UL', "-I$include", '-ffunction-sections', '-fdata-sections'
 )
 
-$baseSources = [ordered]@{
-    'mcal_gpio'       = 'mcal\gpio.c'
-    'mcal_spi'        = 'mcal\spi.c'
-    'mcal_board'      = 'mcal\board.c'
-    'hal_lcd'         = 'hal\lcd.c'
-    'hal_alarm'       = 'hal\alarm_output.c'
-}
-$legacyAppSources = [ordered]@{
-    'app_logic'       = 'app\app_logic.c'
-    'app_main'        = 'app\main.c'
-}
-$eightChannelSources = [ordered]@{
-    'hal_buttons'     = 'hal\buttons.c'
-    'hal_max6675_8ch' = 'hal\temperature_max6675_bank.c'
-    'app_protection'  = 'app\protection.c'
-    'app_main_8ch'    = 'app\main_8ch.c'
+function Get-SourceList([string]$name) {
+    $path = Join-Path $sources "$name.txt"
+    if (-not (Test-Path -LiteralPath $path)) { throw "Missing source list: $path" }
+    Get-Content -LiteralPath $path | ForEach-Object { ($_ -replace '#.*', '').Trim() } |
+        Where-Object { $_ -ne '' }
 }
 
-function Compile-Source([string]$objectName, [string]$relativeSource) {
-    $sourcePath = Join-Path $PSScriptRoot (Join-Path 'src' $relativeSource)
-    $objectPath = Join-Path $build "$objectName.o"
-    & $gcc @commonFlags '-c' $sourcePath '-o' $objectPath
-    if ($LASTEXITCODE -ne 0) { throw "Compilation failed: $relativeSource" }
-    return $objectPath
+# $variant keeps two object files apart when the same source is compiled twice
+# with different flags (the Proteus SPI mode).
+function Compile-List([string[]]$relativeSources, [string[]]$extraFlags, [string]$variant) {
+    $objects = @()
+    foreach ($relative in $relativeSources) {
+        $sourcePath = Join-Path $PSScriptRoot (Join-Path 'src' $relative)
+        $objectName = ($relative -replace '[\\/]', '_') -replace '\.c$', ''
+        if ($variant) { $objectName = "$objectName.$variant" }
+        $objectPath = Join-Path $build "$objectName.o"
+        & $gcc @commonFlags @extraFlags '-c' $sourcePath '-o' $objectPath
+        if ($LASTEXITCODE -ne 0) { throw "Compilation failed: $relative" }
+        $objects += $objectPath
+    }
+    return $objects
 }
 
-$baseObjects = foreach ($entry in $baseSources.GetEnumerator()) {
-    Compile-Source $entry.Key $entry.Value
+$baseObjects       = Compile-List (Get-SourceList 'base')             @() ''
+$app8chObjects     = Compile-List (Get-SourceList 'app_8ch')          @() ''
+$bank31856Objects  = Compile-List (Get-SourceList 'bank_max31856')    @() ''
+$appLegacyObjects  = Compile-List (Get-SourceList 'app_legacy')       @() ''
+$sensor31856Object = Compile-List (Get-SourceList 'sensor_max31856')  @() ''
+$sensor6675Object  = Compile-List (Get-SourceList 'sensor_max6675')   @() ''
+$bankSimObjects    = Compile-List (Get-SourceList 'bank_max6675') `
+    @('-DHAL_MAX6675_SPI_MODE=MCAL_SPI_MODE_1') 'sim'
+
+function Link-Image([string]$name, [string[]]$objects) {
+    $elf = Join-Path $build "$name.elf"
+    $hex = Join-Path $build "$name.hex"
+    & $gcc '-mmcu=atmega32' '-Wl,--gc-sections' @objects '-o' $elf
+    if ($LASTEXITCODE -ne 0) { throw "Linking failed: $name" }
+    & $objcopy '-O' 'ihex' '-R' '.eeprom' $elf $hex
+    if ($LASTEXITCODE -ne 0) { throw "HEX generation failed: $name" }
+    return $elf
 }
-$legacyAppObjects = foreach ($entry in $legacyAppSources.GetEnumerator()) {
-    Compile-Source $entry.Key $entry.Value
+
+$images = [ordered]@{
+    'thermo_8ch_max31856'   = $baseObjects + $app8chObjects + $bank31856Objects
+    'thermo_8ch_max6675_sim' = $baseObjects + $app8chObjects + $bankSimObjects
+    'legacy_1ch_max31856'   = $baseObjects + $appLegacyObjects + $sensor31856Object
+    'legacy_1ch_max6675'    = $baseObjects + $appLegacyObjects + $sensor6675Object
 }
-$eightChannelObjects = foreach ($entry in $eightChannelSources.GetEnumerator()) {
-    Compile-Source $entry.Key $entry.Value
+
+$builtElfs = [ordered]@{}
+foreach ($image in $images.GetEnumerator()) {
+    $builtElfs[$image.Key] = Link-Image $image.Key $image.Value
 }
-$max31856Object = Compile-Source 'hal_temperature_max31856' 'hal\temperature_max31856.c'
-$max6675Object = Compile-Source 'hal_temperature_max6675' 'hal\temperature_max6675.c'
 
-$max31856Elf = Join-Path $build 'thermocouple_meter_max31856.elf'
-$max31856Hex = Join-Path $build 'thermocouple_meter_max31856.hex'
-$max6675Elf = Join-Path $build 'thermocouple_meter_max6675.elf'
-$max6675Hex = Join-Path $build 'thermocouple_meter_max6675.hex'
-$max6675EightChannelElf = Join-Path $build 'thermocouple_meter_max6675_8ch.elf'
-$max6675EightChannelHex = Join-Path $build 'thermocouple_meter_max6675_8ch.hex'
+foreach ($image in $builtElfs.GetEnumerator()) {
+    Write-Host ''
+    Write-Host "$($image.Key):"
+    & $size '-C' '--mcu=atmega32' $image.Value
+    if ($LASTEXITCODE -ne 0) { throw "Size report failed: $($image.Key)" }
+}
 
-& $gcc '-mmcu=atmega32' '-Wl,--gc-sections' @baseObjects @legacyAppObjects $max31856Object '-o' $max31856Elf
-if ($LASTEXITCODE -ne 0) { throw 'MAX31856 linking failed.' }
-& $objcopy '-O' 'ihex' '-R' '.eeprom' $max31856Elf $max31856Hex
-if ($LASTEXITCODE -ne 0) { throw 'MAX31856 HEX generation failed.' }
-
-& $gcc '-mmcu=atmega32' '-Wl,--gc-sections' @baseObjects @legacyAppObjects $max6675Object '-o' $max6675Elf
-if ($LASTEXITCODE -ne 0) { throw 'MAX6675 linking failed.' }
-& $objcopy '-O' 'ihex' '-R' '.eeprom' $max6675Elf $max6675Hex
-if ($LASTEXITCODE -ne 0) { throw 'MAX6675 HEX generation failed.' }
-
-& $gcc '-mmcu=atmega32' '-Wl,--gc-sections' @baseObjects @eightChannelObjects '-o' $max6675EightChannelElf
-if ($LASTEXITCODE -ne 0) { throw '8-channel MAX6675 linking failed.' }
-& $objcopy '-O' 'ihex' '-R' '.eeprom' $max6675EightChannelElf $max6675EightChannelHex
-if ($LASTEXITCODE -ne 0) { throw '8-channel MAX6675 HEX generation failed.' }
-
-Write-Host 'MAX31856 image:'
-& $size '-C' '--mcu=atmega32' $max31856Elf
-if ($LASTEXITCODE -ne 0) { throw 'MAX31856 size report failed.' }
-Write-Host 'MAX6675 image:'
-& $size '-C' '--mcu=atmega32' $max6675Elf
-if ($LASTEXITCODE -ne 0) { throw 'MAX6675 size report failed.' }
-Write-Host '8-channel MAX6675 image:'
-& $size '-C' '--mcu=atmega32' $max6675EightChannelElf
-if ($LASTEXITCODE -ne 0) { throw '8-channel MAX6675 size report failed.' }
-
+# --- Host tests ---------------------------------------------------------------
 $hostBuild = Join-Path $build 'host_tests'
 $testExe = Join-Path $hostBuild 'test_app_logic.exe'
 $testSource = Join-Path $PSScriptRoot 'tests\test_app_logic.c'
-$appLogicSource = Join-Path $PSScriptRoot 'src\app\app_logic.c'
-$protectionSource = Join-Path $PSScriptRoot 'src\app\protection.c'
+$hostSources = Get-SourceList 'host_test' | ForEach-Object {
+    Join-Path $PSScriptRoot (Join-Path 'src' $_)
+}
 $vswhere = 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe'
 if (-not (Test-Path -LiteralPath $vswhere)) {
     throw 'Visual Studio Build Tools not found; cannot run host logic tests.'
@@ -104,13 +103,15 @@ if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($vsInstall)) {
 }
 $vsDevCmd = Join-Path $vsInstall 'Common7\Tools\VsDevCmd.bat'
 New-Item -ItemType Directory -Path $hostBuild -Force | Out-Null
-$compileCommand = "call `"$vsDevCmd`" -arch=x64 -no_logo && cl /nologo /std:c11 /W4 /WX /I`"$include`" `"$testSource`" `"$appLogicSource`" `"$protectionSource`" /Fe:`"$testExe`" /Fo:$hostBuild\"
+$quotedSources = ($hostSources | ForEach-Object { "`"$_`"" }) -join ' '
+$compileCommand = "call `"$vsDevCmd`" -arch=x64 -no_logo && cl /nologo /std:c11 /W4 /WX /I`"$include`" `"$testSource`" $quotedSources /Fe:`"$testExe`" /Fo:$hostBuild\"
 & $env:ComSpec /d /s /c $compileCommand
 if ($LASTEXITCODE -ne 0) { throw 'Application logic test compilation failed.' }
 & $testExe
 if ($LASTEXITCODE -ne 0) { throw "Application logic tests failed: $LASTEXITCODE" }
-Write-Host 'Application logic tests: PASS'
 
-Write-Host "Built: $max31856Hex"
-Write-Host "Built: $max6675Hex"
-Write-Host "Built: $max6675EightChannelHex"
+Write-Host ''
+Write-Host 'Application logic tests: PASS'
+foreach ($image in $builtElfs.Keys) {
+    Write-Host "Built: $(Join-Path $build "$image.hex")"
+}
