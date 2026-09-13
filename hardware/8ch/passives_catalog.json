@@ -98,32 +98,6 @@
    "stock": 1778254,
    "unit_price_usd": 0.0017
   },
-  "100n C0G 50V": {
-   "alternates": [
-    {
-     "lcsc": "C28233",
-     "mpn": "CL21B104KCFNNNE"
-    },
-    {
-     "lcsc": "C1711",
-     "mpn": "CL21B104KBCNNNC"
-    }
-   ],
-   "footprint": "Capacitor_SMD:C_0805_2012Metric",
-   "jlcpcb_basic": true,
-   "lcsc": "C49678",
-   "measured": {
-    "power_watts": null,
-    "temperature_coefficient": "X7R",
-    "tolerance_fraction": 0.1,
-    "voltage_rating": 50
-   },
-   "mpn": "CC0805KRX7R9BB104",
-   "stock": 15768009,
-   "substitution": "C0G requested, X7R supplied: 100 nF C0G does not exist in 0805 (0 in stock, any maker; available from 1206 up, which the frozen REV A0 board cannot take).  Acceptable here because the capacitor sits across T+/T- with essentially no DC bias, so X7R's voltage coefficient does not apply, and the unit is in a panel 50 m from the engine, so X7R's piezoelectric response has nothing to excite it (docs/decisions/0009).",
-   "unit_price_usd": 0.004071,
-   "why_it_matters": "TC differential filter.  Schematic Value still says C0G - see I-035"
-  },
   "100n X7R": {
    "alternates": [
     {
@@ -147,6 +121,32 @@
    "mpn": "CC0805KRX7R9BB104",
    "stock": 15768009,
    "unit_price_usd": 0.004071
+  },
+  "100n X7R 50V": {
+   "alternates": [
+    {
+     "lcsc": "C28233",
+     "mpn": "CL21B104KCFNNNE"
+    },
+    {
+     "lcsc": "C1711",
+     "mpn": "CL21B104KBCNNNC"
+    }
+   ],
+   "footprint": "Capacitor_SMD:C_0805_2012Metric",
+   "jlcpcb_basic": true,
+   "lcsc": "C49678",
+   "measured": {
+    "power_watts": null,
+    "temperature_coefficient": "X7R",
+    "tolerance_fraction": 0.1,
+    "voltage_rating": 50
+   },
+   "mpn": "CC0805KRX7R9BB104",
+   "stock": 15768009,
+   "substitution": "Was specified C0G until 2026-09-08: 100 nF C0G does not exist in 0805 (0 in stock, any maker; available from 1206 up, which the frozen REV A0 board cannot take).  Acceptable here because the capacitor sits across T+/T- with essentially no DC bias, so X7R's voltage coefficient does not apply, and the unit is in a panel 50 m from the engine, so X7R's piezoelectric response has nothing to excite it (docs/decisions/0009).",
+   "unit_price_usd": 0.004071,
+   "why_it_matters": "TC differential filter - dielectric stability is part of the measurement"
   },
   "10k": {
    "alternates": [
@@ -469,6 +469,31 @@
    "mpn": "RK73H2ATTD4701F",
    "stock": 19908,
    "unit_price_usd": 0.006929
+  },
+  "4.7u X7R 16V": {
+   "alternates": [
+    {
+     "lcsc": "C2991173",
+     "mpn": "0805B475K500NT"
+    },
+    {
+     "lcsc": "C107365",
+     "mpn": "CL21B475KOFNNNE"
+    }
+   ],
+   "footprint": "Capacitor_SMD:C_0805_2012Metric",
+   "jlcpcb_basic": false,
+   "lcsc": "C6119943",
+   "measured": {
+    "power_watts": null,
+    "temperature_coefficient": "X7R",
+    "tolerance_fraction": 0.1,
+    "voltage_rating": 35
+   },
+   "mpn": "CGA0805X7R475K350MT",
+   "stock": 1004977,
+   "unit_price_usd": 0.025,
+   "why_it_matters": "LDO output bulk for the whole sensor island"
   },
   "47u 50V": {
    "footprint": "Capacitor_THT:CP_Radial_D6.3mm_P2.50mm",

@@ -73,13 +73,13 @@ REQUIREMENTS = {
     # The schematic asks for C0G here and NO SUCH PART EXISTS in 0805 - the
     # dielectric's permittivity is too low to reach 100 nF in that size.  It
     # starts at 1206, which the frozen board has no footprint for.  X7R is
-    # accepted instead; docs/decisions/0011 has the reasoning and I-035 tracks
-    # correcting the Value text in the schematic.
-    "100n C0G 50V": dict(kind="c", footprint=C0805, farads=100e-9,
+    # accepted instead and the schematic Value now says so.
+    # docs/decisions/0011 has the reasoning; I-035 is closed.
+    "100n X7R 50V": dict(kind="c", footprint=C0805, farads=100e-9,
                          volt=50, dielectric="X7R", tol=0.1,
-                         critical="TC differential filter.  Schematic Value "
-                                  "still says C0G - see I-035",
-                         substitution="C0G requested, X7R supplied: 100 nF C0G "
+                         critical="TC differential filter - dielectric stability is "
+                                  "part of the measurement",
+                         substitution="Was specified C0G until 2026-09-08: 100 nF C0G "
                                       "does not exist in 0805 (0 in stock, any "
                                       "maker; available from 1206 up, which "
                                       "the frozen REV A0 board cannot take).  "
@@ -99,6 +99,14 @@ REQUIREMENTS = {
                          dielectric="X7R"),
     "1u X7R":       dict(kind="c", footprint=C0805, farads=1e-6, volt=16,
                          dielectric="X7R"),
+    # C48, the LP2985-3.3 output bypass feeding eight MAX31856 and two
+    # isolators.  The generator has said 4.7 uF since f60e6d3 while the
+    # schematic still said 1 uF - the drift was only found on 2026-09-08 when
+    # --refresh-properties was finally run.  See I-044.
+    "4.7u X7R 16V": dict(kind="c", footprint=C0805, farads=4.7e-6, volt=16,
+                         dielectric="X7R",
+                         critical="LDO output bulk for the whole sensor "
+                                  "island"),
     "2.2u 50V X7R": dict(kind="c", footprint=C0805, farads=2.2e-6, volt=50,
                          dielectric="X7R"),
     "10u 10V":      dict(kind="c", footprint=C0805, farads=10e-6, volt=10),

@@ -7,20 +7,15 @@
 ## Last session
 
 Ran every gate end to end for the first time, to settle whether the review
-findings `I-036`..`I-042` were reported or actually fixed. They were fixed:
-all five are now closed against a passing run, not against a reading of the
-diff. No product code, schematic or PCB changed; REV A0 stays frozen
-(`docs/decisions/0010`).
+findings `I-036`..`I-042` were reported or actually fixed. They were fixed, and
+are closed against a passing run rather than a reading of the diff. The PCB was
+not touched; REV A0 stays frozen (`docs/decisions/0010`).
 
-Exercising the gates exposed three defects in the gates themselves, all fixed
-and recorded as `I-043`. The worst: `validate.ps1` printed *"Sources
-unchanged"* **without hashing anything**, because PowerShell 5.1 will not bind
-pipeline strings to `Get-FileHash`, so it compared two empty sets. A gate that
-claims a check it never ran is worse than one that fails.
+Exercising the gates exposed three defects in the gates themselves, fixed and
+recorded as `I-043` - the worst being `validate.ps1` reporting *"Sources
+unchanged"* without having hashed anything.
 
 ## Measured, not claimed
-
-Every row below is from a command run this session.
 
 | Check | Result |
 |---|---|
@@ -40,21 +35,25 @@ Proteus was not executed.
 
 ## Next actions
 
-1. **`I-035`** - the board cannot be ordered as specified: 100 nF C0G does not
-   exist in 0805. Needs the owner's yes, then the `Value` text corrected.
-2. **`I-002`** - redraw the schematic. Roughly 70 % of the remaining work.
-3. **`I-041`** Proteus HEX binding, **`I-040`** stale `hardware/8ch/README.md`.
-4. Close `I-005` (accepted in `0004`) and `I-008` (part never adopted).
-5. Owner decisions: **`I-028`** 24 V source, **`I-025`** layer sourcing.
-6. Bench, once a board exists: `I-004`, `I-003`, `I-013`.
+1. **`I-002`** - redraw the schematic. Roughly 70 % of the remaining work.
+2. **`I-044`** - a regenerate-then-compare step, so generator/schematic drift
+   stops being invisible. `board_provenance.py` covers half of this now.
+3. Owner decisions: **`I-028`** 24 V source, **`I-025`** layer sourcing.
+4. Bench, once a board exists: `I-004`, `I-003`, `I-013`.
+
+## Tooling added 2026-09-13
+
+KiCad MCP (`Seeed-Studio/kicad-mcp-server`), wired into `.mcp.json` and
+`~/.codex/config.toml`; its ~40 analysis tools replace the hand-written parsers
+that got connectivity wrong twice. `board_provenance.py` refuses a generator
+run that would destroy hand edits, or while KiCad holds the project open.
+Rules 8 and 9 now cover both modes - `docs/decisions/0012`, `docs/TOOLS.md`.
 
 ## Preserve for I-002 and hardware work
 
 A hierarchical redraw was attempted and reverted: the symbols lacked KiCad
-instance data, so the exported netlist held **zero components** while the seven
+instance data, so the netlist exported **zero components** while the seven
 sheets looked correct. The agent ran out of quota mid-run and left half-written
 files, which a `git add -A` swept into a commit. Verify every step with
 `netlist_fingerprint.py`; never alter the baseline to make it pass.
 `prune_dangling_labels()` assumes labels sit on pins - account for wired ones.
-One hardware writer at a time, close KiCad first, and no regeneration without
-revisiting the A0 freeze. Hand routing is erased: fixes go in `board/`.

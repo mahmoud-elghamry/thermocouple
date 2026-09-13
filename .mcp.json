@@ -1,0 +1,30 @@
+{
+  "_comment": [
+    "KiCad MCP server (Seeed-Studio/kicad-mcp-server), installed at",
+    "D:/tools/kicad-mcp-server and run under KiCad's own Python so pcbnew is",
+    "importable - that is what gives real track lengths, via counts and",
+    "signal-integrity figures instead of text-parsed guesses.",
+    "",
+    "It exposes 47 tools. Roughly 40 read, analyse, validate or export; seven",
+    "write (add_wire, add_label, add_global_label, add_hierarchical_label,",
+    "add_component_from_library, setup_pcb_layout, create_kicad_project).",
+    "",
+    "WHICH TOOLS ARE ALLOWED HERE DEPENDS ON THE MODE - see AGENTS.md rules 8",
+    "and 9 and docs/decisions/0012. The short version: the analysis tools are",
+    "always safe; the seven write tools edit files directly and therefore count",
+    "as hand edits, which generate_board.py and populate_schematic.py erase.",
+    "",
+    "Do not install a second KiCad MCP alongside this one. The IPC-API servers",
+    "were evaluated and rejected for KiCad 10: the IPC API cannot export or",
+    "plot before KiCad 11, so it can edit a board but cannot run the checks",
+    "that prove the edit was safe."
+  ],
+  "mcpServers": {
+    "kicad": {
+      "type": "stdio",
+      "command": "C:\\Program Files\\KiCad\\10.0\\bin\\python.exe",
+      "args": ["-m", "kicad_mcp_server"],
+      "cwd": "D:\\tools\\kicad-mcp-server"
+    }
+  }
+}

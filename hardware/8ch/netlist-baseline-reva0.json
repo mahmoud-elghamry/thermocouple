@@ -2,7 +2,7 @@
  "components": {
   "C1": {
    "footprint": "Capacitor_SMD:C_0805_2012Metric",
-   "value": "100n C0G 50V"
+   "value": "100n X7R 50V"
   },
   "C10": {
    "footprint": "Capacitor_SMD:C_0805_2012Metric",
@@ -10,7 +10,7 @@
   },
   "C11": {
    "footprint": "Capacitor_SMD:C_0805_2012Metric",
-   "value": "100n C0G 50V"
+   "value": "100n X7R 50V"
   },
   "C12": {
    "footprint": "Capacitor_SMD:C_0805_2012Metric",
@@ -30,7 +30,7 @@
   },
   "C16": {
    "footprint": "Capacitor_SMD:C_0805_2012Metric",
-   "value": "100n C0G 50V"
+   "value": "100n X7R 50V"
   },
   "C17": {
    "footprint": "Capacitor_SMD:C_0805_2012Metric",
@@ -54,7 +54,7 @@
   },
   "C21": {
    "footprint": "Capacitor_SMD:C_0805_2012Metric",
-   "value": "100n C0G 50V"
+   "value": "100n X7R 50V"
   },
   "C22": {
    "footprint": "Capacitor_SMD:C_0805_2012Metric",
@@ -74,7 +74,7 @@
   },
   "C26": {
    "footprint": "Capacitor_SMD:C_0805_2012Metric",
-   "value": "100n C0G 50V"
+   "value": "100n X7R 50V"
   },
   "C27": {
    "footprint": "Capacitor_SMD:C_0805_2012Metric",
@@ -98,7 +98,7 @@
   },
   "C31": {
    "footprint": "Capacitor_SMD:C_0805_2012Metric",
-   "value": "100n C0G 50V"
+   "value": "100n X7R 50V"
   },
   "C32": {
    "footprint": "Capacitor_SMD:C_0805_2012Metric",
@@ -118,7 +118,7 @@
   },
   "C36": {
    "footprint": "Capacitor_SMD:C_0805_2012Metric",
-   "value": "100n C0G 50V"
+   "value": "100n X7R 50V"
   },
   "C37": {
    "footprint": "Capacitor_SMD:C_0805_2012Metric",
@@ -170,7 +170,7 @@
   },
   "C48": {
    "footprint": "Capacitor_SMD:C_0805_2012Metric",
-   "value": "1u X7R"
+   "value": "4.7u X7R 16V"
   },
   "C49": {
    "footprint": "Capacitor_SMD:C_0805_2012Metric",
@@ -222,7 +222,7 @@
   },
   "C6": {
    "footprint": "Capacitor_SMD:C_0805_2012Metric",
-   "value": "100n C0G 50V"
+   "value": "100n X7R 50V"
   },
   "C7": {
    "footprint": "Capacitor_SMD:C_0805_2012Metric",
@@ -1533,5 +1533,9 @@
   "unconnected-(U9-~{FAULT}-Pad13)": [
    "U9.13"
   ]
- }
+ },
+ "note": "Connectivity contract of THERMO-8CH REV A0 - the board that was placed, routed, DRC-checked and had Gerbers made. 167 components, 154 nets, 555 pins. Compare with netlist_fingerprint.py; a match proves a schematic edit did not change the circuit, so the PCB does not need regenerating.",
+ "revised": [
+  "2026-09-08: nine component VALUES changed. No net and no pin changed, and kicad-cli DRC --schematic-parity reported 0 parity issues, so the routed board is untouched. (a) C1/C6/C11/C16/C21/C26/C31/C36 '100n C0G 50V' -> '100n X7R 50V': 100 nF C0G does not exist in 0805, so the board could not be ordered as specified. Owner's decision - docs/decisions/0011, I-035. (b) C48 '1u X7R' -> '4.7u X7R 16V': NOT an intended edit. The generator has held 4.7 uF since f60e6d3 while the schematic kept 1 uF; the drift surfaced only when --refresh-properties was finally run. See I-044."
+ ]
 }

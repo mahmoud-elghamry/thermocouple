@@ -66,16 +66,25 @@ placement files, renders and netlists belong in `production/` or are ignored.
    rejected and why.
 7. **No pointless complexity.** If a part or a feature can be removed and the
    unit still meets its goal, propose removing it.
-8. **One session on the hardware at a time.** `generate_board.py` rewrites the
-   whole board and `thermocouple_8ch.kicad_pcb` is a single file, so a second
-   agent - or an open KiCad window - silently overwrites the first. On
-   2026-09-07 the board was rewritten at 01:23 while a KiCad window held
-   unsaved edits from 00:59. Close KiCad before running anything that writes
-   the board. Working in `firmware/` or `docs/` at the same time is fine;
-   `hardware/` is not.
-9. **Nothing routed by hand survives.** `generate_board.py` clears every track,
-   via, zone and drawing. A fix drawn in KiCad is gone on the next run, so
-   fixes belong in `hardware/8ch/board/` or `route.py`.
+8. **One writer on the hardware at a time.** `thermocouple_8ch.kicad_pcb` is a
+   single file, so a second agent - or an open KiCad window - silently
+   overwrites the first. On 2026-09-07 the board was rewritten at 01:23 while a
+   KiCad window held unsaved edits from 00:59. Run
+   `python hardware/8ch/board_provenance.py --check` before writing the board;
+   it refuses while KiCad holds a `~*.lck`. **Do not close KiCad to get past
+   it** - it may be holding unsaved work. Ask the user. Working in `firmware/`
+   or `docs/` at the same time is fine.
+9. **Two ways to change the hardware. Know which one you are in.**
+   *Generative* - run the pipeline; it rebuilds everything from `board/` and the
+   part tables, and destroys whatever hand edits exist at that moment.
+   *Incremental* - edit the board or schematic directly, in KiCad or through the
+   KiCad MCP; this is the right mode for a surgical change on a frozen board,
+   because regenerating re-routes the whole PCB and hands you a different board
+   to re-verify. Neither is wrong. Running the generator **on top of** hand
+   edits is, and it fails silently. `board_provenance.py --check` is what tells
+   them apart - it exits non-zero when a generator run would lose work; after
+   any generator run, `--record`. Which mode suits which job:
+   `docs/decisions/0012`.
 10. **Keep source files small enough to edit safely.** A thousand-line generator
    edited by pattern-matching is how a fix landed in the wrong function twice on
    2026-09-06 and cost two full rebuild cycles.

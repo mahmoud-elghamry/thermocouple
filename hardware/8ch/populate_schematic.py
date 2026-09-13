@@ -162,7 +162,15 @@ for channel in range(1, 9):
              f"TC{channel}_FILT_P", f"CH{channel} balanced input series resistor")
     resistor(f"R{rbase + 1}", "100R 0.1%", (local_x, y + 3), f"TC{channel}_RAW_N",
              f"TC{channel}_FILT_N", f"CH{channel} balanced input series resistor")
-    capacitor(f"C{cbase}", "100n C0G 50V", (local_x + 9, y), f"TC{channel}_FILT_P",
+    # X7R, not the C0G this originally asked for: 100 nF C0G does not exist in
+    # 0805 - zero parts in stock from any maker, because the dielectric's
+    # permittivity is too low to reach 100 nF in that size. It starts at 1206,
+    # which the frozen REV A0 board has no footprint for. Acceptable here
+    # because the capacitor sits across T+/T- with no DC bias, so X7R's voltage
+    # coefficient does not apply, and the unit is in a panel 50 m from the
+    # engine, so nothing excites X7R's piezoelectric response.
+    # docs/decisions/0011, I-035.
+    capacitor(f"C{cbase}", "100n X7R 50V", (local_x + 9, y), f"TC{channel}_FILT_P",
               f"TC{channel}_FILT_N", f"CH{channel} differential EMI filter")
     capacitor(f"C{cbase + 1}", "10n C0G 50V", (local_x + 15, y - 3),
               f"TC{channel}_FILT_P", "GND_SENS", f"CH{channel} common-mode filter +")
