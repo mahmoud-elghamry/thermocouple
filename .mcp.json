@@ -1,47 +1,23 @@
 {
   "_comment": [
-    "ONE KiCad MCP: Konnect (mixelpixx/Konnect v0.11.1), a single Rust binary at",
-    "D:/tools/konnect. It covers both modes, which is why it is the only one:",
+    "No MCP servers are declared here on purpose.",
     "",
-    "  KiCad OPEN    talks to it over the official IPC API. Edits go through",
-    "                KiCad, so KiCad stays the only writer and every change lands",
-    "                in its undo stack (BeginCommit/EndCommit).",
-    "  KiCad CLOSED  reads and writes the files with its own S-expression engine.",
-    "                Verified 2026-09-14 with no KiCad running: get_pin_connections",
-    "                still returned R1.1 -> TC1_RAW_P (28.19, 19.0).",
+    "Konnect (the KiCad MCP) is registered at USER scope instead, in",
+    "~/.claude.json and ~/.codex/config.toml, so both agents find it in every",
+    "project. Declaring it here as well was a name collision and broke the",
+    "connection on 2026-09-14 - CONNECTION_CLOSED against a server that was",
+    "provably healthy.",
     "",
-    "226 tools in 21 toolsets, loaded on demand - list_toolboxes, then",
-    "load_toolset. Argument is 'schematic', not 'path'.",
+    "If you are setting this project up on another machine, you need Konnect",
+    "(D:/tools/konnect) registered for your agent, AND the environment variable",
     "",
-    "KICAD_API_SOCKET IS NOT OPTIONAL ON WINDOWS. Konnect issue #529: NNG makes",
-    "an ipc:// endpoint a NAMED PIPE, not a file. Verified here 2026-09-13 - the",
-    "pipe name is the path string under the pipe namespace while NO FILE exists",
-    "at that path. Auto-detection therefore fails, and a client that concludes",
-    "KiCad is not running falls back to editing the file - with KiCad holding it",
-    "open. That is the 2026-09-07 board loss, recreated. Setting this variable is",
-    "what prevents it. Confirm with open_project ('ipc_available') before writing",
-    "while KiCad is open.",
+    "    KICAD_API_SOCKET=ipc://<temp>/kicad/api.sock",
     "",
-    "KiCad's API server must stay enabled: kicad_common.json -> api.enable_server",
-    "= true. Turned on 2026-09-13; backup at kicad_common.json.bak-20260913.",
-    "",
-    "RETIRED 2026-09-14: Seeed-Studio/kicad-mcp-server. Its write tools appended",
-    "text with no parser (docs/decisions/0012) and its reads are covered by",
-    "Konnect and by the `kicad` skill's analysers. See 0013.",
-    "",
-    "Also registered at user scope in ~/.claude.json and in ~/.codex/config.toml,",
-    "so both agents find Konnect in any project. This project file is kept anyway",
-    "and is the one that matters: it travels with the repo, so a teammate who",
-    "clones thermo gets the server AND the socket warning above without having to",
-    "set anything up. The two definitions are identical."
+    "which is NOT optional on Windows: NNG makes an ipc:// endpoint a named",
+    "pipe, not a file, so socket auto-detection fails and a client can decide",
+    "KiCad is not running and edit the board file underneath it - the",
+    "2026-09-07 board loss, recreated. Full detail in docs/TOOLS.md and",
+    "docs/decisions/0013."
   ],
-  "mcpServers": {
-    "konnect": {
-      "type": "stdio",
-      "command": "D:\tools\\konnect\\konnect.exe",
-      "env": {
-        "KICAD_API_SOCKET": "ipc://C:/Users/malgh/AppData/Local/Temp/kicad/api.sock"
-      }
-    }
-  }
+  "mcpServers": {}
 }

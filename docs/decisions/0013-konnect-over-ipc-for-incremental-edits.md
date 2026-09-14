@@ -102,8 +102,11 @@ open. Reproduced here exactly:
     pipe exists:  \.\pipe\C:\Users\malgh\AppData\Local\Temp\kicad\api.sock
     file exists:  False
 
-`KICAD_API_SOCKET` is therefore set explicitly in `.mcp.json` and is **not
-optional**. With it set, `open_project` reported `"ipc_available": true`.
+`KICAD_API_SOCKET` is therefore set explicitly in the user-scope registration
+(`~/.claude.json`, `~/.codex/config.toml`) and is **not optional**. It was
+briefly declared in the project's `.mcp.json` as well; that is a name
+collision and broke the connection, so `.mcp.json` now declares no servers and
+carries the warning as a comment instead. With it set, `open_project` reported `"ipc_available": true`.
 Confirm IPC is live with a read call before any write; a write that silently
 took the file path is exactly the failure this project has already had once.
 

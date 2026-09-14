@@ -116,7 +116,7 @@ python hardware\8ch\board_provenance.py --record   # after a generator run
 
 ## One KiCad MCP, and what else there is
 
-`Konnect` is the only KiCad MCP wired up (`.mcp.json`). The Seeed server was
+`Konnect` is the only KiCad MCP wired up. The Seeed server was
 retired 2026-09-14 - `docs/decisions/0013`. Which layer does what:
 
 | Layer | Tool | When |
@@ -205,7 +205,12 @@ satisfy the skill.
 ## Konnect - editing through a running KiCad
 
 `docs/decisions/0013`. A single binary at `D:	ools\konnect\konnect.exe`,
-wired into `.mcp.json`. 226 tools in 21 toolsets, loaded on demand:
+registered at **user scope** - `~/.claude.json` for Claude Code,
+`~/.codex/config.toml` for Codex - so both find it in every project. The
+project's `.mcp.json` declares **no** servers: naming it in both places is a
+collision, and on 2026-09-14 it produced `CONNECTION_CLOSED` against a server
+that was provably healthy (starts in 0.01 s, survives idle, answers
+`initialize`). 226 tools in 21 toolsets, loaded on demand:
 `list_toolboxes`, then `load_toolset` for `sch_wiring`, `sch_analysis`,
 `sch_batch`, `sch_export`, `sch_components`. `unload_toolset` keeps context
 small.
@@ -216,9 +221,11 @@ small.
 2. **The editor you need is open**, not just the project manager. The handlers
    live in `_eeschema.dll` and `_pcbnew.dll`; with only `kicad.exe` running you
    get `AS_UNHANDLED` on every request.
-3. `KICAD_API_SOCKET` is set. It is in `.mcp.json` and it is **not optional on
-   Windows** - see the comment there. Without it a client can decide KiCad is
-   not running and start editing the file underneath it.
+3. `KICAD_API_SOCKET` is set. It lives in the user-scope registration and is
+   **not optional on Windows**: NNG makes an `ipc://` endpoint a named pipe,
+   not a file, so auto-detection fails and a client can decide KiCad is not
+   running and start editing the file underneath it. `.mcp.json` carries the
+   same warning for anyone setting the project up elsewhere.
 
 Confirm with `open_project`, which reports `ipc_available` and
 `kicad_ui_running`, **before** any write.
