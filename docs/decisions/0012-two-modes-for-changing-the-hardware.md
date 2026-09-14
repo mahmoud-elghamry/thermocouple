@@ -96,9 +96,30 @@ disk and do not care who wrote it.
 price. It is acceptable for a frozen revision whose Gerbers already exist; it
 would not be acceptable while the design was still moving.
 
-**The MCP's seven write tools are now permitted** - in incremental mode, on a
-board whose provenance has been recorded, with `netlist_fingerprint.py` run
-afterwards if the edit could have touched connectivity.
+**The MCP's seven write tools are NOT permitted.** They were, for a few hours
+on 2026-09-13, until the server's source was read. Correction below.
+
+## Correction, same day: the MCP is read-only here
+
+This decision originally allowed the KiCad MCP's seven write tools in
+incremental mode. That was written from the tool list, not from the code. The
+code says otherwise.
+
+`add_wire` in `schematic_editor.py` does this: read the file as text, build a
+`(wire (pts ...))` string, strip the final `)`, concatenate, write the file
+back. No parser, no schema, no check that the coordinates land on a pin, no ERC
+afterwards. `add_label` and the rest are the same shape. That is a blunter
+instrument than `populate_schematic.py`, which at least resolves pin positions
+from `kicad-tool sch query symbol --format json` before it places anything.
+
+So the incremental mode stands, but its tool is **KiCad itself, or our own
+scripts** - not the MCP. The MCP stays for what it is genuinely better at:
+reading the PCB through `pcbnew` (real track lengths, via counts, zone areas)
+instead of through hand-written regex, which got connectivity wrong twice on
+2026-09-07.
+
+The seven write tools are denied in `.claude/settings.json` so this is enforced
+rather than merely written down.
 
 ## Rejected
 

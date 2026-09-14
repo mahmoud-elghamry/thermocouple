@@ -77,14 +77,17 @@ placement files, renders and netlists belong in `production/` or are ignored.
 9. **Two ways to change the hardware. Know which one you are in.**
    *Generative* - run the pipeline; it rebuilds everything from `board/` and the
    part tables, and destroys whatever hand edits exist at that moment.
-   *Incremental* - edit the board or schematic directly, in KiCad or through the
-   KiCad MCP; this is the right mode for a surgical change on a frozen board,
+   *Incremental* - edit the board or schematic directly, in KiCad or with our
+   scripts; this is the right mode for a surgical change on a frozen board,
    because regenerating re-routes the whole PCB and hands you a different board
    to re-verify. Neither is wrong. Running the generator **on top of** hand
    edits is, and it fails silently. `board_provenance.py --check` is what tells
    them apart - it exits non-zero when a generator run would lose work; after
    any generator run, `--record`. Which mode suits which job:
-   `docs/decisions/0012`.
+   `docs/decisions/0012`. The incremental tool is KiCad itself or **Konnect**
+   (`0013`), the only KiCad MCP here: with KiCad open it edits *through* KiCad,
+   so KiCad stays the only writer; with KiCad closed it reads and writes the
+   files itself.
 10. **Keep source files small enough to edit safely.** A thousand-line generator
    edited by pattern-matching is how a fix landed in the wrong function twice on
    2026-09-06 and cost two full rebuild cycles.

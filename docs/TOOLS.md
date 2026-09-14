@@ -16,7 +16,7 @@ working, fix it here rather than working around it in a session.
 | Freerouting 2.4.1 | `%LOCALAPPDATA%\kicad-tools\freerouting.jar` | autorouting via Specctra DSN/SES |
 | Temurin JRE 25 | `%LOCALAPPDATA%\kicad-tools\jre25\*\bin\java.exe` | runs Freerouting |
 | avr-gcc | see `firmware/build.ps1` | firmware |
-| KiCad MCP | `D:\tools\kicad-mcp-server` | 47 tools for reading, analysing and validating the board without hand-rolled parsers |
+| Konnect | `D:	ools\konnect\konnect.exe` | the KiCad MCP - 226 tools; IPC when KiCad is open, S-expressions when it is closed |
 
 Freerouting and the JRE are **not** in the repository. Override the paths with
 `FREEROUTING_JAR` and `FREEROUTING_JAVA` if they move.
@@ -114,39 +114,137 @@ python hardware\8ch\board_provenance.py --record   # after a generator run
   and regenerating would destroy them. Either fold them back into `board/`, or
   abandon them deliberately and `--record` again.
 
-## KiCad MCP
+## One KiCad MCP, and what else there is
 
-Configured in `.mcp.json` (Claude Code) and `~/.codex/config.toml` (Codex), so
-any agent on this project picks it up. Runs under KiCad's own Python, so
-`pcbnew` imports and the numbers are real rather than text-parsed.
+`Konnect` is the only KiCad MCP wired up (`.mcp.json`). The Seeed server was
+retired 2026-09-14 - `docs/decisions/0013`. Which layer does what:
 
-**Use the analysis tools freely.** `get_pcb_statistics`, `list_pcb_footprints`,
-`analyze_pcb_nets`, `trace_netlist_connection`, `find_tracks_by_net`,
-`list_schematic_components`, `run_erc`, `run_drc`, `get_*_violations`,
-`export_*`. They read; nothing they do can be lost.
+| Layer | Tool | When |
+|---|---|---|
+| Live editing and queries | **Konnect** | KiCad open **or** closed |
+| Offline deep analysis | `kicad` skill analysers | feeds `emc`; produces `net_lengths`, `ground_domains`, `layer_transitions` |
+| File read/write CLI | `kicad-tool` skill | scripted edits, the generative pipeline |
+| **This board's own rules** | `check_board.py`, `netlist_fingerprint.py`, `board_provenance.py`, `validate.ps1`, `test_gates.ps1` | **nothing generic can replace these** |
 
-Hand-written regex parsers over `.kicad_pcb` and `.net` got connectivity wrong
-twice on 2026-09-07 - once nearly reporting `RUN_PERMIT` as unconnected when it
-is connected through `R30`. `trace_netlist_connection` is the tool for that
-question.
+The last row is the point. Island membership, the isolation barrier, the
+cold-junction distance, the 167/154/555 netlist contract, whether a generator
+run would destroy hand edits - these are this project's rules. No MCP knows
+them and none ever will.
 
-**The seven write tools** - `add_wire`, `add_label`, `add_global_label`,
-`add_hierarchical_label`, `add_component_from_library`, `setup_pcb_layout`,
-`create_kicad_project` - edit files directly, which counts as a hand edit. They
-are permitted in incremental mode only, after `board_provenance.py --check`
-passes, and `netlist_fingerprint.py` afterwards if the edit could have touched
-connectivity.
+## The KiCad IPC API - measured on this machine, 2026-09-13
 
-Verified 2026-09-13 against the real board: 250.10 x 140.10 mm, 4 layers,
-174 footprints, 1044 track segments, 125 vias, 15 zones, 155 nets - matching
-the figures measured by hand.
+KiCad's official API is protobuf over an NNG socket. Measured by reading the
+installed binaries, not the docs:
 
-**A second KiCad MCP was evaluated and rejected.** The IPC-API servers
-(`Finerestaurant/kicad-mcp-python` and similar) use KiCad's official API, which
-is architecturally nicer, but on KiCad 9 and 10 that API cannot plot or export -
-support lands in KiCad 11. It could edit the board and then not run the checks
-that prove the edit safe. It also needs KiCad open, making the two-writer
-hazard permanent. Revisit at KiCad 11.
+| | Finding | Where |
+|---|---|---|
+| Server present | `kiapi.dll`, `nng.dll` | `KiCad/10.0/bin/` |
+| **Server enabled** | **`"enable_server": false`** | `%APPDATA%/kicad/10.0/kicad_common.json` |
+| Client library | `kipy` **not installed** | `pip install kicad-python` |
+| Version | 10.0.3 | `kicad-cli version` |
+| Schematic handler | **`API_HANDLER_SCH` present** | `_eeschema.dll` |
+| Board handler | `API_HANDLER_PCB` present | `_pcbnew.dll` |
+| Document types | `DOCTYPE_SCHEMATIC`, `DOCTYPE_PCB`, `DOCTYPE_SYMBOL`, `DOCTYPE_FOOTPRINT` | `kiapi.dll` |
+| Schematic objects | 22 `KOT_SCH_*` including **`SYMBOL`, `PIN`, `LINE`, `JUNCTION`, `LABEL`, `NO_CONNECT`** | `kiapi.dll` |
+| Edit commands | `GetItems`, `CreateItems`, `UpdateItems`, `DeleteItems`, `ParseAndCreateItemsFromString`, `HitTest`, `GetBoundingBox` | `kiapi.common.commands` |
+| Transactions | **`BeginCommit` / `EndCommit`** - edits land in KiCad's undo stack | `kiapi.common.commands` |
+| Plot / export | **zero commands** | grep found none |
+| Run DRC / ERC | **none** - only `InjectDrcError`, for reporting *into* KiCad | `kiapi.board.commands` |
+
+So the shape of it: **IPC can edit, and cannot verify.** `kicad-cli` and our
+scripts stay the verification path either way.
+
+**Correction to an earlier claim in this file.** It used to say the IPC API
+"needs KiCad open, making the two-writer hazard permanent". That is backwards.
+Editing *through* KiCad's API means KiCad is the only process writing the file,
+and the edit joins its undo stack - which is **safer** than writing the file
+under an open editor, which is precisely the 2026-09-07 failure. The real
+Windows hazard is different and specific: a client that cannot find the socket
+may **fall back to editing the file directly** while KiCad has it open. On
+Windows, NNG `ipc://` is a named pipe under `\.\pipe\`, not a file, so
+socket auto-detection fails on a default install. Set `KICAD_API_SOCKET`
+explicitly before letting any IPC client write, and confirm it is live with a
+read call first.
+
+The "cannot plot or export before KiCad 11" half of that claim was correct and
+is confirmed by the table above.
+
+## Reading a datasheet
+
+`pdftotext` ships with Git for Windows - no separate poppler install needed.
+
+```powershell
+& "C:\Program Files\Git\mingw64in\pdftotext.exe" -f 12 -l 14 docs
+eference\datasheets\ATmega32A.pdf -
+```
+
+It is on the Bash tool's PATH as plain `pdftotext`, and on PowerShell's only by
+full path. `-f`/`-l` bound the page range; a 400-page datasheet dumped whole is
+unreadable. Version here is 4.00 (Xpdf build), verified 2026-09-13.
+
+## EMC and SPICE
+
+The `emc` skill consumes the `kicad` skill's analyser JSON, so run those first:
+
+```powershell
+python $env:USERPROFILE\.claude\skills\kicad\scriptsnalyze_schematic.py thermocouple_8ch.kicad_sch --analysis-dir ..\..\docs
+eferencenalysispython $env:USERPROFILE\.claude\skills\kicad\scriptsnalyze_pcb.py thermocouple_8ch.kicad_pcb --full --analysis-dir ..\..\docs
+eferencenalysispython $env:USERPROFILE\.claude\skills\emc\scriptsnalyze_emc.py --analysis-dir docs
+eferencenalysis\ --text
+```
+
+Set `PYTHONIOENCODING=utf-8` first or the text report dies on an arrow
+character under cp1252. `docs/reference/analysis/` is gitignored.
+
+First run: 2026-09-13, 122 findings, triaged into `I-045` - most of the volume
+is one heuristic firing per net. **The `spice` skill cannot run here:** it
+needs ngspice, LTspice or Xyce on PATH and none of the three is installed.
+KiCad's built-in ngspice is a library inside the GUI, not a CLI, so it does not
+satisfy the skill.
+
+## Konnect - editing through a running KiCad
+
+`docs/decisions/0013`. A single binary at `D:	ools\konnect\konnect.exe`,
+wired into `.mcp.json`. 226 tools in 21 toolsets, loaded on demand:
+`list_toolboxes`, then `load_toolset` for `sch_wiring`, `sch_analysis`,
+`sch_batch`, `sch_export`, `sch_components`. `unload_toolset` keeps context
+small.
+
+**Three preconditions, in order. Check them; do not assume them.**
+
+1. KiCad's API server is on - `kicad_common.json` -> `api.enable_server: true`.
+2. **The editor you need is open**, not just the project manager. The handlers
+   live in `_eeschema.dll` and `_pcbnew.dll`; with only `kicad.exe` running you
+   get `AS_UNHANDLED` on every request.
+3. `KICAD_API_SOCKET` is set. It is in `.mcp.json` and it is **not optional on
+   Windows** - see the comment there. Without it a client can decide KiCad is
+   not running and start editing the file underneath it.
+
+Confirm with `open_project`, which reports `ipc_available` and
+`kicad_ui_running`, **before** any write.
+
+Useful, verified on this schematic 2026-09-13:
+
+```
+get_pin_connections {schematic, reference, pin_number}   net + absolute x/y
+export_netlist_summary {schematic}                       every pin, one call
+list_schematic_wires {schematic}                          -> count: 0  (I-002)
+connect_pins / batch_connect_pins                        wire by ref+pin
+run_erc, generate_netlist, export_schematic_svg          the checks
+set_visual_baseline / compare_visual_baseline            visual regression
+```
+
+The argument is `schematic`, not `path` - the error message names the field it
+wanted, so read it rather than guessing.
+
+**Opening KiCad creates `~*.lck` and `board_provenance.py --check` will refuse
+while it is there. That is correct.** Do not close KiCad to get past it
+(`AGENTS.md` rule 8).
+
+**Konnect is not installed into `~/.claude`.** `konnect init` would add 6
+skills, 2 agents and 4 hooks to the global config; only the MCP server is wired
+up here. The hooks guard the IPC-versus-file-fallback case and are worth
+revisiting.
 
 ## Things that will bite you
 

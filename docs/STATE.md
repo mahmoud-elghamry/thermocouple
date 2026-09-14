@@ -2,18 +2,16 @@
 
 **Read second, after `AGENTS.md`. Update before finishing. Hard limit: 60 lines.**
 
-**Last updated:** 2026-09-07
+**Last updated:** 2026-09-13
 
 ## Last session
 
-Ran every gate end to end for the first time, to settle whether the review
-findings `I-036`..`I-042` were reported or actually fixed. They were fixed, and
-are closed against a passing run rather than a reading of the diff. The PCB was
-not touched; REV A0 stays frozen (`docs/decisions/0010`).
-
-Exercising the gates exposed three defects in the gates themselves, fixed and
-recorded as `I-043` - the worst being `validate.ps1` reporting *"Sources
-unchanged"* without having hashed anything.
+Every gate run end to end, to settle whether `I-036`..`I-042` were reported or
+actually fixed. They were, and are closed against a passing run rather than a
+reading of the diff. Doing so exposed three defects in the gates themselves
+(`I-043`), the worst being `validate.ps1` reporting *"Sources unchanged"*
+without having hashed anything. The PCB was not touched; REV A0 stays frozen
+(`docs/decisions/0010`).
 
 ## Measured, not claimed
 
@@ -29,31 +27,33 @@ unchanged"* without having hashed anything.
 | ERC | **0 errors**, 171 `endpoint_off_grid` warnings (all from `I-002`) |
 | DRC | **0 errors**, 9 warnings, 0 unconnected, 0 parity |
 
-`run_all.ps1 -Regenerate` was NOT run: it rewrites the frozen board. No
-Gerber release, EMC, SPICE, thermal or physical measurement was performed, and
-Proteus was not executed.
+`run_all.ps1 -Regenerate` was NOT run: it rewrites the frozen board. No Gerber
+release, SPICE, thermal or physical measurement; Proteus not executed.
 
 ## Next actions
 
-1. **`I-002`** - redraw the schematic. Roughly 70 % of the remaining work.
-2. **`I-044`** - a regenerate-then-compare step, so generator/schematic drift
-   stops being invisible. `board_provenance.py` covers half of this now.
+1. **`I-002`** - redraw the schematic; tooling is ready (`0013`), one sheet.
+2. **`I-044`** - regenerate-then-compare; `board_provenance.py` covers half.
 3. Owner decisions: **`I-028`** 24 V source, **`I-025`** layer sourcing.
-4. Bench, once a board exists: `I-004`, `I-003`, `I-013`.
+4. Bench once a board exists: `I-004`, `I-003`, `I-013`; REV A1 layout `I-045`.
 
-## Tooling added 2026-09-13
+## Tooling 2026-09-13, and one correction
 
-KiCad MCP (`Seeed-Studio/kicad-mcp-server`), wired into `.mcp.json` and
-`~/.codex/config.toml`; its ~40 analysis tools replace the hand-written parsers
-that got connectivity wrong twice. `board_provenance.py` refuses a generator
-run that would destroy hand edits, or while KiCad holds the project open.
-Rules 8 and 9 now cover both modes - `docs/decisions/0012`, `docs/TOOLS.md`.
+**One KiCad MCP now: Konnect** (`0013`). It talks IPC to a running KiCad 10, so
+edits go through KiCad and land in its undo stack, and it reads and writes
+S-expressions itself when KiCad is closed - which is why the Seeed server was
+retired on 2026-09-14 with nothing left of its own. Wired for Codex too.
+**`I-002`'s tooling blocker is gone**: pin coordinates and nets come from one
+call, verified on this schematic. `KICAD_API_SOCKET` must stay set or a client
+edits files under an open KiCad (#529, reproduced here). The scripts in
+`hardware/8ch/` are **not** replaced - they hold this board's own rules. Licence
+open `I-046`; first `emc` run `I-045`; `spice` blocked, no simulator.
 
 ## Preserve for I-002 and hardware work
 
-A hierarchical redraw was attempted and reverted: the symbols lacked KiCad
-instance data, so the netlist exported **zero components** while the seven
-sheets looked correct. The agent ran out of quota mid-run and left half-written
-files, which a `git add -A` swept into a commit. Verify every step with
+A hierarchical redraw was attempted and reverted: symbols lacked KiCad instance
+data, so the netlist exported **zero components** while the seven sheets looked
+correct. The agent ran out of quota mid-run and left half-written files, which a
+`git add -A` swept into a commit. Verify every step with
 `netlist_fingerprint.py`; never alter the baseline to make it pass.
 `prune_dangling_labels()` assumes labels sit on pins - account for wired ones.

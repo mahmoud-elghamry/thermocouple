@@ -1,30 +1,47 @@
 {
   "_comment": [
-    "KiCad MCP server (Seeed-Studio/kicad-mcp-server), installed at",
-    "D:/tools/kicad-mcp-server and run under KiCad's own Python so pcbnew is",
-    "importable - that is what gives real track lengths, via counts and",
-    "signal-integrity figures instead of text-parsed guesses.",
+    "ONE KiCad MCP: Konnect (mixelpixx/Konnect v0.11.1), a single Rust binary at",
+    "D:/tools/konnect. It covers both modes, which is why it is the only one:",
     "",
-    "It exposes 47 tools. Roughly 40 read, analyse, validate or export; seven",
-    "write (add_wire, add_label, add_global_label, add_hierarchical_label,",
-    "add_component_from_library, setup_pcb_layout, create_kicad_project).",
+    "  KiCad OPEN    talks to it over the official IPC API. Edits go through",
+    "                KiCad, so KiCad stays the only writer and every change lands",
+    "                in its undo stack (BeginCommit/EndCommit).",
+    "  KiCad CLOSED  reads and writes the files with its own S-expression engine.",
+    "                Verified 2026-09-14 with no KiCad running: get_pin_connections",
+    "                still returned R1.1 -> TC1_RAW_P (28.19, 19.0).",
     "",
-    "WHICH TOOLS ARE ALLOWED HERE DEPENDS ON THE MODE - see AGENTS.md rules 8",
-    "and 9 and docs/decisions/0012. The short version: the analysis tools are",
-    "always safe; the seven write tools edit files directly and therefore count",
-    "as hand edits, which generate_board.py and populate_schematic.py erase.",
+    "226 tools in 21 toolsets, loaded on demand - list_toolboxes, then",
+    "load_toolset. Argument is 'schematic', not 'path'.",
     "",
-    "Do not install a second KiCad MCP alongside this one. The IPC-API servers",
-    "were evaluated and rejected for KiCad 10: the IPC API cannot export or",
-    "plot before KiCad 11, so it can edit a board but cannot run the checks",
-    "that prove the edit was safe."
+    "KICAD_API_SOCKET IS NOT OPTIONAL ON WINDOWS. Konnect issue #529: NNG makes",
+    "an ipc:// endpoint a NAMED PIPE, not a file. Verified here 2026-09-13 - the",
+    "pipe name is the path string under the pipe namespace while NO FILE exists",
+    "at that path. Auto-detection therefore fails, and a client that concludes",
+    "KiCad is not running falls back to editing the file - with KiCad holding it",
+    "open. That is the 2026-09-07 board loss, recreated. Setting this variable is",
+    "what prevents it. Confirm with open_project ('ipc_available') before writing",
+    "while KiCad is open.",
+    "",
+    "KiCad's API server must stay enabled: kicad_common.json -> api.enable_server",
+    "= true. Turned on 2026-09-13; backup at kicad_common.json.bak-20260913.",
+    "",
+    "RETIRED 2026-09-14: Seeed-Studio/kicad-mcp-server. Its write tools appended",
+    "text with no parser (docs/decisions/0012) and its reads are covered by",
+    "Konnect and by the `kicad` skill's analysers. See 0013.",
+    "",
+    "Also registered at user scope in ~/.claude.json and in ~/.codex/config.toml,",
+    "so both agents find Konnect in any project. This project file is kept anyway",
+    "and is the one that matters: it travels with the repo, so a teammate who",
+    "clones thermo gets the server AND the socket warning above without having to",
+    "set anything up. The two definitions are identical."
   ],
   "mcpServers": {
-    "kicad": {
+    "konnect": {
       "type": "stdio",
-      "command": "C:\\Program Files\\KiCad\\10.0\\bin\\python.exe",
-      "args": ["-m", "kicad_mcp_server"],
-      "cwd": "D:\\tools\\kicad-mcp-server"
+      "command": "D:\tools\\konnect\\konnect.exe",
+      "env": {
+        "KICAD_API_SOCKET": "ipc://C:/Users/malgh/AppData/Local/Temp/kicad/api.sock"
+      }
     }
   }
 }

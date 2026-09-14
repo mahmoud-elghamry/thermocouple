@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Read(//D:/tasks/thermo/**)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(python hardware/8ch/netlist_fingerprint.py:*)",
+      "Bash(python hardware/8ch/board_provenance.py:*)",
+      "Bash(python hardware/8ch/check_board.py:*)",
+      "Bash(python firmware/sources/check_lists.py:*)",
+      "Bash(pwsh -File firmware/build.ps1:*)",
+      "Bash(pwsh -File hardware/8ch/validate.ps1:*)",
+      "Bash(pwsh -File hardware/8ch/test_gates.ps1:*)",
+      "Bash(pdftotext:*)"
+    ],
+    "deny": [
+      "Bash(taskkill*eeschema*)",
+      "Bash(taskkill*kicad*)",
+      "Edit(//D:/tasks/thermo/hardware/single-channel/**)",
+      "Write(//D:/tasks/thermo/hardware/single-channel/**)",
+      "Bash(git push:*)"
+    ],
+    "ask": [
+      "Bash(git commit:*)",
+      "Bash(pwsh -File hardware/8ch/run_all.ps1:*)"
+    ]
+  }
+}
