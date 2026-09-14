@@ -9,6 +9,11 @@ function Invoke-CheckedNative {
     }
 }
 
+# Warning classes that are tolerated. endpoint_off_grid is the whole of I-002:
+# 192 of them, every one because the sheet has labels instead of wires, and it
+# is tracked. Any other warning class fails - see the note below.
+$script:ErcToleratedWarnings = @('endpoint_off_grid')
+
 function Assert-ErcReport {
     param([Parameter(Mandatory)][string]$Path)
     $report = Get-Content -LiteralPath $Path -Raw
@@ -16,6 +21,21 @@ function Assert-ErcReport {
     if (-not $counts.Success) { throw "Unrecognized ERC report: $Path" }
     Write-Output "ERC: $($counts.Groups[2].Value) errors, $($counts.Groups[3].Value) warnings ($Path)"
     if ([int]$counts.Groups[2].Value -ne 0) { throw "ERC errors: $Path" }
+
+    # Errors alone are not enough. On 2026-09-15 a stale SPARE_PC2 label sat on
+    # U1 pin 24 beside the new RUN_PERMIT_SENSE one; ERC called it
+    # [multiple_net_names] - a WARNING - so this gate was green while a safety
+    # read-back net had two names and KiCad chose which one reached the
+    # netlist. A gate that only counts errors would have shipped that.
+    $classes = [regex]::Matches($report, '\[([a-z_]+)\]') |
+               ForEach-Object { $_.Groups[1].Value } |
+               Sort-Object -Unique
+    $unexpected = $classes | Where-Object { $_ -notin $script:ErcToleratedWarnings }
+    if ($unexpected) {
+        $bad = $unexpected -join ', '
+        $ok = $script:ErcToleratedWarnings -join ', '
+        throw "ERC warning classes that are not tolerated: $bad ($Path). Tolerated: $ok. Either fix the schematic, or if the class is genuinely benign here add it to `$script:ErcToleratedWarnings with the reason."
+    }
 }
 
 function Assert-DrcReport {

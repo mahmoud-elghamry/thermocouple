@@ -12,7 +12,7 @@ Issues: `I-015`, `I-032`, `I-016`.
 
 | Fuse | Factory default | **Required** |
 |---|---|---|
-| Low | `0xE1` | **`0x24`** |
+| Low | `0xE1` | **`0x3F`** |
 | High | `0x99` | **`0xD1`** |
 | Lock | `0xFF` | `0xFF` for prototypes — see below |
 
@@ -21,15 +21,15 @@ they do not match.
 
 ---
 
-## Low fuse `0x24` = `0b0010_0100`
+## Low fuse `0x3F` = `0b0011_1111`
 
 | Bit | Name | Value | Meaning |
 |---|---|---|---|
 | 7 | BODLEVEL | 0 | brown-out trigger level **4.0 V** |
 | 6 | BODEN | 0 | brown-out detector **enabled** |
-| 5 | SUT1 | 1 | start-up 6 CK + 65 ms |
-| 4 | SUT0 | 0 | (slowly rising power) |
-| 3–0 | CKSEL3..0 | 0100 | internal RC oscillator, **8 MHz** |
+| 5 | SUT1 | 1 | start-up 16K CK + 65 ms |
+| 4 | SUT0 | 1 | (crystal, slowly rising power) |
+| 3–0 | CKSEL3..0 | 1111 | **crystal oscillator, 3–8 MHz** (`Y1`) |
 
 ### CKSEL is the one that will bite you
 
@@ -118,19 +118,24 @@ is settled.
 avrdude -c usbasp -p m32 -U lfuse:r:-:h -U hfuse:r:-:h -U lock:r:-:h
 ```
 
-Expect `0x24`, `0xD1`, `0xff`. `program.ps1` does this automatically and exits
+Expect `0x3F`, `0xD1`, `0xff`. `program.ps1` does this automatically and exits
 non-zero on a mismatch, but a commissioning record should carry the values read
 back from that specific unit, together with the firmware version shown on the
 LCD at boot (`APP_FIRMWARE_VERSION` in `include/app/version.h`).
 
 ---
 
-## These values assume the internal RC oscillator
+## These values assume the crystal is fitted
 
-The board has no crystal. `U1` pins 12 and 13 (XTAL1/XTAL2) are unconnected —
-see the note in `hardware/8ch/populate_schematic.py`.
+`Y1` (8 MHz) with `C60`/`C61` 22 pF load capacitors drives `U1` pins 12 and 13,
+added to the schematic on 2026-09-15 as part of REV A1 (`docs/decisions/0010`,
+`I-032`). The low fuse moved from `0x24` to `0x3F` in the same change.
 
-Adding one is part of the deferred REV A1 change set
-(`docs/decisions/0010`, `I-032`). If it is ever fitted, the low fuse changes to
-**`0x3F`**: `CKSEL = 1111` and `SUT1..0 = 11` — crystal oscillator, 3–8 MHz,
-slowly rising power. The high fuse does not change.
+**A chip fused `0x3F` on a board with no crystal will not run at all** — it
+waits for an oscillator that never starts, and looks bricked. Recovery needs a
+high-voltage programmer or an external clock injected on XTAL1. If you are
+programming a board without `Y1` fitted, use `-LowFuse 0x24` and set
+`BOARD_HAS_RUN_PERMIT_SENSE` back to `0`.
+
+The high fuse does not change. With the crystal, `R-9` (Modbus RTU) is no
+longer gated on oscillator accuracy — see `docs/decisions/0010` consequences.

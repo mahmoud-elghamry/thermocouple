@@ -24,7 +24,10 @@ param(
     [string]$Programmer = 'usbasp',
     [string]$Port,
     [string]$Image = 'build\thermo_8ch_max31856.hex',
-    [string]$LowFuse = '0x24',
+    # 0x3F = crystal (Y1, REV A1). Use -LowFuse 0x24 on a board with no
+    # crystal fitted - 0x3F there waits forever for an oscillator and the
+    # chip looks bricked. See fuses.md.
+    [string]$LowFuse = '0x3F',
     [string]$HighFuse = '0xD1',
     # Read the unit's current state and stop, changing nothing.
     [switch]$ReadOnly

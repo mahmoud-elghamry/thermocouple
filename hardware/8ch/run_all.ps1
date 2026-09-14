@@ -26,7 +26,15 @@ $cli = Join-Path $kicad 'bin\kicad-cli.exe'
 $env:KICAD_CLI = $cli
 $env:KICAD10_FOOTPRINT_DIR = Join-Path $kicad 'share\kicad\footprints'
 if (-not $env:KICAD_TOOL) {
-  $env:KICAD_TOOL = "$env:LOCALAPPDATA\Temp\thermo-kicad-tool-venv\Scripts\kicad-tool.exe"
+  # ~/.local/bin is where `uv tool install` puts it and it survives a
+  # reboot; the Temp venv did not (I-048). Fall back to the old path so a
+  # machine that still has it keeps working.
+  $persistent = "$env:USERPROFILE\.local\bin\kicad-tool.exe"
+  if (Test-Path $persistent) {
+    $env:KICAD_TOOL = $persistent
+  } else {
+    $env:KICAD_TOOL = "$env:LOCALAPPDATA\Temp\thermo-kicad-tool-venv\Scripts\kicad-tool.exe"
+  }
 }
 
 try {
@@ -39,7 +47,7 @@ try {
 
   Write-Output '== 3/8  netlist =='
   Invoke-CheckedNative $env:KICAD_TOOL @('sch', 'netlist', 'thermocouple_8ch.kicad_sch', '-o', 'thermocouple_8ch.net')
-  Invoke-CheckedNative 'python' @('netlist_fingerprint.py', 'netlist-baseline-reva0.json', 'thermocouple_8ch.net')
+  Invoke-CheckedNative 'python' @('netlist_fingerprint.py', 'netlist-baseline-reva1.json', 'thermocouple_8ch.net')
 
   Write-Output '== 4/8  design rules into the KiCad project =='
   Invoke-CheckedNative 'python' @('apply_rules.py')

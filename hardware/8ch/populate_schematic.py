@@ -21,7 +21,10 @@ SCH = ROOT / "thermocouple_8ch.kicad_sch"
 KICAD_ROOT = Path(r"C:\Program Files\KiCad\10.0")
 SYMBOL_ROOT = KICAD_ROOT / "share" / "kicad" / "symbols"
 DEFAULT_TOOL = Path(
-    r"C:\Users\malgh\AppData\Local\Temp\thermo-kicad-tool-venv\Scripts\kicad-tool.exe"
+    # I-048: ~/.local/bin persists; the Temp venv was deleted over a reboot.
+    str(Path(os.environ["USERPROFILE"]) / ".local/bin/kicad-tool.exe")
+    if (Path(os.environ["USERPROFILE"]) / ".local/bin/kicad-tool.exe").exists()
+    else r"C:\Users\malgh\AppData\Local\Temp\thermo-kicad-tool-venv\Scripts\kicad-tool.exe"
 )
 TOOL = Path(os.environ.get("KICAD_TOOL", DEFAULT_TOOL))
 os.environ.setdefault("KICAD_CLI", str(KICAD_ROOT / "bin" / "kicad-cli.exe"))
@@ -110,10 +113,16 @@ add(Part(
     {
         "1": "CS1_CTRL", "2": "CS2_CTRL", "3": "CS3_CTRL", "4": "RUN_PERMIT",
         "5": "CS4_CTRL", "6": "MOSI_CTRL", "7": "MISO_CTRL", "8": "SCK_CTRL",
-        "9": "RESET_N", "10": "+5V_CTRL", "11": "GND_CTRL", "14": "UART_RX",
+        "9": "RESET_N", "10": "+5V_CTRL", "11": "GND_CTRL",
+        # I-032: was no-connect while the MCU ran on its internal RC.
+        "12": "XTAL2", "13": "XTAL1",
+        "14": "UART_RX",
         "15": "UART_TX", "16": "BTN_NEXT", "17": "BTN_UP", "18": "BTN_DOWN",
         "19": "BTN_SET", "20": "BTN_ACK", "21": "RS485_DE", "22": "CS5_CTRL",
-        "23": "CS6_CTRL", "24": "SPARE_PC2", "25": "SPARE_PC3",
+        "23": "CS6_CTRL",
+        # I-016: no longer spare. Reads back the relay driver through
+        # R53/R54 so a stuck pin or a dead FET is detectable.
+        "24": "RUN_PERMIT_SENSE", "25": "SPARE_PC3",
         "26": "SPARE_PC4", "27": "SPARE_PC5", "28": "CS7_CTRL",
         "29": "CS8_CTRL", "30": "+5V_CTRL",
         "31": "GND_CTRL", "32": "AREF", "33": "LCD_D7", "34": "LCD_D6",
@@ -180,6 +189,77 @@ for channel in range(1, 9):
               "GND_SENS", f"CH{channel} MAX31856 AVDD decoupling")
     capacitor(f"C{cbase + 4}", "100n X7R", (max_x + 3, y - 13), "+3V3_SENS",
               "GND_SENS", f"CH{channel} MAX31856 DVDD decoupling")
+
+# --- I-045: thermocouple input protection --------------------------------
+#
+# Two BAV199 per channel, one per input line, sitting on TC*_FILT_* - that is
+# AFTER the 100R series resistors, so the resistors limit the current into the
+# diodes and the clamp sits where the MAX31856 actually needs protecting.
+#
+# A low-standoff TVS is the obvious part here and it is the wrong one. Measured
+# from the datasheets on 2026-09-14:
+#
+#                       BAV199              PESD3V3L1BA (3.3 V TVS)
+#   leakage typ         0.003 nA (3 pA)     90 nA
+#   leakage max         5 nA at VR = 75 V   2 uA at VRWM = 3.3 V
+#   diode capacitance   2 pF                101 pF
+#
+# K-type gives 41 uV/degC. Leakage flows through the 100R series resistor plus
+# the thermocouple's own resistance - roughly 200 ohm for 50 m - so the TVS
+# worst case is 2 uA * 200 = 400 uV = 9.8 degC of error injected into the
+# instrument whose entire job is measuring temperature, and leakage roughly
+# doubles every 10 degC. BAV199's 5 nA is 0.024 degC. Its 2 pF also leaves the
+# balanced front end's CMRR alone, where 101 pF of unmatched capacitance would
+# not.
+#
+# Device:D_Dual_Series_AKC is pin-exact for BAV199 in SOT-23:
+#   pin 1 = A1 (anode, diode 1)      -> GND_SENS
+#   pin 2 = K2 (cathode, diode 2)    -> +3V3_SENS
+#   pin 3 = K1/A2 (the common node)  -> the signal
+# so the signal is steered to whichever rail it tries to leave.
+for channel in range(1, 9):
+    column = 0 if channel <= 4 else 1
+    connector_x, _max_x = channel_columns[column]
+    y = channel_rows[(channel - 1) % 4]
+    dbase = 7 + (channel - 1) * 2
+    for offset, (ref, line, dy) in enumerate((
+            (f"D{dbase}", f"TC{channel}_FILT_P", -3),
+            (f"D{dbase + 1}", f"TC{channel}_FILT_N", 3))):
+        add(Part(
+            ref, "Device:D_Dual_Series_AKC", (connector_x + 41, y + dy),
+            "BAV199", "Package_TO_SOT_SMD:SOT-23",
+            {"1": "GND_SENS", "2": "+3V3_SENS", "3": line},
+            manufacturer="Nexperia", mpn="BAV199",
+            datasheet="https://assets.nexperia.com/documents/data-sheet/BAV199.pdf",
+            function=f"CH{channel} {'+' if dy < 0 else '-'} input rail clamp; "
+                     "low-leakage steering diodes, 3 pA typ",
+        ))
+
+# --- I-032: 8 MHz crystal -------------------------------------------------
+# The MCU ran on its internal RC, which is specified to a few percent over
+# voltage and temperature - outside what a UART frame tolerates, which is why
+# R-9 (Modbus) was deferred. Fuses change with this part: docs/decisions/0010.
+add(Part(
+    "Y1", "Device:Crystal", (25, 168), "8MHz",
+    "Crystal:Crystal_HC49-4H_Vertical",
+    {"1": "XTAL1", "2": "XTAL2"},
+    function="8 MHz timebase for the MCU; replaces the internal RC oscillator",
+))
+capacitor("C60", "22p C0G 50V", (18, 163), "XTAL1", "GND_CTRL",
+          "Crystal load capacitor, XTAL1")
+capacitor("C61", "22p C0G 50V", (18, 173), "XTAL2", "GND_CTRL",
+          "Crystal load capacitor, XTAL2")
+
+# --- I-016: run-permit read-back divider ----------------------------------
+# RELAY_LOW swings 0 V to +24 V. 22k/4.7k puts about 4.2 V at PC2 with +24 V
+# on the coil - a valid high on the 5 V rail with margin under VCC. Both nets
+# are CONTROL island, so the isolation rules are untouched. Firmware is already
+# written: set BOARD_HAS_RUN_PERMIT_SENSE to 1 in the same commit as this.
+resistor("R53", "22k", (255, 180), "RELAY_LOW", "RUN_PERMIT_SENSE",
+         "Run-permit read-back divider, upper leg")
+resistor("R54", "4k7", (255, 190), "RUN_PERMIT_SENSE", "GND_CTRL",
+         "Run-permit read-back divider, lower leg")
+
 
 for channel in range(1, 9):
     resistor(f"R{16 + channel}", "10k", (112 if channel <= 4 else 272,
@@ -299,7 +379,10 @@ add(Part("J5", "Connector_Generic:Conn_02x03_Odd_Even", (71, 153), "AVR_ISP",
          function="In-system programming and service connector"))
 add(Part("J6", "Connector_Generic:Conn_02x05_Odd_Even", (78, 139), "MCU_EXPANSION",
          "Connector_PinHeader_2.54mm:PinHeader_2x05_P2.54mm_Vertical",
-         {"1": "SPARE_PA2", "2": "SPARE_PA3", "3": "SPARE_PC2", "4": "SPARE_PC3",
+         # Pin 3 was SPARE_PC2 and is now deliberately unconnected: PC2 carries
+         # RUN_PERMIT_SENSE, and a safety read-back exposed on a service
+         # header is a jumper away from being defeated. Five spare I/O remain.
+         {"1": "SPARE_PA2", "2": "SPARE_PA3", "4": "SPARE_PC3",
           "5": "SPARE_PC4", "6": "SPARE_PC5", "7": "+5V_CTRL", "8": "GND_CTRL",
           "9": "AREF", "10": "RESET_N"},
          function="Service and future expansion header for unused MCU I/O"))
@@ -374,9 +457,15 @@ for index, (net, at) in enumerate((("GND_CTRL", (177, 194)), ("+5V_CTRL", (182, 
     add(Part(f"TP{index}", "Connector_Generic:Conn_01x01", at, net,
              "TestPoint:TestPoint_THTPad_D2.0mm_Drill1.0mm", {"1": net}, function=f"Service test point: {net}"))
 
-for index, (net, at) in enumerate((("+24V_RAW", (192, 194)), ("GND_CTRL", (197, 194)),
-                                   ("+24V_PROT", (202, 194)),
-                                   ("GND_RS485", (212, 194))), start=1):
+# x moved +284 with the rest of the control section in I-002. These four are
+# deleted and re-created by ensure_parts() on every run, so the coordinates
+# here - not the ones in the schematic - are what survives.
+# Grid-exact multiples of 1.27: 375, 379, 383, 391 x 1.27 across, 153 down.
+# Round numbers like (486, 194) are NOT on the 1.27 mm schematic grid and ERC
+# reports every one as endpoint_off_grid.
+for index, (net, at) in enumerate((("+24V_RAW", (476.25, 194.31)), ("GND_CTRL", (481.33, 194.31)),
+                                   ("+24V_PROT", (486.41, 194.31)),
+                                   ("GND_RS485", (496.57, 194.31))), start=1):
     add(Part(f"#FLG{index}", "power:PWR_FLAG", at, "PWR_FLAG", "", {"1": net},
              function=f"ERC power-source declaration for {net}"))
 
@@ -494,8 +583,9 @@ def ensure_labels() -> None:
 # logic.  The firmware reads the MAX31856 fault register (0x0F) on every sample
 # instead.  This is a documented trade-off, not an oversight.
 NO_CONNECT_PINS: dict[str, tuple[str, ...]] = {
-    "U1": ("12", "13"),
+    # U1 12/13 used to be here: the crystal (I-032) now drives them.
     "J2": ("7", "8", "9", "10"),
+    "J6": ("3",),
     "U11": ("11",),
     "U12": ("4",),
     "U13": ("4",),
@@ -585,7 +675,22 @@ def prune_dangling_labels() -> None:
     endpoints, so a label anywhere else is dead copper in the drawing and ERC
     reports it as dangling.  They appear when a symbol is swapped for one whose
     pins sit at different coordinates.
+
+    That premise holds only while the sheet has no wires.  `I-002` draws them,
+    and a wired sheet legitimately carries labels on wire segments away from any
+    pin - so this function would delete exactly the connectivity the redraw
+    added.  It is not a hypothetical: `run_all.ps1` calls this script as step
+    1/8 of *every* run, including a plain validation, and `__main__` prunes even
+    under `--labels-only`.  So: if the sheet has wires, do not prune.  ERC
+    already reports genuinely dangling labels, which is the better tool once a
+    drawing exists.
     """
+    if re.search(r"\(wire\b", SCH.read_text(encoding="utf-8")):
+        print("Schematic has wires - skipping label pruning. "
+              "Labels may legitimately sit on wire segments (I-002); "
+              "use ERC to find dangling ones.")
+        return
+
     pin_points = set()
     for part in parts:
         data = run("sch", "query", "symbol", str(SCH), part.ref, "--format",

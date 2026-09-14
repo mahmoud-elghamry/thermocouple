@@ -12,7 +12,7 @@ working, fix it here rather than working around it in a session.
 | KiCad 10.0.3 | `C:\Program Files\KiCad\10.0` | everything hardware |
 | KiCad Python (`pcbnew`) | `…\10.0\bin\python.exe` | the board generator and router scripts |
 | `kicad-cli` | `…\10.0\bin\kicad-cli.exe` | ERC, DRC, netlist, BOM, Gerbers, 3D render |
-| `kicad-tool` | `%LOCALAPPDATA%\Temp\thermo-kicad-tool-venv\Scripts` | schematic edits, schematic↔board sync |
+| `kicad-tool` | `%USERPROFILE%\.local\bin` | schematic edits, schematic↔board sync. Install: `uv tool install git+https://github.com/mash/kicad-skills.git` - **never** `pip install kiutils`, that pulls upstream and breaks it |
 | Freerouting 2.4.1 | `%LOCALAPPDATA%\kicad-tools\freerouting.jar` | autorouting via Specctra DSN/SES |
 | Temurin JRE 25 | `%LOCALAPPDATA%\kicad-tools\jre25\*\bin\java.exe` | runs Freerouting |
 | avr-gcc | see `firmware/build.ps1` | firmware |

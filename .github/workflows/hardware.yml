@@ -48,7 +48,7 @@ jobs:
       - name: Compare against the REV A0 connectivity contract
         run: |
           python3 hardware/8ch/netlist_fingerprint.py \
-            hardware/8ch/netlist-baseline-reva0.json \
+            hardware/8ch/netlist-baseline-reva1.json \
             /tmp/current.net
 
       - name: Every passive still has an orderable part number

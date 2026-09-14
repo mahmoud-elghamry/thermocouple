@@ -41,7 +41,13 @@ foreach ($table in @('fp-lib-table','sym-lib-table')) {
     }
 }
 $tool = $env:KICAD_TOOL
-if (-not $tool) { $tool = "$env:LOCALAPPDATA/Temp/thermo-kicad-tool-venv/Scripts/kicad-tool.exe" }
+if (-not $tool) {
+  # I-048: the Temp venv does not survive a reboot.
+  $tool = "$env:USERPROFILE/.local/bin/kicad-tool.exe"
+  if (-not (Test-Path $tool)) {
+    $tool = "$env:LOCALAPPDATA/Temp/thermo-kicad-tool-venv/Scripts/kicad-tool.exe"
+  }
+}
 if (-not $env:KICAD_CLI) { $env:KICAD_CLI = 'C:/Program Files/KiCad/10.0/bin/kicad-cli.exe' }
 $sch = Join-Path $snapshot "$stem.kicad_sch"
 $pcb = Join-Path $snapshot "$stem.kicad_pcb"
@@ -53,7 +59,7 @@ $net = Join-Path $out 'current.net'
 Invoke-CheckedNative $tool @('sch','erc',$sch,'-o',$erc) -AllowedExitCodes @(0,5)
 Assert-ErcReport $erc
 Invoke-CheckedNative $tool @('sch','netlist',$sch,'-o',$net)
-Invoke-CheckedNative 'python' @((Join-Path $PSScriptRoot 'netlist_fingerprint.py'), (Join-Path $PSScriptRoot 'netlist-baseline-reva0.json'), $net)
+Invoke-CheckedNative 'python' @((Join-Path $PSScriptRoot 'netlist_fingerprint.py'), (Join-Path $PSScriptRoot 'netlist-baseline-reva1.json'), $net)
 Invoke-CheckedNative $tool @('pcb','drc',$pcb,'-o',$drc)
 Assert-DrcReport $drc
 $after = Get-SourceHashes $inputs

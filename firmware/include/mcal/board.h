@@ -37,7 +37,11 @@ extern const mcal_gpio_pin_t BOARD_BUTTON_ACK;
  * PC2 is ATmega32A DIP-40 physical pin 24, and JTAG TCK until JTAGEN is
  * unprogrammed.  Without that fuse the read-back is meaningless even on A1. */
 #ifndef BOARD_HAS_RUN_PERMIT_SENSE
-#define BOARD_HAS_RUN_PERMIT_SENSE 0
+/* REV A1 fits R53/R54 from RELAY_LOW to PC2, so the driver can be read
+ * back (I-016). This was 0 for as long as PC2 was unconnected: reading a
+ * floating pin invents drive faults out of noise. Flip it back to 0 only
+ * for a board without the divider. */
+#define BOARD_HAS_RUN_PERMIT_SENSE 1
 #endif
 #define BOARD_RUN_PERMIT_SENSE_PORT_NAME "PC2"
 #define BOARD_RUN_PERMIT_SENSE_DIP_PIN   24u
