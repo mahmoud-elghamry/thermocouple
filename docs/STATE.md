@@ -44,7 +44,8 @@ thermal, EMC or physical measurement; Proteus not executed.
 ## Tooling, and the traps it sets
 
 `Konnect` is the only KiCad MCP (`0013`). Cloud sessions: `session-start.sh`
-installs it + toolchain (TOOLS.md, "Cloud"). **`kicad-tool` clones a symbol to
+installs it + toolchain (TOOLS.md, "Cloud"), verified in a real container;
+there `validate.ps1` stops on `I-057`, netlist IDENTICAL, `make` passes. **`kicad-tool` clones a symbol to
 make a new one, so the clone inherits its MPN** (`I-054`); run
 `check_mpn_consistency.py` after any run that adds parts. The generator's
 coordinates are **284 mm left of the sheet** (`I-055`).

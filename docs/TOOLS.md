@@ -229,6 +229,20 @@ First session takes a few minutes; its last lines list any tool that is
 pwsh, uv, kicad-tool and Konnect installed; the apt steps need root, which the
 cloud container has.
 
+**Measured in the real cloud container, 2026-09-24** - WSL did not show this:
+the proxy returns **403 for `ppa.launchpadcontent.net` and `astral.sh`**, and
+`add-apt-repository` fails (no `apt_pkg`). Worse, `apt-get install kicad` then
+succeeds from Ubuntu's own archive with **KiCad 7.0.11**, which cannot open
+these files, and the summary said *all tools present*. The hook now accepts
+only a `kicad-cli` reporting `10.x`, and falls back to KiCad's image
+`ghcr.io/kicad/kicad:10.0` (10.0.6; `docker.io` answers 429) behind a
+`kicad-cli` wrapper in `~/.local/bin`, plus the stock library tables in
+`~/.config/kicad/10.0`. `uv` falls back to PyPI. GitHub release downloads
+(pwsh, Konnect) work. Result: every tool present, Konnect connected, second
+run 16 s. The same image carries KiCad's `pcbnew` Python and `ngspice`, so
+`-Regenerate` is closer than the table below says - Freerouting and a JRE are
+what is still missing.
+
 | Workstation | Cloud equivalent |
 |---|---|
 | `pwsh -File firmware\build.ps1` | `make -C firmware all test` (build.ps1 needs MSVC) |

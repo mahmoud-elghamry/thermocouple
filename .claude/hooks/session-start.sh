@@ -56,13 +56,46 @@ if [ -n "$apt_pkgs" ]; then
   DEBIAN_FRONTEND=noninteractive $SUDO apt-get install -y -qq --no-install-recommends $apt_pkgs >>"$LOG" 2>&1
 fi
 
-if ! have kicad-cli; then
+# Only KiCad 10 counts: Ubuntu's own `kicad` is 7.0, which cannot open this
+# project's files. If the PPA is not added, apt would silently install that.
+kicad10() { kicad-cli version 2>/dev/null | grep -q '^10\.'; }
+
+if ! kicad10; then
   step "KiCad 10 from $KICAD_PPA"
   have add-apt-repository || DEBIAN_FRONTEND=noninteractive $SUDO apt-get install -y -qq software-properties-common >>"$LOG" 2>&1
-  $SUDO add-apt-repository -y "$KICAD_PPA" >>"$LOG" 2>&1
-  $SUDO apt-get update -qq >>"$LOG" 2>&1
-  # No libraries: ERC/DRC/netlist read the project files, not the libraries.
-  DEBIAN_FRONTEND=noninteractive $SUDO apt-get install -y -qq --no-install-recommends kicad >>"$LOG" 2>&1
+  if $SUDO add-apt-repository -y "$KICAD_PPA" >>"$LOG" 2>&1; then
+    $SUDO apt-get update -qq >>"$LOG" 2>&1
+    # No libraries: ERC/DRC/netlist read the project files, not the libraries.
+    DEBIAN_FRONTEND=noninteractive $SUDO apt-get install -y -qq --no-install-recommends kicad >>"$LOG" 2>&1
+  fi
+fi
+
+# Fallback, measured 2026-09-24: the cloud proxy answers 403 for
+# ppa.launchpadcontent.net and add-apt-repository has no apt_pkg, so the PPA
+# never installs. KiCad's own image on ghcr.io does (docker.io rate-limits).
+# kicad-cli then runs in that container with host paths mounted in place.
+KICAD_IMAGE="ghcr.io/kicad/kicad:10.0"
+if ! kicad10 && have docker; then
+  step "KiCad 10 from $KICAD_IMAGE"
+  if ! docker info >/dev/null 2>&1; then
+    (nohup dockerd >>"$LOG" 2>&1 &)
+    for _ in $(seq 1 30); do docker info >/dev/null 2>&1 && break; sleep 1; done
+  fi
+  if docker pull -q "$KICAD_IMAGE" >>"$LOG" 2>&1; then
+    cat >"$BIN/kicad-cli" <<EOF
+#!/bin/sh
+exec docker run --rm -i --user root --network none -v /home:/home -v /tmp:/tmp -v "\$HOME:\$HOME" -e HOME="\$HOME" -w "\$PWD" $KICAD_IMAGE kicad-cli "\$@"
+EOF
+    chmod +x "$BIN/kicad-cli"
+    # Stock library tables: without them ERC reports lib_symbol_issues on
+    # every symbol. The container reads them from the mounted $HOME.
+    kcfg="$HOME/.config/kicad/10.0"
+    if [ ! -f "$kcfg/sym-lib-table" ]; then
+      mkdir -p "$kcfg"
+      docker run --rm --user root -v "$kcfg:/out" "$KICAD_IMAGE" sh -c \
+        'cp /usr/share/kicad/template/sym-lib-table /usr/share/kicad/template/fp-lib-table /out/' >>"$LOG" 2>&1
+    fi
+  fi
 fi
 
 # --- pwsh ---------------------------------------------------------------------
@@ -79,6 +112,8 @@ fi
 if ! have uv; then
   step "uv"
   curl -LsSf https://astral.sh/uv/install.sh | env UV_NO_MODIFY_PATH=1 sh >>"$LOG" 2>&1
+  # astral.sh is 403 through the cloud proxy (2026-09-24); PyPI is allowed.
+  have uv || python3 -m pip install -q uv >>"$LOG" 2>&1
 fi
 if ! have kicad-tool && have uv; then
   step "kicad-tool"
@@ -107,7 +142,7 @@ fi
 if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
   {
     echo "export PATH=\"$BIN:\$PATH\""
-    have kicad-cli  && echo "export KICAD_CLI=\"$(command -v kicad-cli)\""
+    kicad10         && echo "export KICAD_CLI=\"$(command -v kicad-cli)\""
     have kicad-tool && echo "export KICAD_TOOL=\"$(command -v kicad-tool)\""
   } >>"$CLAUDE_ENV_FILE"
 fi
@@ -117,6 +152,7 @@ missing=""
 for t in avr-gcc cc make python pwsh kicad-cli kicad-tool konnect; do
   have "$t" || missing="$missing $t"
 done
+have kicad-cli && ! kicad10 && missing="$missing kicad-cli(not-10)"
 echo "Thermo cloud setup (.claude/hooks/session-start.sh):"
 echo "  firmware:  make -C firmware all test      (build.ps1 is Windows/MSVC only)"
 echo "  hardware:  pwsh -File hardware/8ch/validate.ps1"
