@@ -33,21 +33,19 @@ Fixed in the generator, schematic and REV A1 baseline (three pins, on purpose).
 | `sch_layout/build.py` | reproduces the committed sheet byte-for-byte except UUIDs |
 
 No Gerber release, SPICE, thermal, EMC or physical measurement; Proteus not run.
-## Next actions
 
+## Next actions
 1. **Regenerate the board** (`I-061`) after the two answers above; placement
    for all 201 parts exists, one +5V gap remains. PCB file still REV A0.
-2. **Bench-check K1 before power-up** (`I-058`): 2-5 is the coil (~2.9 kOhm),
-   1-4 closed and 1-3 open de-energised.
+2. **Bench-check K1 before power-up** (`I-058`): 2-5 ~2.9 kOhm, 1-4 shut, 1-3 open.
 3. `I-028` tail: **`F1` is not adequate on a battery** (PTC breaks ~40 A, a
    battery pushes thousands) - external panel fuse. Then `emc`, bench `I-004`.
 4. **Ask the owner** which `I-056` doc-system fixes to do; nothing started.
-5. Cosmetic: `I-059` text overlaps - a KiCad-GUI touch-up.
+5. Cosmetic: `I-059` text overlaps (KiCad GUI).
 
 ## Tooling, and the traps it sets
 
-`Konnect` is the only KiCad MCP (`0013`). Cloud sessions: `session-start.sh`
-installs it + toolchain + KiCad's symbol libraries (TOOLS.md, "Cloud").
+`Konnect` is the only KiCad MCP (`0013`); the cloud hook installs it (TOOLS.md).
 **`kicad-tool` clones a symbol to make a new one, so the clone inherits its
 MPN** (`I-054`); run `check_mpn_consistency.py` after any run that adds parts.
 
@@ -57,7 +55,6 @@ MPN** (`I-054`); run `check_mpn_consistency.py` after any run that adds parts.
 and refuses a schematic with wires, because its router only knows the wires it
 drew. After a generator change, commit the generator's label-only output and
 pass it as `--base`; never run the router over the wired sheet.
-`populate_schematic.py --refresh-properties` resets symbol positions (`I-052`):
-on the wired sheet it would pull parts off their wires - re-run `build.py`.
-Verify every step with `netlist_fingerprint.py`; never alter a baseline to
-make it pass - `I-058` changed it deliberately, by three named pins.
+`populate_schematic.py --refresh-properties` moves symbols (`I-052`): re-run `build.py`.
+Verify every step with `netlist_fingerprint.py`; never edit a baseline to pass
+(`I-058` changed it on purpose, by three named pins).
