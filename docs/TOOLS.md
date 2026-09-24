@@ -107,6 +107,34 @@ New-Item -ItemType Directory -Force -Path $out | Out-Null
 Copy `docs/STATE.md`'s check numbers into the release folder as well. A
 fabrication package without the report it passed is not a package.
 
+## Schematic layout (`I-002`) - `hardware/8ch/sch_layout/`
+
+```sh
+python hardware/8ch/sch_layout/build.py              # scratch copy, prints the gate
+python hardware/8ch/sch_layout/build.py --in-place   # rewrite the schematic
+```
+
+Measured 2026-09-24 in the cloud: about a minute; netlist IDENTICAL, ERC 0/0,
+output equal to the committed sheet apart from UUIDs. Every write goes through
+Konnect over stdio (`kon.py`). Needs `konnect` and `kicad-cli` on PATH and
+`KICAD10_SYMBOL_DIR` set (the cloud hook does all three; on the workstation set
+it to `C:\Program Files\KiCad\10.0\share\kicad\symbols`).
+
+| File | Holds |
+|---|---|
+| `build.py` | entry point and the gate |
+| `fixes.py` | netlist corrections carried by the drawing (`I-058`, `I-057`) |
+| `channel.py`, `chmap.py` | the channel template and which parts are which channel |
+| `extra.py` | placement of every other block, in 1.27 mm grid units |
+| `relayout.py` | move/rotate a part and carry its pin labels and NC flags |
+| `route.py` | wires: never through another net's pin, wire, pin lead or a body |
+| `labels.py` | one label per wired group, placed where its text is clear |
+
+**It starts from a label-only base** (`05d6abd`) and refuses one with wires.
+Change a part's position in `extra.py`/`channel.py`, re-run, look at the
+render (`kicad-cli sch export svg`), repeat. A netlist difference means the
+layout moved connectivity - fix the script, never the baseline.
+
 ## Which mode am I in, and may I write?
 
 Two ways to change the hardware, and a guard that tells them apart -
@@ -229,11 +257,25 @@ First session takes a few minutes; its last lines list any tool that is
 pwsh, uv, kicad-tool and Konnect installed; the apt steps need root, which the
 cloud container has.
 
+**Measured in the real cloud container, 2026-09-24** - WSL did not show this:
+the proxy returns **403 for `ppa.launchpadcontent.net` and `astral.sh`**, and
+`add-apt-repository` fails (no `apt_pkg`). Worse, `apt-get install kicad` then
+succeeds from Ubuntu's own archive with **KiCad 7.0.11**, which cannot open
+these files, and the summary said *all tools present*. The hook now accepts
+only a `kicad-cli` reporting `10.x`, and falls back to KiCad's image
+`ghcr.io/kicad/kicad:10.0` (10.0.6; `docker.io` answers 429) behind a
+`kicad-cli` wrapper in `~/.local/bin`, plus the stock library tables in
+`~/.config/kicad/10.0`. `uv` falls back to PyPI. GitHub release downloads
+(pwsh, Konnect) work. Result: every tool present, Konnect connected, second
+run 16 s. The same image carries KiCad's `pcbnew` Python and `ngspice`, so
+`-Regenerate` is closer than the table below says - Freerouting and a JRE are
+what is still missing.
+
 | Workstation | Cloud equivalent |
 |---|---|
 | `pwsh -File firmware\build.ps1` | `make -C firmware all test` (build.ps1 needs MSVC) |
 | `pwsh -File hardware\8ch\run_all.ps1` | `pwsh -File hardware/8ch/validate.ps1` |
-| `run_all.ps1 -Regenerate` | **not available** - needs KiCad's pcbnew Python and Freerouting |
+| `run_all.ps1 -Regenerate` | by hand, measured 2026-09-24: Temurin JRE 25 (`github.com/adoptium/temurin25-binaries`) and `freerouting-2.4.1.jar` (`github.com/freerouting/freerouting` releases) into `~/.local/opt`; KiCad's footprints copied out of the image; then `apply_rules.py`, `kicad-tool pcb sync`, and `generate_board.py` / `route.py` / `close_gaps.py` run with the image's `python3` (`docker run --user root` with `/tmp`, `/home`, `~/.local` mounted, `FREEROUTING_JAR`, `FREEROUTING_JAVA`, `JAVA_TOOL_OPTIONS=` cleared). Routing takes ~12 min. |
 
 **Cloud work lives only in the container until it is pushed.** Commit and push
 to a `claude/*` branch before the session ends; `git push` is in `ask`, not

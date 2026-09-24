@@ -2,58 +2,59 @@
 
 **Read second, after `AGENTS.md`. Update before finishing. Hard limit: 60 lines.**
 
-**Last updated:** 2026-09-24
+**Last updated:** 2026-09-24 (cloud session)
 
 ## Last session
 
-**The supply is an engine battery** (owner), so `I-028` is resolved in the
-schematic: `TSR 1-2450` (36 V) -> **`LM5164` (6-100 V, 1 A)**, `D1` 40 -> 100 V,
-`D2` 33 -> 60 V standoff, `C53`/`C54` -> 100 V. A suppressed load dump is 58 V
-for ~350 ms. **~$5/unit CHEAPER than the module it replaces**, and a better
-cranking floor. `0016`; every number is now in `reference/CALCULATIONS.md`.
+**`I-002` is closed: the schematic is a drawing.** Every block laid out by
+function and wired, one label per wired group, done through Konnect by
+`hardware/8ch/sch_layout/build.py` (repeatable; TOOLS.md, "Schematic layout").
+**Drawing the relay found `I-058`, a blocker:** K1's coil is on pins 2-5, but
+the MOSFET drain was on pin 1 (COM) - the relay could never have energised.
+Fixed in the generator, schematic and REV A1 baseline (three pins, on purpose).
+`I-057` closed: U12 relinked, ERC now 0 warnings everywhere.
 
-**REV A1 and the BOM are done** (`0014`, `I-051`, `I-053`); the terminal blocks'
-`1935161` was a two-way part on a three-way footprint. **Board NOT regenerated.**
+## Ask the owner BEFORE any PCB work - both block `I-061`
 
-## Measured, not claimed
+1. **U14 thermal vias (`I-060`):** keep the 0.2 mm vias and lower the board
+   minimum (costs more to fab), or plain footprint + 0.3 mm vias beside it?
+2. **J3 vs the real K1 pins (`I-061`):** move J3, or change J3's COM/NO/NC
+   pin order in the schematic (it is what the installer wires to)?
+
+## Measured, not claimed (Linux, KiCad 10.0.6, avr-gcc 7.3)
 
 | Check | Result |
 |---|---|
-| `firmware/build.ps1` | **exit 0**; 4 images, 3 suites `all checks passed` |
-| Real 8ch image | 5592 B flash (17.1 %), was 5556 B - the read-back is now live |
-| Netlist | **201** components, **162** nets, **645** pins (was 188/155/613) |
-| Fingerprint | 28 differences, **every one inspected**; new nets checked pin by pin vs TI SNVSAU4D |
-| ERC | **0 errors, 0 warnings** |
-| DRC | **not run** - the board is untouched and now lags the schematic |
-| BOM | 86 lines, **201 parts**; the only 9 without an MPN are the test points |
-| `check_mpn_consistency.py` | **128 checked, all match** - it found 12 wrong first |
+| `make -C firmware all test` | **exit 0**; 4 images, 3 suites `all checks passed` |
+| Netlist vs `netlist-baseline-reva1.json` | **IDENTICAL** - 201 / 162 / 645 (baseline moved only by `I-058`) |
+| ERC | **0 errors, 0 warnings** (was 171 `endpoint_off_grid`) |
+| `check_mpn_consistency.py` / `source_passives.py --check` | 128 match / 38 types with MPN |
+| `validate.ps1` | **fails at DRC: 226 parity** - the board is REV A0, not regenerated |
+| `sch_layout/build.py` | reproduces the committed sheet byte-for-byte except UUIDs |
 
-The board is **34 components behind** the schematic. No Gerber release, SPICE,
-thermal, EMC or physical measurement; Proteus not executed.
+No Gerber release, SPICE, thermal, EMC or physical measurement; Proteus not run.
 
 ## Next actions
-
-1. **`I-002` wires** - still **0 wires**, the last schematic job (`I-047`,
-   `I-050`). A wire along a signal row through a decoupling cap's ground pin
-   shorts the net - that is how channel 1 put `TC1_FILT_P/N` on `GND_SENS`.
-2. **Regenerate the board** - authorized; it lags by 34 components.
+1. **Regenerate the board** (`I-061`) after the two answers above; placement
+   for all 201 parts exists, one +5V gap remains. PCB file still REV A0.
+2. **Bench-check K1 before power-up** (`I-058`): 2-5 ~2.9 kOhm, 1-4 shut, 1-3 open.
 3. `I-028` tail: **`F1` is not adequate on a battery** (PTC breaks ~40 A, a
    battery pushes thousands) - external panel fuse. Then `emc`, bench `I-004`.
 4. **Ask the owner** which `I-056` doc-system fixes to do; nothing started.
+5. Cosmetic: `I-059` text overlaps (KiCad GUI).
 
 ## Tooling, and the traps it sets
 
-`Konnect` is the only KiCad MCP (`0013`). Cloud sessions: `session-start.sh`
-installs it + toolchain (TOOLS.md, "Cloud"). **`kicad-tool` clones a symbol to
-make a new one, so the clone inherits its MPN** (`I-054`); run
-`check_mpn_consistency.py` after any run that adds parts. The generator's
-coordinates are **284 mm left of the sheet** (`I-055`).
+`Konnect` is the only KiCad MCP (`0013`); the cloud hook installs it (TOOLS.md).
+**`kicad-tool` clones a symbol to make a new one, so the clone inherits its
+MPN** (`I-054`); run `check_mpn_consistency.py` after any run that adds parts.
 
-## Preserve for I-002 and hardware work
+## Preserve for hardware work
 
-A hierarchical redraw was attempted and reverted: symbols lacked KiCad instance
-data, so the netlist exported **zero components**. Verify every step with
-`netlist_fingerprint.py`; never alter the baseline to make it pass.
-`prune_dangling_labels()` would have deleted the new wiring on the next
-`run_all.ps1` (guarded, `I-047`), and it does not remove a stale label resting
-**on** another pin - `I-049`, `I-050`.
+**The layout pass needs a label-only base.** `build.py` starts from `05d6abd`
+and refuses a schematic with wires, because its router only knows the wires it
+drew. After a generator change, commit the generator's label-only output and
+pass it as `--base`; never run the router over the wired sheet.
+`populate_schematic.py --refresh-properties` moves symbols (`I-052`): re-run `build.py`.
+Verify every step with `netlist_fingerprint.py`; never edit a baseline to pass
+(`I-058` changed it on purpose, by three named pins).
