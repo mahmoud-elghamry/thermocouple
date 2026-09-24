@@ -37,6 +37,8 @@ def build_placements() -> dict[str, tuple[float, float, float]]:
             "C_dvdd": f"C{5 * channel}",
             "R_cs": f"R{16 + channel}",
             "R_miso": f"R{44 + channel}",
+            "D_p": f"D{2 * channel + 5}",
+            "D_n": f"D{2 * channel + 6}",
         }
         for key, (dx, dy, rot) in CHANNEL_TEMPLATE.items():
             if top:
@@ -86,6 +88,11 @@ def build_placements() -> dict[str, tuple[float, float, float]]:
     put("TP7", 177.0, 65.0)
     put("J5", 158.0, 68.0, 0)        # AVR ISP
     put("J6", 166.0, 68.0, 0)        # expansion / spare port
+    # 8 MHz crystal under XTAL2/XTAL1 (pins 12/13); rotated 180 so pad 1
+    # (XTAL1) is on the right, under pin 13.  Load caps below each pad.
+    put("Y1", 199.5, 67.0, 180)
+    put("C61", 195.3, 71.5)          # 22p XTAL2 -> GND_CTRL
+    put("C60", 203.7, 71.5)          # 22p XTAL1 -> GND_CTRL
     put("TP1", 178.0, 72.0)
     put("TP2", 183.0, 72.0)
     for index, y in enumerate((12.0, 23.0, 34.0, 45.0, 56.0), start=1):
@@ -96,10 +103,26 @@ def build_placements() -> dict[str, tuple[float, float, float]]:
     put("F1", 180.0, 131.0)          # 0.5 A PTC
     put("D1", 187.0, 131.0)          # SS34 reverse-polarity series diode
     put("D2", 195.0, 131.0)          # SMBJ33A transient clamp
-    put("C53", 178.0, 122.0)         # 47u bulk
-    put("C54", 186.0, 122.0)
-    put("C55", 191.0, 122.0)
-    put("U14", 197.0, 122.0, 0)      # TSR 1-2450 buck module
+    put("C53", 178.0, 122.0)         # 22u 100V bulk on +24V_PROT
+    # LM5164 buck (I-028, 0016) in the free lower-left of the control island:
+    # input caps above VIN, L1 beside SW, output caps after L1, feedback
+    # divider under FB, ripple injection above L1.
+    put("U14", 172.0, 110.0, 0)
+    put("C54", 165.5, 104.5)         # 4.7u 100V at VIN
+    put("C63", 170.8, 104.5)         # 4.7u 100V at VIN
+    put("R59", 163.5, 111.0, 90)     # UVLO divider, top
+    put("R60", 163.5, 115.0, 90)     # UVLO divider, bottom
+    put("R55", 167.5, 114.5)         # RON
+    put("C62", 176.5, 105.5)         # bootstrap
+    put("L1", 185.0, 110.0)          # 33u, 10.4 mm
+    put("R58", 180.5, 102.5)         # ripple injection from SW
+    put("C67", 184.5, 102.5)         # ripple injection to +5V
+    put("C68", 172.5, 115.0)         # ripple injection to FB
+    put("R57", 176.3, 115.0)         # FB divider, bottom
+    put("R56", 171.5, 117.6)         # FB divider, top
+    put("C64", 193.5, 108.0, 90)     # 22u output
+    put("C65", 197.5, 108.0, 90)     # 22u output
+    put("C55", 201.5, 108.0, 90)     # 10u output
 
     # --- energised-to-run relay -------------------------------------------
     put("R30", 196.0, 96.0)          # gate stopper from RUN_PERMIT
@@ -108,6 +131,8 @@ def build_placements() -> dict[str, tuple[float, float, float]]:
     put("R32", 190.0, 101.0)         # run-permit LED series resistor
     put("D4", 190.0, 96.0)           # run-permit LED
     put("D3", 212.0, 86.0, 90)       # 1N4007 coil flyback clamp
+    put("R53", 205.5, 103.0, 90)     # run-permit read-back divider (I-016)
+    put("R54", 205.5, 107.0, 90)
     put("K1", 225.0, 65.0, 0)        # G5LE-1 24 V, energised to allow run
     put("J3", 241.0, 79.0, 90)       # dry contact COM/NO/NC
 

@@ -29,8 +29,9 @@ No Gerber release, SPICE, thermal, EMC or physical measurement; Proteus not run.
 
 ## Next actions
 
-1. **Regenerate the board** - authorized (`0014`); it lags by 34 components
-   and still has the old K1 mapping. Needs pcbnew + Freerouting (workstation).
+1. **Regenerate the board** (`I-061`) - authorized (`0014`). Placement for all
+   201 parts now exists; routing leaves `RELAY_NC` (J3 order vs the real K1
+   pins), one +5V gap and `I-060` (U14 vias, owner). PCB file still REV A0.
 2. **Bench-check K1 before power-up** (`I-058`): 2-5 is the coil (~2.9 kOhm),
    1-4 closed and 1-3 open de-energised.
 3. `I-028` tail: **`F1` is not adequate on a battery** (PTC breaks ~40 A, a

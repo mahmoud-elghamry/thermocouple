@@ -5,12 +5,16 @@ Pure data. No pcbnew import, so it can be read without KiCad.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
 BOARD_FILE = ROOT / "thermocouple_8ch.kicad_pcb"
-FP_ROOT = Path(r"C:\Program Files\KiCad\10.0\share\kicad\footprints")
+# KiCad sets KICAD10_FOOTPRINT_DIR; the workstation default is kept for scripts
+# started outside KiCad.
+FP_ROOT = Path(os.environ.get("KICAD10_FOOTPRINT_DIR",
+                             r"C:\Program Files\KiCad\10.0\share\kicad\footprints"))
 
 BOARD_W = 250.0
 BOARD_H = 140.0
@@ -90,4 +94,9 @@ CHANNEL_TEMPLATE = {
     "C_dvdd":  (2.2,  24.70,  90),
     "R_cs":    (2.5,  28.50,  0),   # 10k pull-up so CS is high before init
     "R_miso":  (8.0,  28.50,  0),   # 100R series on the shared MISO bus
+    # BAV199 rail clamps (I-045), mirrored about x = 6.5 like the filter, in
+    # the strip between the terminal block and the 100R pair.  Pin 3 (the
+    # signal) faces the centreline on both.
+    "D_p":     (-0.5, 14.20,  0),
+    "D_n":     (13.5, 14.20,  180),
 }

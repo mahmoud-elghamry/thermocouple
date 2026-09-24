@@ -275,7 +275,7 @@ what is still missing.
 |---|---|
 | `pwsh -File firmware\build.ps1` | `make -C firmware all test` (build.ps1 needs MSVC) |
 | `pwsh -File hardware\8ch\run_all.ps1` | `pwsh -File hardware/8ch/validate.ps1` |
-| `run_all.ps1 -Regenerate` | **not available** - needs KiCad's pcbnew Python and Freerouting |
+| `run_all.ps1 -Regenerate` | by hand, measured 2026-09-24: Temurin JRE 25 (`github.com/adoptium/temurin25-binaries`) and `freerouting-2.4.1.jar` (`github.com/freerouting/freerouting` releases) into `~/.local/opt`; KiCad's footprints copied out of the image; then `apply_rules.py`, `kicad-tool pcb sync`, and `generate_board.py` / `route.py` / `close_gaps.py` run with the image's `python3` (`docker run --user root` with `/tmp`, `/home`, `~/.local` mounted, `FREEROUTING_JAR`, `FREEROUTING_JAVA`, `JAVA_TOOL_OPTIONS=` cleared). Routing takes ~12 min. |
 
 **Cloud work lives only in the container until it is pushed.** Commit and push
 to a `claude/*` branch before the session ends; `git push` is in `ask`, not
