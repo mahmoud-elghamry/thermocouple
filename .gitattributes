@@ -1,0 +1,2 @@
+# Shell scripts run in the Linux cloud container; CRLF breaks them.
+*.sh text eol=lf

@@ -20,12 +20,26 @@
       "Bash(taskkill*eeschema*)",
       "Bash(taskkill*kicad*)",
       "Edit(//D:/tasks/thermo/hardware/single-channel/**)",
-      "Write(//D:/tasks/thermo/hardware/single-channel/**)",
-      "Bash(git push:*)"
+      "Write(//D:/tasks/thermo/hardware/single-channel/**)"
     ],
     "ask": [
       "Bash(git commit:*)",
+      "Bash(git push:*)",
       "Bash(pwsh -File hardware/8ch/run_all.ps1:*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.sh\"",
+            "timeout": 900
+          }
+        ]
+      }
     ]
   }
 }

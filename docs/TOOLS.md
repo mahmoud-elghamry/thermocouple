@@ -215,6 +215,30 @@ needs ngspice, LTspice or Xyce on PATH and none of the three is installed.
 KiCad's built-in ngspice is a library inside the GUI, not a CLI, so it does not
 satisfy the skill.
 
+## Cloud sessions (Claude Code on the web)
+
+`.claude/hooks/session-start.sh`, registered as a `SessionStart` hook in
+`.claude/settings.json`. It runs only when `CLAUDE_CODE_REMOTE=true`; on this
+workstation it exits at once. It installs avr-gcc, KiCad 10 `kicad-cli` (KiCad
+PPA), `pwsh`, `uv` + `kicad-tool`, and Konnect 0.11.1 (prebuilt Linux release -
+keep the version equal to `konnect.exe --version` here), then registers Konnect
+at **local** scope in the container. `.mcp.json` stays empty. No
+`KICAD_API_SOCKET` is needed there: no KiCad GUI, so Konnect edits files directly.
+First session takes a few minutes; its last lines list any tool that is
+**MISSING**, with a log path. Tested 2026-09-24 in WSL Ubuntu without root:
+pwsh, uv, kicad-tool and Konnect installed; the apt steps need root, which the
+cloud container has.
+
+| Workstation | Cloud equivalent |
+|---|---|
+| `pwsh -File firmware\build.ps1` | `make -C firmware all test` (build.ps1 needs MSVC) |
+| `pwsh -File hardware\8ch\run_all.ps1` | `pwsh -File hardware/8ch/validate.ps1` |
+| `run_all.ps1 -Regenerate` | **not available** - needs KiCad's pcbnew Python and Freerouting |
+
+**Cloud work lives only in the container until it is pushed.** Commit and push
+to a `claude/*` branch before the session ends; `git push` is in `ask`, not
+`deny`, so the owner approves each push.
+
 ## Konnect - editing through a running KiCad
 
 `docs/decisions/0013`. A single binary at `D:	ools\konnect\konnect.exe`,

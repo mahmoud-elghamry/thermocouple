@@ -105,7 +105,9 @@ pwsh -File hardware\8ch\run_all.ps1      # validate a snapshot; source hardware 
 pwsh -File firmware\build.ps1       # firmware build + host tests
 ```
 
-Both must be run before claiming anything about the current state.
+Both must be run before claiming anything about the current state. In a cloud
+(Linux) session use `make -C firmware all test` and
+`pwsh -File hardware/8ch/validate.ps1`; see `docs/TOOLS.md`, "Cloud sessions".
 `run_all.ps1 -Regenerate` rewrites and re-routes the whole board. The owner
 lifted the REV A0 freeze on 2026-09-15 (`docs/decisions/0014`), so it is
 authorized - run `board_provenance.py --check` first.

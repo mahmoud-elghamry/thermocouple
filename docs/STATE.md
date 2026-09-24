@@ -43,12 +43,11 @@ thermal, EMC or physical measurement; Proteus not executed.
 
 ## Tooling, and the traps it sets
 
-`Konnect` is the only KiCad MCP (`0013`), user scope only. **`kicad-tool` clones
-an existing symbol to make a new one, so the clone inherits its MPN** - it gave
-6 new caps a 100 nF part number and ERC/netlist both passed (`I-054`); run
+`Konnect` is the only KiCad MCP (`0013`). Cloud sessions: `session-start.sh`
+installs it + toolchain (TOOLS.md, "Cloud"). **`kicad-tool` clones a symbol to
+make a new one, so the clone inherits its MPN** (`I-054`); run
 `check_mpn_consistency.py` after any run that adds parts. The generator's
-coordinates are **284 mm left of the sheet** (`I-055`). `Assert-ErcReport` once
-counted only errors (`I-049`).
+coordinates are **284 mm left of the sheet** (`I-055`).
 
 ## Preserve for I-002 and hardware work
 
