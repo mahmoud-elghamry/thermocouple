@@ -98,6 +98,16 @@ EOF
   fi
 fi
 
+# The symbol libraries on the host, for Konnect (it runs outside the
+# container): hardware/8ch/sch_layout relinks U12 from them.
+ksym="$LOCAL/share/kicad/symbols"
+if [ ! -f "$ksym/Device.kicad_sym" ] && docker image inspect "$KICAD_IMAGE" >/dev/null 2>&1; then
+  step "KiCad symbol libraries"
+  mkdir -p "$ksym"
+  docker run --rm --user root -v "$ksym:/out" "$KICAD_IMAGE" sh -c \
+    'cp -r /usr/share/kicad/symbols/. /out/' >>"$LOG" 2>&1
+fi
+
 # --- pwsh ---------------------------------------------------------------------
 if ! have pwsh; then
   step "pwsh $PWSH_VERSION"
@@ -144,6 +154,7 @@ if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
     echo "export PATH=\"$BIN:\$PATH\""
     kicad10         && echo "export KICAD_CLI=\"$(command -v kicad-cli)\""
     have kicad-tool && echo "export KICAD_TOOL=\"$(command -v kicad-tool)\""
+    [ -f "$LOCAL/share/kicad/symbols/Device.kicad_sym" ] && echo "export KICAD10_SYMBOL_DIR=\"$LOCAL/share/kicad/symbols\""
   } >>"$CLAUDE_ENV_FILE"
 fi
 

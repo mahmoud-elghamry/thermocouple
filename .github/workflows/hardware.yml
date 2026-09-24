@@ -34,7 +34,9 @@ jobs:
   connectivity-unchanged:
     runs-on: ubuntu-latest
     container:
-      image: kicad/kicad:9.0
+      # KiCad 10: the schematic is saved in its format (version 20260306),
+      # which KiCad 9 cannot open. ghcr.io, because docker.io rate-limits.
+      image: ghcr.io/kicad/kicad:10.0
       options: --user root
     steps:
       - uses: actions/checkout@v4
@@ -45,11 +47,17 @@ jobs:
             --output /tmp/current.net \
             hardware/8ch/thermocouple_8ch.kicad_sch
 
-      - name: Compare against the REV A0 connectivity contract
+      - name: Compare against the REV A1 connectivity contract
         run: |
           python3 hardware/8ch/netlist_fingerprint.py \
             hardware/8ch/netlist-baseline-reva1.json \
             /tmp/current.net
+
+      - name: No ERC errors
+        run: |
+          kicad-cli sch erc --severity-error --exit-code-violations \
+            --output /tmp/erc.rpt hardware/8ch/thermocouple_8ch.kicad_sch \
+            || { cat /tmp/erc.rpt; exit 1; }
 
       - name: Every passive still has an orderable part number
         run: python3 hardware/8ch/source_passives.py --check

@@ -107,6 +107,34 @@ New-Item -ItemType Directory -Force -Path $out | Out-Null
 Copy `docs/STATE.md`'s check numbers into the release folder as well. A
 fabrication package without the report it passed is not a package.
 
+## Schematic layout (`I-002`) - `hardware/8ch/sch_layout/`
+
+```sh
+python hardware/8ch/sch_layout/build.py              # scratch copy, prints the gate
+python hardware/8ch/sch_layout/build.py --in-place   # rewrite the schematic
+```
+
+Measured 2026-09-24 in the cloud: about a minute; netlist IDENTICAL, ERC 0/0,
+output equal to the committed sheet apart from UUIDs. Every write goes through
+Konnect over stdio (`kon.py`). Needs `konnect` and `kicad-cli` on PATH and
+`KICAD10_SYMBOL_DIR` set (the cloud hook does all three; on the workstation set
+it to `C:\Program Files\KiCad\10.0\share\kicad\symbols`).
+
+| File | Holds |
+|---|---|
+| `build.py` | entry point and the gate |
+| `fixes.py` | netlist corrections carried by the drawing (`I-058`, `I-057`) |
+| `channel.py`, `chmap.py` | the channel template and which parts are which channel |
+| `extra.py` | placement of every other block, in 1.27 mm grid units |
+| `relayout.py` | move/rotate a part and carry its pin labels and NC flags |
+| `route.py` | wires: never through another net's pin, wire, pin lead or a body |
+| `labels.py` | one label per wired group, placed where its text is clear |
+
+**It starts from a label-only base** (`05d6abd`) and refuses one with wires.
+Change a part's position in `extra.py`/`channel.py`, re-run, look at the
+render (`kicad-cli sch export svg`), repeat. A netlist difference means the
+layout moved connectivity - fix the script, never the baseline.
+
 ## Which mode am I in, and may I write?
 
 Two ways to change the hardware, and a guard that tells them apart -

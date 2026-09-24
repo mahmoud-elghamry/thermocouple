@@ -402,7 +402,7 @@ resistor("R59", "33.2k 1%", (212, 168), "+24V_PROT", "VIN_UVLO",
 resistor("R60", "10k 1%", (212, 162), "VIN_UVLO", "GND_CTRL",
          "EN/UVLO divider lower")
 
-add(Part("U12", "Converter_DCDC:IA0305S", (126, 145), "IA0505S",
+add(Part("U12", "Converter_DCDC_Isolated:IA0505S", (126, 145), "IA0505S",
          "Converter_DCDC:Converter_DCDC_XP_POWER-IAxxxxS_THT",
          {"1": "+5V_CTRL", "2": "GND_CTRL", "4": "NEG5_UNUSED",
           "5": "GND_SENS", "6": "+5V_ISO"},
@@ -479,8 +479,11 @@ add(Part("Q1", "Transistor_FET:2N7000", (247, 188), "2N7000",
          function="Low-side driver for the 24 V run-permit relay"))
 resistor("R30", "100R", (235, 184), "RUN_PERMIT", "RELAY_GATE", "MOSFET gate stopper")
 resistor("R31", "100k", (241, 194), "RELAY_GATE", "GND_CTRL", "Relay driver default-off pull-down", rotation=0)
+# G5LE-1 terminals, as the KiCad symbol draws them and Omron numbers them:
+# coil 2-5, COM 1, NC 4 (the blade rests on it), NO 3 - the SPST-NO G5LE-1A
+# has no pin 4. The low side of the coil is pin 5, not pin 1 (I-058).
 add(Part("K1", "Relay:G5LE-1", (265, 180), "G5LE-1 DC24",
-         "Relay_THT:Relay_SPDT_Omron-G5LE-1", {"1": "RELAY_LOW", "2": "+24V_PROT", "3": "RELAY_NO", "4": "RELAY_COM", "5": "RELAY_NC"},
+         "Relay_THT:Relay_SPDT_Omron-G5LE-1", {"1": "RELAY_COM", "2": "+24V_PROT", "3": "RELAY_NO", "4": "RELAY_NC", "5": "RELAY_LOW"},
          manufacturer="Omron Electronics", mpn="G5LE-1 DC24", function="Energized-to-run SPDT dry-contact output"))
 add(Part("D3", "Device:D", (258, 193), "1N4007", "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal",
          {"1": "+24V_PROT", "2": "RELAY_LOW"}, function="Relay coil flyback clamp"))
@@ -564,7 +567,7 @@ def ensure_parts() -> None:
         "U1": "MCU_Microchip_ATmega:ATmega16L-8P",
         "U10": "Isolator:ISO7760DW",
         "U11": "Isolator:ISO7761DW",
-        "U12": "Converter_DCDC:IA0305S",
+        "U12": "Converter_DCDC_Isolated:IA0505S",
         "U13": "Regulator_Linear:LP2985-1.8",
     }
     for ref in ("#FLG3", "#FLG4", "#FLG5", "#FLG6"):
