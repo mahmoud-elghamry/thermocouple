@@ -14,6 +14,13 @@ the MOSFET drain was on pin 1 (COM) - the relay could never have energised.
 Fixed in the generator, schematic and REV A1 baseline (three pins, on purpose).
 `I-057` closed: U12 relinked, ERC now 0 warnings everywhere.
 
+## Ask the owner BEFORE any PCB work - both block `I-061`
+
+1. **U14 thermal vias (`I-060`):** keep the 0.2 mm vias and lower the board
+   minimum (costs more to fab), or plain footprint + 0.3 mm vias beside it?
+2. **J3 vs the real K1 pins (`I-061`):** move J3, or change J3's COM/NO/NC
+   pin order in the schematic (it is what the installer wires to)?
+
 ## Measured, not claimed (Linux, KiCad 10.0.6, avr-gcc 7.3)
 
 | Check | Result |
@@ -26,12 +33,10 @@ Fixed in the generator, schematic and REV A1 baseline (three pins, on purpose).
 | `sch_layout/build.py` | reproduces the committed sheet byte-for-byte except UUIDs |
 
 No Gerber release, SPICE, thermal, EMC or physical measurement; Proteus not run.
-
 ## Next actions
 
-1. **Regenerate the board** (`I-061`) - authorized (`0014`). Placement for all
-   201 parts now exists; routing leaves `RELAY_NC` (J3 order vs the real K1
-   pins), one +5V gap and `I-060` (U14 vias, owner). PCB file still REV A0.
+1. **Regenerate the board** (`I-061`) after the two answers above; placement
+   for all 201 parts exists, one +5V gap remains. PCB file still REV A0.
 2. **Bench-check K1 before power-up** (`I-058`): 2-5 is the coil (~2.9 kOhm),
    1-4 closed and 1-3 open de-energised.
 3. `I-028` tail: **`F1` is not adequate on a battery** (PTC breaks ~40 A, a
