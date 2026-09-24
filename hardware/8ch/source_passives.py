@@ -38,6 +38,7 @@ USER_AGENT = "thermo-8ch-sourcing/1.0"
 
 R0805 = "Resistor_SMD:R_0805_2012Metric"
 C0805 = "Capacitor_SMD:C_0805_2012Metric"
+C1210 = "Capacitor_SMD:C_1210_3225Metric"
 
 # Every distinct passive on the board, keyed by the Value string the schematic
 # uses. `need` is the electrical requirement; anything not listed is free.
@@ -65,7 +66,29 @@ REQUIREMENTS = {
     "4.7k 0.25W": dict(kind="r", footprint=R0805, ohms=4700, tol=0.05,
                        power=0.25),
     "10k":       dict(kind="r", footprint=R0805, ohms=10000, tol=0.05),
+    # --- REV A1 (docs/decisions/0014) -------------------------------
+    "22k":          dict(kind="r", footprint=R0805, ohms=22e3,
+                         critical="run-permit read-back divider, upper leg;\n                                   with R54 it puts ~4.2 V on PC2 from 24 V"),
+    "4k7":          dict(kind="r", footprint=R0805, ohms=4.7e3,
+                         critical="run-permit read-back divider, lower leg"),
     "100k":      dict(kind="r", footprint=R0805, ohms=100000, tol=0.05),
+
+    # --- LM5164 input stage (decisions/0016, CALCULATIONS.md 1) -------------
+    # All 1 %: these five set the switching frequency, the output voltage and
+    # the under-voltage lockout.  A 5 % part here moves the 5 V rail.
+    "41.2k 1%":  dict(kind="r", footprint=R0805, ohms=41.2e3, tol=0.01,
+                      critical="LM5164 on-time resistor - sets 303 kHz"),
+    "158k 1%":   dict(kind="r", footprint=R0805, ohms=158e3, tol=0.01,
+                      critical="feedback divider upper - directly sets the 5 V rail"),
+    "49.9k 1%":  dict(kind="r", footprint=R0805, ohms=49.9e3, tol=0.01,
+                      critical="feedback divider lower - directly sets the 5 V rail"),
+    "150k 1%":   dict(kind="r", footprint=R0805, ohms=150e3, tol=0.01,
+                      critical="Type-3 ripple injection - too large and the "
+                               "converter loses the ripple it needs to stay stable"),
+    "33.2k 1%":  dict(kind="r", footprint=R0805, ohms=33.2e3, tol=0.01,
+                      critical="EN/UVLO divider upper - sets the 6.48 V release"),
+    "10k 1%":    dict(kind="r", footprint=R0805, ohms=10e3, tol=0.01,
+                      critical="EN/UVLO divider lower"),
 
     # --- capacitors --------------------------------------------------------
     # C0G/NP0 in the signal path: X7R's voltage and temperature coefficients
@@ -93,6 +116,10 @@ REQUIREMENTS = {
     "10n C0G 50V":  dict(kind="c", footprint=C0805, farads=10e-9,
                          volt=50, dielectric="C0G",
                          critical="TC common-mode filter"),
+    # --- REV A1 (docs/decisions/0014) -------------------------------
+    "22p C0G 50V":  dict(kind="c", footprint=C0805, farads=22e-12,
+                         volt=50, dielectric="C0G",
+                         critical="Y1 crystal load capacitor - the load\n                                   capacitance sets the oscillator\n                                   frequency, so C0G is not optional here"),
     "100n X7R":     dict(kind="c", footprint=C0805, farads=100e-9, volt=16,
                          dielectric="X7R"),
     "10n X7R":      dict(kind="c", footprint=C0805, farads=10e-9, volt=16,
@@ -114,6 +141,27 @@ REQUIREMENTS = {
                          dielectric="X7R"),
     "10u X7R":      dict(kind="c", footprint=C0805, farads=10e-6, volt=16,
                          dielectric="X7R"),
+    # --- LM5164 input stage (decisions/0016) --------------------------------
+    # 100 V parts because the supply is a battery: a suppressed load dump sits
+    # at 58 V for ~350 ms and a 50 V capacitor does not survive that.
+    "4.7u 100V X7R": dict(kind="c", footprint=C1210, farads=4.7e-6, volt=100,
+                          dielectric="X7R",
+                          critical="buck input bypass - TI asks for 2 x the max "
+                                   "input voltage because of ceramic DC bias loss"),
+    "22u 25V X7R":   dict(kind="c", footprint=C1210, farads=22e-6, volt=25,
+                          dielectric="X7R",
+                          critical="buck output capacitor"),
+    "2.2n 50V X7R":  dict(kind="c", footprint=C0805, farads=2.2e-9, volt=50,
+                          dielectric="X7R",
+                          critical="bootstrap - the datasheet fixes this at 2.2 nF, "
+                                   "1.5-2.5 nF absolute"),
+    "3.3n 50V X7R":  dict(kind="c", footprint=C0805, farads=3.3e-9, volt=50,
+                          dielectric="X7R",
+                          critical="Type-3 ripple injection"),
+    "220p C0G 50V":  dict(kind="c", footprint=C0805, farads=220e-12, volt=50,
+                          dielectric="C0G",
+                          critical="ripple coupling into FB - C0G because the part "
+                                   "must not lose value under DC bias"),
 }
 
 # Parts the LCSC parametric search does not cover.  Specified by hand, with the
@@ -125,6 +173,16 @@ MANUAL = {
         note="Through-hole radial electrolytic, 47uF 50V, 6.3 mm, 105 degC, "
              "low ESR. The parametric search covers surface-mount parts; this "
              "is the 24 V bulk reservoir and is fitted by hand.",
+    ),
+    "22u 100V": dict(
+        footprint="Capacitor_THT:CP_Radial_D8.0mm_P3.50mm",
+        mpn="EEUFC2A220", manufacturer="Panasonic",
+        note="Through-hole radial electrolytic, 22uF 100V, 8 mm, 105 degC. "
+             "Replaces the 47uF 50V part: the supply is a battery and 50 V does "
+             "not survive a 58 V load dump. The value dropped because this "
+             "capacitor was never ride-through - 47uF buys 5.7 ms (CALCULATIONS.md "
+             "section 2). Its job now is bulk and parallel damping for the 50 m "
+             "feed, which 22uF does.",
     ),
     "10k LCD CONTRAST": dict(
         footprint="Potentiometer_Bourns_3296W_Vertical",
@@ -183,14 +241,30 @@ def rank(part: dict) -> tuple:
             part.get("price1") or 9e9)
 
 
+def package_of(footprint: str) -> str:
+    """Imperial package code out of a KiCad footprint name.
+
+    This used to be hardcoded to "0805", which silently made every non-0805
+    requirement unresolvable: the search asked for a 0805 part, found nothing
+    that also met the voltage rating, and reported "nothing in stock meets the
+    requirement" - which was not true. The LM5164 input stage needs 1210 for
+    its 100 V and 22 uF parts.
+    """
+    for code in ("0402", "0603", "0805", "1206", "1210", "1812", "2220"):
+        if code in footprint:
+            return code
+    return "0805"
+
+
 def resolve(value: str, need: dict) -> dict | None:
+    package = package_of(need.get("footprint", ""))
     if need["kind"] == "r":
         candidates = fetch("resistors/list",
-                           {"resistance": need["ohms"], "package": "0805"})
+                           {"resistance": need["ohms"], "package": package})
         candidates = candidates.get("resistors", [])
     else:
         candidates = fetch("capacitors/list",
-                           {"capacitance": need["farads"], "package": "0805"})
+                           {"capacitance": need["farads"], "package": package})
         candidates = candidates.get("capacitors", [])
 
     usable = [p for p in candidates if meets(p, need)]

@@ -28,6 +28,7 @@ contact opens and the machine cannot start.
 | `docs/ISSUES.md` | open problems, numbered `I-001` | anyone |
 | `docs/decisions/` | one file per decision, MADR format | whoever decided |
 | `docs/TOOLS.md` | the commands that actually work here | anyone |
+| `docs/reference/CALCULATIONS.md` | every computed value: inputs, formula, verdict | anyone - **add to it, never re-derive silently** |
 | `docs/reference/` | long background documents | reference only |
 
 Do not add a new file to `docs/` for your own notes. Findings go into
@@ -105,8 +106,9 @@ pwsh -File firmware\build.ps1       # firmware build + host tests
 ```
 
 Both must be run before claiming anything about the current state.
-`run_all.ps1 -Regenerate` rewrites the board and is not authorized while REV A0
-remains frozen by the owner (`docs/decisions/0010`).
+`run_all.ps1 -Regenerate` rewrites and re-routes the whole board. The owner
+lifted the REV A0 freeze on 2026-09-15 (`docs/decisions/0014`), so it is
+authorized - run `board_provenance.py --check` first.
 
 ## Hard constraints — do not design around these
 

@@ -9,7 +9,7 @@
     "provably healthy.",
     "",
     "If you are setting this project up on another machine, you need Konnect",
-    "(D:/tools/konnect) registered for your agent, AND the environment variable",
+    "(C:/Users/Public/AI-Tools/konnect) registered for your agent, AND the environment variable",
     "",
     "    KICAD_API_SOCKET=ipc://<temp>/kicad/api.sock",
     "",

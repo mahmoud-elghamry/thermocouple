@@ -37,13 +37,13 @@ KiCad ERC exit 5 can mean warnings, so its report is parsed before accepting it.
 pwsh -File hardware\8ch\test_gates.ps1  # injected native/report failures
 ```
 
-## Hardware — regeneration (frozen on REV A0)
+## Hardware — regeneration
 
 The explicit `run_all.ps1 -Regenerate` path checks every native exit and report,
-and refuses while KiCad editors are open. It is **not authorized during the
-owner's REV A0 freeze**. The source-preserving default was tested this session;
-regeneration was deliberately not run. The historical individual commands below
-remain useful after an approved revision change, from `hardware/8ch/`:
+and refuses while KiCad editors are open. **Authorized since the owner lifted
+the REV A0 freeze on 2026-09-15** (`docs/decisions/0014`). It re-routes the
+whole board, so everything after it has to be re-verified. The individual
+commands, from `hardware/8ch/`:
 
 ```powershell
 $py  = 'C:\Program Files\KiCad\10.0\bin\python.exe'
@@ -62,6 +62,19 @@ python apply_rules.py                        # net classes + .kicad_dru into the
 & $py close_gaps.py                          # joins whatever DRC still reports as open
 & $py check_board.py                         # structural checks DRC cannot make
 ```
+
+### After any generator run that ADDED parts
+
+```powershell
+python hardware\8ch\check_mpn_consistency.py          # --fix rewrites mismatches
+```
+
+`kicad-tool` creates a new symbol by cloning an existing one of the same type,
+and the clone brings the donor's `MPN`/`Manufacturer`/`LCSC` with it. On
+2026-09-16 that gave six new capacitors a **100 nF** part number and six new
+resistors a **10 k** one. ERC passed, the netlist fingerprint passed - neither
+looks at MPN. Run this whenever `populate_schematic.py` reports new symbols.
+`I-054`.
 
 ## Firmware
 
@@ -88,7 +101,7 @@ New-Item -ItemType Directory -Force -Path $out | Out-Null
 & $cli pcb export gerbers --output "$out\" thermocouple_8ch.kicad_pcb
 & $cli pcb export drill   --output "$out\" --format excellon --excellon-units mm --generate-map thermocouple_8ch.kicad_pcb
 & $cli pcb export pos     --output "$out\cpl.csv" --format csv --units mm --side both thermocouple_8ch.kicad_pcb
-& $cli sch export bom     --output "$outom.csv" --fields 'Reference,Value,Footprint,Description,Datasheet,QUANTITY' --group-by 'Value,Footprint,Description' thermocouple_8ch.kicad_sch
+& $cli sch export bom     --output "$outom.csv" --fields 'Reference,Value,Footprint,MPN,Manufacturer,LCSC,QUANTITY' --group-by 'Value,MPN,LCSC' thermocouple_8ch.kicad_sch
 ```
 
 Copy `docs/STATE.md`'s check numbers into the release folder as well. A
@@ -124,7 +137,7 @@ retired 2026-09-14 - `docs/decisions/0013`. Which layer does what:
 | Live editing and queries | **Konnect** | KiCad open **or** closed |
 | Offline deep analysis | `kicad` skill analysers | feeds `emc`; produces `net_lengths`, `ground_domains`, `layer_transitions` |
 | File read/write CLI | `kicad-tool` skill | scripted edits, the generative pipeline |
-| **This board's own rules** | `check_board.py`, `netlist_fingerprint.py`, `board_provenance.py`, `validate.ps1`, `test_gates.ps1` | **nothing generic can replace these** |
+| **This board's own rules** | `check_board.py`, `netlist_fingerprint.py`, `board_provenance.py`, `check_mpn_consistency.py`, `validate.ps1`, `test_gates.ps1` | **nothing generic can replace these** |
 
 The last row is the point. Island membership, the isolation barrier, the
 cold-junction distance, the 167/154/555 netlist contract, whether a generator

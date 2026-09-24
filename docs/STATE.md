@@ -2,21 +2,18 @@
 
 **Read second, after `AGENTS.md`. Update before finishing. Hard limit: 60 lines.**
 
-**Last updated:** 2026-09-15
+**Last updated:** 2026-09-24
 
 ## Last session
 
-**REV A0 unfrozen; the REV A1 set is in the schematic and firmware** (`0014`).
-All but `I-028`; `I-025` stays four-layer. 21 parts: `Y1`+`C60`/`C61` crystal
-(`I-032`), `R53`/`R54` read-back (`I-016`), `D7`-`D22` BAV199 protection
-(`I-045`). One number to know: a 3.3 V TVS there injects up to **9.8 degC of
-error** through 2 uA leakage; BAV199 leaks 3 pA.
+**The supply is an engine battery** (owner), so `I-028` is resolved in the
+schematic: `TSR 1-2450` (36 V) -> **`LM5164` (6-100 V, 1 A)**, `D1` 40 -> 100 V,
+`D2` 33 -> 60 V standoff, `C53`/`C54` -> 100 V. A suppressed load dump is 58 V
+for ~350 ms. **~$5/unit CHEAPER than the module it replaces**, and a better
+cranking floor. `0016`; every number is now in `reference/CALCULATIONS.md`.
 
-**The board has NOT been regenerated.** That is next, and it re-routes all.
-
-`I-002` moved a long way: A4 -> A2 (**`U1` hung 14.8 mm off the page**), control
-section +284 mm clear of the channels, **ERC 192 warnings -> 0/0**, overlaps
-122 -> 57, netlist IDENTICAL. Still 0 wires - that part remains.
+**REV A1 and the BOM are done** (`0014`, `I-051`, `I-053`); the terminal blocks'
+`1935161` was a two-way part on a three-way footprint. **Board NOT regenerated.**
 
 ## Measured, not claimed
 
@@ -24,36 +21,40 @@ section +284 mm clear of the channels, **ERC 192 warnings -> 0/0**, overlaps
 |---|---|
 | `firmware/build.ps1` | **exit 0**; 4 images, 3 suites `all checks passed` |
 | Real 8ch image | 5592 B flash (17.1 %), was 5556 B - the read-back is now live |
-| Netlist | 167 -> **188** components, 154 -> **155** nets, 555 -> **613** pins |
-| Fingerprint vs REV A0 | 48 differences, **every one intended**, no net lost a pin |
-| Fingerprint vs REV A1 | **IDENTICAL** - `netlist-baseline-reva1.json` is the gate now |
-| ERC | **0 errors**, 192 `endpoint_off_grid` and nothing else (all `I-002`) |
+| Netlist | **201** components, **162** nets, **645** pins (was 188/155/613) |
+| Fingerprint | 28 differences, **every one inspected**; new nets checked pin by pin vs TI SNVSAU4D |
+| ERC | **0 errors, 0 warnings** |
 | DRC | **not run** - the board is untouched and now lags the schematic |
+| BOM | 86 lines, **201 parts**; the only 9 without an MPN are the test points |
+| `check_mpn_consistency.py` | **128 checked, all match** - it found 12 wrong first |
 
-The board is **behind** the schematic by 21 components. No Gerber release,
-SPICE, thermal or physical measurement; Proteus not executed.
+The board is **34 components behind** the schematic. No Gerber release, SPICE,
+thermal, EMC or physical measurement; Proteus not executed.
 
 ## Next actions
 
-1. **`I-002` wires** - the last part. Move symbols BEFORE wiring (`I-047`), in
-   exact 1.27 mm multiples (`I-050`); gate on `netlist-baseline-reva1.json`.
-2. **Regenerate the board** - `run_all.ps1 -Regenerate`, now authorized.
-3. Owner decision **`I-028`**; bench once a board exists: `I-004`, `I-003`, `I-013`.
+1. **`I-002` wires** - still **0 wires**, the last schematic job (`I-047`,
+   `I-050`). A wire along a signal row through a decoupling cap's ground pin
+   shorts the net - that is how channel 1 put `TC1_FILT_P/N` on `GND_SENS`.
+2. **Regenerate the board** - authorized; it lags by 34 components.
+3. `I-028` tail: **`F1` is not adequate on a battery** (PTC breaks ~40 A, a
+   battery pushes thousands) - external panel fuse. Then `emc`, bench `I-004`.
+4. **Ask the owner** which `I-056` doc-system fixes to do; nothing started.
 
-## Tooling, and two traps it set
+## Tooling, and the traps it sets
 
-`Konnect` is the only KiCad MCP (`0013`), registered at user scope only - naming
-it in `.mcp.json` too was a collision that broke it. **`kicad-tool` was in
-`%TEMP%` and a reboot deleted it** (`I-048`); now `~/.local/bin`, and it needs
-`KICAD_CLI` set or fails with a bare `[WinError 2]`. **`Assert-ErcReport` only
-counted errors** (`I-049`), so two names on the run-permit sense net passed the
-gate; it now fails on any untolerated warning class.
+`Konnect` is the only KiCad MCP (`0013`), user scope only. **`kicad-tool` clones
+an existing symbol to make a new one, so the clone inherits its MPN** - it gave
+6 new caps a 100 nF part number and ERC/netlist both passed (`I-054`); run
+`check_mpn_consistency.py` after any run that adds parts. The generator's
+coordinates are **284 mm left of the sheet** (`I-055`). `Assert-ErcReport` once
+counted only errors (`I-049`).
 
 ## Preserve for I-002 and hardware work
 
 A hierarchical redraw was attempted and reverted: symbols lacked KiCad instance
-data, so the netlist exported **zero components** while the seven sheets looked
-correct. Verify every step with `netlist_fingerprint.py`; never alter the
-baseline to make it pass. `prune_dangling_labels()` would have deleted the new
-wiring on the next `run_all.ps1` (guarded, `I-047`), and it does not remove a
-stale label that has come to rest **on** another pin - `I-049`, `I-050`.
+data, so the netlist exported **zero components**. Verify every step with
+`netlist_fingerprint.py`; never alter the baseline to make it pass.
+`prune_dangling_labels()` would have deleted the new wiring on the next
+`run_all.ps1` (guarded, `I-047`), and it does not remove a stale label resting
+**on** another pin - `I-049`, `I-050`.

@@ -52,6 +52,7 @@ LIB_FILES = {
     "Isolator": "Isolator.kicad_sym",
     "Converter_DCDC": "Converter_DCDC.kicad_sym",
     "Regulator_Linear": "Regulator_Linear.kicad_sym",
+    "Regulator_Switching": "Regulator_Switching.kicad_sym",
     "Interface_UART": "Interface_UART.kicad_sym",
     "Relay": "Relay.kicad_sym",
     "Connector_Generic": "Connector_Generic.kicad_sym",
@@ -147,7 +148,7 @@ for channel in range(1, 9):
         jref, "Connector_Generic:Conn_01x03", (connector_x, y), f"TC{channel}_K_TYPE",
         "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-3_1x03_P5.00mm_Horizontal",
         {"1": f"TC{channel}_RAW_P", "2": f"TC{channel}_RAW_N", "3": "CHASSIS_SHIELD"},
-        manufacturer="Phoenix Contact", mpn="1935161",
+        manufacturer="KANGNEX", mpn="WJ128V-5.0-3P",
         function=f"Channel {channel} thermocouple +, -, and cable shield",
     ))
     add(Part(
@@ -239,16 +240,29 @@ for channel in range(1, 9):
 # The MCU ran on its internal RC, which is specified to a few percent over
 # voltage and temperature - outside what a UART frame tolerates, which is why
 # R-9 (Modbus) was deferred. Fuses change with this part: docs/decisions/0010.
+# HC-49S SMD, not the through-hole HC49-4H this first specified - the chosen
+# part is surface mount and the wrong footprint makes the board unbuildable.
+# CL = 20 pF is in the value string because the load capacitors depend on it.
 add(Part(
-    "Y1", "Device:Crystal", (25, 168), "8MHz",
-    "Crystal:Crystal_HC49-4H_Vertical",
+    "Y1", "Device:Crystal", (25, 168), "8MHz 20pF",
+    "Crystal:Crystal_SMD_HC49-SD",
     {"1": "XTAL1", "2": "XTAL2"},
-    function="8 MHz timebase for the MCU; replaces the internal RC oscillator",
+    manufacturer="Yangxing Tech", mpn="X49SM8MSD2SC",
+    function="8 MHz timebase for the MCU; replaces the internal RC oscillator. "
+             "LCSC C12674, JLCPCB basic, +/-20 ppm, -20 to +70 C",
 ))
+# 22 pF, not the 30 pF an exact CL match would want, and that is deliberate.
+#   CL_actual = C/2 + C_stray = 11 + ~4 = 15 pF against the crystal's 20 pF
+#   pulling  = C1/2 * [1/(C0+CL_actual) - 1/(C0+CL_spec)] ~= +75 ppm
+# A UART tolerates about +/-2% (20000 ppm) of combined TX+RX error, so this is
+# 267x inside budget. The internal RC it replaces was 3-10% (30000-100000 ppm),
+# which is what actually made R-9 unachievable. 30 pF would give +12 ppm but is
+# an LCSC extended part; 22 pF is basic with 544k in stock. Under-loading also
+# raises startup margin rather than risking a crystal that will not start.
 capacitor("C60", "22p C0G 50V", (18, 163), "XTAL1", "GND_CTRL",
-          "Crystal load capacitor, XTAL1")
+          "Crystal load capacitor, XTAL1 - see the note above on CL")
 capacitor("C61", "22p C0G 50V", (18, 173), "XTAL2", "GND_CTRL",
-          "Crystal load capacitor, XTAL2")
+          "Crystal load capacitor, XTAL2 - see the note above on CL")
 
 # --- I-016: run-permit read-back divider ----------------------------------
 # RELAY_LOW swings 0 V to +24 V. 22k/4.7k puts about 4.2 V at PC2 with +24 V
@@ -311,20 +325,82 @@ for channel in range(1, 9):
 add(Part("J1", "Connector_Generic:Conn_01x03", (187, 179), "24V_INPUT",
          "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-3_1x03_P5.00mm_Horizontal",
          {"1": "+24V_RAW", "2": "GND_CTRL", "3": "CHASSIS_SHIELD"},
+         manufacturer="KANGNEX", mpn="WJ128V-5.0-3P",
          function="24 VDC field supply and protective/shield terminal"))
+# The supply is an ENGINE BATTERY (owner, 2026-09-16), not a panel unit.  A
+# suppressed load dump on a 24 V system reaches 58 V for ~350 ms, so EVERY part
+# between J1 and the 5 V rail has to stand that off - not just the regulator.
+# That is why D1 is a 100 V Schottky and not the 40 V SS34, why D2 stands off
+# 60 V instead of 33 V, and why C53/C54 are 100 V parts.  decisions/0016, I-028.
 add(Part("F1", "Device:Polyfuse", (200, 174), "PTC 0.5A", "Fuse:Fuse_1206_3216Metric",
-         {"1": "+24V_RAW", "2": "+24V_FUSED"}, function="Resettable input over-current protection"))
-add(Part("D1", "Device:D_Schottky", (208, 174), "SS34", "Diode_SMD:D_SMA",
-         {"2": "+24V_FUSED", "1": "+24V_PROT"}, function="Series reverse-polarity protection"))
-add(Part("D2", "Device:D_TVS", (211, 184), "SMBJ33A", "Diode_SMD:D_SMB",
-         {"1": "+24V_PROT", "2": "GND_CTRL"}, function="24 V input transient clamp"))
-add(Part("U14", "Converter_DCDC:TSR_1-2450", (221, 174), "TSR 1-2450",
-         "Converter_DCDC:Converter_DCDC_TRACO_TSR-1_THT", {"1": "+24V_PROT", "2": "GND_CTRL", "3": "+5V_CTRL"},
-         manufacturer="Traco Power", mpn="TSR 1-2450",
-         datasheet="https://www.tracopower.com/products/tsr1.pdf", function="24 V to regulated 5 V control rail"))
-capacitor("C53", "47u 50V", (215, 190), "+24V_PROT", "GND_CTRL", "24 V bulk reservoir", "Capacitor_THT:CP_Radial_D6.3mm_P2.50mm")
-capacitor("C54", "2.2u 50V X7R", (218, 190), "+24V_PROT", "GND_CTRL", "Buck input bypass")
+         {"1": "+24V_RAW", "2": "+24V_FUSED"},
+         function="Resettable input over-current protection - NOT sufficient alone on a "
+                  "battery; an external inline fuse with real breaking capacity belongs "
+                  "in the panel, see I-028"))
+add(Part("D1", "Device:D_Schottky", (208, 174), "SS310", "Diode_SMD:D_SMA",
+         {"2": "+24V_FUSED", "1": "+24V_PROT"},
+         manufacturer="MDD", mpn="SS310",
+         function="Series reverse-polarity protection, 100 V 3 A - the 40 V SS34 it "
+                  "replaces would fail on a 58 V load dump"))
+add(Part("D2", "Device:D_TVS", (211, 184), "SMBJ60A", "Diode_SMD:D_SMB",
+         {"1": "+24V_PROT", "2": "GND_CTRL"},
+         manufacturer="MDD", mpn="SMBJ60A",
+         function="24 V input transient clamp - 60 V standoff so it does NOT conduct "
+                  "through a 58 V load dump, 96.8 V clamp against U14's 100 V abs max"))
+
+# LM5164: 6-100 V in, 1 A, synchronous COT buck.  Replaces the TSR 1-2450
+# module, whose 36 V ceiling cannot survive a battery.  Every value below is
+# derived in docs/reference/CALCULATIONS.md section 1 from TI SNVSAU4D.
+add(Part("U14", "Regulator_Switching:LM5164DDA", (221, 174), "LM5164DDAR",
+         "Package_SO:SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.41x3.3mm_ThermalVias",
+         {"1": "GND_CTRL", "2": "+24V_PROT", "3": "VIN_UVLO", "4": "RON_SET",
+          "5": "FB_5V", "7": "BST_5V", "8": "SW_5V", "9": "GND_CTRL"},
+         manufacturer="Texas Instruments", mpn="LM5164DDAR",
+         datasheet="https://www.ti.com/lit/ds/symlink/lm5164.pdf",
+         function="24 V battery to regulated 5 V control rail; 100 V rated so a "
+                  "suppressed load dump cannot reach the board"))
+add(Part("L1", "Device:L", (231, 174), "33u 2.2A", "Inductor_SMD:L_10.4x10.4_H4.8",
+         {"1": "SW_5V", "2": "+5V_CTRL"},
+         manufacturer="Sunlord", mpn="SMDRH104R-330MT",
+         function="Buck inductor; 0.83 A peak against 2.9 A saturation"))
+
+capacitor("C53", "22u 100V", (215, 190), "+24V_PROT", "GND_CTRL",
+          "24 V bulk, and parallel damping for the 50 m feed - NOT ride-through, "
+          "see CALCULATIONS.md 2", "Capacitor_THT:CP_Radial_D8.0mm_P3.50mm")
+capacitor("C54", "4.7u 100V X7R", (218, 190), "+24V_PROT", "GND_CTRL",
+          "Buck high-frequency input bypass", "Capacitor_SMD:C_1210_3225Metric")
+capacitor("C63", "4.7u 100V X7R", (221, 190), "+24V_PROT", "GND_CTRL",
+          "Second buck input bypass - TI asks for 2.2 uF minimum at the VIN pin",
+          "Capacitor_SMD:C_1210_3225Metric")
 capacitor("C55", "10u 10V X7R", (225, 190), "+5V_CTRL", "GND_CTRL", "5 V rail bulk bypass")
+capacitor("C64", "22u 25V X7R", (228, 190), "+5V_CTRL", "GND_CTRL",
+          "Buck output capacitor", "Capacitor_SMD:C_1210_3225Metric")
+capacitor("C65", "22u 25V X7R", (231, 190), "+5V_CTRL", "GND_CTRL",
+          "Buck output capacitor", "Capacitor_SMD:C_1210_3225Metric")
+capacitor("C62", "2.2n 50V X7R", (226, 168), "BST_5V", "SW_5V",
+          "Bootstrap capacitor for the high-side gate drive")
+
+# Type-3 ripple injection.  A constant-on-time converter needs ripple at FB to
+# be stable; this network makes it from SW without putting it on the output.
+resistor("R55", "41.2k 1%", (218, 168), "RON_SET", "GND_CTRL",
+         "On-time resistor - sets 303 kHz")
+resistor("R56", "158k 1%", (236, 180), "+5V_CTRL", "FB_5V",
+         "Feedback divider upper - with R57 sets 5.000 V")
+resistor("R57", "49.9k 1%", (236, 186), "FB_5V", "GND_CTRL",
+         "Feedback divider lower")
+resistor("R58", "150k 1%", (233, 168), "SW_5V", "RIPPLE_INJ",
+         "Type-3 ripple injection resistor")
+capacitor("C67", "3.3n 50V X7R", (236, 168), "RIPPLE_INJ", "+5V_CTRL",
+          "Type-3 ripple injection capacitor")
+capacitor("C68", "220p C0G 50V", (239, 174), "RIPPLE_INJ", "FB_5V",
+          "Ripple coupling into FB - C0G so it holds its value under DC bias")
+
+# Input UVLO: release at 6.48 V, hold to 6.05 V, which is the LM5164's own
+# minimum.  Set low deliberately so a cranking dip does not drop the rail.
+resistor("R59", "33.2k 1%", (212, 168), "+24V_PROT", "VIN_UVLO",
+         "EN/UVLO divider upper")
+resistor("R60", "10k 1%", (212, 162), "VIN_UVLO", "GND_CTRL",
+         "EN/UVLO divider lower")
 
 add(Part("U12", "Converter_DCDC:IA0305S", (126, 145), "IA0505S",
          "Converter_DCDC:Converter_DCDC_XP_POWER-IAxxxxS_THT",
@@ -413,7 +489,9 @@ add(Part("D4", "Device:LED", (277, 194), "RUN PERMIT", "LED_THT:LED_D3.0mm",
          {"2": "RELAY_LED_A", "1": "RELAY_LOW"}, function="Run-permit relay status indicator"))
 add(Part("J3", "Connector_Generic:Conn_01x03", (286, 180), "RELAY_COM_NO_NC",
          "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-3_1x03_P5.00mm_Horizontal",
-         {"1": "RELAY_COM", "2": "RELAY_NO", "3": "RELAY_NC"}, function="Low-voltage dry-contact output; rating pending load confirmation"))
+         {"1": "RELAY_COM", "2": "RELAY_NO", "3": "RELAY_NC"},
+         manufacturer="KANGNEX", mpn="WJ128V-5.0-3P",
+         function="Low-voltage dry-contact output; rating pending load confirmation"))
 
 # Isolated two-wire RS-485 port.  Receiver and driver pins share A/B for half duplex.
 add(Part("U15", "Interface_UART:ADM2587E", (254, 145), "ADM2587EBRWZ",
@@ -442,7 +520,9 @@ add(Part("D6", "Device:D_TVS", (284, 165), "SMAJ6.0CA", "Diode_SMD:D_SMA",
          {"1": "RS485_B", "2": "GND_RS485"}, function="RS-485 B transient clamp"))
 add(Part("J4", "Connector_Generic:Conn_01x04", (291, 145), "RS485_A_B_GND_SHIELD",
          "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-4_1x04_P5.00mm_Horizontal",
-         {"1": "RS485_A", "2": "RS485_B", "3": "GND_RS485", "4": "CHASSIS_SHIELD"}, function="Isolated RS-485 field connector"))
+         {"1": "RS485_A", "2": "RS485_B", "3": "GND_RS485", "4": "CHASSIS_SHIELD"},
+         manufacturer="KANGNEX", mpn="WJ128V-5.0-04P-14-00A",
+         function="Isolated RS-485 field connector"))
 capacitor("C56", "100n X7R", (238, 128), "+5V_CTRL", "GND_CTRL", "ADM2587E logic supply decoupling")
 capacitor("C57", "10u X7R", (244, 128), "+5V_CTRL", "GND_CTRL", "ADM2587E logic bulk bypass")
 capacitor("C58", "100n X7R", (264, 128), "+5V_RS485", "GND_RS485", "ADM2587E isolated-side bypass")
@@ -465,7 +545,14 @@ for index, (net, at) in enumerate((("GND_CTRL", (177, 194)), ("+5V_CTRL", (182, 
 # reports every one as endpoint_off_grid.
 for index, (net, at) in enumerate((("+24V_RAW", (476.25, 194.31)), ("GND_CTRL", (481.33, 194.31)),
                                    ("+24V_PROT", (486.41, 194.31)),
-                                   ("GND_RS485", (496.57, 194.31))), start=1):
+                                   ("GND_RS485", (496.57, 194.31)),
+                                   # +5V_CTRL used to be driven by the TSR module's
+                                   # Vout, which was a power-output pin.  The LM5164
+                                   # feeds the rail through L1, and an inductor is a
+                                   # passive, so nothing declares the rail as a source
+                                   # any more and ERC reports power_pin_not_driven on
+                                   # U1 pin 10.  401 x 1.27 across, 155 down.
+                                   ("+5V_CTRL", (509.27, 196.85))), start=1):
     add(Part(f"#FLG{index}", "power:PWR_FLAG", at, "PWR_FLAG", "", {"1": net},
              function=f"ERC power-source declaration for {net}"))
 
@@ -586,6 +673,9 @@ NO_CONNECT_PINS: dict[str, tuple[str, ...]] = {
     # U1 12/13 used to be here: the crystal (I-032) now drives them.
     "J2": ("7", "8", "9", "10"),
     "J6": ("3",),
+    # U14 pin 6 is PGOOD, open-drain.  Left unconnected: wiring it to the MCU
+    # would change the pin map and the firmware, and that is not this change.
+    "U14": ("6",),
     "U11": ("11",),
     "U12": ("4",),
     "U13": ("4",),

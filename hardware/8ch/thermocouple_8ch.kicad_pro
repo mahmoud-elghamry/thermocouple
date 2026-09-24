@@ -966,13 +966,18 @@
       {
         "filename": "thermocouple_8ch.kicad_sch",
         "name": "thermocouple_8ch",
-        "uuid": "00000000-0000-0000-0000-000000000000"
+        "uuid": "00000000-0000-0000-0000-000000000001"
       }
     ],
     "used_designators": "",
     "variants": []
   },
-  "sheets": [],
+  "sheets": [
+    [
+      "00000000-0000-0000-0000-000000000001",
+      "thermocouple_8ch"
+    ]
+  ],
   "text_variables": {},
   "tuning_profiles": {
     "meta": {
