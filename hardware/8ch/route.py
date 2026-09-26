@@ -212,6 +212,23 @@ def finish() -> None:
         print(f"  could not reach {pad}")
 
     gb.fill_zones(board)
+
+    # The tracks close_open_connections just added cut the pours again, and
+    # the re-fill can leave a new piece with no via.  On 2026-09-25 that left
+    # U3.14 (a MAX31856 GND pin) floating, although this very pass would have
+    # stitched it.  So stitch again until the pieces stop changing.
+    for _ in range(3):
+        added_now = 0
+        for via_mm, drill_mm in ((0.8, 0.4), (0.6, 0.3)):
+            islands, unreachable_islands = gb.stitch_pour_islands(
+                board, via_mm, drill_mm)
+            added_now += islands
+        print(f"Re-stitched {added_now} pour pieces after closing gaps")
+        for island in unreachable_islands:
+            print(f"  no clear via position in {island}")
+        if not added_now:
+            break
+        gb.fill_zones(board)
     pcbnew.SaveBoard(str(gb.BOARD_FILE), board)
 
     # Removing an item degrades KiCad's SWIG proxies for the rest of the

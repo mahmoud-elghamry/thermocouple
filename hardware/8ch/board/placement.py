@@ -110,8 +110,12 @@ def build_placements() -> dict[str, tuple[float, float, float]]:
     put("U14", 172.0, 110.0, 0)
     put("C54", 165.5, 104.5)         # 4.7u 100V at VIN
     put("C63", 170.8, 104.5)         # 4.7u 100V at VIN
-    put("R59", 163.5, 111.0, 90)     # UVLO divider, top
-    put("R60", 163.5, 115.0, 90)     # UVLO divider, bottom
+    # 270, not 90: +24V pad on top, the two VIN_UVLO pads facing each other,
+    # R60's GND pad at the bottom facing open board.  At 90 the GND pad sat
+    # between +24V and VIN_UVLO and routing walled it in - no via fitted
+    # within 6 mm (I-061, 2026-09-26).
+    put("R59", 163.5, 111.0, 270)    # UVLO divider, top
+    put("R60", 163.5, 115.0, 270)    # UVLO divider, bottom
     put("R55", 167.5, 114.5)         # RON
     put("C62", 176.5, 105.5)         # bootstrap
     put("L1", 185.0, 110.0)          # 33u, 10.4 mm
@@ -134,7 +138,10 @@ def build_placements() -> dict[str, tuple[float, float, float]]:
     put("R53", 205.5, 103.0, 90)     # run-permit read-back divider (I-016)
     put("R54", 205.5, 107.0, 90)
     put("K1", 225.0, 65.0, 0)        # G5LE-1 24 V, energised to allow run
-    put("J3", 241.0, 79.0, 90)       # dry contact COM/NO/NC
+    # J3 keeps COM/NO/NC bottom-to-top (docs/decisions/0018); it sits 7 mm
+    # lower so NC (pin 3, y 76) faces K1 pad 4 and NO (pin 2) is reached from
+    # below K1 pad 4.  Only COM has to change layer (I-058, I-061).
+    put("J3", 241.0, 86.0, 90)       # dry contact COM/NO/NC, pins y 86/81/76
 
     # --- isolated RS-485 --------------------------------------------------
     # U15 is rotated 270 deg so the isolation barrier inside the package lines
@@ -146,9 +153,11 @@ def build_placements() -> dict[str, tuple[float, float, float]]:
     # relay courtyard and U15, and at y = 88 that strip left only 1 mm of
     # clear board under the row - not enough for the router to bring
     # +5V_CTRL from C57 down to U15 pin 2.  At y = 87 it gets 2 mm.
-    put("C56", 232.0, 87.0)          # +5V_CTRL bypass (control side)
-    put("C57", 237.0, 87.0)
-    put("R33", 242.0, 87.0)          # ties DE and /RE together
+    # J3 now reaches down to y 89, so the strip is re-packed (0018): C56 by
+    # U15 pin 8, R33 over pins 5/6, C57 right of U15 by pin 2.
+    put("C56", 229.8, 87.0)          # +5V_CTRL bypass, U15 pin 8
+    put("R33", 233.4, 87.0)          # ties DE and /RE together
+    put("C57", 242.0, 91.0)          # +5V_CTRL bypass, U15 pin 2
     put("C58", 234.0, 110.0)         # +5V_RS485 bypass (isolated side)
     put("C59", 240.0, 110.0)
     put("R34", 216.0, 110.0)         # 120R termination

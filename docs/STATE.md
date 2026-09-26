@@ -2,52 +2,40 @@
 
 **Read second, after `AGENTS.md`. Update before finishing. Hard limit: 60 lines.**
 
-**Last updated:** 2026-09-24 (cloud session)
+**Last updated:** 2026-09-26 (workstation)
 
 ## Last session
 
-**`I-002` is closed: the schematic is a drawing.** Every block laid out by
-function and wired, one label per wired group, done through Konnect by
-`hardware/8ch/sch_layout/build.py` (repeatable; TOOLS.md, "Schematic layout").
-**Drawing the relay found `I-058`, a blocker:** K1's coil is on pins 2-5, but
-the MOSFET drain was on pin 1 (COM) - the relay could never have energised.
-Fixed in the generator, schematic and REV A1 baseline (three pins, on purpose).
-`I-057` closed: U12 relinked, ERC now 0 warnings everywhere.
+**`I-061` closed: the REV A1 board is regenerated and routed, uncommitted.**
+Owner decisions: U14 keeps 0.2 mm thermal vias (`0017`); J3 keeps COM/NO/NC and
+moves to K1 (`0018`). Fixed on the way: R59/R60 turned 270 (R60's GND pad was
+walled in); MAX31856 GND pins get fixed vias like the supply pins
+(`stitching.py` - left to the pour, one floated per run); `route.py` re-stitches
+after closing gaps. Earlier: `I-002` wired the sheet, `I-058` fixed K1's pins.
 
-## Ask the owner BEFORE any PCB work - both block `I-061`
-
-1. **U14 thermal vias (`I-060`):** keep the 0.2 mm vias and lower the board
-   minimum (costs more to fab), or plain footprint + 0.3 mm vias beside it?
-2. **J3 vs the real K1 pins (`I-061`):** move J3, or change J3's COM/NO/NC
-   pin order in the schematic (it is what the installer wires to)?
-
-## Measured, not claimed (Linux, KiCad 10.0.6, avr-gcc 7.3)
+## Measured, not claimed
 
 | Check | Result |
 |---|---|
-| `make -C firmware all test` | **exit 0**; 4 images, 3 suites `all checks passed` |
-| Netlist vs `netlist-baseline-reva1.json` | **IDENTICAL** - 201 / 162 / 645 (baseline moved only by `I-058`) |
-| ERC | **0 errors, 0 warnings** (was 171 `endpoint_off_grid`) |
-| `check_mpn_consistency.py` / `source_passives.py --check` | 128 match / 38 types with MPN |
-| `validate.ps1` | **fails at DRC: 226 parity** - the board is REV A0, not regenerated |
-| `sch_layout/build.py` | reproduces the committed sheet byte-for-byte except UUIDs |
+| `check_board.py` (KiCad 10.0.3) | **all 6 ok**, incl. routing completeness |
+| DRC on a copy, `--refill-zones --schematic-parity` | **0 errors, 0 unconnected, 0 parity**; 14 silk warnings (`I-006`) |
+| `validate.ps1` (`powershell.exe`; no pwsh here) | **stops at ERC: 1 `lib_symbol_issues`** - KiCad 10.0.3 lacks U12's library (`I-063`) |
+| ERC / netlist (cloud, 10.0.6, 2026-09-24) | 0/0; **IDENTICAL** 201 / 162 / 645; sheet unchanged since (sha256) |
+| `make -C firmware all test` (cloud) | exit 0; 4 images, 3 suites pass |
 
+Freerouting's own "157 violations" is its plane-less model, never the verdict.
 No Gerber release, SPICE, thermal, EMC or physical measurement; Proteus not run.
 
 ## Next actions
-1. **Regenerate the board** (`I-061`) after the two answers above; placement
-   for all 201 parts exists, one +5V gap remains. PCB file still REV A0.
-2. **Bench-check K1 before power-up** (`I-058`): 2-5 ~2.9 kOhm, 1-4 shut, 1-3 open.
-3. `I-028` tail: **`F1` is not adequate on a battery** (PTC breaks ~40 A, a
-   battery pushes thousands) - external panel fuse. Then `emc`, bench `I-004`.
-4. **Ask the owner** which `I-056` doc-system fixes to do; nothing started.
-5. Cosmetic: `I-059` text overlaps (KiCad GUI).
+1. **Owner: review and commit** the board + `placement.py`/`route.py`/`stitching.py`/`apply_rules.py`.
+2. **`I-063`**: update the workstation to KiCad >= 10.0.6, re-run `validate.ps1`.
+3. **Bench-check K1 before power-up** (`I-058`): 2-5 ~2.9 kOhm, 1-4 shut, 1-3 open.
+4. Fab prep: `I-051` (15 parts), `I-025` (4-layer source), 0.2 mm quote, then Gerbers.
+5. `I-028`: external panel fuse. Ask the owner about `I-056`, `I-046`. Later `I-062`.
 
 ## Tooling, and the traps it sets
 
-`Konnect` is the only KiCad MCP (`0013`); the cloud hook installs it (TOOLS.md).
-**`kicad-tool` clones a symbol to make a new one, so the clone inherits its
-MPN** (`I-054`); run `check_mpn_consistency.py` after any run that adds parts.
+`Konnect` is the only KiCad MCP (`0013`); the cloud hook installs it (TOOLS.md). **`kicad-tool` clones a symbol to make a new one, so the clone inherits its MPN** (`I-054`); run `check_mpn_consistency.py` after any run that adds parts.
 
 ## Preserve for hardware work
 
@@ -56,5 +44,4 @@ and refuses a schematic with wires, because its router only knows the wires it
 drew. After a generator change, commit the generator's label-only output and
 pass it as `--base`; never run the router over the wired sheet.
 `populate_schematic.py --refresh-properties` moves symbols (`I-052`): re-run `build.py`.
-Verify every step with `netlist_fingerprint.py`; never edit a baseline to pass
-(`I-058` changed it on purpose, by three named pins).
+Verify with `netlist_fingerprint.py`; never edit a baseline to pass (`I-058` did, on purpose).

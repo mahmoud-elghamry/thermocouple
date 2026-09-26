@@ -47,6 +47,11 @@ def add_channel_supply_vias(board: pcbnew.BOARD) -> int:
     identically are eight channels that do not behave identically.  So the
     supply escape is designed here, the same way on every channel, and the
     router has to work around it.
+
+    GND (pins 1 and 14) gets the same fixed via since 2026-09-26.  Left to
+    the pour, 15 of the 16 found a via and one did not - U3.14 on one run,
+    U5.14 on the next - which left that channel's converter without ground
+    (I-061).
     """
     reach = 1.40
     added = 0
@@ -74,7 +79,7 @@ def add_channel_supply_vias(board: pcbnew.BOARD) -> int:
             raise RuntimeError(f"{ref} is not on the board")
         centre = fp.GetPosition()
         for pad in fp.Pads():
-            if bare(pad.GetNetname()) != "+3V3_SENS":
+            if bare(pad.GetNetname()) not in ("+3V3_SENS", "GND_SENS"):
                 continue
             pos = pad.GetPosition()
             px, py = to_mm(pos.x), to_mm(pos.y)
