@@ -17,20 +17,6 @@
 # over-temperature. Flashing the wrong stale file inverts the safety function
 # with no visible symptom (I-031). Build them: firmware/build.ps1.
 firmware/build/
-firmware/build/*.o
-firmware/build/**/*.o
-firmware/build/*.elf
-firmware/build/**/*.elf
-firmware/build/*.d
-firmware/build/**/*.d
-firmware/build/*.map
-firmware/build/**/*.map
-firmware/build/*.lss
-firmware/build/*.eep
-firmware/build/**/*.obj
-firmware/build/**/*.exe
-firmware/build/**/*.ilk
-firmware/build/**/*.pdb
 
 # --- KiCad ---------------------------------------------------------------------
 # fp-lib-table and sym-lib-table are project configuration and stay tracked.
@@ -65,6 +51,10 @@ venv/
 # --- Generated hardware output ------------------------------------------------
 # production/ is where a release is assembled. Nothing in it is a source.
 production/
+# production/ is local. When a revision is actually ORDERED, copy its upload zip
+# to hardware/8ch/fabricated/<rev>/ and commit it - the same reason the
+# single-channel Gerbers below are tracked: once the sources move on, that zip
+# is the only way to know what a board in the field is.
 hardware/8ch/output/
 hardware/8ch/gerbers/
 hardware/8ch/tmp/
@@ -74,12 +64,9 @@ hardware/8ch/tmp-*/
 # `git add -A` while that agent was still writing them.
 hardware/8ch/route.log
 hardware/8ch/*.net
-# ...but netlist-baseline-reva0.json IS tracked. It is the connectivity
-# contract of the board that was routed and had Gerbers made: 167 components,
-# 154 nets, 555 pins. Any schematic edit is checked against it with
-# netlist_fingerprint.py, and a match proves the PCB does not need
-# regenerating. That is how a redraw is kept honest (I-002).
-!hardware/8ch/netlist-baseline-reva0.json
+# The netlist-baseline-*.json files are NOT ignored: they are the
+# connectivity contract every schematic edit is checked against
+# (netlist_fingerprint.py). Only the raw exported *.net above is scratch.
 hardware/8ch/BOM.csv
 
 # Check reports. Rewritten on every run; their numbers are quoted in
@@ -105,6 +92,8 @@ docs/reference/analysis/
 # they are how a board in the field is identified.
 
 # --- Editors and scratch --------------------------------------------------------
+# Konnect's local log folder, created in the repo root on 2026-09-14.
+konnect/
 .vscode/
 .idea/
 *.swp

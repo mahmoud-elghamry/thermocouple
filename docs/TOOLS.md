@@ -93,8 +93,7 @@ pwsh -File firmware\build.ps1     # -Wall -Wextra -Werror, plus host unit tests
 Do not run this while `docs/ISSUES.md` still lists `I-001`.
 
 A release goes to its own folder per revision under `production/`, not next to
-the sources: `production/8ch/` is the REV A0 package that was fabricated -
-**never overwrite it** - and `production/8ch-reva1/` is REV A1 (2026-09-26,
+the sources: `production/8ch/` is the REV A0 package (never fabricated, `0014`) - and `production/8ch-reva1/` is REV A1 (2026-09-26,
 with `RELEASE.txt` and the upload zip). `production/` is gitignored.
 
 **Name the layers.** Without `--layers`, KiCad 10 plots every layer - Fab,

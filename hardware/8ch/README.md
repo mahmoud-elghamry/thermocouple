@@ -65,7 +65,9 @@ current cannot become a measurement ground loop.
 
 | File | Role |
 |---|---|
-| `thermocouple_8ch.kicad_sch` | schematic — the structural source of truth |
+| `thermocouple_8ch.kicad_sch` | schematic root (A4 index) — the structural source of truth, with its sheets: |
+| `power` / `mcu` / `isolation` / `relay_rs485.kicad_sch` | one A4 sheet per function (`docs/decisions/0021`) |
+| `channel.kicad_sch` | the thermocouple channel, drawn once, used by TC1-TC8 (`0019`) |
 | `thermocouple_8ch.kicad_pcb` | board |
 | `thermocouple_8ch.kicad_pro` | project, **including the net classes** |
 | `thermocouple_8ch.kicad_dru` | custom clearance rules (isolation, relay, chassis) |
@@ -210,12 +212,5 @@ open and none of them can be closed by DRC, ERC, or a 3D render:
   crossing sixteen more signals needs a second isolator plus fault-OR logic.
   The firmware reads the MAX31856 fault register (0x0F) on every sample. This
   is a deliberate trade-off — see the plan document — not an oversight.
-- **The schematic is electrically correct but not a readable drawing.** It is
-  generated as symbols plus net labels with no wires, on one sheet. It produces
-  a correct netlist and it passes ERC, but no engineer can review or sign it in
-  that form. Redrawing it as wired hierarchical sheets is outstanding work.
-- **The passive catalog exists, but the filter specification still conflicts.**
-  `passives_catalog.json` records MPNs and sourcing snapshots. The eight 100 nF
-  differential capacitors still say C0G in the schematic while the catalog
-  selects X7R (`I-035`). Resolve that discrepancy before ordering; stock and
-  price snapshots are not a live availability guarantee.
+- **Stock and price snapshots in `passives_catalog.json` are not a live
+  availability guarantee.** Re-check before ordering.
