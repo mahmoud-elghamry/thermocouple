@@ -92,6 +92,12 @@ placement files, renders and netlists belong in `production/` or are ignored.
 10. **Keep source files small enough to edit safely.** A thousand-line generator
    edited by pattern-matching is how a fix landed in the wrong function twice on
    2026-09-06 and cost two full rebuild cycles.
+11. **Stop at a safe point when your usage runs low and the owner is away.**
+   The usage limit is background, not the plan: work normally. If your tool
+   warns that the session or weekly limit is close and nobody is answering,
+   finish the step in hand, leave the tree consistent (gates re-run or the
+   change reverted), update `docs/STATE.md`, and stop. Never stop halfway
+   through a write to the board or schematic.
 
 ## Build and check
 
