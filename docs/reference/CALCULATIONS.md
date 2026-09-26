@@ -35,12 +35,17 @@ Context: `docs/decisions/0016`, `I-028`. The supply is an **engine battery**.
 | VIN maximum, sustained | 58 V | ISO 16750-2 Test B, suppressed load dump, 24 V system |
 | VIN absolute maximum of the part | 100 V | datasheet 5.1 — **not 105 V; there is no headroom above 100** |
 | VOUT | 5.0 V | control rail |
-| IOUT design | 0.6 A | 0.405 A estimated load + margin |
+| IOUT design | 0.6 A | 0.425 A load + margin |
 | IOUT part rating | 1.0 A | datasheet 5.3 |
 
-Estimated 5 V load, 0.405 A: `IA0505S` ~265 mA + `ADM2587E` ~100 mA + MCU/LCD
-~40 mA. **The ADM2587E figure is an estimate and has not been read off its
-datasheet** — see `I-028`.
+5 V load, 0.425 A: `IA0505S` ~265 mA + `ADM2587E` **120 mA** + MCU/LCD ~40 mA.
+
+The ADM2587E figure was an estimate of 100 mA until 2026-09-26. Read then
+from its datasheet (`datasheets/ADM2587E.pdf`, Rev. C, table 1): 72 mA typical
+into 100 Ohm, 98 mA typical into 54 Ohm (a line terminated at both ends),
+**120 mA maximum**, the only maximum given. 120 mA is used here. The design
+current of 0.6 A still covers it with 41 % margin. `IA0505S` and MCU/LCD are
+still estimates.
 
 ### 1.2 Switching frequency — R55 (R_RON)
 
@@ -159,12 +164,14 @@ silicon can, and will not chatter on the way down.
 
 ### 1.8 Input current — sets what everything upstream must carry
 
-Output 2.03 W at 90 % efficiency gives 2.26 W input.
+Output 5 V x 0.425 A = 2.13 W at 90 % efficiency gives 2.36 W input.
+(Was 2.03 W / 2.26 W with the 100 mA ADM2587E estimate. Re-derived
+2026-09-26.)
 
 | VIN | input current |
 |---|---|
-| 24 V | 94 mA |
-| 58 V | 39 mA |
+| 24 V | 98 mA |
+| 58 V | 41 mA |
 
 **Verdict:** this unit is a ~100 mA load on a vehicle battery. That is the fact
 that makes the whole protection problem cheap, and it is why a series clamp was
@@ -178,10 +185,10 @@ Context: `docs/decisions/0020`, `I-028` (a).
 **Worst steady current.** At the 6.0 V cranking floor (1.1), with the input
 power from 1.8:
 
-    2.26 W / 6.0 V = 0.38 A
+    2.36 W / 6.0 V = 0.39 A
 
-The relay coil (16.7 mA, section 2) is inside the 2.03 W estimate's margin.
-A 1 A fuse carries 2.6 times the worst case, and 10.6 times the 94 mA it
+The relay coil (16.7 mA, section 2) is inside the design current's margin.
+A 1 A fuse carries 2.5 times the worst case, and 10.2 times the 98 mA it
 carries at 24 V.
 
 **Hot-plug inrush.** When the lead is connected, the input capacitors charge
@@ -225,8 +232,6 @@ Each still carries its issue number.
 
 ## 3. Not calculated — open
 
-* **`ADM2587E` supply current.** The 100 mA in section 1.1 is an estimate and
-  was never read off the datasheet. Everything in section 1.8 scales with it.
 * **ISO 7637-2 fast transients.** The suppressed load dump is handled, but the
   fast pulses — present on a battery, absent on a panel supply — have not been
   worked through. `D2` `SMBJ60A` clamps at 96.8 V against the LM5164's 100 V

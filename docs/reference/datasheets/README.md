@@ -17,19 +17,12 @@ URLs rot. About 23 MB in total.
 | `LP2985.pdf` | TI LP2985-3.3 (`U13`) | the 3.3 V sensor-island regulator chosen in `docs/decisions/0002` |
 | `LM74930.pdf` | TI LM74930-Q1 | not fitted. An ISO 16750-2 load-dump protection controller, kept as the reference for what the battery case in `I-028` would actually need |
 | `LM5164.pdf` | TI LM5164 (`U14`), SNVSAU4D, from ti.com, added 2026-09-26 | the source of every value in `CALCULATIONS.md` section 1: 100 V absolute maximum, EN/UVLO thresholds, R_RON, feedback, ripple injection |
+| `ADM2587E.pdf` | ADI ADM2582E/ADM2587E (`U15`), Rev. C, from LCSC `C12081` (analog.com blocked), added 2026-09-26 | supply current: **120 mA maximum**, 98 mA typical into 54 Ohm - replaced the 100 mA estimate in `CALCULATIONS.md` 1.1 |
 | `MAX31856.pdf` | Maxim MAX31856 (`U2`-`U9`), 19-7534 Rev 0, from LCSC `C116632` (analog.com blocked the workstation), added 2026-09-26 | **T- is biased to ~0.735 V by the BIAS output**, and the typical circuit ties BIAS to T- with a floating thermocouple - so the ungrounded probes of `0008` need no extra resistor (`I-027`). BIAS floats between conversions, which is why the firmware runs continuous mode |
 
 ## Not here
 
-Analog Devices blocks automated download, so these two are by URL only:
-
-- **ADM2582E/ADM2587E** (`U15`, isolated RS-485) -
-  https://www.analog.com/media/en/technical-documentation/data-sheets/adm2582e-2587e.pdf
-
-**Still missing:** the ADM2587E above, whose supply current is still an
-estimate (`CALCULATIONS.md` 3).
-
-Also not downloaded: `IA0505S` (`U12`, XP Power), the SMBJ TVS series
+Not downloaded: `IA0505S` (`U12`, XP Power), the SMBJ TVS series
 (`D2`; Littelfuse blocks download - the SMBJ33A figures used in `I-028` are
 33 V standoff, 36.7-40.6 V breakdown, 53.3 V clamping, 600 W at 10/1000 us),
 `SS310`, `1N4007`, `2N7000`.

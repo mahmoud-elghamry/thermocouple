@@ -14,7 +14,7 @@ amps into a short. A short in the supply lead, or in the board's input
 before `F1`, would be fed with nothing to break it. The lead would then burn
 instead of opening.
 
-The board load is small: 94 mA at 24 V, and 0.38 A at the 6 V cranking floor
+The board load is small: 98 mA at 24 V, and 0.39 A at the 6 V cranking floor
 (`CALCULATIONS.md` 1.8, 1.9).
 
 ## Options
@@ -35,7 +35,7 @@ The board load is small: 94 mA at 24 V, and 0.38 A at the 6 V cranking floor
 | | Requirement | Why |
 |---|---|---|
 | Position | + lead, **as close to the battery as practical** | A fuse protects the wire downstream of it; the lead between battery and fuse stays unprotected, so keep it short |
-| Rating | **1 A, time-delay** (slow-blow) | 2.6x the worst load (0.38 A at cranking); rides the hot-plug inrush into `C53`/`C54` |
+| Rating | **1 A, time-delay** (slow-blow) | 2.5x the worst load (0.39 A at cranking); rides the hot-plug inrush into `C53`/`C54` |
 | Voltage | **DC-rated, 80 V DC or more** | Must still break during a 58 V suppressed load dump (`CALCULATIONS.md` 1.1). An AC rating alone doesn't count, and automotive blade fuses (32 V DC) are not enough |
 | Breaking capacity | **10 kA or more at DC** | The battery's prospective short current is thousands of amps |
 | Type | 10x38 mm DC cartridge in a DIN-rail fuse holder | Common in panels, rated for DC, and the holder isolates the unit for service |
