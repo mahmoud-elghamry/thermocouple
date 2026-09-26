@@ -14,14 +14,16 @@ U10 - `C45`/`C46` moved under U12, 18/10 mm -> 4.2 mm; board re-routed.
 **Two gates fixed that passed on the wrong input:** `close_gaps.py` (read a
 09-07 report) and `check_mpn_consistency.py` (root only after the split);
 `populate_schematic.py` now refuses the hierarchical root. `I-027`: BIAS is
-tied to T- on every channel - datasheet check still to do (analog.com
-blocked). Fab package re-exported 09:45. **All uncommitted.**
+closed from the MAX31856 datasheet (now in `reference/datasheets/`): BIAS on
+T- is the maker's own floating-probe circuit. **Silkscreen said REV A0 on the
+REV A1 board** - `BOARD_REV` fixed. Package + `views/` (schematic PDF, 3D,
+traces) re-exported 10:13. Committed `08c8d86` + the follow-up.
 
 ## Measured, not claimed
 
 | Check | Result |
 |---|---|
-| `validate.ps1` (workstation, KiCad 10.0.6, 09:49) | **passed**: ERC 0/0; netlist **IDENTICAL** 201/162/645; **DRC 0 errors, 0 warnings, 0 unconnected, 0 parity** |
+| `validate.ps1` (workstation, KiCad 10.0.6, 10:13) | **passed**: ERC 0/0; netlist **IDENTICAL** 201/162/645; **DRC 0 errors, 0 warnings, 0 unconnected, 0 parity** |
 | `check_board.py` | **all 6 ok**; all 40 channel nets in `SensorSignal` |
 | `check_mpn_consistency.py` (now inside `validate.ps1`) | 128 / 128 match (both sheets) |
 | `build.py` from `05d6abd` (scratch) | reproduces the hierarchy: IDENTICAL, ERC 0/0, 3 min |
@@ -36,7 +38,7 @@ No IEC 61010 creepage analysis, SPICE, thermal, EMC or physical measurement.
    10 BOM lines have no LCSC code (`I-051`, closed) - JLC global sourcing or hand-solder.
 2. **Owner: commit** today's work (`I-062`, `I-045`, the gate fixes).
 3. **Bench, when boards arrive:** K1 (`I-058`), isolation (`I-004`), timing (`I-013`), `I-003`.
-4. `I-027`: MAX31856 datasheet into `docs/reference/datasheets/`, quote BIAS. `I-028` panel fuse; owner: `I-056`, `I-046`.
+4. `I-028` panel fuse; owner: `I-056`, `I-046`; `I-026` buy ungrounded probes (board ready).
 
 ## Tooling, and the traps it sets
 

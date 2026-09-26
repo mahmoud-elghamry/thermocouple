@@ -107,6 +107,13 @@ def place_labels(board: pcbnew.BOARD) -> list[str]:
     """
     report = []
     texts = [t for t in board.GetDrawings() if isinstance(t, pcbnew.PCB_TEXT)]
+    # The revision line comes from config, so --silk-only carries a revision
+    # bump to a routed board.  REV A1 boards were about to be printed "REV A0".
+    revision = f"{BOARD_NAME}  REV {BOARD_REV}  {BOARD_DATE}"
+    for t in texts:
+        if t.GetText().startswith(f"{BOARD_NAME}  REV ") and t.GetText() != revision:
+            report.append(f"revision: {t.GetText()!r} -> {revision!r}")
+            t.SetText(revision)
     for prefix, text, size, rotation, candidates, required in PLACED_LABELS:
         item = next((t for t in texts if t.GetText().startswith(prefix)), None)
         if item is None:

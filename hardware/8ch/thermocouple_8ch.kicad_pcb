@@ -42893,7 +42893,7 @@
 		(descr "Terminal Block Phoenix MKDS-1,5-3, 3 pins, pitch 5mm, size 15x9.8mm, drill diameter 1.3mm, pad diameter 2.6mm, http://www.farnell.com/datasheets/100425.pdf")
 		(tags "THT Terminal Block Phoenix MKDS-1,5-3 pitch 5mm size 15x9.8mm drill 1.3mm pad 2.6mm")
 		(property "Reference" "J3"
-			(at 5 -6.665 0)
+			(at 13.875 -0.305 0)
 			(layer "F.SilkS")
 			(uuid "a3359d6f-4969-4803-a908-9ee8c8f990c9")
 			(effects
@@ -53423,7 +53423,7 @@
 			)
 		)
 	)
-	(gr_text "THERMO-8CH  REV A0  2026-09"
+	(gr_text "THERMO-8CH  REV A1  2026-09"
 		(at 70 56.5 0)
 		(layer "F.SilkS")
 		(uuid "9b1e28a6-b989-4222-bf1e-ad58a66d006e")
@@ -53490,7 +53490,7 @@
 		)
 	)
 	(gr_text "RUN-PERMIT\nDRY CONTACT"
-		(at 240.5 67.5 0)
+		(at 240.5 63.75 0)
 		(layer "F.SilkS")
 		(uuid "23d571de-7141-4e59-bc75-517419a7ffb5")
 		(effects
@@ -53501,7 +53501,7 @@
 		)
 	)
 	(gr_text "LOW-VOLTAGE\nLOAD ONLY"
-		(at 240.5 70.75 0)
+		(at 240.5 67 0)
 		(layer "F.SilkS")
 		(uuid "50b2fcd3-1fd5-4fd8-a19c-d97a2c0d0f70")
 		(effects

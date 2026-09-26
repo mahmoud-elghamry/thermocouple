@@ -22,7 +22,7 @@ BOARD_H = 140.0
 # Printed on the silkscreen.  A board in a panel has to be identifiable without
 # access to a repository (design review P-03); bump REV on every fabrication.
 BOARD_NAME = "THERMO-8CH"
-BOARD_REV = "A0"
+BOARD_REV = "A1"   # was still "A0" on the REV A1 board until 2026-09-26
 BOARD_DATE = "2026-09"
 
 # ---------------------------------------------------------------------------

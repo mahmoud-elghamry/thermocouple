@@ -16,6 +16,7 @@ URLs rot. About 23 MB in total.
 | `ISO7761.pdf` | TI ISO7761 (`U11`) | five-forward/one-reverse isolator, carries MISO back |
 | `LP2985.pdf` | TI LP2985-3.3 (`U13`) | the 3.3 V sensor-island regulator chosen in `docs/decisions/0002` |
 | `LM74930.pdf` | TI LM74930-Q1 | not fitted. An ISO 16750-2 load-dump protection controller, kept as the reference for what the battery case in `I-028` would actually need |
+| `MAX31856.pdf` | Maxim MAX31856 (`U2`-`U9`), 19-7534 Rev 0, from LCSC `C116632` (analog.com blocked the workstation), added 2026-09-26 | **T- is biased to ~0.735 V by the BIAS output**, and the typical circuit ties BIAS to T- with a floating thermocouple - so the ungrounded probes of `0008` need no extra resistor (`I-027`). BIAS floats between conversions, which is why the firmware runs continuous mode |
 
 ## Not here
 
