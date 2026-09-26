@@ -398,35 +398,35 @@
   },
   "JTC1": {
    "footprint": "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-3_1x03_P5.00mm_Horizontal",
-   "value": "TC1_K_TYPE"
+   "value": "K_TYPE"
   },
   "JTC2": {
    "footprint": "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-3_1x03_P5.00mm_Horizontal",
-   "value": "TC2_K_TYPE"
+   "value": "K_TYPE"
   },
   "JTC3": {
    "footprint": "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-3_1x03_P5.00mm_Horizontal",
-   "value": "TC3_K_TYPE"
+   "value": "K_TYPE"
   },
   "JTC4": {
    "footprint": "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-3_1x03_P5.00mm_Horizontal",
-   "value": "TC4_K_TYPE"
+   "value": "K_TYPE"
   },
   "JTC5": {
    "footprint": "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-3_1x03_P5.00mm_Horizontal",
-   "value": "TC5_K_TYPE"
+   "value": "K_TYPE"
   },
   "JTC6": {
    "footprint": "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-3_1x03_P5.00mm_Horizontal",
-   "value": "TC6_K_TYPE"
+   "value": "K_TYPE"
   },
   "JTC7": {
    "footprint": "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-3_1x03_P5.00mm_Horizontal",
-   "value": "TC7_K_TYPE"
+   "value": "K_TYPE"
   },
   "JTC8": {
    "footprint": "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-3_1x03_P5.00mm_Horizontal",
-   "value": "TC8_K_TYPE"
+   "value": "K_TYPE"
   },
   "K1": {
    "footprint": "Relay_THT:Relay_SPDT_Omron-G5LE-1",
@@ -1256,38 +1256,6 @@
    "J2.3",
    "RV1.2"
   ],
-  "/MISO_CH1": [
-   "R45.1",
-   "U2.11"
-  ],
-  "/MISO_CH2": [
-   "R46.1",
-   "U3.11"
-  ],
-  "/MISO_CH3": [
-   "R47.1",
-   "U4.11"
-  ],
-  "/MISO_CH4": [
-   "R48.1",
-   "U5.11"
-  ],
-  "/MISO_CH5": [
-   "R49.1",
-   "U6.11"
-  ],
-  "/MISO_CH6": [
-   "R50.1",
-   "U7.11"
-  ],
-  "/MISO_CH7": [
-   "R51.1",
-   "U8.11"
-  ],
-  "/MISO_CH8": [
-   "R52.1",
-   "U9.11"
-  ],
   "/MISO_CTRL": [
    "J5.1",
    "U1.7",
@@ -1469,7 +1437,7 @@
    "R58.1",
    "U14.8"
   ],
-  "/TC1_FILT_N": [
+  "/TC1/FILT_N": [
    "C1.2",
    "C3.1",
    "D8.3",
@@ -1477,22 +1445,26 @@
    "U2.2",
    "U2.3"
   ],
-  "/TC1_FILT_P": [
+  "/TC1/FILT_P": [
    "C1.1",
    "C2.1",
    "D7.3",
    "R1.2",
    "U2.4"
   ],
-  "/TC1_RAW_N": [
+  "/TC1/MISO_CH": [
+   "R45.1",
+   "U2.11"
+  ],
+  "/TC1/RAW_N": [
    "JTC1.2",
    "R2.1"
   ],
-  "/TC1_RAW_P": [
+  "/TC1/RAW_P": [
    "JTC1.1",
    "R1.1"
   ],
-  "/TC2_FILT_N": [
+  "/TC2/FILT_N": [
    "C6.2",
    "C8.1",
    "D10.3",
@@ -1500,22 +1472,26 @@
    "U3.2",
    "U3.3"
   ],
-  "/TC2_FILT_P": [
+  "/TC2/FILT_P": [
    "C6.1",
    "C7.1",
    "D9.3",
    "R3.2",
    "U3.4"
   ],
-  "/TC2_RAW_N": [
+  "/TC2/MISO_CH": [
+   "R46.1",
+   "U3.11"
+  ],
+  "/TC2/RAW_N": [
    "JTC2.2",
    "R4.1"
   ],
-  "/TC2_RAW_P": [
+  "/TC2/RAW_P": [
    "JTC2.1",
    "R3.1"
   ],
-  "/TC3_FILT_N": [
+  "/TC3/FILT_N": [
    "C11.2",
    "C13.1",
    "D12.3",
@@ -1523,22 +1499,26 @@
    "U4.2",
    "U4.3"
   ],
-  "/TC3_FILT_P": [
+  "/TC3/FILT_P": [
    "C11.1",
    "C12.1",
    "D11.3",
    "R5.2",
    "U4.4"
   ],
-  "/TC3_RAW_N": [
+  "/TC3/MISO_CH": [
+   "R47.1",
+   "U4.11"
+  ],
+  "/TC3/RAW_N": [
    "JTC3.2",
    "R6.1"
   ],
-  "/TC3_RAW_P": [
+  "/TC3/RAW_P": [
    "JTC3.1",
    "R5.1"
   ],
-  "/TC4_FILT_N": [
+  "/TC4/FILT_N": [
    "C16.2",
    "C18.1",
    "D14.3",
@@ -1546,22 +1526,26 @@
    "U5.2",
    "U5.3"
   ],
-  "/TC4_FILT_P": [
+  "/TC4/FILT_P": [
    "C16.1",
    "C17.1",
    "D13.3",
    "R7.2",
    "U5.4"
   ],
-  "/TC4_RAW_N": [
+  "/TC4/MISO_CH": [
+   "R48.1",
+   "U5.11"
+  ],
+  "/TC4/RAW_N": [
    "JTC4.2",
    "R8.1"
   ],
-  "/TC4_RAW_P": [
+  "/TC4/RAW_P": [
    "JTC4.1",
    "R7.1"
   ],
-  "/TC5_FILT_N": [
+  "/TC5/FILT_N": [
    "C21.2",
    "C23.1",
    "D16.3",
@@ -1569,22 +1553,26 @@
    "U6.2",
    "U6.3"
   ],
-  "/TC5_FILT_P": [
+  "/TC5/FILT_P": [
    "C21.1",
    "C22.1",
    "D15.3",
    "R9.2",
    "U6.4"
   ],
-  "/TC5_RAW_N": [
+  "/TC5/MISO_CH": [
+   "R49.1",
+   "U6.11"
+  ],
+  "/TC5/RAW_N": [
    "JTC5.2",
    "R10.1"
   ],
-  "/TC5_RAW_P": [
+  "/TC5/RAW_P": [
    "JTC5.1",
    "R9.1"
   ],
-  "/TC6_FILT_N": [
+  "/TC6/FILT_N": [
    "C26.2",
    "C28.1",
    "D18.3",
@@ -1592,22 +1580,26 @@
    "U7.2",
    "U7.3"
   ],
-  "/TC6_FILT_P": [
+  "/TC6/FILT_P": [
    "C26.1",
    "C27.1",
    "D17.3",
    "R11.2",
    "U7.4"
   ],
-  "/TC6_RAW_N": [
+  "/TC6/MISO_CH": [
+   "R50.1",
+   "U7.11"
+  ],
+  "/TC6/RAW_N": [
    "JTC6.2",
    "R12.1"
   ],
-  "/TC6_RAW_P": [
+  "/TC6/RAW_P": [
    "JTC6.1",
    "R11.1"
   ],
-  "/TC7_FILT_N": [
+  "/TC7/FILT_N": [
    "C31.2",
    "C33.1",
    "D20.3",
@@ -1615,22 +1607,26 @@
    "U8.2",
    "U8.3"
   ],
-  "/TC7_FILT_P": [
+  "/TC7/FILT_P": [
    "C31.1",
    "C32.1",
    "D19.3",
    "R13.2",
    "U8.4"
   ],
-  "/TC7_RAW_N": [
+  "/TC7/MISO_CH": [
+   "R51.1",
+   "U8.11"
+  ],
+  "/TC7/RAW_N": [
    "JTC7.2",
    "R14.1"
   ],
-  "/TC7_RAW_P": [
+  "/TC7/RAW_P": [
    "JTC7.1",
    "R13.1"
   ],
-  "/TC8_FILT_N": [
+  "/TC8/FILT_N": [
    "C36.2",
    "C38.1",
    "D22.3",
@@ -1638,18 +1634,22 @@
    "U9.2",
    "U9.3"
   ],
-  "/TC8_FILT_P": [
+  "/TC8/FILT_P": [
    "C36.1",
    "C37.1",
    "D21.3",
    "R15.2",
    "U9.4"
   ],
-  "/TC8_RAW_N": [
+  "/TC8/MISO_CH": [
+   "R52.1",
+   "U9.11"
+  ],
+  "/TC8/RAW_N": [
    "JTC8.2",
    "R16.1"
   ],
-  "/TC8_RAW_P": [
+  "/TC8/RAW_P": [
    "JTC8.1",
    "R15.1"
   ],
@@ -1776,7 +1776,7 @@
    "U9.13"
   ]
  },
- "note": "REV A1 connectivity. Supersedes netlist-baseline-reva0.json, which is kept as the record of what decision 0010 froze. Established 2026-09-15 after the REV A1 change set was generated: 21 components added (Y1 + C60/C61 crystal and load caps for I-032; R53/R54 run-permit read-back divider for I-016; D7-D22 BAV199 input protection for I-045). 167->188 components, 154->155 nets, 555->613 pins. Every difference was reviewed against the REV A0 fingerprint and each one was intended; no net lost a pin. I-028 is NOT in this baseline - the 24 V source is still undecided. Revised 2026-09-15: Y1 footprint corrected from Crystal_HC49-4H_Vertical (through-hole) to Crystal_SMD_HC49-SD, and its value to '8MHz 20pF', after sourcing settled on X49SM8MSD2SC (LCSC C12674, JLCPCB basic, CL = 20 pF). The original footprint was surface-mount-incompatible and would have made the board unbuildable. Connectivity is unchanged: 188/155/613. Revised again 2026-09-15: D3 (relay flyback) footprint corrected from Diode_THT:D_DO-41 to Diode_SMD:D_SMA - LCSC stocks no through-hole 1N4007, and at 16.7 mA of flyback current an SMA 1 A part is ample. Connectivity unchanged: 188/155/613. Superseded 2026-09-16 by the LM5164 input stage (decisions/0016, I-028): the supply is an engine battery, so the TSR 1-2450 (36 V ceiling) could not survive a 58 V load dump. 13 components and 6 nets added, U14/D1/D2/C53/C54 retargeted. 188/155/613 -> 201/162/645. Every one of the 28 differences was inspected against the intended change before this baseline was written; the new nets were checked pin by pin against TI SNVSAU4D figure 7-1.",
- "revised": "2026-09-16",
+ "note": "REV A1 connectivity. Supersedes netlist-baseline-reva0.json, which is kept as the record of what decision 0010 froze. Established 2026-09-15 after the REV A1 change set was generated: 21 components added (Y1 + C60/C61 crystal and load caps for I-032; R53/R54 run-permit read-back divider for I-016; D7-D22 BAV199 input protection for I-045). 167->188 components, 154->155 nets, 555->613 pins. Every difference was reviewed against the REV A0 fingerprint and each one was intended; no net lost a pin. I-028 is NOT in this baseline - the 24 V source is still undecided. Revised 2026-09-15: Y1 footprint corrected from Crystal_HC49-4H_Vertical (through-hole) to Crystal_SMD_HC49-SD, and its value to '8MHz 20pF', after sourcing settled on X49SM8MSD2SC (LCSC C12674, JLCPCB basic, CL = 20 pF). The original footprint was surface-mount-incompatible and would have made the board unbuildable. Connectivity is unchanged: 188/155/613. Revised again 2026-09-15: D3 (relay flyback) footprint corrected from Diode_THT:D_DO-41 to Diode_SMD:D_SMA - LCSC stocks no through-hole 1N4007, and at 16.7 mA of flyback current an SMA 1 A part is ample. Connectivity unchanged: 188/155/613. Superseded 2026-09-16 by the LM5164 input stage (decisions/0016, I-028): the supply is an engine battery, so the TSR 1-2450 (36 V ceiling) could not survive a 58 V load dump. 13 components and 6 nets added, U14/D1/D2/C53/C54 retargeted. 188/155/613 -> 201/162/645. Every one of the 28 differences was inspected against the intended change before this baseline was written; the new nets were checked pin by pin against TI SNVSAU4D figure 7-1. Revised 2026-09-26 (I-062, decision 0019): the schematic became a root sheet plus one channel sheet used eight times. Proved with netlist_fingerprint.py --allow-renames against the previous baseline: every one of the 645 pins on the same net, no component added or removed. Two deliberate changes, nothing else: 40 channel-internal nets renamed (/TCn_RAW_P|N, /TCn_FILT_P|N, /MISO_CHn -> /TCn/RAW_P|N, /TCn/FILT_P|N, /TCn/MISO_CH), and JTC1-JTC8 value TCn_K_TYPE -> K_TYPE, because KiCad 10 keeps one value per symbol, not per sheet instance.",
+ "revised": "2026-09-26",
  "supersedes": "netlist-baseline-reva0.json"
 }

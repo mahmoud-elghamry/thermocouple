@@ -113,7 +113,18 @@ New-Item -ItemType Directory -Path $out | Out-Null     # fails if it exists: new
 Copy `docs/STATE.md`'s check numbers into the release folder as well. A
 fabrication package without the report it passed is not a package.
 
-## Schematic layout (`I-002`) - `hardware/8ch/sch_layout/`
+## Schematic layout (`I-002`, `I-062`) - `hardware/8ch/sch_layout/`
+
+**The schematic is two files since 2026-09-26** (`0019`): `thermocouple_8ch.kicad_sch`
+(A3 root: every block except the channels, plus sheets TC1-TC8) and
+`channel.kicad_sch` (A4, used by all eight sheets). Channel-internal nets are
+named `/TCn/FILT_P`, `/TCn/RAW_N`, `/TCn/MISO_CH`; a new one needs an
+`apply_rules.py` pattern `/TC?/NAME`, or it lands in Default and the isolation
+rule fires. Compare netlists across a rename with
+`netlist_fingerprint.py OLD NEW --allow-renames [map.json]` (nets matched by
+pins), and carry a rename to the board with
+`<KiCad python> sch_layout/rename_board_nets.py BOARD map.json` **before**
+`kicad-tool pcb sync` - sync alone renames pads and leaves tracks behind.
 
 ```sh
 python hardware/8ch/sch_layout/build.py              # scratch copy, prints the gate
@@ -121,7 +132,9 @@ python hardware/8ch/sch_layout/build.py --in-place   # rewrite the schematic
 ```
 
 Measured 2026-09-24 in the cloud: about a minute; netlist IDENTICAL, ERC 0/0,
-output equal to the committed sheet apart from UUIDs. Every write goes through
+output equal to the committed sheet apart from UUIDs. With the `hier.py` step,
+2026-09-26 on the workstation: 3 min, IDENTICAL, ERC 0/0 (put KiCad's `bin`
+and the Konnect folder on PATH first). Every write goes through
 Konnect over stdio (`kon.py`). Needs `konnect` and `kicad-cli` on PATH and
 `KICAD10_SYMBOL_DIR` set (the cloud hook does all three; on the workstation set
 it to `C:\Program Files\KiCad\10.0\share\kicad\symbols`).
@@ -135,6 +148,10 @@ it to `C:\Program Files\KiCad\10.0\share\kicad\symbols`).
 | `relayout.py` | move/rotate a part and carry its pin labels and NC flags |
 | `route.py` | wires: never through another net's pin, wire, pin lead or a body |
 | `labels.py` | one label per wired group, placed where its text is clear |
+| `hier.py` | flat wired sheet -> A3 root + `channel.kicad_sch` x 8 (`0019`) |
+| `rootlayout.py` | moves the root blocks onto A3, whole grid steps |
+| `sexpr.py` | minimal KiCad S-expression reader/writer (no kiutils) |
+| `rename_board_nets.py` | renames board nets in place from a rename map |
 
 **It starts from a label-only base** (`05d6abd`) and refuses one with wires.
 Change a part's position in `extra.py`/`channel.py`, re-run, look at the
@@ -339,6 +356,18 @@ up here. The hooks guard the IPC-versus-file-fallback case and are worth
 revisiting.
 
 ## Things that will bite you
+
+- **A gate that reads a file can pass on the wrong file.** Two did on
+  2026-09-26: `close_gaps.py` read a `drc-report.rpt` from 2026-09-07 and said
+  "no missing connections" on a board with one (it now runs its own DRC with
+  `--refill-zones` and refuses an older report), and `check_mpn_consistency.py`
+  read only the root after `I-062` - 56 symbols checked instead of 128, still
+  "all match" (it now follows every `Sheetfile`). When a check's count drops,
+  suspect the check.
+- **`populate_schematic.py` refuses the hierarchical root** (`I-062`): it
+  would re-add the 104 channel parts. Give it a flat copy with `--sch`; see
+  "Schematic layout". This also stops `run_all.ps1 -Regenerate` at step 1,
+  which is what STATE.md already asked for.
 
 - **`PCB_VIA::GetWidth()` needs a layer argument** in KiCad 10. The no-argument
   form trips a wxWidgets assert that opens a modal dialog and hangs a headless

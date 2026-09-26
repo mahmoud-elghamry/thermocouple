@@ -17,9 +17,12 @@ them writes through Konnect (docs/decisions/0013):
   4. route.py     short orthogonal wires between pins of the same net that
                   never touch another net's pin, wire or a part body
   5. labels.py    one label per wired group, placed where its text fits
+  6. hier.py      split into the A3 root + channel.kicad_sch used 8 times
+                  (I-062); rootlayout.py packs the root blocks onto A3
 
-Then the gate: kicad-cli exports the netlist, netlist_fingerprint.py must
-report IDENTICAL against netlist-baseline-reva1.json, and ERC must have no
+Then the gate, on the hierarchical result: kicad-cli exports the netlist,
+netlist_fingerprint.py must report IDENTICAL against netlist-baseline-reva1.json
+(which carries the hierarchical net names since I-062), and ERC must have no
 errors. A failure leaves the scratch copy for inspection and, with
 --in-place, the schematic put back as it was.
 
@@ -44,8 +47,13 @@ def main():
     in_place = "--in-place" in sys.argv
     base = sys.argv[sys.argv.index("--base") + 1] if "--base" in sys.argv else "05d6abd"
     work = tempfile.mkdtemp(prefix="sch_layout-")
-    sch = os.path.join(REPO, SCH_REL) if in_place else os.path.join(work, "thermocouple_8ch.kicad_sch")
-    original = open(os.path.join(REPO, SCH_REL), "rb").read()
+    # The flat, wired sheet is an intermediate since I-062: it is built in the
+    # scratch folder and hier.py turns it into the root + channel sheet.
+    sch = os.path.join(work, "thermocouple_8ch.kicad_sch")
+    out = HW if in_place else os.path.join(work, "hier")
+    originals = {f: open(os.path.join(HW, f), "rb").read()
+                 for f in ("thermocouple_8ch.kicad_sch", "channel.kicad_sch")
+                 if os.path.exists(os.path.join(HW, f))}
     head = subprocess.run(["git", "-C", REPO, "show", base + ":" + SCH_REL], check=True,
                           capture_output=True).stdout
     if b"(wire" in head:
@@ -54,13 +62,17 @@ def main():
     shutil.copy(os.path.join(HW, "thermocouple_8ch.kicad_pro"), os.path.dirname(sch))
     try:
         build(sch, work)
-        gate(sch, work)
+        flat_net = os.path.join(work, "flat.net")
+        run("kicad-cli", "sch", "export", "netlist", "--output", flat_net, sch)
+        run(sys.executable, os.path.join(HERE, "hier.py"), sch, flat_net, out)
+        gate(os.path.join(out, "thermocouple_8ch.kicad_sch"), work)
     except BaseException:
         if in_place:
-            open(sch, "wb").write(original)
+            for f, data in originals.items():
+                open(os.path.join(HW, f), "wb").write(data)
             print("FAILED - schematic restored; scratch in", work)
         raise
-    print("OK -", sch)
+    print("OK -", out)
 
 
 def build(sch, work):

@@ -1,15 +1,19 @@
 {
  "note": "Hashes of the board and schematic as the generator last left them. If the files no longer match, someone edited by hand and running the generator would destroy that work. See AGENTS.md rules 8 and 9 and docs/decisions/0012.",
- "recorded": "2026-09-26T05:03:35+03:00",
+ "recorded": "2026-09-26T09:46:06+03:00",
  "generated_by": "generate_board.py",
  "files": {
   "thermocouple_8ch.kicad_pcb": {
-   "sha256": "4857cad8d2712cb5eccf708347bb529c385c59202b05faf615f449808ab283ac",
-   "bytes": 3173726
+   "sha256": "68728f62a9bdc57770a07f1444315c08fb509b14e5c974c8ef56a7cef1bc56ac",
+   "bytes": 2997178
   },
   "thermocouple_8ch.kicad_sch": {
-   "sha256": "986825a9be83225edb5a850b8de8c50a26f76d0281e837304f2592218469e11b",
-   "bytes": 694595
+   "sha256": "23d7d94a241647256d541d863a51ef730942dfac804b0e9f13b4284bb2a4d82f",
+   "bytes": 441261
+  },
+  "channel.kicad_sch": {
+   "sha256": "2a783cecc6ea39f4a9b995ef5c94ea92b6e2a10be1831d79d30713394a459867",
+   "bytes": 62382
   }
  }
 }

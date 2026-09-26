@@ -33,6 +33,9 @@ $snapshot = Join-Path $out 'snapshot'
 New-Item -ItemType Directory -Path $snapshot | Out-Null
 $stem = 'thermocouple_8ch'
 $inputs = @('.kicad_sch', '.kicad_pcb', '.kicad_pro', '.kicad_dru') | ForEach-Object { Join-Path $PSScriptRoot ($stem + $_) }
+# The channel sheet the root uses eight times (I-062). Without it the snapshot
+# root would open with eight empty sheets and ERC would still pass.
+$inputs += Join-Path $PSScriptRoot 'channel.kicad_sch'
 $before = Get-SourceHashes $inputs
 foreach ($inputFile in $inputs) { Copy-Item -LiteralPath $inputFile -Destination $snapshot }
 foreach ($table in @('fp-lib-table','sym-lib-table')) {
@@ -60,6 +63,9 @@ Invoke-CheckedNative $tool @('sch','erc',$sch,'-o',$erc) -AllowedExitCodes @(0,5
 Assert-ErcReport $erc
 Invoke-CheckedNative $tool @('sch','netlist',$sch,'-o',$net)
 Invoke-CheckedNative 'python' @((Join-Path $PSScriptRoot 'netlist_fingerprint.py'), (Join-Path $PSScriptRoot 'netlist-baseline-reva1.json'), $net)
+# I-054: kicad-tool clones a symbol with the donor's MPN, and neither ERC nor
+# the netlist looks at MPN. Part of the gate so nobody has to remember it.
+Invoke-CheckedNative 'python' @((Join-Path $PSScriptRoot 'check_mpn_consistency.py'))
 Invoke-CheckedNative $tool @('pcb','drc',$pcb,'-o',$drc)
 Assert-DrcReport $drc
 $after = Get-SourceHashes $inputs

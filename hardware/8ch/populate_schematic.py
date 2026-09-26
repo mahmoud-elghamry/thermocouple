@@ -17,7 +17,12 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent
-SCH = ROOT / "thermocouple_8ch.kicad_sch"
+# Since I-062 the committed schematic is hierarchical and this script only
+# understands a flat sheet: point it at a flat, label-only copy with --sch,
+# commit that as build.py's --base, and let build.py (via hier.py) produce the
+# root + channel sheet.  See the guard at the bottom.
+SCH = (Path(sys.argv[sys.argv.index("--sch") + 1]) if "--sch" in sys.argv
+       else ROOT / "thermocouple_8ch.kicad_sch")
 KICAD_ROOT = Path(r"C:\Program Files\KiCad\10.0")
 SYMBOL_ROOT = KICAD_ROOT / "share" / "kicad" / "symbols"
 DEFAULT_TOOL = Path(
@@ -813,6 +818,15 @@ def prune_dangling_labels() -> None:
 if __name__ == "__main__":
     if not TOOL.exists():
         raise SystemExit(f"kicad-tool not found: {TOOL}")
+    if "(sheet" in SCH.read_text(encoding="utf-8"):
+        # The channel parts are in channel.kicad_sch, not in this file, so
+        # ensure_parts() would add all 104 of them again to the root.
+        raise SystemExit("\n".join([
+            f"{SCH.name} is hierarchical (I-062) - this script writes flat sheets only.",
+            "Work on a flat, label-only copy instead, e.g.",
+            "  git show 05d6abd:hardware/8ch/thermocouple_8ch.kicad_sch > flat.kicad_sch",
+            "  python populate_schematic.py --sch flat.kicad_sch",
+            "then commit it where build.py --base can read it and run build.py."]))
     if "--labels-only" not in sys.argv:
         ensure_parts()
     ensure_labels()

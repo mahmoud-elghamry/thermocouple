@@ -35,11 +35,43 @@ SCH = ROOT / "thermocouple_8ch.kicad_sch"
 CATALOG = ROOT / "passives_catalog.json"
 
 
+def sheets() -> list[tuple[Path, int]]:
+    """Every schematic file with the number of times the root uses it.
+
+    Since I-062 the channel parts live in channel.kicad_sch, used eight times.
+    Reading only the root checked 56 symbols instead of 128 and still said
+    "all match" - so the sub-sheets are found from the root itself, and a
+    sheet file that does not exist is an error, not a skipped file.
+    """
+    root = io.open(SCH, encoding="utf-8").read()
+    uses = {}
+    for name in re.findall(r'\(property "Sheetfile" "([^"]+)"', root):
+        uses[name] = uses.get(name, 0) + 1
+    out = [(SCH, 1)]
+    for name, count in sorted(uses.items()):
+        path = ROOT / name
+        if not path.exists():
+            raise SystemExit(f"{SCH.name} uses {name}, which does not exist")
+        out.append((path, count))
+    return out
+
+
 def main() -> int:
     catalog = json.loads(io.open(CATALOG, encoding="utf-8").read())["parts"]
-    s = io.open(SCH, encoding="utf-8").read()
-    inst = list(re.finditer(r'\n\t\t\(property "Reference" "([A-Z#]+\d+)"', s))
+    bad, unchecked, ok = [], [], 0
+    for path, count in sheets():
+        b, u, k = check_sheet(catalog, io.open(path, encoding="utf-8").read(),
+                              path.name, count)
+        bad += b
+        unchecked += u
+        ok += k
+    return report(bad, unchecked, ok)
 
+
+def check_sheet(catalog, s, name, count):
+    """One file; a symbol in a sheet used `count` times counts `count` times."""
+    inst = list(re.finditer(r'\n\t\t\(property "Reference" "([A-Z#]+\d+)"', s))
+    tag = "" if count == 1 else " (%s x%d)" % (name, count)
     bad, unchecked, ok = [], [], 0
     for i, m in enumerate(inst):
         ref = m.group(1)
@@ -56,7 +88,7 @@ def main() -> int:
 
         entry = catalog.get(value)
         if entry is None:
-            unchecked.append("%s (%s)" % (ref, value))
+            unchecked.append("%s (%s)%s" % (ref, value, tag))
             continue
         want_mpn = entry.get("mpn") or ""
         want_lcsc = entry.get("lcsc") or ""
@@ -66,8 +98,11 @@ def main() -> int:
                        % (ref, value, mpn or "(none)", lcsc or "(none)",
                           value, want_mpn, want_lcsc or "(none)"))
         else:
-            ok += 1
+            ok += count
+    return bad, unchecked, ok
 
+
+def report(bad, unchecked, ok) -> int:
     if bad:
         print("FAIL  %d symbol(s) carry a part number that does not match their "
               "value:" % len(bad))
@@ -91,7 +126,13 @@ def fix() -> int:
     sourcing properties - never a value, a footprint or a position.
     """
     catalog = json.loads(io.open(CATALOG, encoding="utf-8").read())["parts"]
-    s = io.open(SCH, encoding="utf-8").read()
+    for path, _ in sheets():
+        fix_sheet(catalog, path)
+    return 0
+
+
+def fix_sheet(catalog, path) -> None:
+    s = io.open(path, encoding="utf-8").read()
     inst = list(re.finditer(r'\n\t\t\(property "Reference" "([A-Z#]+\d+)"', s))
 
     out, last, fixed = [], 0, []
@@ -126,11 +167,10 @@ def fix() -> int:
             last = end
 
     out.append(s[last:])
-    io.open(SCH, "w", encoding="utf-8").write("".join(out))
-    print("corrected %d symbol(s):" % len(fixed))
+    io.open(path, "w", encoding="utf-8").write("".join(out))
+    print("%s: corrected %d symbol(s):" % (path.name, len(fixed)))
     for line in fixed:
         print("   " + line)
-    return 0
 
 
 if __name__ == "__main__":

@@ -62,14 +62,17 @@ def build_placements() -> dict[str, tuple[float, float, float]]:
     put("C44", 140.0, 63.0)          # +3V3_SENS at U11 pad 16
     put("C41", 156.5, 41.5)          # +5V_CTRL at U10 pad 1
     put("C43", 156.5, 82.0)          # +5V_CTRL at U11 pad 1
-    put("C45", 156.5, 45.5)          # 10u bulk on the control side
 
     # Isolated supply for the sensor island.  U12 is rotated 90 deg so its pin
     # row runs across the barrier: +Vin/-Vin stay in the control island and
     # 0V/+Vout reach into the sensor island.
     put("U12", 154.5, 100.0, 270)    # IA0505S isolated DC-DC
+    # U12's own input and output caps sit right under its pins, one on each
+    # side of the barrier.  C45 used to be at (156.5, 45.5) beside U10, 55 mm
+    # from the module it decouples, and C46 10 mm off (I-045, 2026-09-26).
+    put("C45", 153.25, 104.2, 180)   # 10u at +Vin/-Vin (pins 1/2), control side
+    put("C46", 143.0, 104.2, 0)      # 10u at +Vout/0V (pins 6/5), sensor side
     put("U13", 134.0, 100.0, 0)      # AP2112K-3.3 LDO
-    put("C46", 134.0, 105.0)
     put("C47", 129.0, 105.0)
     put("C48", 129.0, 100.9)
     for ref, x in (("TP3", 122.0), ("TP4", 127.0), ("TP5", 132.0), ("TP6", 137.0)):

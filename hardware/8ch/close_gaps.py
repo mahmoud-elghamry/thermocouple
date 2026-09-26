@@ -13,13 +13,21 @@ see in the report.
 
 Run with KiCad 10's bundled Python, after ``route.py``:
 
-    python close_gaps.py            # uses drc-report.rpt
+    python close_gaps.py            # runs a fresh DRC with zones refilled
+
+It used to read whatever ``drc-report.rpt`` was lying in the folder.  On
+2026-09-26 that file was from 2026-09-07, so the step reported "no missing
+connections" on a board that had one (`I-061`): a +3V3_SENS pad pair that only
+shows once the zones are refilled.  It now makes its own report every time,
+and refuses a ``--report`` older than the board.
 """
 
 from __future__ import annotations
 
 import argparse
+import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -268,14 +276,29 @@ def hop(board, tracks, vias, pads, code, origin, target,
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--report", default="drc-report.rpt")
+    parser.add_argument("--report", default=None,
+                        help="use this DRC report instead of making a fresh one")
     parser.add_argument("--width", type=float, default=0.35)
     parser.add_argument("--clearance", type=float, default=0.25)
     args = parser.parse_args()
 
-    report = ROOT / args.report
-    if not report.exists():
-        raise SystemExit(f"No DRC report at {report}; run kicad-cli pcb drc first")
+    if args.report is None:
+        report = ROOT / "drc-report.rpt"
+        cli = os.environ.get("KICAD_CLI",
+                             "C:/Program Files/KiCad/10.0/bin/kicad-cli.exe")
+        # --refill-zones checks the zones as poured; the board file is not
+        # saved, so the zones on disk stay as route.py left them.
+        subprocess.run([cli, "pcb", "drc", "--refill-zones", "--severity-error",
+                        "--output", str(report), str(gb.BOARD_FILE)],
+                       check=False, capture_output=True)
+        if not report.exists() or report.stat().st_mtime < gb.BOARD_FILE.stat().st_mtime:
+            raise SystemExit(f"kicad-cli did not write a fresh {report}")
+    else:
+        report = ROOT / args.report
+        if not report.exists():
+            raise SystemExit(f"No DRC report at {report}")
+        if report.stat().st_mtime < gb.BOARD_FILE.stat().st_mtime:
+            raise SystemExit(f"{report} is older than the board - it describes another board")
 
     gaps = parse_gaps(report)
     if not gaps:

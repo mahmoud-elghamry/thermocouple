@@ -701,15 +701,15 @@
     "netclass_patterns": [
       {
         "netclass": "SensorSignal",
-        "pattern": "/TC?_RAW_?"
+        "pattern": "/TC?/RAW_?"
       },
       {
         "netclass": "SensorSignal",
-        "pattern": "/TC?_FILT_?"
+        "pattern": "/TC?/FILT_?"
       },
       {
         "netclass": "SensorSignal",
-        "pattern": "/MISO_CH?"
+        "pattern": "/TC?/MISO_CH"
       },
       {
         "netclass": "SensorSignal",
@@ -847,6 +847,7 @@
       "netlist": "",
       "plot": "",
       "specctra_dsn": "",
+      "step": "",
       "vrml": ""
     },
     "page_layout_descr_file": ""

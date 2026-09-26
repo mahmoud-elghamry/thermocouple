@@ -35,7 +35,10 @@ CLASSES: list[dict] = [
 
     dict(name="SensorSignal", track_width=0.25, clearance=0.25,
          via_diameter=0.60, via_drill=0.30,
-         patterns=["/TC?_RAW_?", "/TC?_FILT_?", "/MISO_CH?",
+         # Channel-internal nets live in the reused channel sheet since
+         # I-062: /TC1_FILT_P became /TC1/FILT_P.  Miss these and they fall
+         # to Default, which the isolation rule treats as the control side.
+         patterns=["/TC?/RAW_?", "/TC?/FILT_?", "/TC?/MISO_CH",
                    "/CS?_SENS", "/CS?_SENS_RAW",
                    "/SCK_SENS", "/SCK_SENS_RAW",
                    "/MOSI_SENS", "/MOSI_SENS_RAW",

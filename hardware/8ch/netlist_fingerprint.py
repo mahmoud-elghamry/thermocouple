@@ -12,6 +12,9 @@ what gets placed.
 
     python netlist_fingerprint.py thermocouple_8ch.net              # print
     python netlist_fingerprint.py before.json thermocouple_8ch.net  # compare
+    python netlist_fingerprint.py before.json new.net --allow-renames [map.json]
+        same, but nets are matched by their pins, so a rename is reported and
+        allowed while any moved pin still fails (hierarchical sheets, I-062)
 
 Exits non-zero when the two differ, and prints what moved.
 """
@@ -83,6 +86,29 @@ def diff(before: dict, after: dict) -> list[str]:
     return problems
 
 
+def structural(before: dict, after: dict) -> tuple[dict, list[str]]:
+    """Compare connectivity with net names ignored (I-062).
+
+    A hierarchical sheet renames the nets inside it (/TC1_FILT_P becomes
+    /TC1/FILT_P) without moving a single pin.  Each net is matched by its exact
+    set of pins; any pin that moved, any component added, removed or changed,
+    is still a difference.  Returns ({old name: new name}, problems).
+    """
+    by_pins = {tuple(nodes): name for name, nodes in after["nets"].items()}
+    renames, problems = {}, []
+    for name, nodes in before["nets"].items():
+        new = by_pins.pop(tuple(nodes), None)
+        if new is None:
+            problems.append(f"net {name} has no net with the same pins: {nodes}")
+        elif new != name:
+            renames[name] = new
+    for nodes, name in by_pins.items():
+        problems.append(f"net {name} is new: {list(nodes)}")
+    problems += diff({"nets": {}, "components": before["components"]},
+                     {"nets": {}, "components": after["components"]})
+    return renames, problems
+
+
 def load(path: Path) -> dict:
     if path.suffix == ".json":
         return json.loads(path.read_text(encoding="utf-8"))
@@ -110,6 +136,27 @@ def main(argv: list[str]) -> int:
         if len(problems) > 40:
             print(f"  ... and {len(problems) - 40} more")
         return 1
+
+    if len(argv) in (4, 5) and argv[3] == "--allow-renames":
+        before, after = load(Path(argv[1])), load(Path(argv[2]))
+        print(f"before: {summarise(before)}")
+        print(f"after:  {summarise(after)}")
+        renames, problems = structural(before, after)
+        if problems:
+            print(f"\n{len(problems)} difference(s) beyond renaming:")
+            for problem in problems[:40]:
+                print(f"  {problem}")
+            return 1
+        print(f"SAME CONNECTIVITY - every pin on the same net; {len(renames)} net(s) renamed")
+        for old, new in sorted(renames.items())[:12]:
+            print(f"  {old} -> {new}")
+        if len(renames) > 12:
+            print(f"  ... and {len(renames) - 12} more")
+        if len(argv) == 5:
+            Path(argv[4]).write_text(json.dumps(renames, indent=1, sort_keys=True),
+                                     encoding="utf-8")
+            print(f"rename map written to {argv[4]}")
+        return 0
 
     print(__doc__)
     return 2
