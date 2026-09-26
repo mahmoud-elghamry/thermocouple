@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pcbnew
 
+from .units import find_net
 from .config import (BOARD_H, BOARD_W, CONTROL_LOWER_Y, CONTROL_SPLIT_X,
                      CONTROL_X0, CONTROL_X1, RS485_X0, RS485_Y0,
                      SENSOR_X1, ZONE_BOTTOM, ZONE_LEFT, ZONE_TOP)
@@ -42,7 +43,7 @@ BARRIER_AREAS = [
 
 def add_zone(board: pcbnew.BOARD, net_name: str, layer: int,
              points: list[tuple[float, float]], name: str) -> None:
-    net = board.FindNet(net_name) or board.FindNet("/" + net_name)
+    net = find_net(board, net_name)
     if net is None:
         raise RuntimeError(f"Zone net absent: {net_name}")
     zone = pcbnew.ZONE(board)

@@ -44,7 +44,8 @@ RECORD = HERE / "board-provenance.json"
 
 # The files a generator run rewrites. Everything else in hardware/8ch/ is
 # either a source the generator reads or an output that is regenerated anyway.
-WATCHED = ["thermocouple_8ch.kicad_pcb", "thermocouple_8ch.kicad_sch", "channel.kicad_sch"]
+WATCHED = ["thermocouple_8ch.kicad_pcb", "thermocouple_8ch.kicad_sch", "channel.kicad_sch", "power.kicad_sch", "mcu.kicad_sch",
+           "isolation.kicad_sch", "relay_rs485.kicad_sch"]
 
 
 def digest(path: Path) -> dict:

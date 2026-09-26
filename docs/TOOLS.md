@@ -115,12 +115,16 @@ fabrication package without the report it passed is not a package.
 
 ## Schematic layout (`I-002`, `I-062`) - `hardware/8ch/sch_layout/`
 
-**The schematic is two files since 2026-09-26** (`0019`): `thermocouple_8ch.kicad_sch`
-(A3 root: every block except the channels, plus sheets TC1-TC8) and
-`channel.kicad_sch` (A4, used by all eight sheets). Channel-internal nets are
-named `/TCn/FILT_P`, `/TCn/RAW_N`, `/TCn/MISO_CH`; a new one needs an
-`apply_rules.py` pattern `/TC?/NAME`, or it lands in Default and the isolation
-rule fires. Compare netlists across a rename with
+**The schematic is six files, all A4, since 2026-09-26** (`0019`, `0021`):
+`thermocouple_8ch.kicad_sch` (the root, an index of sheet blocks),
+`power.kicad_sch`, `mcu.kicad_sch`, `isolation.kicad_sch`,
+`relay_rs485.kicad_sch`, and `channel.kicad_sch` (used by TC1-TC8). Nets
+that stay inside one sheet carry its path: `/TCn/FILT_P`, `/POWER/+24V_RAW`,
+`/RELAY_RS485/GND_RS485`. A new one needs an `apply_rules.py` pattern
+`/SHEET/NAME`, or it lands in Default and the isolation rule fires; board
+scripts compare through `board/units.bare()`, which drops a functional-sheet
+path. Print it: `kicad-cli sch export pdf --pages 1,2,3,4,5,6` gives the root,
+the four functions and TC1 (TC2-TC8 are the same drawing). Compare netlists across a rename with
 `netlist_fingerprint.py OLD NEW --allow-renames [map.json]` (nets matched by
 pins), and carry a rename to the board with
 `<KiCad python> sch_layout/rename_board_nets.py BOARD map.json` **before**
@@ -148,8 +152,9 @@ it to `C:\Program Files\KiCad\10.0\share\kicad\symbols`).
 | `relayout.py` | move/rotate a part and carry its pin labels and NC flags |
 | `route.py` | wires: never through another net's pin, wire, pin lead or a body |
 | `labels.py` | one label per wired group, placed where its text is clear |
-| `hier.py` | flat wired sheet -> A3 root + `channel.kicad_sch` x 8 (`0019`) |
-| `rootlayout.py` | moves the root blocks onto A3, whole grid steps |
+| `hier.py` | flat wired sheet -> A4 root + `channel.kicad_sch` x 8 + the functional sheets (`0019`, `0021`) |
+| `rootlayout.py` | which functional block each root item belongs to |
+| `funcsheets.py` | moves each block onto its A4 sheet (POWER, MCU, ISOLATION, RELAY_RS485; `0021`) |
 | `sexpr.py` | minimal KiCad S-expression reader/writer (no kiutils) |
 | `rename_board_nets.py` | renames board nets in place from a rename map |
 

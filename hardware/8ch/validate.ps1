@@ -35,7 +35,9 @@ $stem = 'thermocouple_8ch'
 $inputs = @('.kicad_sch', '.kicad_pcb', '.kicad_pro', '.kicad_dru') | ForEach-Object { Join-Path $PSScriptRoot ($stem + $_) }
 # The channel sheet the root uses eight times (I-062). Without it the snapshot
 # root would open with eight empty sheets and ERC would still pass.
-$inputs += Join-Path $PSScriptRoot 'channel.kicad_sch'
+# The functional sheets since 0021: every file the root uses.
+$inputs += @('channel', 'power', 'mcu', 'isolation', 'relay_rs485') |
+    ForEach-Object { Join-Path $PSScriptRoot ($_ + '.kicad_sch') }
 $before = Get-SourceHashes $inputs
 foreach ($inputFile in $inputs) { Copy-Item -LiteralPath $inputFile -Destination $snapshot }
 foreach ($table in @('fp-lib-table','sym-lib-table')) {

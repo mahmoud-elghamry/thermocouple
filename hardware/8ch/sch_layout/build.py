@@ -17,8 +17,9 @@ them writes through Konnect (docs/decisions/0013):
   4. route.py     short orthogonal wires between pins of the same net that
                   never touch another net's pin, wire or a part body
   5. labels.py    one label per wired group, placed where its text fits
-  6. hier.py      split into the A3 root + channel.kicad_sch used 8 times
-                  (I-062); rootlayout.py packs the root blocks onto A3
+  6. hier.py      split into the A4 root + channel.kicad_sch used 8 times
+                  (I-062) + power, mcu, isolation and relay_rs485 sheets
+                  (funcsheets.py, 0021)
 
 Then the gate, on the hierarchical result: kicad-cli exports the netlist,
 netlist_fingerprint.py must report IDENTICAL against netlist-baseline-reva1.json
@@ -52,7 +53,8 @@ def main():
     sch = os.path.join(work, "thermocouple_8ch.kicad_sch")
     out = HW if in_place else os.path.join(work, "hier")
     originals = {f: open(os.path.join(HW, f), "rb").read()
-                 for f in ("thermocouple_8ch.kicad_sch", "channel.kicad_sch")
+                 for f in ("thermocouple_8ch.kicad_sch", "channel.kicad_sch", "power.kicad_sch",
+                           "mcu.kicad_sch", "isolation.kicad_sch", "relay_rs485.kicad_sch")
                  if os.path.exists(os.path.join(HW, f))}
     head = subprocess.run(["git", "-C", REPO, "show", base + ":" + SCH_REL], check=True,
                           capture_output=True).stdout

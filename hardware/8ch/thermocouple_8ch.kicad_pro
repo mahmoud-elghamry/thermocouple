@@ -717,7 +717,7 @@
       },
       {
         "netclass": "SensorSignal",
-        "pattern": "/CS?_SENS_RAW"
+        "pattern": "/ISOLATION/CS?_SENS_RAW"
       },
       {
         "netclass": "SensorSignal",
@@ -725,7 +725,7 @@
       },
       {
         "netclass": "SensorSignal",
-        "pattern": "/SCK_SENS_RAW"
+        "pattern": "/ISOLATION/SCK_SENS_RAW"
       },
       {
         "netclass": "SensorSignal",
@@ -733,7 +733,7 @@
       },
       {
         "netclass": "SensorSignal",
-        "pattern": "/MOSI_SENS_RAW"
+        "pattern": "/ISOLATION/MOSI_SENS_RAW"
       },
       {
         "netclass": "SensorSignal",
@@ -741,7 +741,7 @@
       },
       {
         "netclass": "SensorSignal",
-        "pattern": "/MISO_SENS_RAW"
+        "pattern": "/ISOLATION/MISO_SENS_RAW"
       },
       {
         "netclass": "SensorSignal",
@@ -757,7 +757,7 @@
       },
       {
         "netclass": "SensorPower",
-        "pattern": "/+5V_ISO"
+        "pattern": "/ISOLATION/+5V_ISO"
       },
       {
         "netclass": "SensorPower",
@@ -773,11 +773,11 @@
       },
       {
         "netclass": "Power24V",
-        "pattern": "/+24V_RAW"
+        "pattern": "/POWER/+24V_RAW"
       },
       {
         "netclass": "Power24V",
-        "pattern": "/+24V_FUSED"
+        "pattern": "/POWER/+24V_FUSED"
       },
       {
         "netclass": "Power24V",
@@ -785,51 +785,51 @@
       },
       {
         "netclass": "Power24V",
-        "pattern": "/RELAY_LOW"
+        "pattern": "/RELAY_RS485/RELAY_LOW"
       },
       {
         "netclass": "Power24V",
-        "pattern": "/RELAY_LED_A"
+        "pattern": "/RELAY_RS485/RELAY_LED_A"
       },
       {
         "netclass": "RelayContact",
-        "pattern": "/RELAY_COM"
+        "pattern": "/RELAY_RS485/RELAY_COM"
       },
       {
         "netclass": "RelayContact",
-        "pattern": "/RELAY_NO"
+        "pattern": "/RELAY_RS485/RELAY_NO"
       },
       {
         "netclass": "RelayContact",
-        "pattern": "/RELAY_NC"
+        "pattern": "/RELAY_RS485/RELAY_NC"
       },
       {
         "netclass": "RS485",
-        "pattern": "/RS485_A"
+        "pattern": "/RELAY_RS485/RS485_A"
       },
       {
         "netclass": "RS485",
-        "pattern": "/RS485_B"
+        "pattern": "/RELAY_RS485/RS485_B"
       },
       {
         "netclass": "RS485",
-        "pattern": "/RS485_TERM_A"
+        "pattern": "/RELAY_RS485/RS485_TERM_A"
       },
       {
         "netclass": "RS485",
-        "pattern": "/RS485_BIAS_A"
+        "pattern": "/RELAY_RS485/RS485_BIAS_A"
       },
       {
         "netclass": "RS485",
-        "pattern": "/RS485_BIAS_B"
+        "pattern": "/RELAY_RS485/RS485_BIAS_B"
       },
       {
         "netclass": "RS485",
-        "pattern": "/+5V_RS485"
+        "pattern": "/RELAY_RS485/+5V_RS485"
       },
       {
         "netclass": "RS485",
-        "pattern": "/GND_RS485"
+        "pattern": "/RELAY_RS485/GND_RS485"
       },
       {
         "netclass": "Chassis",

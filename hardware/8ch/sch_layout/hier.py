@@ -1,4 +1,5 @@
-"""Split the flat wired sheet into a root sheet and one channel sheet (I-062).
+"""Split the flat wired sheet into an A4 root, a channel sheet used eight
+times (I-062) and four functional sheets (funcsheets.py, 0021).
 
     python hardware/8ch/sch_layout/hier.py FLAT.kicad_sch FLAT.net OUTDIR
 
@@ -15,10 +16,10 @@ channel's real reference, so U2..U9, JTC1..JTC8 and the board are unchanged.
 
 Only seven nets leave a channel (measured 2026-09-26). Inside the sheet they
 become hierarchical labels; on the root, each sheet pin is wired to a label
-with the net's old name, so those nets keep their names. Everything that is
-not a channel stays on the root with its names. What is renamed: the nets
-internal to a channel, /TC1_FILT_P -> /TC1/FILT_P and so on
-(docs/decisions/0019).
+with the net's old name, so those nets keep their names. The nets internal
+to a channel are renamed, /TC1_FILT_P -> /TC1/FILT_P and so on
+(docs/decisions/0019). funcsheets.py then moves the rest onto four A4 sheets
+the same way, and the root becomes an A4 page of sheet blocks (0021).
 """
 import copy, os, sys, uuid
 
@@ -27,6 +28,7 @@ sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.dirname(HERE))
 import sexpr as S
 import rootlayout
+import funcsheets
 from netlist_fingerprint import fingerprint
 from pathlib import Path
 
@@ -211,34 +213,42 @@ def channel_sheet(tree, chan, role, root_uuid):
     return ["kicad_sch", *head, *body, ["embedded_fonts", "no"]]
 
 
-def sheet_block(n, x, y, root_uuid):
-    """Sheet TCn at (x, y) with its seven pins down the left edge, each wired
-    to a root label that carries the net's old name."""
-    h = (len(PINS) + 1) * 2.54
-    sid = uid("sheet", f"TC{n}")
+def sheet_block(name, file, pins, x, y, w, page, root_uuid):
+    """Sheet `name` at (x, y) with its pins down the left edge, each wired to
+    a root label that carries the net's old name. pins: (net, pin, shape)."""
+    h = (len(pins) + 1) * 2.54
+    sid = uid("sheet", name)
     font = ["effects", ["font", ["size", "1.27", "1.27"]]]
-    blk = ["sheet", ["at", str(x), str(y)], ["size", "25.4", f"{h:.2f}"],
+    blk = ["sheet", ["at", str(x), str(y)], ["size", str(w), f"{h:.2f}"],
            ["fields_autoplaced"], ["stroke", ["width", "0.1524"], ["type", "solid"]],
            ["fill", ["color", "0", "0", "0", "0.0"]], ["uuid", S.q(sid)],
-           ["property", '"Sheetname"', S.q(f"TC{n}"), ["at", str(x), f"{y - 0.635:.3f}", "0"],
+           ["property", '"Sheetname"', S.q(name), ["at", str(x), f"{y - 0.635:.3f}", "0"],
             font + [["justify", "left", "bottom"]]],
-           ["property", '"Sheetfile"', S.q(CHANNEL_FILE), ["at", str(x), f"{y + h + 0.635:.3f}", "0"],
+           ["property", '"Sheetfile"', S.q(file), ["at", str(x), f"{y + h + 0.635:.3f}", "0"],
             font + [["justify", "left", "top"]]]]
     extra = []
-    for i, (net, pin, shape) in enumerate(PINS):
+    for i, (net, pin, shape) in enumerate(pins):
         py = round(y + (i + 1) * 2.54, 2)
         blk.append(["pin", S.q(pin), shape, ["at", str(x), str(py), "180"],
-                    ["uuid", S.q(uid("pin", str(n), pin))], font + [["justify", "left"]]])
+                    ["uuid", S.q(uid("pin", name, pin))], font + [["justify", "left"]]])
         lx = round(x - 7.62, 2)
         extra.append(["wire", ["pts", ["xy", str(lx), str(py)], ["xy", str(x), str(py)]],
                       ["stroke", ["width", "0"], ["type", "default"]],
-                      ["uuid", S.q(uid("wire", str(n), pin))]])
-        extra.append(["label", S.q(net.format(n=n)), ["at", str(lx), str(py), "180"],
+                      ["uuid", S.q(uid("wire", name, pin))]])
+        extra.append(["label", S.q(net), ["at", str(lx), str(py), "180"],
                       font + [["justify", "right", "bottom"]],
-                      ["uuid", S.q(uid("label", str(n), pin))]])
+                      ["uuid", S.q(uid("label", name, pin))]])
     blk.append(["instances", ["project", S.q(PROJECT),
-                              ["path", S.q(f"/{root_uuid}"), ["page", S.q(str(n + 1))]]]])
+                              ["path", S.q(f"/{root_uuid}"), ["page", S.q(str(page))]]]])
     return [blk] + extra
+
+
+# A4 root: the four functional sheets on the right, the eight channels in two
+# columns on the left. Label text runs left of each block, so the columns are
+# spaced for the longest net name (RUN_PERMIT_SENSE, about 18 mm).
+CHANNEL_AT = [(38.1 + 60.96 * (k // 4), 25.4 + 25.4 * (k % 4)) for k in range(8)]
+FUNCTION_AT = {"ISOLATION": (165.1, 25.4), "RELAY_RS485": (165.1, 106.68),
+               "MCU": (233.68, 25.4), "POWER": (233.68, 88.9)}
 
 
 def main():
@@ -253,21 +263,41 @@ def main():
     gone = {id(i) for n in chan for i in chan[n]}
     movable = ("symbol", "wire", "label", "no_connect")
     kept = [x for x in tree if not (isinstance(x, list) and id(x) in gone)]
-    moved = iter(rootlayout.compact([x for x in kept if isinstance(x, list) and x[0] in movable],
-                                    ref_of, points, shifted))
-    root = [next(moved) if isinstance(x, list) and x[0] in movable else x for x in kept]
-    S.find(root, "paper")[1] = '"A3"'
-    blocks = []
-    for n in range(1, 9):     # one column down the left edge of the A3 root
-        blocks += sheet_block(n, 35.56, 22.86 + (n - 1) * 25.4, root_uuid)
+    items = [x for x in kept if isinstance(x, list) and x[0] in movable]
+    channel_nets = {net.format(n=n) for net, _, _ in PINS for n in range(1, 9)}
+    head = [["version", S.find(tree, "version")[1]], ["generator", '"eeschema"'],
+            ["generator_version", '"10.0"']]
+    sheets = funcsheets.split(items, rootlayout.assign(items, ref_of, points), root_uuid,
+                              channel_nets, S.find(tree, "lib_symbols"), head, uid,
+                              ref_of, points, shifted)
+    root = [x for x in kept if not (isinstance(x, list) and x[0] in movable)]
+    S.find(root, "paper")[1] = '"A4"'
+    lib = S.find(root, "lib_symbols")
+    del lib[1:]
+    blocks, page = [], 2
+    for name, file, _, crossing in sheets:
+        x, y = FUNCTION_AT[name]
+        blocks += sheet_block(name, file, [(n, n, "passive") for n in crossing],
+                              x, y, 30.48, page, root_uuid)
+        page += 1
+    for n in range(1, 9):
+        x, y = CHANNEL_AT[n - 1]
+        blocks += sheet_block(f"TC{n}", CHANNEL_FILE,
+                              [(net.format(n=n), pin, shape) for net, pin, shape in PINS],
+                              x, y, 25.4, page, root_uuid)
+        page += 1
     i = next(k for k, x in enumerate(root) if isinstance(x, list) and x[0] == "sheet_instances")
     root[i:i] = blocks
     os.makedirs(out, exist_ok=True)
-    for name, t in ((f"{PROJECT}.kicad_sch", root), (CHANNEL_FILE, child)):
+    files = [(f"{PROJECT}.kicad_sch", root), (CHANNEL_FILE, child)]
+    files += [(file, t) for _, file, t, _ in sheets]
+    for name, t in files:
         with open(os.path.join(out, name), "w", encoding="utf-8", newline="\n") as f:
             f.write(S.dump(t) + "\n")
-    print(f"wrote {out}: root {sum(1 for x in root if x[0] == 'symbol')} symbols, "
-          f"channel sheet {sum(1 for x in child if x[0] == 'symbol')} symbols x 8")
+    for name, file, t, crossing in sheets:
+        print(f"  {file}: {sum(1 for x in t if x[0] == 'symbol')} symbols, "
+              f"{len(crossing)} sheet pins")
+    print(f"wrote {out}: channel sheet {sum(1 for x in child if x[0] == 'symbol')} symbols x 8")
 
 
 if __name__ == "__main__":

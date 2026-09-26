@@ -6,27 +6,25 @@
 
 ## Last session
 
-**`I-062` done: A3 root + `channel.kicad_sch` (A4) used by TC1-TC8** (`0019`).
-40 channel nets renamed `/TCn_X` -> `/TCn/X`, nothing else; JTC1-8 -> `K_TYPE`;
-baseline regenerated from the proven netlist (`--allow-renames`: 645 pins on the
-same nets). **`I-045` closed:** `C45` (U12's input cap) was 55 mm away beside
-U10 - `C45`/`C46` moved under U12, 18/10 mm -> 4.2 mm; board re-routed.
-**Two gates fixed that passed on the wrong input:** `close_gaps.py` (read a
-09-07 report) and `check_mpn_consistency.py` (root only after the split);
-`populate_schematic.py` now refuses the hierarchical root. `I-027`: BIAS is
-closed from the MAX31856 datasheet (now in `reference/datasheets/`): BIAS on
-T- is the maker's own floating-probe circuit. **Silkscreen said REV A0 on the
-REV A1 board** - `BOARD_REV` fixed. Package + `views/` (schematic PDF, 3D,
-traces) re-exported 10:13. Committed `08c8d86` + the follow-up.
+**Schematic now six A4 files** (`0021`, amends `0019`): root (index of blocks),
+`power`, `mcu`, `isolation`, `relay_rs485`, `channel` (TC1-TC8). 56 sheet-internal
+nets gained the sheet path (`/POWER/+24V_RAW`); `apply_rules.py` patterns and
+`board/units.bare()` follow. **All 162 board nets keep their netclass** (compared
+before/after). Board nets renamed in place, copper unchanged; package + PDFs
+(`views/schematic.pdf` 13 pages, `schematic_short.pdf` root + 4 + TC1) re-exported
+11:02. **`I-028` (a) settled** (`0020`): external 1 A time-delay DC fuse, >= 80 V DC,
+>= 10 kA, at the battery end; inrush in `CALCULATIONS.md` 1.9. New low `I-064`:
+board overlaps its PCB-editor page frame (cosmetic). Earlier today: `I-062`,
+`I-045`, `I-027`, REV A0 -> A1 silkscreen; committed `08c8d86`, `d9845ae`.
 
 ## Measured, not claimed
 
 | Check | Result |
 |---|---|
-| `validate.ps1` (workstation, KiCad 10.0.6, 10:13) | **passed**: ERC 0/0; netlist **IDENTICAL** 201/162/645; **DRC 0 errors, 0 warnings, 0 unconnected, 0 parity** |
-| `check_board.py` | **all 6 ok**; all 40 channel nets in `SensorSignal` |
-| `check_mpn_consistency.py` (now inside `validate.ps1`) | 128 / 128 match (both sheets) |
-| `build.py` from `05d6abd` (scratch) | reproduces the hierarchy: IDENTICAL, ERC 0/0, 3 min |
+| `validate.ps1` (workstation, KiCad 10.0.6, 10:59) | **passed**: ERC 0/0; netlist **IDENTICAL** 201/162/645; **DRC 0 errors, 0 warnings, 0 unconnected, 0 parity** |
+| `check_board.py` | **all 6 ok**; 162/162 nets keep their netclass across the 0021 rename |
+| `check_mpn_consistency.py` (now inside `validate.ps1`) | 128 / 128 match (all sheets) |
+| `build.py` from `05d6abd` (scratch, 11:05) | reproduces all six sheets (equal apart from UUIDs): IDENTICAL, ERC 0/0 |
 | Drill file | 0.20 mm x 6 (U14 only), every other hole >= 0.30 mm |
 | `firmware/build.ps1` (workstation, 2026-09-26) | exit 0; 4 images, 3 suites pass; 8ch image 5592 B (17.1 %) |
 
@@ -36,9 +34,9 @@ No IEC 61010 creepage analysis, SPICE, thermal, EMC or physical measurement.
 ## Next actions
 1. **Owner:** order 4-layer (`I-025`); get the fab quote incl. 0.2 mm holes.
    10 BOM lines have no LCSC code (`I-051`, closed) - JLC global sourcing or hand-solder.
-2. **Owner: commit** today's work (`I-062`, `I-045`, the gate fixes).
+2. **Owner: commit** the `0021` split and the `0020` fuse spec.
 3. **Bench, when boards arrive:** K1 (`I-058`), isolation (`I-004`), timing (`I-013`), `I-003`.
-4. `I-028` panel fuse; owner: `I-056`, `I-046`; `I-026` buy ungrounded probes (board ready).
+4. Choose the `0020` fuse part and put it on the panel drawing; owner: `I-056`, `I-046`; `I-026` buy ungrounded probes (board ready).
 
 ## Tooling, and the traps it sets
 

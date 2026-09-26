@@ -171,6 +171,38 @@ that makes the whole protection problem cheap, and it is why a series clamp was
 a credible alternative before the wide-input regulator won on price — a series
 element here only ever has to pass 100 mA, not amps.
 
+### 1.9 External panel fuse — rating and inrush
+
+Context: `docs/decisions/0020`, `I-028` (a).
+
+**Worst steady current.** At the 6.0 V cranking floor (1.1), with the input
+power from 1.8:
+
+    2.26 W / 6.0 V = 0.38 A
+
+The relay coil (16.7 mA, section 2) is inside the 2.03 W estimate's margin.
+A 1 A fuse carries 2.6 times the worst case, and 10.6 times the 94 mA it
+carries at 24 V.
+
+**Hot-plug inrush.** When the lead is connected, the input capacitors charge
+through the only resistance in the path: `F1`, the wiring and `D1`. The
+capacitors on `+24V_PROT` are `C53` 22 uF + `C54` 4.7 uF + `C63` 4.7 uF,
+about 32 uF. The energy dissipated charging a capacitor through R from a step V
+gives
+
+    I²t = V² C / (2 R)
+
+With V = 28 V (a charging battery) and R = 0.15 Ohm (a low 1206 PTC minimum
+resistance, with wiring and diode ignored, so worst case):
+
+    I²t = 28² x 32e-6 / (2 x 0.15) = 0.084 A²s
+
+**Verdict:** a fuse with a pre-arc I²t of 1 A²s or more survives the inrush
+with more than 10x margin. Time-delay fuses at 1 A are normally well above
+that, but **check the chosen part's datasheet**, because pre-arc I²t varies by
+maker. The 0.15 Ohm is an assumed PTC minimum, not read from `F1`'s datasheet,
+and it is chosen low so the result errs high.
+
 ---
 
 ## 2. Earlier calculations, collected

@@ -806,10 +806,6 @@
   }
  },
  "nets": {
-  "/+24V_FUSED": [
-   "D1.2",
-   "F1.2"
-  ],
   "/+24V_PROT": [
    "C53.1",
    "C54.1",
@@ -821,10 +817,6 @@
    "R32.1",
    "R59.1",
    "U14.2"
-  ],
-  "/+24V_RAW": [
-   "F1.1",
-   "J1.1"
   ],
   "/+3V3_SENS": [
    "C10.1",
@@ -920,49 +912,6 @@
    "U15.2",
    "U15.8"
   ],
-  "/+5V_ISO": [
-   "C46.1",
-   "C47.1",
-   "U12.6",
-   "U13.1",
-   "U13.3"
-  ],
-  "/+5V_RS485": [
-   "C58.1",
-   "C59.1",
-   "JP2.1",
-   "U15.12",
-   "U15.19"
-  ],
-  "/AREF": [
-   "C51.1",
-   "J6.9",
-   "U1.32"
-  ],
-  "/BST_5V": [
-   "C62.1",
-   "U14.7"
-  ],
-  "/BTN_ACK": [
-   "SW5.1",
-   "U1.20"
-  ],
-  "/BTN_DOWN": [
-   "SW3.1",
-   "U1.18"
-  ],
-  "/BTN_NEXT": [
-   "SW1.1",
-   "U1.16"
-  ],
-  "/BTN_SET": [
-   "SW4.1",
-   "U1.19"
-  ],
-  "/BTN_UP": [
-   "SW2.1",
-   "U1.17"
-  ],
   "/CHASSIS_SHIELD": [
    "J1.3",
    "J4.4",
@@ -984,10 +933,6 @@
    "R36.2",
    "U2.9"
   ],
-  "/CS1_SENS_RAW": [
-   "R36.1",
-   "U10.13"
-  ],
   "/CS2_CTRL": [
    "U1.2",
    "U10.5"
@@ -996,10 +941,6 @@
    "R18.2",
    "R37.2",
    "U3.9"
-  ],
-  "/CS2_SENS_RAW": [
-   "R37.1",
-   "U10.12"
   ],
   "/CS3_CTRL": [
    "U1.3",
@@ -1010,10 +951,6 @@
    "R38.2",
    "U4.9"
   ],
-  "/CS3_SENS_RAW": [
-   "R38.1",
-   "U10.11"
-  ],
   "/CS4_CTRL": [
    "U1.5",
    "U10.7"
@@ -1022,10 +959,6 @@
    "R20.2",
    "R39.2",
    "U5.9"
-  ],
-  "/CS4_SENS_RAW": [
-   "R39.1",
-   "U10.10"
   ],
   "/CS5_CTRL": [
    "U1.22",
@@ -1036,10 +969,6 @@
    "R40.2",
    "U6.9"
   ],
-  "/CS5_SENS_RAW": [
-   "R40.1",
-   "U11.15"
-  ],
   "/CS6_CTRL": [
    "U1.23",
    "U11.3"
@@ -1048,10 +977,6 @@
    "R22.2",
    "R41.2",
    "U7.9"
-  ],
-  "/CS6_SENS_RAW": [
-   "R41.1",
-   "U11.14"
   ],
   "/CS7_CTRL": [
    "U1.28",
@@ -1062,10 +987,6 @@
    "R42.2",
    "U8.9"
   ],
-  "/CS7_SENS_RAW": [
-   "R42.1",
-   "U11.13"
-  ],
   "/CS8_CTRL": [
    "U1.29",
    "U11.5"
@@ -1074,16 +995,6 @@
    "R24.2",
    "R43.2",
    "U9.9"
-  ],
-  "/CS8_SENS_RAW": [
-   "R43.1",
-   "U11.12"
-  ],
-  "/FB_5V": [
-   "C68.2",
-   "R56.2",
-   "R57.1",
-   "U14.5"
   ],
   "/GND_CTRL": [
    "C41.2",
@@ -1135,18 +1046,6 @@
    "U15.10",
    "U15.3",
    "U15.9"
-  ],
-  "/GND_RS485": [
-   "C58.2",
-   "C59.2",
-   "D5.2",
-   "D6.2",
-   "J4.3",
-   "R44.2",
-   "U15.11",
-   "U15.14",
-   "U15.16",
-   "U15.20"
   ],
   "/GND_SENS": [
    "C10.2",
@@ -1224,37 +1123,151 @@
    "U9.1",
    "U9.14"
   ],
-  "/LCD_D4": [
+  "/ISOLATION/+5V_ISO": [
+   "C46.1",
+   "C47.1",
+   "U12.6",
+   "U13.1",
+   "U13.3"
+  ],
+  "/ISOLATION/CS1_SENS_RAW": [
+   "R36.1",
+   "U10.13"
+  ],
+  "/ISOLATION/CS2_SENS_RAW": [
+   "R37.1",
+   "U10.12"
+  ],
+  "/ISOLATION/CS3_SENS_RAW": [
+   "R38.1",
+   "U10.11"
+  ],
+  "/ISOLATION/CS4_SENS_RAW": [
+   "R39.1",
+   "U10.10"
+  ],
+  "/ISOLATION/CS5_SENS_RAW": [
+   "R40.1",
+   "U11.15"
+  ],
+  "/ISOLATION/CS6_SENS_RAW": [
+   "R41.1",
+   "U11.14"
+  ],
+  "/ISOLATION/CS7_SENS_RAW": [
+   "R42.1",
+   "U11.13"
+  ],
+  "/ISOLATION/CS8_SENS_RAW": [
+   "R43.1",
+   "U11.12"
+  ],
+  "/ISOLATION/MISO_SENS_RAW": [
+   "R27.2",
+   "U11.10"
+  ],
+  "/ISOLATION/MOSI_SENS_RAW": [
+   "R26.1",
+   "U10.14"
+  ],
+  "/ISOLATION/SCK_SENS_RAW": [
+   "R25.1",
+   "U10.15"
+  ],
+  "/MCU/AREF": [
+   "C51.1",
+   "J6.9",
+   "U1.32"
+  ],
+  "/MCU/BTN_ACK": [
+   "SW5.1",
+   "U1.20"
+  ],
+  "/MCU/BTN_DOWN": [
+   "SW3.1",
+   "U1.18"
+  ],
+  "/MCU/BTN_NEXT": [
+   "SW1.1",
+   "U1.16"
+  ],
+  "/MCU/BTN_SET": [
+   "SW4.1",
+   "U1.19"
+  ],
+  "/MCU/BTN_UP": [
+   "SW2.1",
+   "U1.17"
+  ],
+  "/MCU/LCD_D4": [
    "J2.11",
    "U1.36"
   ],
-  "/LCD_D5": [
+  "/MCU/LCD_D5": [
    "J2.12",
    "U1.35"
   ],
-  "/LCD_D6": [
+  "/MCU/LCD_D6": [
    "J2.13",
    "U1.34"
   ],
-  "/LCD_D7": [
+  "/MCU/LCD_D7": [
    "J2.14",
    "U1.33"
   ],
-  "/LCD_E": [
+  "/MCU/LCD_E": [
    "J2.6",
    "U1.39"
   ],
-  "/LCD_LED_A": [
+  "/MCU/LCD_LED_A": [
    "J2.15",
    "R29.2"
   ],
-  "/LCD_RS": [
+  "/MCU/LCD_RS": [
    "J2.4",
    "U1.40"
   ],
-  "/LCD_VO": [
+  "/MCU/LCD_VO": [
    "J2.3",
    "RV1.2"
+  ],
+  "/MCU/RESET_N": [
+   "C52.1",
+   "J5.5",
+   "J6.10",
+   "R28.2",
+   "TP7.1",
+   "U1.9"
+  ],
+  "/MCU/SPARE_PA2": [
+   "J6.1",
+   "U1.38"
+  ],
+  "/MCU/SPARE_PA3": [
+   "J6.2",
+   "U1.37"
+  ],
+  "/MCU/SPARE_PC3": [
+   "J6.4",
+   "U1.25"
+  ],
+  "/MCU/SPARE_PC4": [
+   "J6.5",
+   "U1.26"
+  ],
+  "/MCU/SPARE_PC5": [
+   "J6.6",
+   "U1.27"
+  ],
+  "/MCU/XTAL1": [
+   "C60.1",
+   "U1.13",
+   "Y1.1"
+  ],
+  "/MCU/XTAL2": [
+   "C61.1",
+   "U1.12",
+   "Y1.2"
   ],
   "/MISO_CTRL": [
    "J5.1",
@@ -1273,10 +1286,6 @@
    "R52.2",
    "TP6.1"
   ],
-  "/MISO_SENS_RAW": [
-   "R27.2",
-   "U11.10"
-  ],
   "/MOSI_CTRL": [
    "J5.4",
    "U1.6",
@@ -1293,56 +1302,92 @@
    "U8.12",
    "U9.12"
   ],
-  "/MOSI_SENS_RAW": [
-   "R26.1",
-   "U10.14"
+  "/POWER/+24V_FUSED": [
+   "D1.2",
+   "F1.2"
   ],
-  "/RELAY_COM": [
+  "/POWER/+24V_RAW": [
+   "F1.1",
+   "J1.1"
+  ],
+  "/POWER/BST_5V": [
+   "C62.1",
+   "U14.7"
+  ],
+  "/POWER/FB_5V": [
+   "C68.2",
+   "R56.2",
+   "R57.1",
+   "U14.5"
+  ],
+  "/POWER/RIPPLE_INJ": [
+   "C67.1",
+   "C68.1",
+   "R58.2"
+  ],
+  "/POWER/RON_SET": [
+   "R55.1",
+   "U14.4"
+  ],
+  "/POWER/SW_5V": [
+   "C62.2",
+   "L1.1",
+   "R58.1",
+   "U14.8"
+  ],
+  "/POWER/VIN_UVLO": [
+   "R59.2",
+   "R60.1",
+   "U14.3"
+  ],
+  "/RELAY_RS485/+5V_RS485": [
+   "C58.1",
+   "C59.1",
+   "JP2.1",
+   "U15.12",
+   "U15.19"
+  ],
+  "/RELAY_RS485/GND_RS485": [
+   "C58.2",
+   "C59.2",
+   "D5.2",
+   "D6.2",
+   "J4.3",
+   "R44.2",
+   "U15.11",
+   "U15.14",
+   "U15.16",
+   "U15.20"
+  ],
+  "/RELAY_RS485/RELAY_COM": [
    "J3.1",
    "K1.1"
   ],
-  "/RELAY_GATE": [
+  "/RELAY_RS485/RELAY_GATE": [
    "Q1.2",
    "R30.2",
    "R31.1"
   ],
-  "/RELAY_LED_A": [
+  "/RELAY_RS485/RELAY_LED_A": [
    "D4.2",
    "R32.2"
   ],
-  "/RELAY_LOW": [
+  "/RELAY_RS485/RELAY_LOW": [
    "D3.2",
    "D4.1",
    "K1.5",
    "Q1.3",
    "R53.1"
   ],
-  "/RELAY_NC": [
+  "/RELAY_RS485/RELAY_NC": [
    "J3.3",
    "K1.4"
   ],
-  "/RELAY_NO": [
+  "/RELAY_RS485/RELAY_NO": [
    "J3.2",
    "K1.3"
   ],
-  "/RESET_N": [
-   "C52.1",
-   "J5.5",
-   "J6.10",
-   "R28.2",
-   "TP7.1",
-   "U1.9"
-  ],
-  "/RIPPLE_INJ": [
-   "C67.1",
-   "C68.1",
-   "R58.2"
-  ],
-  "/RON_SET": [
-   "R55.1",
-   "U14.4"
-  ],
-  "/RS485_A": [
+  "/RELAY_RS485/RS485_A": [
    "D5.1",
    "J4.1",
    "JP1.1",
@@ -1351,7 +1396,7 @@
    "U15.13",
    "U15.18"
   ],
-  "/RS485_B": [
+  "/RELAY_RS485/RS485_B": [
    "D6.1",
    "J4.2",
    "JP3.1",
@@ -1360,26 +1405,26 @@
    "U15.15",
    "U15.17"
   ],
-  "/RS485_BIAS_A": [
+  "/RELAY_RS485/RS485_BIAS_A": [
    "JP2.2",
    "R35.1"
   ],
-  "/RS485_BIAS_B": [
+  "/RELAY_RS485/RS485_BIAS_B": [
    "JP3.2",
    "R44.1"
+  ],
+  "/RELAY_RS485/RS485_RE_N": [
+   "R33.2",
+   "U15.5"
+  ],
+  "/RELAY_RS485/RS485_TERM_A": [
+   "JP1.2",
+   "R34.1"
   ],
   "/RS485_DE": [
    "R33.1",
    "U1.21",
    "U15.6"
-  ],
-  "/RS485_RE_N": [
-   "R33.2",
-   "U15.5"
-  ],
-  "/RS485_TERM_A": [
-   "JP1.2",
-   "R34.1"
   ],
   "/RUN_PERMIT": [
    "R30.1",
@@ -1406,36 +1451,6 @@
    "U7.10",
    "U8.10",
    "U9.10"
-  ],
-  "/SCK_SENS_RAW": [
-   "R25.1",
-   "U10.15"
-  ],
-  "/SPARE_PA2": [
-   "J6.1",
-   "U1.38"
-  ],
-  "/SPARE_PA3": [
-   "J6.2",
-   "U1.37"
-  ],
-  "/SPARE_PC3": [
-   "J6.4",
-   "U1.25"
-  ],
-  "/SPARE_PC4": [
-   "J6.5",
-   "U1.26"
-  ],
-  "/SPARE_PC5": [
-   "J6.6",
-   "U1.27"
-  ],
-  "/SW_5V": [
-   "C62.2",
-   "L1.1",
-   "R58.1",
-   "U14.8"
   ],
   "/TC1/FILT_N": [
    "C1.2",
@@ -1661,21 +1676,6 @@
    "U1.15",
    "U15.7"
   ],
-  "/VIN_UVLO": [
-   "R59.2",
-   "R60.1",
-   "U14.3"
-  ],
-  "/XTAL1": [
-   "C60.1",
-   "U1.13",
-   "Y1.1"
-  ],
-  "/XTAL2": [
-   "C61.1",
-   "U1.12",
-   "Y1.2"
-  ],
   "unconnected-(J2-Pin_10-Pad10)": [
    "J2.10"
   ],
@@ -1776,7 +1776,7 @@
    "U9.13"
   ]
  },
- "note": "REV A1 connectivity. Supersedes netlist-baseline-reva0.json, which is kept as the record of what decision 0010 froze. Established 2026-09-15 after the REV A1 change set was generated: 21 components added (Y1 + C60/C61 crystal and load caps for I-032; R53/R54 run-permit read-back divider for I-016; D7-D22 BAV199 input protection for I-045). 167->188 components, 154->155 nets, 555->613 pins. Every difference was reviewed against the REV A0 fingerprint and each one was intended; no net lost a pin. I-028 is NOT in this baseline - the 24 V source is still undecided. Revised 2026-09-15: Y1 footprint corrected from Crystal_HC49-4H_Vertical (through-hole) to Crystal_SMD_HC49-SD, and its value to '8MHz 20pF', after sourcing settled on X49SM8MSD2SC (LCSC C12674, JLCPCB basic, CL = 20 pF). The original footprint was surface-mount-incompatible and would have made the board unbuildable. Connectivity is unchanged: 188/155/613. Revised again 2026-09-15: D3 (relay flyback) footprint corrected from Diode_THT:D_DO-41 to Diode_SMD:D_SMA - LCSC stocks no through-hole 1N4007, and at 16.7 mA of flyback current an SMA 1 A part is ample. Connectivity unchanged: 188/155/613. Superseded 2026-09-16 by the LM5164 input stage (decisions/0016, I-028): the supply is an engine battery, so the TSR 1-2450 (36 V ceiling) could not survive a 58 V load dump. 13 components and 6 nets added, U14/D1/D2/C53/C54 retargeted. 188/155/613 -> 201/162/645. Every one of the 28 differences was inspected against the intended change before this baseline was written; the new nets were checked pin by pin against TI SNVSAU4D figure 7-1. Revised 2026-09-26 (I-062, decision 0019): the schematic became a root sheet plus one channel sheet used eight times. Proved with netlist_fingerprint.py --allow-renames against the previous baseline: every one of the 645 pins on the same net, no component added or removed. Two deliberate changes, nothing else: 40 channel-internal nets renamed (/TCn_RAW_P|N, /TCn_FILT_P|N, /MISO_CHn -> /TCn/RAW_P|N, /TCn/FILT_P|N, /TCn/MISO_CH), and JTC1-JTC8 value TCn_K_TYPE -> K_TYPE, because KiCad 10 keeps one value per symbol, not per sheet instance.",
+ "note": "REV A1 connectivity. Supersedes netlist-baseline-reva0.json, which is kept as the record of what decision 0010 froze. Established 2026-09-15 after the REV A1 change set was generated: 21 components added (Y1 + C60/C61 crystal and load caps for I-032; R53/R54 run-permit read-back divider for I-016; D7-D22 BAV199 input protection for I-045). 167->188 components, 154->155 nets, 555->613 pins. Every difference was reviewed against the REV A0 fingerprint and each one was intended; no net lost a pin. I-028 is NOT in this baseline - the 24 V source is still undecided. Revised 2026-09-15: Y1 footprint corrected from Crystal_HC49-4H_Vertical (through-hole) to Crystal_SMD_HC49-SD, and its value to '8MHz 20pF', after sourcing settled on X49SM8MSD2SC (LCSC C12674, JLCPCB basic, CL = 20 pF). The original footprint was surface-mount-incompatible and would have made the board unbuildable. Connectivity is unchanged: 188/155/613. Revised again 2026-09-15: D3 (relay flyback) footprint corrected from Diode_THT:D_DO-41 to Diode_SMD:D_SMA - LCSC stocks no through-hole 1N4007, and at 16.7 mA of flyback current an SMA 1 A part is ample. Connectivity unchanged: 188/155/613. Superseded 2026-09-16 by the LM5164 input stage (decisions/0016, I-028): the supply is an engine battery, so the TSR 1-2450 (36 V ceiling) could not survive a 58 V load dump. 13 components and 6 nets added, U14/D1/D2/C53/C54 retargeted. 188/155/613 -> 201/162/645. Every one of the 28 differences was inspected against the intended change before this baseline was written; the new nets were checked pin by pin against TI SNVSAU4D figure 7-1. Revised 2026-09-26 (I-062, decision 0019): the schematic became a root sheet plus one channel sheet used eight times. Proved with netlist_fingerprint.py --allow-renames against the previous baseline: every one of the 645 pins on the same net, no component added or removed. Two deliberate changes, nothing else: 40 channel-internal nets renamed (/TCn_RAW_P|N, /TCn_FILT_P|N, /MISO_CHn -> /TCn/RAW_P|N, /TCn/FILT_P|N, /TCn/MISO_CH), and JTC1-JTC8 value TCn_K_TYPE -> K_TYPE, because KiCad 10 keeps one value per symbol, not per sheet instance. Revised again 2026-09-26 (decision 0021): the root's remaining blocks moved to four A4 sheets - POWER, MCU, ISOLATION, RELAY_RS485 - and the root became an A4 page of sheet blocks. Proved with netlist_fingerprint.py --allow-renames: all 645 pins on the same nets, 201 components unchanged in value and footprint. The only change: 56 nets that stay inside one sheet gained the sheet path (/+24V_RAW -> /POWER/+24V_RAW, /RELAY_COM -> /RELAY_RS485/RELAY_COM, /GND_RS485 -> /RELAY_RS485/GND_RS485, ...). On the board every one of the 162 nets was checked to keep its netclass across the rename, so the isolation rules apply exactly as before.",
  "revised": "2026-09-26",
  "supersedes": "netlist-baseline-reva0.json"
 }

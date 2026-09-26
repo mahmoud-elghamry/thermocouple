@@ -1,6 +1,6 @@
 # 0019 — A3 root plus one channel sheet used eight times
 
-* Status: accepted
+* Status: accepted; amended by `0021` (functional sheets on A4)
 * Date: 2026-09-26
 * Deciders: owner (asked for A4 sheets, a channel drawn once), agent (the split)
 * Relates to: `I-062`, `I-002`, `docs/decisions/0012`

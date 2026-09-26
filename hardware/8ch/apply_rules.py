@@ -38,16 +38,19 @@ CLASSES: list[dict] = [
          # Channel-internal nets live in the reused channel sheet since
          # I-062: /TC1_FILT_P became /TC1/FILT_P.  Miss these and they fall
          # to Default, which the isolation rule treats as the control side.
+        # Since 0021 the functional sheets do the same to nets that stay
+        # inside them: /+24V_RAW is /POWER/+24V_RAW, /RELAY_COM is
+        # /RELAY_RS485/RELAY_COM.  Every class below carries those paths.
          patterns=["/TC?/RAW_?", "/TC?/FILT_?", "/TC?/MISO_CH",
-                   "/CS?_SENS", "/CS?_SENS_RAW",
-                   "/SCK_SENS", "/SCK_SENS_RAW",
-                   "/MOSI_SENS", "/MOSI_SENS_RAW",
-                   "/MISO_SENS", "/MISO_SENS_RAW",
+                   "/CS?_SENS", "/ISOLATION/CS?_SENS_RAW",
+                   "/SCK_SENS", "/ISOLATION/SCK_SENS_RAW",
+                   "/MOSI_SENS", "/ISOLATION/MOSI_SENS_RAW",
+                   "/MISO_SENS", "/ISOLATION/MISO_SENS_RAW",
                    "/ISO_SPARE_SENS"]),
 
     dict(name="SensorPower", track_width=0.60, clearance=0.25,
          via_diameter=0.80, via_drill=0.40,
-         patterns=["/+3V3_SENS", "/GND_SENS", "/+5V_ISO", "/NEG5_UNUSED"]),
+         patterns=["/+3V3_SENS", "/GND_SENS", "/ISOLATION/+5V_ISO", "/NEG5_UNUSED"]),
 
     dict(name="CtrlPower", track_width=0.60, clearance=0.20,
          via_diameter=0.80, via_drill=0.40,
@@ -61,8 +64,8 @@ CLASSES: list[dict] = [
     # beyond what 24 V needs.
     dict(name="Power24V", track_width=0.80, clearance=0.25,
          via_diameter=0.90, via_drill=0.50,
-         patterns=["/+24V_RAW", "/+24V_FUSED", "/+24V_PROT",
-                   "/RELAY_LOW", "/RELAY_LED_A"]),
+         patterns=["/POWER/+24V_RAW", "/POWER/+24V_FUSED", "/+24V_PROT",
+                   "/RELAY_RS485/RELAY_LOW", "/RELAY_RS485/RELAY_LED_A"]),
 
     # Dry contact brought out on J3.  Marked LOW-VOLTAGE LOAD ONLY on the
     # silkscreen; this margin is functional, NOT a mains-rated creepage
@@ -70,13 +73,13 @@ CLASSES: list[dict] = [
     # the DRC work to the same number.
     dict(name="RelayContact", track_width=1.20, clearance=2.00,
          via_diameter=1.00, via_drill=0.60,
-         patterns=["/RELAY_COM", "/RELAY_NO", "/RELAY_NC"]),
+         patterns=["/RELAY_RS485/RELAY_COM", "/RELAY_RS485/RELAY_NO", "/RELAY_RS485/RELAY_NC"]),
 
     dict(name="RS485", track_width=0.40, clearance=0.25,
          via_diameter=0.70, via_drill=0.35,
-         patterns=["/RS485_A", "/RS485_B", "/RS485_TERM_A",
-                   "/RS485_BIAS_A", "/RS485_BIAS_B",
-                   "/+5V_RS485", "/GND_RS485"]),
+         patterns=["/RELAY_RS485/RS485_A", "/RELAY_RS485/RS485_B", "/RELAY_RS485/RS485_TERM_A",
+                   "/RELAY_RS485/RS485_BIAS_A", "/RELAY_RS485/RS485_BIAS_B",
+                   "/RELAY_RS485/+5V_RS485", "/RELAY_RS485/GND_RS485"]),
 
     # Cable-shield / PE ring.  Deliberately isolated from all three signal
     # grounds; bonded to the four M3 mounting holes and to J1.3 / J4.4.

@@ -6,7 +6,7 @@ import pcbnew
 
 from .config import (BLOCK_PITCH, BLOCK_W, BLOCK_X0, BOARD_H, BOARD_W,
                      CHANNEL_TEMPLATE, FP_ROOT, RING_INSET)
-from .units import v
+from .units import find_net, v
 
 
 def build_placements() -> dict[str, tuple[float, float, float]]:
@@ -205,7 +205,7 @@ def add_board_footprint(board: pcbnew.BOARD, lib: str, name: str, ref: str,
     fp.Value().SetVisible(False)
     board.Add(fp)
     if net_name:
-        net = board.FindNet(net_name) or board.FindNet("/" + net_name)
+        net = find_net(board, net_name)
         if net is None:
             raise RuntimeError(f"Net absent for {ref}: {net_name}")
         for pad in fp.Pads():
