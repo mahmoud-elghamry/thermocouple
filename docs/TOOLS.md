@@ -9,7 +9,7 @@ working, fix it here rather than working around it in a session.
 
 | Tool | Where | Used for |
 |---|---|---|
-| KiCad 10.0.3 | `C:\Program Files\KiCad\10.0` | everything hardware |
+| KiCad 10.0.6 (same as the cloud; updated 2026-09-26) | `C:\Program Files\KiCad\10.0` | everything hardware |
 | KiCad Python (`pcbnew`) | `…\10.0\bin\python.exe` | the board generator and router scripts |
 | `kicad-cli` | `…\10.0\bin\kicad-cli.exe` | ERC, DRC, netlist, BOM, Gerbers, 3D render |
 | `kicad-tool` | `%USERPROFILE%\.local\bin` | schematic edits, schematic↔board sync. Install: `uv tool install git+https://github.com/mash/kicad-skills.git` - **never** `pip install kiutils`, that pulls upstream and breaks it |
@@ -92,16 +92,22 @@ pwsh -File firmware\build.ps1     # -Wall -Wextra -Werror, plus host unit tests
 
 Do not run this while `docs/ISSUES.md` still lists `I-001`.
 
-A release goes to `production/8ch/`, not next to the sources. That folder is
-gitignored, so nothing there can be mistaken for a source file.
+A release goes to its own folder per revision under `production/`, not next to
+the sources: `production/8ch/` is the REV A0 package that was fabricated -
+**never overwrite it** - and `production/8ch-reva1/` is REV A1 (2026-09-26,
+with `RELEASE.txt` and the upload zip). `production/` is gitignored.
+
+**Name the layers.** Without `--layers`, KiCad 10 plots every layer - Fab,
+Courtyard, User.1-4 - and a fab may read them as copper or silk.
 
 ```powershell
-$out = '..\..\production\8ch'
-New-Item -ItemType Directory -Force -Path $out | Out-Null
-& $cli pcb export gerbers --output "$out\" thermocouple_8ch.kicad_pcb
-& $cli pcb export drill   --output "$out\" --format excellon --excellon-units mm --generate-map thermocouple_8ch.kicad_pcb
+$out = '..\..\production\8ch-reva1'
+New-Item -ItemType Directory -Path $out | Out-Null     # fails if it exists: new revision, new folder
+& $cli pcb export gerbers --check-zones --layers 'F.Cu,In1.Cu,In2.Cu,B.Cu,F.Mask,B.Mask,F.Paste,B.Paste,F.Silkscreen,B.Silkscreen,Edge.Cuts' --output "$out\" thermocouple_8ch.kicad_pcb
+& $cli pcb export drill   --output "$out\" --format excellon --excellon-units mm --generate-map --map-format gerberx2 thermocouple_8ch.kicad_pcb
+& $cli pcb export ipcd356 --output "$out\thermocouple_8ch.d356" thermocouple_8ch.kicad_pcb
 & $cli pcb export pos     --output "$out\cpl.csv" --format csv --units mm --side both thermocouple_8ch.kicad_pcb
-& $cli sch export bom     --output "$outom.csv" --fields 'Reference,Value,Footprint,MPN,Manufacturer,LCSC,QUANTITY' --group-by 'Value,MPN,LCSC' thermocouple_8ch.kicad_sch
+& $cli sch export bom     --output "$out/bom.csv" --fields 'Reference,Value,Footprint,MPN,Manufacturer,LCSC,${QUANTITY}' --group-by 'Value,MPN,LCSC' thermocouple_8ch.kicad_sch
 ```
 
 Copy `docs/STATE.md`'s check numbers into the release folder as well. A

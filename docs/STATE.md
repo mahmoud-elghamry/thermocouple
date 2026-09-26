@@ -6,32 +6,33 @@
 
 ## Last session
 
-**`I-061` closed: the REV A1 board is regenerated and routed, uncommitted.**
-Owner decisions: U14 keeps 0.2 mm thermal vias (`0017`); J3 keeps COM/NO/NC and
-moves to K1 (`0018`). Fixed on the way: R59/R60 turned 270 (R60's GND pad was
-walled in); MAX31856 GND pins get fixed vias like the supply pins
-(`stitching.py` - left to the pour, one floated per run); `route.py` re-stitches
-after closing gaps. Earlier: `I-002` wired the sheet, `I-058` fixed K1's pins.
+**REV A1 is routed, clean and packaged** - `production/8ch-reva1/` (gitignored):
+Gerbers (11 layers), drill, IPC-D-356, CPL, BOM, `RELEASE.txt`, upload zip.
+Board commit `2f1325b`; the silkscreen fix after it is uncommitted.
+Decisions `0017` (U14 0.2 mm vias), `0018` (J3 keeps COM/NO/NC, moves to K1).
+Generator fixes: R59/R60 at 270; MAX31856 GND pins get fixed vias; `route.py`
+re-stitches after closing gaps; silkscreen placed by measured boxes, with the
+dry-contact marking required and next to J3 (`generate_board.py --silk-only`).
+Workstation KiCad now 10.0.6 = cloud. Closed today: `I-060/061/063/006/024/016/032/051`.
 
 ## Measured, not claimed
 
 | Check | Result |
 |---|---|
-| `check_board.py` (KiCad 10.0.3) | **all 6 ok**, incl. routing completeness |
-| DRC on a copy, `--refill-zones --schematic-parity` | **0 errors, 0 unconnected, 0 parity**; 14 silk warnings (`I-006`) |
-| `validate.ps1` (`powershell.exe`; no pwsh here) | **stops at ERC: 1 `lib_symbol_issues`** - KiCad 10.0.3 lacks U12's library (`I-063`) |
-| ERC / netlist (cloud, 10.0.6, 2026-09-24) | 0/0; **IDENTICAL** 201 / 162 / 645; sheet unchanged since (sha256) |
-| `make -C firmware all test` (cloud) | exit 0; 4 images, 3 suites pass |
+| `validate.ps1` (workstation, KiCad 10.0.6) | **passed**: ERC 0/0; netlist **IDENTICAL** 201/162/645; **DRC 0 errors, 0 warnings, 0 unconnected, 0 parity** |
+| `check_board.py` | **all 6 ok** |
+| Drill file | 0.20 mm x 6 (U14 only), every other hole >= 0.30 mm |
+| `make -C firmware all test` (cloud, 2026-09-24) | exit 0; 4 images, 3 suites pass |
 
-Freerouting's own "157 violations" is its plane-less model, never the verdict.
-No Gerber release, SPICE, thermal, EMC or physical measurement; Proteus not run.
+Freerouting's own "violations" count is its plane-less model, never the verdict.
+No IEC 61010 creepage analysis, SPICE, thermal, EMC or physical measurement.
 
 ## Next actions
-1. **Owner: review and commit** the board + `placement.py`/`route.py`/`stitching.py`/`apply_rules.py`.
-2. **`I-063`**: update the workstation to KiCad >= 10.0.6, re-run `validate.ps1`.
-3. **Bench-check K1 before power-up** (`I-058`): 2-5 ~2.9 kOhm, 1-4 shut, 1-3 open.
-4. Fab prep: `I-051` (15 parts), `I-025` (4-layer source), 0.2 mm quote, then Gerbers.
-5. `I-028`: external panel fuse. Ask the owner about `I-056`, `I-046`. Later `I-062`.
+1. **Owner:** order 4-layer (`I-025`); get the fab quote incl. 0.2 mm holes.
+   10 BOM lines have no LCSC code (`I-051`, closed) - JLC global sourcing or hand-solder.
+2. **Split the schematic into A4 sheets** (`I-062`) - no re-route, no new Gerbers.
+3. **Bench, when boards arrive:** K1 (`I-058`), isolation (`I-004`), timing (`I-013`), `I-003`.
+4. `I-028` external panel fuse; ask the owner about `I-056`, `I-046`; `I-045` layout items.
 
 ## Tooling, and the traps it sets
 

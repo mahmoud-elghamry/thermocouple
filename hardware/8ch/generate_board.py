@@ -40,16 +40,29 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--clear-only", action="store_true",
                         help="internal: strip generated items and exit")
+    parser.add_argument("--silk-only", action="store_true",
+                        help="re-place labels and designators on the routed "
+                             "board; copper is not touched")
     args = parser.parse_args()
 
     if args.clear_only:
         clear_in_place(BOARD_FILE)
+        return
+    if args.silk_only:
+        board = pcbnew.LoadBoard(str(BOARD_FILE))
+        for line in place_labels(board):
+            print(f"  label {line}")
+        moved = place_reference_text(board)
+        print(f"Placed {moved} reference designators clear of parts and pads")
+        pcbnew.SaveBoard(str(BOARD_FILE), board)
         return
 
     board = clear_generated(BOARD_FILE)
     place_footprints(board)
     add_outline(board)
     add_mechanics_and_silkscreen(board)
+    for line in place_labels(board):
+        print(f"  label {line}")
     moved = place_reference_text(board)
     print(f"Placed {moved} reference designators clear of parts and pads")
     board.SetCopperLayerCount(4)

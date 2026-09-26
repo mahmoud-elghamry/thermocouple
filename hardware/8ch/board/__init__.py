@@ -33,7 +33,7 @@ from .placement import (FIDUCIALS, MOUNTING_HOLES, PLACEMENTS,
                         add_board_footprint, build_placements, footprint_map,
                         place_footprints)
 from .silkscreen import (add_mechanics_and_silkscreen, add_outline, add_text,
-                         place_reference_text)
+                         place_labels, place_reference_text)
 from .zones import (BARRIER_AREAS, CONTROL_OUTLINE, OUTER_GROUND_POURS,
                     RS485_OUTLINE, SENSOR_OUTLINE, add_keepout,
                     add_outer_ground_pours, add_planes, add_zone, fill_zones)
@@ -57,7 +57,7 @@ __all__ = [
     "add_outline", "add_plane_stitching", "add_planes", "add_text",
     "add_track", "add_zone", "bare", "build_placements", "clear_generated",
     "clear_in_place", "close_open_connections", "drop_dangling_vias", "fill_zones",
-    "footprint_map", "obstacles", "place_footprints", "place_reference_text",
+    "footprint_map", "obstacles", "place_footprints", "place_labels", "place_reference_text",
     "point_in_polygon", "remove_item", "segment_box_distance",
     "segment_distance", "segments_distance", "stitch_pour_islands",
     "to_mm", "v",
