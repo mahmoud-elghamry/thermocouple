@@ -24,7 +24,7 @@ will reroute and must be re-checked for that pad. Arithmetic in
 
 | Check | Result |
 |---|---|
-| `validate.ps1` (workstation, KiCad 10.0.6, 2026-09-28 01:07) | **passed**: ERC 0/0; netlist **IDENTICAL** 202/163/647; **DRC 0 errors, 0 warnings, 0 unconnected, 0 parity** (`production/validation-20260928-010725-15416d`) |
+| `validate.ps1` (workstation, KiCad 10.0.6, 2026-09-28 01:07) | **passed**: ERC 0/0; netlist **IDENTICAL** 202/163/647; **DRC 0 errors, 0 warnings, 0 unconnected, 0 parity** (`production/8ch-reva2/validation-report`) |
 | `check_board.py` | **all 6 ok** |
 | `check_mpn_consistency.py` / `source_passives.py --check` | 129 / 129 match; 38 passive types, all with MPN |
 | `build.py --in-place` (2026-09-28) | IDENTICAL against reva2, ERC 0/0 |
@@ -36,7 +36,7 @@ No IEC 61010 creepage analysis, SPICE, thermal, EMC or physical measurement.
 ## Next actions
 1. **Owner: order REV A2** from `production/8ch-reva2/` (exported 2026-09-28 from
    `156ef2d`, `RELEASE.txt` + `thermocouple_8ch_reva2_gerbers.zip`); quote incl. 0.2 mm holes.
-   **Do not order `production/8ch-reva1/`**. Check LCSC stock first:
+   Old packages are in `production/_OLD_DO_NOT_ORDER/`. Check LCSC stock first:
    ISO7760DWR ~109, ISO7761DWR ~366, PTC ~2 k.
 2. 10 BOM lines have no LCSC code (`I-051`) - JLC global sourcing or hand-solder.
 3. **Bench, when boards arrive:** ISP through J5 (`I-065`); D2 band (`I-069`);

@@ -112,14 +112,16 @@ pwsh -File firmware\build.ps1     # -Wall -Wextra -Werror, plus host unit tests
 Do not run this while `docs/ISSUES.md` still lists `I-001`.
 
 A release goes to its own folder per revision under `production/`, not next to
-the sources: `production/8ch/` is the REV A0 package (never fabricated, `0014`) - and `production/8ch-reva1/` is REV A1 (2026-09-26,
-with `RELEASE.txt` and the upload zip). `production/` is gitignored.
+the sources. The current one is `production/8ch-reva2/` (2026-09-28, with
+`RELEASE.txt`, the upload zip and `validation-report/`). Superseded packages move to
+`production/_OLD_DO_NOT_ORDER/` (REV A0, REV A1 - none was fabricated); stale
+`validation-*` runs are deleted. `production/` is gitignored.
 
 **Name the layers.** Without `--layers`, KiCad 10 plots every layer - Fab,
 Courtyard, User.1-4 - and a fab may read them as copper or silk.
 
 ```powershell
-$out = '..\..\production\8ch-reva1'
+$out = '..\..\production\8ch-reva2'
 New-Item -ItemType Directory -Path $out | Out-Null     # fails if it exists: new revision, new folder
 & $cli pcb export gerbers --check-zones --layers 'F.Cu,In1.Cu,In2.Cu,B.Cu,F.Mask,B.Mask,F.Paste,B.Paste,F.Silkscreen,B.Silkscreen,Edge.Cuts' --output "$out\" thermocouple_8ch.kicad_pcb
 & $cli pcb export drill   --output "$out\" --format excellon --excellon-units mm --generate-map --map-format gerberx2 thermocouple_8ch.kicad_pcb
