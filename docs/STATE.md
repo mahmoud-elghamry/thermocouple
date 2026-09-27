@@ -34,10 +34,11 @@ Freerouting's own "violations" count is its plane-less model, never the verdict.
 No IEC 61010 creepage analysis, SPICE, thermal, EMC or physical measurement.
 
 ## Next actions
-1. **Owner: review and commit REV A2** (nothing committed except the review, `cf69b03`).
-2. **Export the REV A2 package** into `production/8ch-reva2/` (TOOLS.md "Gerbers"),
-   then order. **Do not order `production/8ch-reva1/`**: that is the old circuit.
-   Check LCSC stock first: ISO7760DWR ~109, ISO7761DWR ~366, PTC ~2 k.
+1. **Owner: order REV A2** from `production/8ch-reva2/` (exported 2026-09-28 from
+   `156ef2d`, `RELEASE.txt` + `thermocouple_8ch_reva2_gerbers.zip`); quote incl. 0.2 mm holes.
+   **Do not order `production/8ch-reva1/`**. Check LCSC stock first:
+   ISO7760DWR ~109, ISO7761DWR ~366, PTC ~2 k.
+2. 10 BOM lines have no LCSC code (`I-051`) - JLC global sourcing or hand-solder.
 3. **Bench, when boards arrive:** ISP through J5 (`I-065`); D2 band (`I-069`);
    K1 (`I-058`); isolation (`I-004`); timing (`I-013`); `I-003`.
 4. Owner: the panel's maximum ambient temperature (F1 holds up to 70 °C);
