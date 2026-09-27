@@ -1,0 +1,5647 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "fd17672b-f9cc-5cc3-9778-7d67bd23b5bf")
+	(paper "A4")
+	(lib_symbols
+		(symbol "Connector_Generic:Conn_01x01"
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "J"
+				(at 0 2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Conn_01x01"
+				(at 0 -2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Generic connector, single row, 01x01, script generated (kicad-library-utils/schlib/autogen/connector/)"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "connector"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "Connector*:*_1x??_*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "Conn_01x01_1_1"
+				(rectangle
+					(start -1.27 1.27)
+					(end 1.27 -1.27)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(rectangle
+					(start -1.27 0.127)
+					(end 0 -0.127)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(pin passive line
+					(at -5.08 0 0)
+					(length 3.81)
+					(name "Pin_1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Device:C"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0.254)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "C"
+				(at 0.635 2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "C"
+				(at 0.635 -2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at 0.9652 -3.81 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Unpolarized capacitor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "cap capacitor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "C_*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "C_0_1"
+				(polyline
+					(pts
+						(xy -2.032 0.762)
+						(xy 2.032 0.762)
+					)
+					(stroke
+						(width 0.508)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -2.032 -0.762)
+						(xy 2.032 -0.762)
+					)
+					(stroke
+						(width 0.508)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "C_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 2.794)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 2.794)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Device:R"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "R"
+				(at 2.032 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "R"
+				(at 0 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at -1.778 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Resistor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "R res resistor"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "R_*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "R_0_1"
+				(rectangle
+					(start -1.016 -2.54)
+					(end 1.016 2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "R_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 1.27)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Isolator:ISO7760DW"
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "U"
+				(at 8.255 14.605 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "ISO7760DW"
+				(at 8.255 12.065 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" "Package_SO:SOIC-16W_7.5x10.3mm_P1.27mm"
+				(at 5.715 -13.97 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Datasheet" "https://www.ti.com/lit/ds/symlink/iso7763.pdf"
+				(at 10.16 -2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Default high, High-speed, robust EMC, reinforced, six-channel, digital, isolator, SOIC-16"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "6 channel digital isolator"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "SOIC*7.5x10.3mm*P1.27mm*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "ISO7760DW_0_1"
+				(rectangle
+					(start -7.62 15.24)
+					(end 7.62 -12.7)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.905 8.255)
+						(xy -1.27 7.62)
+						(xy -1.905 6.985)
+						(xy -1.905 8.255)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.635 15.24)
+						(xy -0.635 -12.7)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.635 15.24)
+						(xy 0.635 -12.7)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 8.255)
+						(xy 1.905 7.62)
+						(xy 1.27 6.985)
+						(xy 1.27 8.255)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "ISO7760DW_1_1"
+				(polyline
+					(pts
+						(xy -1.905 5.715)
+						(xy -1.27 5.08)
+						(xy -1.905 4.445)
+						(xy -1.905 5.715)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.905 3.175)
+						(xy -1.27 2.54)
+						(xy -1.905 1.905)
+						(xy -1.905 3.175)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.905 0.635)
+						(xy -1.27 0)
+						(xy -1.905 -0.635)
+						(xy -1.905 0.635)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.905 -1.905)
+						(xy -1.27 -2.54)
+						(xy -1.905 -3.175)
+						(xy -1.905 -1.905)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.905 -4.445)
+						(xy -1.27 -5.08)
+						(xy -1.905 -5.715)
+						(xy -1.905 -4.445)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 5.715)
+						(xy 1.905 5.08)
+						(xy 1.27 4.445)
+						(xy 1.27 5.715)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 3.175)
+						(xy 1.905 2.54)
+						(xy 1.27 1.905)
+						(xy 1.27 3.175)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 0.635)
+						(xy 1.905 0)
+						(xy 1.27 -0.635)
+						(xy 1.27 0.635)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 -1.905)
+						(xy 1.905 -2.54)
+						(xy 1.27 -3.175)
+						(xy 1.27 -1.905)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 -4.445)
+						(xy 1.905 -5.08)
+						(xy 1.27 -5.715)
+						(xy 1.27 -4.445)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(pin power_in line
+					(at -5.08 17.78 270)
+					(length 2.54)
+					(name "Vcc1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 7.62 0)
+					(length 2.54)
+					(name "INA"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 5.08 0)
+					(length 2.54)
+					(name "INB"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 2.54 0)
+					(length 2.54)
+					(name "INC"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 0 0)
+					(length 2.54)
+					(name "IND"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 -2.54 0)
+					(length 2.54)
+					(name "INE"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 -5.08 0)
+					(length 2.54)
+					(name "INF"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "7"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at -5.08 -15.24 90)
+					(length 2.54)
+					(name "GND1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "8"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 5.08 -15.24 90)
+					(length 2.54)
+					(name "GND2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "9"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 10.16 -5.08 180)
+					(length 2.54)
+					(name "OUTF"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "10"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 10.16 -2.54 180)
+					(length 2.54)
+					(name "OUTE"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "11"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 10.16 0 180)
+					(length 2.54)
+					(name "OUTD"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "12"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 10.16 2.54 180)
+					(length 2.54)
+					(name "OUTC"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "13"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 10.16 5.08 180)
+					(length 2.54)
+					(name "OUTB"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "14"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 10.16 7.62 180)
+					(length 2.54)
+					(name "OUTA"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "15"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 5.08 17.78 270)
+					(length 2.54)
+					(name "Vcc2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "16"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Isolator:ISO7761DW"
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "U"
+				(at 8.255 14.605 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "ISO7761DW"
+				(at 8.255 12.065 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" "Package_SO:SOIC-16W_7.5x10.3mm_P1.27mm"
+				(at 5.715 -13.97 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Datasheet" "https://www.ti.com/lit/ds/symlink/iso7763.pdf"
+				(at 10.16 -2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Default high, High-speed, robust EMC, reinforced, six-channel, digital, isolator, SOIC-16"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "6 channel digital isolator"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "SOIC*7.5x10.3mm*P1.27mm*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "ISO7761DW_0_1"
+				(rectangle
+					(start -7.62 15.24)
+					(end 7.62 -12.7)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.905 8.255)
+						(xy -1.27 7.62)
+						(xy -1.905 6.985)
+						(xy -1.905 8.255)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.635 15.24)
+						(xy -0.635 -12.7)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.635 15.24)
+						(xy 0.635 -12.7)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 8.255)
+						(xy 1.905 7.62)
+						(xy 1.27 6.985)
+						(xy 1.27 8.255)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "ISO7761DW_1_1"
+				(polyline
+					(pts
+						(xy -1.905 5.715)
+						(xy -1.27 5.08)
+						(xy -1.905 4.445)
+						(xy -1.905 5.715)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.905 3.175)
+						(xy -1.27 2.54)
+						(xy -1.905 1.905)
+						(xy -1.905 3.175)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.905 0.635)
+						(xy -1.27 0)
+						(xy -1.905 -0.635)
+						(xy -1.905 0.635)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.905 -1.905)
+						(xy -1.27 -2.54)
+						(xy -1.905 -3.175)
+						(xy -1.905 -1.905)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 -4.445)
+						(xy -1.905 -5.08)
+						(xy -1.27 -5.715)
+						(xy -1.27 -4.445)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 5.715)
+						(xy 1.905 5.08)
+						(xy 1.27 4.445)
+						(xy 1.27 5.715)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 3.175)
+						(xy 1.905 2.54)
+						(xy 1.27 1.905)
+						(xy 1.27 3.175)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 0.635)
+						(xy 1.905 0)
+						(xy 1.27 -0.635)
+						(xy 1.27 0.635)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 -1.905)
+						(xy 1.905 -2.54)
+						(xy 1.27 -3.175)
+						(xy 1.27 -1.905)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.905 -4.445)
+						(xy 1.27 -5.08)
+						(xy 1.905 -5.715)
+						(xy 1.905 -4.445)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(pin power_in line
+					(at -5.08 17.78 270)
+					(length 2.54)
+					(name "Vcc1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 7.62 0)
+					(length 2.54)
+					(name "INA"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 5.08 0)
+					(length 2.54)
+					(name "INB"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 2.54 0)
+					(length 2.54)
+					(name "INC"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 0 0)
+					(length 2.54)
+					(name "IND"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 -2.54 0)
+					(length 2.54)
+					(name "INE"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at -10.16 -5.08 0)
+					(length 2.54)
+					(name "OUTF"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "7"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at -5.08 -15.24 90)
+					(length 2.54)
+					(name "GND1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "8"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 5.08 -15.24 90)
+					(length 2.54)
+					(name "GND2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "9"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at 10.16 -5.08 180)
+					(length 2.54)
+					(name "INF"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "10"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 10.16 -2.54 180)
+					(length 2.54)
+					(name "OUTE"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "11"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 10.16 0 180)
+					(length 2.54)
+					(name "OUTD"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "12"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 10.16 2.54 180)
+					(length 2.54)
+					(name "OUTC"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "13"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 10.16 5.08 180)
+					(length 2.54)
+					(name "OUTB"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "14"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 10.16 7.62 180)
+					(length 2.54)
+					(name "OUTA"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "15"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 5.08 17.78 270)
+					(length 2.54)
+					(name "Vcc2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "16"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Regulator_Linear:LP2985-1.8"
+			(pin_names
+				(offset 0.254)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "U"
+				(at -6.35 5.715 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "LP2985-1.8"
+				(at 0 5.715 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" "Package_TO_SOT_SMD:SOT-23-5"
+				(at 0 8.255 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" "http://www.ti.com/lit/ds/symlink/lp2985.pdf"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "150mA 16V Low-noise Low-dropout Regulator With Shutdown, 1.8V output voltage, SOT-23-5"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "LDO regulator linear  SOT-23-5"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "SOT?23*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "LP2985-1.8_0_1"
+				(rectangle
+					(start -7.62 -5.08)
+					(end 7.62 4.445)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+			)
+			(symbol "LP2985-1.8_1_1"
+				(pin power_in line
+					(at -10.16 2.54 0)
+					(length 2.54)
+					(name "VIN"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 0 -7.62 90)
+					(length 2.54)
+					(name "GND"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 0 0)
+					(length 2.54)
+					(name "ON/~{OFF}"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at 10.16 0 180)
+					(length 2.54)
+					(name "BP"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_out line
+					(at 10.16 2.54 180)
+					(length 2.54)
+					(name "VOUT"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Converter_DCDC_Isolated:IA0505S"
+			(property "Reference" "U"
+				(at -7.62 6.35 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "IA0505S"
+				(at 1.27 6.35 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" "Converter_DCDC:Converter_DCDC_XP_POWER-IAxxxxS_THT"
+				(at -26.67 -6.35 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Datasheet" "https://www.xppower.com/portals/0/pdfs/SF_IA.pdf"
+				(at 26.67 -7.62 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Description" "XP Power 1W, 1000 VDC Isolated DC/DC Converter Module, Dual Output Voltage ±5V, ±100mA, 5V Input Voltage, SIP"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "XP_POWER DC/DC isolated Converter module"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "*XP?POWER?IAxxxxS*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(embedded_fonts no)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(symbol "IA0505S_0_0"
+				(pin power_in line
+					(at -10.16 2.54 0)
+					(length 2.54)
+					(name "+Vin"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at -10.16 -2.54 0)
+					(length 2.54)
+					(name "-Vin"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_out line
+					(at 10.16 -2.54 180)
+					(length 2.54)
+					(name "-Vout"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_out line
+					(at 10.16 0 180)
+					(length 2.54)
+					(name "0V"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_out line
+					(at 10.16 2.54 180)
+					(length 2.54)
+					(name "+Vout"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(symbol "IA0505S_0_1"
+				(rectangle
+					(start -7.62 5.08)
+					(end 7.62 -5.08)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 5.08)
+						(xy 0 3.81)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 2.54)
+						(xy 0 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 0)
+						(xy 0 -1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 -2.54)
+						(xy 0 -3.81)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+		)
+	)
+	(no_connect
+		(at 128.27 110.49)
+		(uuid "1a4f850a-9926-4aaa-9508-1ae7476231ca")
+	)
+	(wire
+		(pts
+			(xy 113.03 33.02)
+			(xy 113.03 39.37)
+		)
+		(uuid "4497bcac-0532-4495-babb-8b16c8a98de3")
+	)
+	(wire
+		(pts
+			(xy 123.19 39.37)
+			(xy 123.19 33.02)
+		)
+		(uuid "52e0a02b-9d89-4c1a-b1d5-a510486f0c87")
+	)
+	(wire
+		(pts
+			(xy 113.03 90.17)
+			(xy 113.03 83.82)
+		)
+		(uuid "f229e9d4-728f-4095-9897-893adecb2176")
+	)
+	(wire
+		(pts
+			(xy 123.19 83.82)
+			(xy 123.19 90.17)
+		)
+		(uuid "8e4ef195-a7a5-436b-8cae-0b920351738f")
+	)
+	(wire
+		(pts
+			(xy 128.27 113.03)
+			(xy 144.78 113.03)
+		)
+		(uuid "613b9aff-38d8-4b4e-8a4d-9eab3d3368a7")
+	)
+	(wire
+		(pts
+			(xy 128.27 105.41)
+			(xy 144.78 105.41)
+		)
+		(uuid "d308bcd5-f0b8-4ae7-9788-912a7a399a76")
+	)
+	(wire
+		(pts
+			(xy 128.27 100.33)
+			(xy 144.78 100.33)
+		)
+		(uuid "4795eee8-6c15-4ec8-97f1-df4610d279d4")
+	)
+	(wire
+		(pts
+			(xy 144.78 49.53)
+			(xy 128.27 49.53)
+		)
+		(uuid "64e5a6dc-078f-425a-8a58-51533aa7265e")
+	)
+	(wire
+		(pts
+			(xy 144.78 54.61)
+			(xy 128.27 54.61)
+		)
+		(uuid "d01f488c-78e0-4eb9-bd92-35cd8ea1710d")
+	)
+	(wire
+		(pts
+			(xy 144.78 59.69)
+			(xy 128.27 59.69)
+		)
+		(uuid "2d0c3dac-d02d-4418-acfa-e06c77e8bf4c")
+	)
+	(wire
+		(pts
+			(xy 107.95 110.49)
+			(xy 105.41 110.49)
+		)
+		(uuid "7a71ab1a-16f8-4e4d-9943-bd0cd0c3d65e")
+	)
+	(wire
+		(pts
+			(xy 105.41 110.49)
+			(xy 105.41 123.19)
+		)
+		(uuid "29d1dccc-af4e-49f7-87f3-1192f83016b9")
+	)
+	(wire
+		(pts
+			(xy 105.41 123.19)
+			(xy 113.03 123.19)
+		)
+		(uuid "2627ddd0-db47-48b0-895d-744536cb03f4")
+	)
+	(wire
+		(pts
+			(xy 105.41 83.82)
+			(xy 105.41 72.39)
+		)
+		(uuid "c9fbd4b6-aa5b-4a62-8b0c-462e4b6ae406")
+	)
+	(wire
+		(pts
+			(xy 105.41 72.39)
+			(xy 113.03 72.39)
+		)
+		(uuid "fcade98a-264d-4251-9edd-38229e78f739")
+	)
+	(wire
+		(pts
+			(xy 130.81 83.82)
+			(xy 130.81 72.39)
+		)
+		(uuid "f6ba637b-95a6-40cb-a4d5-7bd247b12367")
+	)
+	(wire
+		(pts
+			(xy 130.81 72.39)
+			(xy 123.19 72.39)
+		)
+		(uuid "ebcde889-90c6-49ae-a0c7-789275c27409")
+	)
+	(wire
+		(pts
+			(xy 173.99 113.03)
+			(xy 152.4 113.03)
+		)
+		(uuid "6b30a606-9cb8-4da5-b2b3-d4815315ba4a")
+	)
+	(wire
+		(pts
+			(xy 173.99 49.53)
+			(xy 152.4 49.53)
+		)
+		(uuid "ed108bf8-0cca-4de2-8625-68c0c43d0e6d")
+	)
+	(wire
+		(pts
+			(xy 156.21 102.87)
+			(xy 128.27 102.87)
+		)
+		(uuid "ddc42982-1a19-4b33-bfcc-a5d78836416a")
+	)
+	(wire
+		(pts
+			(xy 156.21 52.07)
+			(xy 128.27 52.07)
+		)
+		(uuid "63414b04-3a6e-47fa-b560-d3ac33fa30e8")
+	)
+	(wire
+		(pts
+			(xy 128.27 107.95)
+			(xy 156.21 107.95)
+		)
+		(uuid "3577dc38-873d-4068-8559-3447928579ca")
+	)
+	(wire
+		(pts
+			(xy 156.21 62.23)
+			(xy 128.27 62.23)
+		)
+		(uuid "66bf5171-6db9-4a9e-b7a5-4048d0427c92")
+	)
+	(wire
+		(pts
+			(xy 128.27 57.15)
+			(xy 156.21 57.15)
+		)
+		(uuid "59a88b43-9f3e-4b7b-9009-8752babd3659")
+	)
+	(label "CS6_SENS_RAW"
+		(at 143.51 102.87 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "f126bdee-58df-444f-a844-0f6b97dd22d0")
+	)
+	(hierarchical_label "+5V_CTRL"
+		(shape passive)
+		(at 113.03 33.02 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "68f539f2-1c61-4406-bf03-41cd2ba37ef9")
+	)
+	(hierarchical_label "MISO_SENS"
+		(shape passive)
+		(at 165.1 113.03 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "ef7e52a9-66cd-4b94-8e30-d0c76bb12e64")
+	)
+	(label "MOSI_SENS_RAW"
+		(at 144.78 52.07 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "a3eadf5e-0def-456c-b7e1-f62d54c733da")
+	)
+	(hierarchical_label "+3V3_SENS"
+		(shape passive)
+		(at 123.19 86.36 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "66527196-a140-4574-8ed8-e32a21559de9")
+	)
+	(hierarchical_label "GND_SENS"
+		(shape passive)
+		(at 127 72.39 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "6e7c3220-2883-42cc-8e2f-e1349a998bbd")
+	)
+	(hierarchical_label "SCK_SENS"
+		(shape passive)
+		(at 162.56 49.53 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "465d5e46-14ff-457f-8b10-6bdc4405ad08")
+	)
+	(hierarchical_label "+5V_CTRL"
+		(shape passive)
+		(at 113.03 90.17 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "3534d23a-c894-4a83-9f93-36939b5fcd51")
+	)
+	(hierarchical_label "GND_CTRL"
+		(shape passive)
+		(at 106.68 110.49 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "e981ec6e-91b7-4174-93a1-72a2a14aeba8")
+	)
+	(label "MISO_SENS_RAW"
+		(at 130.81 113.03 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "6c27fe22-ba45-4332-aa18-4317f21d316b")
+	)
+	(label "CS8_SENS_RAW"
+		(at 143.51 107.95 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "5448db99-7535-4c89-a296-bbe38596ddd3")
+	)
+	(label "CS7_SENS_RAW"
+		(at 129.54 105.41 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "f0e165cb-9d3b-47f9-92a5-697c12a86af8")
+	)
+	(label "CS5_SENS_RAW"
+		(at 129.54 100.33 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "eeed809d-8a66-4fb2-b9af-4075e1558961")
+	)
+	(label "CS4_SENS_RAW"
+		(at 143.51 62.23 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "70975280-7a09-4cb3-9a71-e42adcaf69e4")
+	)
+	(label "SCK_SENS_RAW"
+		(at 129.54 49.53 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "7f56b247-58a7-4250-962a-46f44ebde500")
+	)
+	(label "CS1_SENS_RAW"
+		(at 129.54 54.61 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "bca54999-a104-450e-81ba-c242002edb2d")
+	)
+	(hierarchical_label "GND_CTRL"
+		(shape passive)
+		(at 109.22 72.39 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "67dc83f7-56ba-40a7-bf98-21910985d753")
+	)
+	(label "CS3_SENS_RAW"
+		(at 129.54 59.69 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "2a8ce949-364f-4219-a42d-a10616a70cd1")
+	)
+	(label "CS2_SENS_RAW"
+		(at 143.51 57.15 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "8332db75-f36a-411a-aff3-3e35e6d9e4d1")
+	)
+	(hierarchical_label "+3V3_SENS"
+		(shape passive)
+		(at 123.19 35.56 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "a7935dcc-90e9-436e-8561-d5f66433ab6b")
+	)
+	(hierarchical_label "CS6_SENS"
+		(shape passive)
+		(at 163.83 102.87 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "5c4a9e54-8433-4b65-ade9-336a2548475a")
+	)
+	(hierarchical_label "GND_CTRL"
+		(shape passive)
+		(at 105.41 33.02 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "1a285a29-7714-479e-acaf-2f54beefd3ae")
+	)
+	(hierarchical_label "MOSI_SENS"
+		(shape passive)
+		(at 163.83 52.07 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "035d7e59-568b-470e-93d5-cc0710fa3ad0")
+	)
+	(hierarchical_label "CS5_CTRL"
+		(shape passive)
+		(at 107.95 100.33 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "3eff53f3-5436-4cd2-be4b-b6144a7acbea")
+	)
+	(hierarchical_label "CS6_CTRL"
+		(shape passive)
+		(at 107.95 102.87 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "86857959-03be-4ddf-841f-6130d1d5fbb7")
+	)
+	(hierarchical_label "CS7_CTRL"
+		(shape passive)
+		(at 107.95 105.41 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "b31f6a86-3559-43e5-9e6f-71ddcb9f8c38")
+	)
+	(hierarchical_label "CS8_CTRL"
+		(shape passive)
+		(at 107.95 107.95 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "513de8ab-8068-404f-a684-3c780ff4a931")
+	)
+	(hierarchical_label "MISO_CTRL"
+		(shape passive)
+		(at 107.95 113.03 270)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "caa53d7c-3845-43ab-bb14-2c1cac94a403")
+	)
+	(hierarchical_label "GND_SENS"
+		(shape passive)
+		(at 123.19 123.19 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "25929cc3-de42-4299-ab2d-9b693b9b40e4")
+	)
+	(hierarchical_label "CS4_SENS"
+		(shape passive)
+		(at 163.83 62.23 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "fbb0e291-660a-4e28-8054-df03105f38ee")
+	)
+	(hierarchical_label "CS5_SENS"
+		(shape passive)
+		(at 152.4 100.33 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "7644b110-0d6c-433f-8942-364ef922db0b")
+	)
+	(hierarchical_label "CS1_SENS"
+		(shape passive)
+		(at 152.4 54.61 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "40c75b6e-b4d7-4fac-b15a-f4597f43d36c")
+	)
+	(hierarchical_label "CS3_SENS"
+		(shape passive)
+		(at 152.4 59.69 270)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "ec3b7d26-6bf6-4dc3-8fa4-a5f51bfab9bc")
+	)
+	(hierarchical_label "CS7_SENS"
+		(shape passive)
+		(at 152.4 105.41 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b04cba1d-eb91-4174-b311-b61b79e019aa")
+	)
+	(hierarchical_label "CS8_SENS"
+		(shape passive)
+		(at 163.83 107.95 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "662e5e9e-1d8d-40f9-b2b6-22f9d0aa8a76")
+	)
+	(hierarchical_label "SCK_CTRL"
+		(shape passive)
+		(at 107.95 49.53 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "3e6668d4-7eaa-40b4-8d61-7fe4745a549e")
+	)
+	(hierarchical_label "MOSI_CTRL"
+		(shape passive)
+		(at 107.95 52.07 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "9ab4a20b-2209-4176-9be8-b5037cdfa1c7")
+	)
+	(hierarchical_label "CS1_CTRL"
+		(shape passive)
+		(at 107.95 54.61 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "a86ad519-a7df-4deb-8528-ee945ff09536")
+	)
+	(hierarchical_label "CS2_CTRL"
+		(shape passive)
+		(at 107.95 57.15 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "083589f6-9076-42ff-897c-be79aa7cfa0e")
+	)
+	(hierarchical_label "CS3_CTRL"
+		(shape passive)
+		(at 107.95 59.69 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "5c5a864d-b7cd-43f0-9308-3d31c4343074")
+	)
+	(hierarchical_label "CS4_CTRL"
+		(shape passive)
+		(at 107.95 62.23 270)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "b4eeb421-0204-481c-bbe1-9377d5ca8c9c")
+	)
+	(hierarchical_label "CS2_SENS"
+		(shape passive)
+		(at 163.83 57.15 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "a9d27223-fc7a-4b3d-8e8b-f78411450c54")
+	)
+	(hierarchical_label "GND_SENS"
+		(shape passive)
+		(at 130.81 33.02 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "af2a61d3-a660-4679-805c-8f3e1b267cd9")
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 160.02 102.87 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "214194e3-5692-4fa9-ac12-da3aafb43de4")
+		(property "Reference" "R41"
+			(at 160.02 100.838 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "22R"
+			(at 160.02 102.87 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 158.242 102.87 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 160.02 102.87 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "CH6 CS edge damping"
+			(at 160.02 102.87 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0805W8F220JT5E"
+			(at 160.02 102.87 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C17561"
+			(at 160.02 102.87 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "e72ddb77-48af-4f48-b432-cf875cb7a9b5")
+		)
+		(pin "2"
+			(uuid "eac1694a-4792-447f-8704-a873794c699c")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "R41")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 109.22 33.02 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "27871734-a98c-45a2-a198-62ca6bff58a8")
+		(property "Reference" "C41"
+			(at 111.76 33.655 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100n X7R"
+			(at 106.68 33.655 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 110.1852 29.21 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 109.22 33.02 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "U10 control-side decoupling"
+			(at 109.22 33.02 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "CC0805KRX7R9BB104"
+			(at 109.22 33.02 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C49678"
+			(at 109.22 33.02 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "c1f63723-7758-419b-971d-2302443c565d")
+		)
+		(pin "2"
+			(uuid "8b553cc5-bd15-4e41-8efc-2fc61992ed2f")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "C41")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector_Generic:Conn_01x01")
+		(at 179.07 113.03 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "31f60d58-a5a2-4f81-b20c-5adde9276cbe")
+		(property "Reference" "TP6"
+			(at 179.07 110.49 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "MISO_SENS"
+			(at 179.07 115.57 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_THTPad_D2.0mm_Drill1.0mm"
+			(at 179.07 113.03 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 179.07 113.03 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Service test point: MISO_SENS"
+			(at 179.07 113.03 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "77001d83-e2c0-4039-8df4-0239e9c13f1e")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "TP6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 160.02 52.07 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "3af2c2b9-c1e6-4970-9279-1e63cf290854")
+		(property "Reference" "R26"
+			(at 160.02 50.038 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "33R"
+			(at 160.02 52.07 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 158.242 52.07 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 160.02 52.07 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "SPI source termination"
+			(at 160.02 52.07 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0805W8F330JT5E"
+			(at 160.02 52.07 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C17634"
+			(at 160.02 52.07 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "1527ac4a-71c5-44d8-836e-dea55f7cd56e")
+		)
+		(pin "2"
+			(uuid "ca2edafa-b002-4f73-b520-3b87e41c55f6")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "R26")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 127 83.82 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "3bfb9bed-184e-465b-8080-20e67ea4fa55")
+		(property "Reference" "C44"
+			(at 124.46 83.185 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100n X7R"
+			(at 129.54 83.185 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 127.9652 80.01 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 127 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "U11 sensor-side decoupling"
+			(at 127 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "CC0805KRX7R9BB104"
+			(at 127 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C49678"
+			(at 127 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "927ae2eb-ba2e-48ac-933e-62d47acff1c2")
+		)
+		(pin "2"
+			(uuid "da4008d9-a998-4f25-aebd-5c36704dc6c4")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "C44")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector_Generic:Conn_01x01")
+		(at 179.07 49.53 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "69e658f0-ad6b-4910-a01f-1534690ecd50")
+		(property "Reference" "TP5"
+			(at 179.07 46.99 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "SCK_SENS"
+			(at 179.07 52.07 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_THTPad_D2.0mm_Drill1.0mm"
+			(at 179.07 49.53 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 179.07 49.53 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Service test point: SCK_SENS"
+			(at 179.07 49.53 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "2ae71530-9070-4bfb-abc0-490d7ab00962")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "TP5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Isolator:ISO7761DW")
+		(at 118.11 107.95 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "79827b56-5579-42a3-8e99-7fae5f3d91c6")
+		(property "Reference" "U11"
+			(at 126.365 93.345 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "ISO7761FDWR"
+			(at 126.365 95.885 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Package_SO:SOIC-16W_7.5x10.3mm_P1.27mm"
+			(at 123.825 93.98 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/iso7761.pdf"
+			(at 128.27 105.41 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Reinforced digital isolation for CS5-CS8 and reverse MISO | Manufacturer: Texas Instruments | MPN: ISO7761FDWR"
+			(at 118.11 107.95 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "ISO7761FDWR"
+			(at 128.27 105.41 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Texas Instruments"
+			(at 128.27 105.41 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "e1c31f22-d31f-4ee0-900e-b1b86173ce4d")
+		)
+		(pin "2"
+			(uuid "a8066f54-094d-48c6-b3a0-f3e33c460fdd")
+		)
+		(pin "3"
+			(uuid "103df55a-f9a5-4d3e-afeb-eb7cdf6fe379")
+		)
+		(pin "4"
+			(uuid "c23af159-53f2-4156-abe4-919954f4a3ba")
+		)
+		(pin "5"
+			(uuid "4382a661-9e81-4898-a72a-513498d17817")
+		)
+		(pin "6"
+			(uuid "20710f31-5a4e-43b1-9973-83f8583e8c16")
+		)
+		(pin "7"
+			(uuid "6f925e93-b249-4a8b-93d5-a0d397f15e7d")
+		)
+		(pin "8"
+			(uuid "d40e987f-4782-4374-a5e1-9e391b047c7d")
+		)
+		(pin "9"
+			(uuid "149402a8-f762-449b-ab48-92dbd551a22d")
+		)
+		(pin "10"
+			(uuid "e110e72c-6818-4e5b-85ba-f316ca4bd090")
+		)
+		(pin "11"
+			(uuid "91f275c6-8bdb-48a4-b956-d3261fe7f687")
+		)
+		(pin "12"
+			(uuid "496b2bc4-c19d-4596-8c8c-3f16362cc2b6")
+		)
+		(pin "13"
+			(uuid "b88c85fe-668b-4458-8943-0b981dfbdf6d")
+		)
+		(pin "14"
+			(uuid "5d668c73-9e6e-4bbc-8878-217405205bd9")
+		)
+		(pin "15"
+			(uuid "5058e981-c3ef-416c-a289-6a172dd077d6")
+		)
+		(pin "16"
+			(uuid "40957af0-4ca6-435f-8254-38bdd517e96d")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "U11")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 160.02 62.23 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "7afe7824-278e-413e-8f33-3e569a96a05e")
+		(property "Reference" "R39"
+			(at 160.02 60.198 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "22R"
+			(at 160.02 62.23 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 158.242 62.23 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 160.02 62.23 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "CH4 CS edge damping"
+			(at 160.02 62.23 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0805W8F220JT5E"
+			(at 160.02 62.23 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C17561"
+			(at 160.02 62.23 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "19633620-68c3-4075-9256-6472f4017c2e")
+		)
+		(pin "2"
+			(uuid "7a9576e0-a4af-4fa9-a9d1-9e1304859990")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "R39")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 148.59 113.03 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "7feedd3f-aa84-445c-871f-843f83d9b729")
+		(property "Reference" "R27"
+			(at 148.59 115.062 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "33R"
+			(at 148.59 113.03 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 146.812 113.03 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 148.59 113.03 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "MISO source termination"
+			(at 148.59 113.03 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0805W8F330JT5E"
+			(at 148.59 113.03 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C17634"
+			(at 148.59 113.03 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "828ba162-8f45-4bc6-ab3f-f128230231fa")
+		)
+		(pin "2"
+			(uuid "395c5e5a-2a72-4b93-adee-4d8beca0518f")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "R27")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 148.59 49.53 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "806da74c-afb0-42ab-91c0-09cc2e766d50")
+		(property "Reference" "R25"
+			(at 148.59 47.498 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "33R"
+			(at 148.59 49.53 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 146.812 49.53 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 148.59 49.53 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "SPI source termination"
+			(at 148.59 49.53 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0805W8F330JT5E"
+			(at 148.59 49.53 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C17634"
+			(at 148.59 49.53 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "d52c9623-2102-4666-9e8d-46a7a4b5f548")
+		)
+		(pin "2"
+			(uuid "8d528384-deaa-4473-96e7-e35f4185f65c")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "R25")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 148.59 100.33 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "83496a40-9e42-4bdc-945f-5a421380ef79")
+		(property "Reference" "R40"
+			(at 148.59 98.298 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "22R"
+			(at 148.59 100.33 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 146.812 100.33 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 148.59 100.33 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "CH5 CS edge damping"
+			(at 148.59 100.33 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0805W8F220JT5E"
+			(at 148.59 100.33 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C17561"
+			(at 148.59 100.33 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "e23153a1-cf2f-4ca5-8ee4-1c680ac29d07")
+		)
+		(pin "2"
+			(uuid "8df3da12-3676-44bf-b898-1a4eee9d078f")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "R40")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 148.59 54.61 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "866cb621-ef48-4f03-ada2-0b01ba9e9306")
+		(property "Reference" "R36"
+			(at 148.59 52.578 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "22R"
+			(at 148.59 54.61 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 146.812 54.61 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 148.59 54.61 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "CH1 CS edge damping"
+			(at 148.59 54.61 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0805W8F220JT5E"
+			(at 148.59 54.61 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C17561"
+			(at 148.59 54.61 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "fb1cafdc-5ace-4a0d-afb6-cd6ea2bf355f")
+		)
+		(pin "2"
+			(uuid "6fc09a46-5ae3-496d-9bc7-8b6ffe00487f")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "R36")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 109.22 83.82 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "978d7578-20a0-4002-be09-33daf71b88e5")
+		(property "Reference" "C43"
+			(at 111.76 84.455 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100n X7R"
+			(at 106.68 84.455 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 110.1852 80.01 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 109.22 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "U11 control-side decoupling"
+			(at 109.22 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "CC0805KRX7R9BB104"
+			(at 109.22 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C49678"
+			(at 109.22 83.82 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "7040dc4f-3470-4032-ab4f-30013dece439")
+		)
+		(pin "2"
+			(uuid "fc6fdf12-128e-4b3c-9261-963b807c122b")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "C43")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 148.59 59.69 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "a1a2adaa-6fb5-4616-ac45-b4ef2cd7de47")
+		(property "Reference" "R38"
+			(at 148.59 57.658 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "22R"
+			(at 148.59 59.69 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 146.812 59.69 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 148.59 59.69 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "CH3 CS edge damping"
+			(at 148.59 59.69 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0805W8F220JT5E"
+			(at 148.59 59.69 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C17561"
+			(at 148.59 59.69 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "f5856208-c07c-46ab-acad-ba9208e0e0eb")
+		)
+		(pin "2"
+			(uuid "b53fb9ed-c4d6-4dbf-b4a3-7a0c56c5a828")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "R38")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 148.59 105.41 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "d9ae807a-a2b3-4007-be8b-d8ef6651fa1d")
+		(property "Reference" "R42"
+			(at 148.59 103.378 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "22R"
+			(at 148.59 105.41 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 146.812 105.41 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 148.59 105.41 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "CH7 CS edge damping"
+			(at 148.59 105.41 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0805W8F220JT5E"
+			(at 148.59 105.41 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C17561"
+			(at 148.59 105.41 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "cb4ed212-61dc-4acb-8c03-01439cf33713")
+		)
+		(pin "2"
+			(uuid "33f5e1d1-46e1-4e89-9438-dbdc1c28cb01")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "R42")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 160.02 107.95 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "da9a5c1f-69fc-498e-a341-03c1e00afaaa")
+		(property "Reference" "R43"
+			(at 160.02 105.918 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "22R"
+			(at 160.02 107.95 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 158.242 107.95 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 160.02 107.95 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "CH8 CS edge damping"
+			(at 160.02 107.95 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0805W8F220JT5E"
+			(at 160.02 107.95 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C17561"
+			(at 160.02 107.95 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "f39af11f-83ec-48a2-b4cb-6dc567ee277b")
+		)
+		(pin "2"
+			(uuid "04afa7d5-21bf-4b00-8d2f-55c1325e9d1e")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "R43")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Isolator:ISO7760DW")
+		(at 118.11 57.15 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "e2586286-d5e4-4558-b41b-307f04cd30c1")
+		(property "Reference" "U10"
+			(at 126.365 42.545 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "ISO7760FDWR"
+			(at 126.365 45.085 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Package_SO:SOIC-16W_7.5x10.3mm_P1.27mm"
+			(at 123.825 43.18 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/iso7760.pdf"
+			(at 128.27 54.61 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Reinforced digital isolation for SPI clock, MOSI, and CS1-CS4 | Manufacturer: Texas Instruments | MPN: ISO7760FDWR"
+			(at 118.11 57.15 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "ISO7760FDWR"
+			(at 128.27 54.61 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Texas Instruments"
+			(at 128.27 54.61 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "b4385a0c-0ed7-4579-802f-6aacea6b9b35")
+		)
+		(pin "2"
+			(uuid "98876d24-d877-40ad-a0f3-4b3ed5630e2c")
+		)
+		(pin "3"
+			(uuid "f9d51528-c015-41e2-b64d-b17c84a77bb5")
+		)
+		(pin "4"
+			(uuid "25eb6662-ba53-4d60-b691-5c8100775c0b")
+		)
+		(pin "5"
+			(uuid "58ee505b-49ce-4861-b869-f4cbbd0bffb5")
+		)
+		(pin "6"
+			(uuid "a2081a75-53c5-415c-b47a-fcfdfe1337c1")
+		)
+		(pin "7"
+			(uuid "b9b6c8f2-dbbe-4d1e-98d7-466910b1ff04")
+		)
+		(pin "8"
+			(uuid "e3277cf9-49fc-4ace-8d0d-d58b094ad294")
+		)
+		(pin "9"
+			(uuid "9464ec49-99b7-4520-98b1-2d6faf742217")
+		)
+		(pin "10"
+			(uuid "8b2bb2c5-bab2-4e1e-8ca4-0e2cb4da3bfc")
+		)
+		(pin "11"
+			(uuid "b5ac96e0-76e7-4682-a639-d71aa898124a")
+		)
+		(pin "12"
+			(uuid "a71013a1-945e-48a6-a094-0f2894a141f9")
+		)
+		(pin "13"
+			(uuid "6bd1ad1c-4631-45df-a453-420949a277c1")
+		)
+		(pin "14"
+			(uuid "ddca4513-bc50-4f0d-8f2d-d60036586d19")
+		)
+		(pin "15"
+			(uuid "52564829-4033-439c-8e0e-5bf3a5bc5229")
+		)
+		(pin "16"
+			(uuid "b7fbe7bb-6455-42c6-8342-6e8118467667")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "U10")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 160.02 57.15 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "f0069d54-e488-4d5f-996a-472c5716272a")
+		(property "Reference" "R37"
+			(at 160.02 55.118 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "22R"
+			(at 160.02 57.15 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 158.242 57.15 180)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 160.02 57.15 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "CH2 CS edge damping"
+			(at 160.02 57.15 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "0805W8F220JT5E"
+			(at 160.02 57.15 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C17561"
+			(at 160.02 57.15 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "cac70c37-abff-401e-aa86-8b8a359f1864")
+		)
+		(pin "2"
+			(uuid "b1767253-fb8a-445b-8f98-87b0388723de")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "R37")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 127 33.02 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "f155ef8c-385b-470c-8773-bfcb3c9d40dc")
+		(property "Reference" "C42"
+			(at 124.46 32.385 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100n X7R"
+			(at 129.54 32.385 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 127.9652 29.21 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 127 33.02 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "U10 sensor-side decoupling"
+			(at 127 33.02 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "CC0805KRX7R9BB104"
+			(at 127 33.02 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C49678"
+			(at 127 33.02 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "b3cc5113-f42e-4dac-b49e-7010dc79ae65")
+		)
+		(pin "2"
+			(uuid "51231e93-4a75-4960-86a4-cf2fb0a1e4f8")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "C42")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(no_connect
+		(at 133.35 148.59)
+		(uuid "6eddbbc6-f20c-4597-9abb-3e501afc7590")
+	)
+	(no_connect
+		(at 176.53 146.05)
+		(uuid "c2d65379-28aa-4176-b55a-608e904758e8")
+	)
+	(wire
+		(pts
+			(xy 156.21 143.51)
+			(xy 156.21 146.05)
+		)
+		(uuid "39033f4b-77fc-4ae4-8a04-0c1f1f19dfda")
+	)
+	(wire
+		(pts
+			(xy 139.7 143.51)
+			(xy 133.35 143.51)
+		)
+		(uuid "fdff05ba-0613-4d17-a3db-5c4f3905c046")
+	)
+	(wire
+		(pts
+			(xy 105.41 143.51)
+			(xy 113.03 143.51)
+		)
+		(uuid "e00025d9-aa0a-48f3-8a5d-d59b321ded4c")
+	)
+	(wire
+		(pts
+			(xy 176.53 143.51)
+			(xy 184.15 143.51)
+		)
+		(uuid "590d2aea-32e9-407a-8b48-1239cc4a53bc")
+	)
+	(wire
+		(pts
+			(xy 184.15 143.51)
+			(xy 191.77 143.51)
+		)
+		(uuid "29c573b1-d471-40e8-809d-3a23fceaa072")
+	)
+	(wire
+		(pts
+			(xy 147.32 151.13)
+			(xy 139.7 151.13)
+		)
+		(uuid "6c6b85db-cb33-47f4-8eee-b524471823f0")
+	)
+	(wire
+		(pts
+			(xy 147.32 143.51)
+			(xy 139.7 143.51)
+		)
+		(uuid "a7523888-22f6-4fad-ad71-7009960d7fc9")
+	)
+	(wire
+		(pts
+			(xy 156.21 143.51)
+			(xy 147.32 143.51)
+		)
+		(uuid "3f0301bc-7ade-46ed-9f56-00cda5254582")
+	)
+	(wire
+		(pts
+			(xy 105.41 151.13)
+			(xy 113.03 151.13)
+		)
+		(uuid "bff83d48-b2c2-49e9-a96b-32d68cc1a2d6")
+	)
+	(wire
+		(pts
+			(xy 113.03 151.13)
+			(xy 113.03 148.59)
+		)
+		(uuid "e7778ea8-ea0c-4c63-8e6c-70c092ad29dd")
+	)
+	(wire
+		(pts
+			(xy 139.7 151.13)
+			(xy 134.62 151.13)
+		)
+		(uuid "1c8ad027-46b5-48b6-9ee1-09dfb6121058")
+	)
+	(wire
+		(pts
+			(xy 134.62 151.13)
+			(xy 134.62 146.05)
+		)
+		(uuid "03577ba8-49ab-41f3-babe-ac9127bab63b")
+	)
+	(wire
+		(pts
+			(xy 134.62 146.05)
+			(xy 133.35 146.05)
+		)
+		(uuid "e6becbef-57d6-4112-8138-f87e706ff74a")
+	)
+	(wire
+		(pts
+			(xy 184.15 151.13)
+			(xy 191.77 151.13)
+		)
+		(uuid "d3f99b31-77eb-48e9-95d4-62e99229e443")
+	)
+	(wire
+		(pts
+			(xy 191.77 151.13)
+			(xy 191.77 156.21)
+		)
+		(uuid "13616968-2db4-4274-a703-86abf8604112")
+	)
+	(wire
+		(pts
+			(xy 166.37 153.67)
+			(xy 184.15 153.67)
+		)
+		(uuid "4756d889-d273-4611-a844-a3d9801bcd17")
+	)
+	(wire
+		(pts
+			(xy 184.15 153.67)
+			(xy 184.15 151.13)
+		)
+		(uuid "200363b7-44de-4a7d-925b-0f10ee973345")
+	)
+	(wire
+		(pts
+			(xy 166.37 153.67)
+			(xy 147.32 153.67)
+		)
+		(uuid "c218c367-4d27-4c72-aaed-4f70adfd5f40")
+	)
+	(wire
+		(pts
+			(xy 147.32 153.67)
+			(xy 147.32 151.13)
+		)
+		(uuid "ad7fe4cf-97d5-4dfd-ae9a-35809551f944")
+	)
+	(hierarchical_label "GND_SENS"
+		(shape passive)
+		(at 160.02 153.67 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "a461feeb-c7d2-48bf-aa62-9283d0f4eb5a")
+	)
+	(label "+5V_ISO"
+		(at 146.05 143.51 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "e509a5aa-5a2c-456f-b500-318b3f411db0")
+	)
+	(hierarchical_label "+3V3_SENS"
+		(shape passive)
+		(at 179.07 143.51 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "74e191df-bf99-432f-875a-2dcdd75fbe03")
+	)
+	(hierarchical_label "+5V_CTRL"
+		(shape passive)
+		(at 109.22 143.51 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "3744f7c2-67f7-4aaf-ae0e-5229a5a49f97")
+	)
+	(hierarchical_label "GND_CTRL"
+		(shape passive)
+		(at 105.41 151.13 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "95fb530d-252f-4c2a-a916-a269d92a1b95")
+	)
+	(symbol
+		(lib_id "Regulator_Linear:LP2985-1.8")
+		(at 166.37 146.05 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "1c0a8966-d3d8-4e9c-8ef9-f635b20d89f1")
+		(property "Reference" "U13"
+			(at 160.02 140.335 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "LP2985-3.3"
+			(at 166.37 140.335 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-5"
+			(at 166.37 154.305 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/lp2985.pdf"
+			(at 166.37 146.05 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Low-noise 3.3 V regulator for the isolated measurement island | Manufacturer: Texas Instruments | MPN: LP2985IM5X-3.3/NOPB"
+			(at 166.37 146.05 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "LP2985IM5X-3.3/NOPB"
+			(at 166.37 146.05 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "Texas Instruments"
+			(at 166.37 146.05 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "5c762ca0-3982-46e5-a0bb-59919eec77d3")
+		)
+		(pin "2"
+			(uuid "c803ce1a-6ba5-4eb3-987e-b9dfc7a9c863")
+		)
+		(pin "3"
+			(uuid "07c0341c-aa50-44b8-91ca-03657f74db10")
+		)
+		(pin "4"
+			(uuid "63315a1f-a91d-4672-b975-5ebf18a6d269")
+		)
+		(pin "5"
+			(uuid "3b11485e-e490-4b3e-85f1-88c34c0eba3c")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "U13")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 147.32 147.32 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "3cc826e9-0da5-4ed1-9c82-93d08075656e")
+		(property "Reference" "C47"
+			(at 147.955 144.78 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "1u X7R"
+			(at 147.955 149.86 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 148.2852 143.51 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 147.32 147.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "LDO input bypass"
+			(at 147.32 147.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "CL21B105KBFNNNE"
+			(at 147.32 147.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C28323"
+			(at 147.32 147.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "df7c640e-03d9-4065-bcfa-6220a0089e1d")
+		)
+		(pin "2"
+			(uuid "7c5fa14a-50cb-42dc-90e1-78c671905c1a")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "C47")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 105.41 147.32 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "4c24726e-acb6-47ad-88e1-fbedba5089bb")
+		(property "Reference" "C45"
+			(at 106.045 144.78 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "10u 10V"
+			(at 106.045 149.86 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 106.3752 143.51 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 105.41 147.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Isolated converter input bypass"
+			(at 105.41 147.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "CL21A106KAYNNNE"
+			(at 105.41 147.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C15850"
+			(at 105.41 147.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "867a6748-4329-48c7-8943-576cab2f917b")
+		)
+		(pin "2"
+			(uuid "ccd1ebc5-422f-4ccd-87dc-c3ee21ed3ded")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "C45")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 139.7 147.32 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "69f5b820-2a70-4825-80ba-a41dcaf743ee")
+		(property "Reference" "C46"
+			(at 140.335 144.78 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "10u 10V"
+			(at 140.335 149.86 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 140.6652 143.51 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 139.7 147.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Isolated converter output bypass"
+			(at 139.7 147.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "CL21A106KAYNNNE"
+			(at 139.7 147.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C15850"
+			(at 139.7 147.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "68edd4fb-06dd-4189-95c4-d0f9593ea42e")
+		)
+		(pin "2"
+			(uuid "a4c48f5d-a048-468d-90c3-d0a832ff2721")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "C46")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 184.15 147.32 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "79691d99-44da-4f21-a870-651babb0e739")
+		(property "Reference" "C48"
+			(at 184.785 144.78 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "4.7u X7R 16V"
+			(at 184.785 149.86 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 185.1152 143.51 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 184.15 147.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "LDO output bypass"
+			(at 184.15 147.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "CGA0805X7R475K350MT"
+			(at 184.15 147.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C6119943"
+			(at 184.15 147.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "f32bd04e-ceb2-4165-ade6-77ffb4104b28")
+		)
+		(pin "2"
+			(uuid "2c13df6f-32f5-4e40-9ef6-2b262382cef2")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "C48")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector_Generic:Conn_01x01")
+		(at 196.85 156.21 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "8b8cbbe8-ed7d-4386-9d84-e1ace0cf2963")
+		(property "Reference" "TP3"
+			(at 196.85 153.67 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND_SENS"
+			(at 196.85 158.75 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_THTPad_D2.0mm_Drill1.0mm"
+			(at 196.85 156.21 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 196.85 156.21 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Service test point: GND_SENS"
+			(at 196.85 156.21 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "f0a18f8e-4521-4ebf-8fc1-14a486d65fa8")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "TP3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector_Generic:Conn_01x01")
+		(at 196.85 143.51 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "c9b687fc-5377-4aa3-9bf7-cc3ec41c69d2")
+		(property "Reference" "TP4"
+			(at 196.85 140.97 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+3V3_SENS"
+			(at 196.85 146.05 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_THTPad_D2.0mm_Drill1.0mm"
+			(at 196.85 143.51 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 196.85 143.51 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Service test point: +3V3_SENS"
+			(at 196.85 143.51 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "3f4eca8b-e5eb-4795-ab91-9aa51d3e4304")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "TP4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Converter_DCDC_Isolated:IA0505S")
+		(at 123.19 146.05 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "e5ff0cb8-0a7a-4b10-a35b-251c898ff17f")
+		(property "Reference" "U12"
+			(at 115.57 139.7 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "IA0505S"
+			(at 124.46 139.7 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Converter_DCDC:Converter_DCDC_XP_POWER-IAxxxxS_THT"
+			(at 96.52 139.7 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Datasheet" "https://www.xppower.com/pdfs/SF_IA.pdf"
+			(at 149.86 138.43 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Description" "Shared 1 kV functional-isolation supply for the measurement island | Manufacturer: XP Power | MPN: IA0505S"
+			(at 123.19 146.05 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "IA0505S"
+			(at 149.86 138.43 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Manufacturer" "XP Power"
+			(at 149.86 138.43 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(body_style 1)
+		(in_pos_files yes)
+		(pin "1"
+			(uuid "8068724d-fb98-4ede-bacb-901ea2c9229c")
+		)
+		(pin "2"
+			(uuid "68413abf-ac88-41ad-bfbf-d813f0cc4295")
+		)
+		(pin "4"
+			(uuid "13e72622-f3b5-4b83-ac80-decbeb3a8602")
+		)
+		(pin "5"
+			(uuid "0a19da42-5013-4091-8b21-b57a12f943a9")
+		)
+		(pin "6"
+			(uuid "64dcdf51-cbab-4dcc-b00c-2514ba27c0f9")
+		)
+		(instances
+			(project "thermocouple_8ch"
+				(path "/00000000-0000-0000-0000-000000000001/e0124c18-5d04-594e-b35f-91b3dd12e65e"
+					(reference "U12")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(embedded_fonts no)
+)

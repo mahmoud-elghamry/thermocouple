@@ -68,6 +68,11 @@ hardware/8ch/*.net
 # connectivity contract every schematic edit is checked against
 # (netlist_fingerprint.py). Only the raw exported *.net above is scratch.
 hardware/8ch/BOM.csv
+# The two-layer backup variant (I-025) produces the same scratch.
+hardware/8ch-2layer/output/
+hardware/8ch-2layer/route.log
+hardware/8ch-2layer/*.net
+hardware/8ch-2layer/BOM.csv
 
 # Check reports. Rewritten on every run; their numbers are quoted in
 # docs/STATE.md, which is the thing worth reviewing.

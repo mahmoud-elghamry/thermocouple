@@ -17,6 +17,12 @@ before/after). Board nets renamed in place, copper unchanged; package + PDFs
 board overlaps its PCB-editor page frame (cosmetic). Earlier today: `I-062`,
 `I-045`, `I-027`, REV A0 -> A1 silkscreen; committed `08c8d86`, `d9845ae`.
 
+**2026-09-27:** ADM2587E datasheet in (120 mA max replaces the 100 mA estimate;
+load 0.425 A, fine). AGENTS.md rule 11 (stop at a safe point on low usage).
+**Two-layer backup `hardware/8ch-2layer/`** (`I-025`): routed, DRC 0 violations /
+0 parity, **14 unconnected, all `/+3V3_SENS`** - parked there; owner expects
+4-layer to be orderable from abroad, so this is low priority.
+
 ## Measured, not claimed
 
 | Check | Result |

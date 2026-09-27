@@ -1,0 +1,80 @@
+"""Place the 8-channel thermocouple board and build its copper structure.
+
+Run with KiCad 10's bundled Python, after the board has been synchronised from
+the schematic. This script owns everything that is *not* signal routing:
+
+    placement -> board outline -> mechanics -> silkscreen
+              -> isolation keepouts -> chassis/PE ring -> supply vias -> planes
+
+Signal routing is done by ``route.py`` (Specctra DSN -> Freerouting -> SES).
+Track widths, via sizes and clearances are not defined here; they live in the
+KiCad project, written by ``apply_rules.py``, so anyone opening the project sees
+the same rules the generator used.
+
+The implementation lives in the ``board`` package - see ``board/__init__.py``
+for what is in which module. This file is the entry point and the stable import
+surface for ``route.py``, ``check_board.py`` and ``close_gaps.py``.
+
+Re-running this file is deterministic and discards previous routing.
+"""
+
+from __future__ import annotations
+
+import argparse
+
+try:                                    # pragma: no cover - environment guard
+    import wx
+    # A failed wxWidgets assert inside pcbnew opens a modal dialog, which hangs
+    # a headless run until somebody clicks it.  Fail loudly in Python instead.
+    wx.DisableAsserts()
+except Exception:
+    pass
+
+import pcbnew
+
+from board import *                     # noqa: F401,F403 - the public surface
+from board import BOARD_FILE, clear_generated, clear_in_place
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--clear-only", action="store_true",
+                        help="internal: strip generated items and exit")
+    parser.add_argument("--silk-only", action="store_true",
+                        help="re-place labels and designators on the routed "
+                             "board; copper is not touched")
+    args = parser.parse_args()
+
+    if args.clear_only:
+        clear_in_place(BOARD_FILE)
+        return
+    if args.silk_only:
+        board = pcbnew.LoadBoard(str(BOARD_FILE))
+        for line in place_labels(board):
+            print(f"  label {line}")
+        moved = place_reference_text(board)
+        print(f"Placed {moved} reference designators clear of parts and pads")
+        pcbnew.SaveBoard(str(BOARD_FILE), board)
+        return
+
+    board = clear_generated(BOARD_FILE)
+    place_footprints(board)
+    add_outline(board)
+    add_mechanics_and_silkscreen(board)
+    for line in place_labels(board):
+        print(f"  label {line}")
+    moved = place_reference_text(board)
+    print(f"Placed {moved} reference designators clear of parts and pads")
+    # Two-layer variant: no inner planes, so no plane zones and no fixed
+    # channel vias down to them. The router carries the supplies and
+    # grounds as tracks; route.py pours ground on both faces afterwards.
+    board.SetCopperLayerCount(2)
+    add_planes(board)
+    add_chassis_ring(board)
+    fill_zones(board)
+    pcbnew.SaveBoard(str(BOARD_FILE), board)
+    print(f"Generated {BOARD_FILE}")
+
+
+if __name__ == "__main__":
+    main()
