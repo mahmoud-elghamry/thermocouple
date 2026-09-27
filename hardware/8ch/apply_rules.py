@@ -59,9 +59,9 @@ CLASSES: list[dict] = [
     # 24 V rail: 0.5 A PTC, so ~0.5 A worst case.  0.8 mm on 1 oz outer copper
     # is far above the thermal need; the width is chosen for mechanical
     # robustness and low impedance on the relay coil path.  Clearance is 0.25
-    # mm because the 2N7000's TO-92 inline footprint puts RELAY_LOW 1.27 mm
-    # from RELAY_GATE - the package sets this limit, and 0.25 mm is still far
-    # beyond what 24 V needs.
+    # mm - set when Q1 was a TO-92 2N7000 with RELAY_LOW 1.27 mm from
+    # RELAY_GATE, kept for the SOT-23 BSS131 (I-066): still far beyond what
+    # 24 V, or a 58 V load dump, needs.
     dict(name="Power24V", track_width=0.80, clearance=0.25,
          via_diameter=0.90, via_drill=0.50,
          patterns=["/POWER/+24V_RAW", "/POWER/+24V_FUSED", "/+24V_PROT",

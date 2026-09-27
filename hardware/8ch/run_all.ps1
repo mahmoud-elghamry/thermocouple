@@ -38,8 +38,11 @@ if (-not $env:KICAD_TOOL) {
 }
 
 try {
-  Write-Output '== 1/8  schematic: symbols, labels, no-connect markers =='
-  Invoke-CheckedNative 'python' @('populate_schematic.py', '--labels-only')
+  # populate_schematic.py writes flat sheets only and refuses the hierarchical
+  # schematic (I-062), so it cannot be step 1 any more. The schematic is built
+  # by sch_layout/build.py --in-place (its own ERC + netlist gate) BEFORE this
+  # script; steps 2-3 re-check what it left.
+  Write-Output '== 1/8  schematic: built by sch_layout/build.py, not here =='
 
   Write-Output '== 2/8  ERC =='
   Invoke-CheckedNative $env:KICAD_TOOL @('sch', 'erc', 'thermocouple_8ch.kicad_sch', '-o', 'erc-report.rpt') -AllowedExitCodes @(0,5)
@@ -47,7 +50,7 @@ try {
 
   Write-Output '== 3/8  netlist =='
   Invoke-CheckedNative $env:KICAD_TOOL @('sch', 'netlist', 'thermocouple_8ch.kicad_sch', '-o', 'thermocouple_8ch.net')
-  Invoke-CheckedNative 'python' @('netlist_fingerprint.py', 'netlist-baseline-reva1.json', 'thermocouple_8ch.net')
+  Invoke-CheckedNative 'python' @('netlist_fingerprint.py', 'netlist-baseline-reva2.json', 'thermocouple_8ch.net')
 
   Write-Output '== 4/8  design rules into the KiCad project =='
   Invoke-CheckedNative 'python' @('apply_rules.py')

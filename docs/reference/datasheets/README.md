@@ -19,13 +19,15 @@ URLs rot. About 23 MB in total.
 | `LM5164.pdf` | TI LM5164 (`U14`), SNVSAU4D, from ti.com, added 2026-09-26 | the source of every value in `CALCULATIONS.md` section 1: 100 V absolute maximum, EN/UVLO thresholds, R_RON, feedback, ripple injection |
 | `ADM2587E.pdf` | ADI ADM2582E/ADM2587E (`U15`), Rev. C, from LCSC `C12081` (analog.com blocked), added 2026-09-26 | supply current: **120 mA maximum**, 98 mA typical into 54 Ohm - replaced the 100 mA estimate in `CALCULATIONS.md` 1.1 |
 | `MAX31856.pdf` | Maxim MAX31856 (`U2`-`U9`), 19-7534 Rev 0, from LCSC `C116632` (analog.com blocked the workstation), added 2026-09-26 | **T- is biased to ~0.735 V by the BIAS output**, and the typical circuit ties BIAS to T- with a floating thermocouple - so the ungrounded probes of `0008` need no extra resistor (`I-027`). BIAS floats between conversions, which is why the firmware runs continuous mode |
+| `BSS131.pdf` | Infineon BSS131 (`Q1` since REV A2), Rev. 2.6, from LCSC `C151498`, added 2026-09-28 | **240 V** V(BR)DSS against D2's 96.8 V clamp; VGS(th) 0.8-1.8 V; RDS(on) 20 Ohm max at 4.5 V; **pinout 1 G, 2 S, 3 D** (p1 drawing); ESD Class 0 (`I-066`, `0022`) |
+| `1812L-PTC.pdf` | LUTE 1812L series (`F1` 1812L075/60GR since REV A2), from LCSC `C48985874`, added 2026-09-28 | **60 V** max, 0.75 A hold / 1.5 A trip, R min 0.090 Ohm, and the **hold-current derating table** that sets the 70 °C limit in `CALCULATIONS.md` 4.4 (`I-068`) |
 
 ## Not here
 
 Not downloaded: `IA0505S` (`U12`, XP Power), the SMBJ TVS series
 (`D2`; Littelfuse blocks download - the SMBJ33A figures used in `I-028` are
 33 V standoff, 36.7-40.6 V breakdown, 53.3 V clamping, 600 W at 10/1000 us),
-`SS310`, `1N4007`, `2N7000`.
+`SS310`, `1N4007`/`M7`, and the `2N7000` REV A1 used.
 
 ## Adding one
 

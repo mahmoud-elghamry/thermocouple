@@ -64,7 +64,7 @@ $net = Join-Path $out 'current.net'
 Invoke-CheckedNative $tool @('sch','erc',$sch,'-o',$erc) -AllowedExitCodes @(0,5)
 Assert-ErcReport $erc
 Invoke-CheckedNative $tool @('sch','netlist',$sch,'-o',$net)
-Invoke-CheckedNative 'python' @((Join-Path $PSScriptRoot 'netlist_fingerprint.py'), (Join-Path $PSScriptRoot 'netlist-baseline-reva1.json'), $net)
+Invoke-CheckedNative 'python' @((Join-Path $PSScriptRoot 'netlist_fingerprint.py'), (Join-Path $PSScriptRoot 'netlist-baseline-reva2.json'), $net)
 # I-054: kicad-tool clones a symbol with the donor's MPN, and neither ERC nor
 # the netlist looks at MPN. Part of the gate so nobody has to remember it.
 Invoke-CheckedNative 'python' @((Join-Path $PSScriptRoot 'check_mpn_consistency.py'))

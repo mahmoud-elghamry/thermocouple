@@ -199,16 +199,20 @@ gives
 
     I²t = V² C / (2 R)
 
-With V = 28 V (a charging battery) and R = 0.15 Ohm (a low 1206 PTC minimum
-resistance, with wiring and diode ignored, so worst case):
+With V = 28 V (a charging battery) and R = 0.090 Ohm (the REV A2 `F1`,
+1812L075/60GR, R min from its datasheet; wiring and diode ignored, so worst
+case):
 
-    I²t = 28² x 32e-6 / (2 x 0.15) = 0.084 A²s
+    I²t = 28² x 32e-6 / (2 x 0.090) = 0.139 A²s
+
+(0.084 A²s with the 0.15 Ohm assumed for the REV A1 1206 PTC. Updated
+2026-09-28 for `I-068`.)
 
 **Verdict:** a fuse with a pre-arc I²t of 1 A²s or more survives the inrush
-with more than 10x margin. Time-delay fuses at 1 A are normally well above
+with about 7x margin. Time-delay fuses at 1 A are normally well above
 that, but **check the chosen part's datasheet**, because pre-arc I²t varies by
-maker. The 0.15 Ohm is an assumed PTC minimum, not read from `F1`'s datasheet,
-and it is chosen low so the result errs high.
+maker. The 0.090 Ohm is now read from `F1`'s datasheet
+(`datasheets/1812L-PTC.pdf`), not assumed.
 
 ---
 
@@ -220,7 +224,7 @@ Each still carries its issue number.
 
 | # | Quantity | Result | Verdict |
 |---|---|---|---|
-| `I-016` | `R53`/`R54` divider, 22 k / 4 k7, `RELAY_LOW` to `PC2` | 4.22 V at PC2; 5.28 V if the input reaches 30 V; 0.9 mA; 17.8 mW = **14 %** of the part rating | pass |
+| `I-016` | `R53`/`R54` divider, 22 k / 4 k7, `RELAY_LOW` to `PC2` | 4.22 V at PC2; 5.28 V if the input reaches 30 V; 0.9 mA; 17.8 mW = **14 %** of the part rating | pass at 24-30 V, **fails the 58 V load dump** (1.2 mA into the clamp, `I-067`); **superseded by 4.3 (100 k / 22 k)** |
 | `I-011` | Input filter corner, differential against common mode | 7.96 kHz differential / 159 kHz common mode = **20x ratio** | pass — the differential signal is filtered and common mode is not folded into it |
 | `I-045` | Leakage error at the thermocouple input: BAV199 against a 3.3 V TVS | BAV199 3 pA gives **0.024 degC**; the TVS at 2 uA gives **9.8 degC** | this one number chose the part |
 | `I-032` | Crystal load capacitance, 22 pF against `CL_actual = C/2 + C_stray` | **+75 ppm**, against a UART budget of about 20 000 ppm, so **267x inside** | pass — an earlier draft called this a problem; it is not |
@@ -240,3 +244,105 @@ Each still carries its issue number.
   series Schottky.
 * **Isolation barrier**, `I-004` — never verified electrically.
 * **Thermal**, **EMC** and **SPICE** — nothing run.
+
+## 4. REV A2 — the pre-fabrication review's fixes (2026-09-28)
+
+Context: `docs/decisions/0022`. Datasheets in `docs/reference/datasheets/`.
+
+### 4.1 `Q1` — BSS131 against the battery rail (`I-066`)
+
+**Voltage.** With the relay off, the drain sits at `+24V_PROT` through the
+coil; D3 holds a coil flyback to one diode drop above that rail. The
+highest the rail gets is D2's clamp: SMBJ60A, 96.8 V at 6.2 A.
+
+    BSS131 V(BR)DSS 240 V min (datasheet p2) / 96.8 V = 2.48x
+    2N7000        60 V                            < 66.7 V, D2's minimum breakdown
+
+**On state.** Coil 16.7 mA (section 2). RDS(on) is at most 20 Ohm at
+VGS = 4.5 V and ID = 90 mA (p2):
+
+    drop = 16.7 mA x 20 Ohm = 0.33 V;   coil sees 23.7 V > 18 V must-operate
+    P    = 16.7e-3² x 20    = 5.6 mW    (360 mW rating)
+
+**Gate.** VGS(th) is 0.8-1.8 V at 56 uA. The AVR drives about 5 V through
+`R30` (100 R), and `R31` (100 k) holds 0 V in reset. So the gate sees 3.2 V
+of overdrive above the maximum threshold, and 0.8 V of margin below the
+minimum threshold when off.
+
+**Verdict:** pass. ESD Class 0 (<250 V HBM): handle with ESD care at assembly.
+
+### 4.2 `R61` — ISP series resistor on U11's MISO output (`I-065`)
+
+**Contention during ISP.** The AVR drives MISO against U11 OUTF, and U11 can
+sit at either rail:
+
+    I = 5 V / 2.2 k = 2.3 mA   against the ISO7761's recommended |IOH|, |IOL| of 4 mA at 5 V
+    (1 k would be 5.0 mA - over the recommendation, which is why 2k2)
+
+**Normal operation.** SPI runs at F_CPU/16 = 500 kHz (`mcal/spi.c`: SPR0,
+8 MHz), so a half period is 1 us:
+
+    tau = 2.2 k x ~15 pF (AVR pin + trace) = 33 ns    = 3 % of the half period
+    ISO7761 propagation delay 11 ns typical           (datasheet)
+
+**LOW level against the AVR's MISO pull-up.** The firmware enables PB6's
+internal pull-up, which is 20-50 k (ATmega32A). The worst case is 20 k:
+
+    VIL = 5 V x 2.2 / (2.2 + 20) = 0.50 V   < 0.3 x VCC = 1.5 V
+
+**Verdict:** pass on all three.
+
+### 4.3 `R53`/`R54` — run-permit read-back at 100 k / 22 k (`I-067`)
+
+Replaces the 22 k / 4 k7 row in section 2.
+
+| `RELAY_LOW` | PC2 (open circuit) | Note |
+|---|---|---|
+| 24 V | 24 x 22 / 122 = **4.33 V** | valid high |
+| 28.8 V (charging) | **5.19 V** | below VCC + 0.5 V, so no clamp current |
+| 58 V (load dump) | 10.46 V behind 100 k // 22 k = 18.0 k | clamp takes (10.46 - 5.5) / 18.0 k = **0.28 mA** |
+| 16.6 V | 3.0 V = 0.6 x VCC | the lowest supply that still reads a valid high |
+
+With 22 k / 4 k7 the same dump gave 58 x 4.7 / 26.7 = 10.2 V and
+(58 - 5.5) / 22 k - 5.5 / 4.7 k = **1.2 mA** into the clamp, against the
+~1 mA of Microchip AVR182. The lowest valid-high supply was 17.0 V.
+
+    divider current at 58 V: 58 / 122 k = 0.48 mA;  P(R53) = 0.48e-3² x 100 k = 23 mW  (125 mW part)
+    leakage error:           1 uA x 18 k = 18 mV   (negligible)
+
+**Verdict:** pass. The read-back is valid over the same range as before and
+now survives the design-basis load dump.
+
+### 4.4 `F1` — 1812L075/60GR (`I-068`)
+
+From the datasheet (`datasheets/1812L-PTC.pdf`, LUTE): V max 60 V, I max 40 A,
+I hold 0.75 A / I trip 1.50 A at 25 °C, 0.20 s to trip at 8 A, R min
+0.090 Ohm, R1 max 0.500 Ohm.
+
+**Hold current against temperature** (the datasheet's derating table, 0.75 A
+row), against the 0.39 A cranking-floor load of 1.9:
+
+| Ambient | 25 °C | 40 °C | 50 °C | 60 °C | 70 °C | 85 °C |
+|---|---|---|---|---|---|---|
+| I hold | 0.75 | 0.63 | 0.57 | 0.49 | 0.45 | 0.35 A |
+| holds 0.39 A? | yes | yes | yes | yes | yes | **no** |
+
+At 24 V the load is 98 mA, so the part holds at every rated temperature. For
+comparison, the same series' 0.5 A row is 0.35 A at 60 °C.
+
+**Voltage drop** at the cranking floor: 0.39 A x 0.5 Ohm (R1 max) = 0.20 V.
+
+**Voltage rating:** 60 V against the 58 V suppressed load dump, the design
+basis of `0016`. The margin is 2 V, and anything above the design basis is
+outside every part in the input stage, not only this one.
+
+**Faults between hold and trip.** After the regulator, the LM5164's peak
+current limit of 1.25-1.75 A at 5 V (datasheet 6.3.6) caps a fault at about
+8.75 W, which is at most ~0.4 A from 24 V. So those faults never reach F1.
+Before the regulator, the parts that can fail are D2, C53, C54 and C63, and
+they fail towards a short, which trips F1 and the panel fuse.
+
+**Inrush:** 1.9, re-computed with this part's R min: 0.139 A²s.
+
+**Verdict:** pass up to a 70 °C panel ambient. **The panel's maximum ambient
+has not been measured**; if it can exceed 70 °C, look again.

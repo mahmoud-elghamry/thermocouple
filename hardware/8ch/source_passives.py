@@ -67,10 +67,14 @@ REQUIREMENTS = {
                        power=0.25),
     "10k":       dict(kind="r", footprint=R0805, ohms=10000, tol=0.05),
     # --- REV A1 (docs/decisions/0014) -------------------------------
+    # R53/R54 since REV A2 (I-067): 100k/22k, not 22k/4k7 - the same 4.3 V at
+    # 24 V, but a 58 V load dump now pushes 0.28 mA into PC2's clamp, not 1.2 mA.
     "22k":          dict(kind="r", footprint=R0805, ohms=22e3,
-                         critical="run-permit read-back divider, upper leg;\n                                   with R54 it puts ~4.2 V on PC2 from 24 V"),
-    "4k7":          dict(kind="r", footprint=R0805, ohms=4.7e3,
-                         critical="run-permit read-back divider, lower leg"),
+                         critical="run-permit read-back divider, lower leg; "
+                                  "with R53 (100k) it puts ~4.3 V on PC2 from 24 V"),
+    # R61 (I-065): U11 OUTF -> MISO_CTRL, so the AVR wins MISO during ISP.
+    # 2k2 keeps the contention at 2.3 mA, inside the ISO7761's 4 mA rating.
+    "2k2":          dict(kind="r", footprint=R0805, ohms=2.2e3, tol=0.05),
     "100k":      dict(kind="r", footprint=R0805, ohms=100000, tol=0.05),
 
     # --- LM5164 input stage (decisions/0016, CALCULATIONS.md 1) -------------

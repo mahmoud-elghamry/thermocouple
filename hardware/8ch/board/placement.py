@@ -62,6 +62,9 @@ def build_placements() -> dict[str, tuple[float, float, float]]:
     put("C44", 140.0, 63.0)          # +3V3_SENS at U11 pad 16
     put("C41", 156.5, 41.5)          # +5V_CTRL at U10 pad 1
     put("C43", 156.5, 82.0)          # +5V_CTRL at U11 pad 1
+    # I-065: 2k2 from U11 pad 7 (OUTF, y 68.8) to MISO_CTRL, in the strip
+    # between U11's control-side pads (x <= 153.7) and J5, above J5's courtyard.
+    put("R61", 155.3, 63.8, 90)     # courtyard y 62.1-65.5, clear of J5 (66.2)
 
     # Isolated supply for the sensor island.  U12 is rotated 90 deg so its pin
     # row runs across the barrier: +Vin/-Vin stay in the control island and
@@ -103,9 +106,9 @@ def build_placements() -> dict[str, tuple[float, float, float]]:
 
     # --- protected 24 V input and 5 V rail --------------------------------
     put("J1", 170.0, 131.0, 180)     # pin1 +24V, pin2 GND_CTRL, pin3 chassis
-    put("F1", 180.0, 131.0)          # 0.5 A PTC
-    put("D1", 187.0, 131.0)          # SS34 reverse-polarity series diode
-    put("D2", 195.0, 131.0)          # SMBJ33A transient clamp
+    put("F1", 180.0, 131.0)          # 0.75 A 60 V PTC, 1812 (I-068)
+    put("D1", 187.0, 131.0)          # SS310 reverse-polarity series diode
+    put("D2", 195.0, 131.0)          # SMBJ60A transient clamp
     put("C53", 178.0, 122.0)         # 22u 100V bulk on +24V_PROT
     # LM5164 buck (I-028, 0016) in the free lower-left of the control island:
     # input caps above VIN, L1 beside SW, output caps after L1, feedback
@@ -134,10 +137,10 @@ def build_placements() -> dict[str, tuple[float, float, float]]:
     # --- energised-to-run relay -------------------------------------------
     put("R30", 196.0, 96.0)          # gate stopper from RUN_PERMIT
     put("R31", 196.0, 101.0)         # gate pull-down: de-energised by default
-    put("Q1", 202.0, 98.0, 0)        # 2N7000 low-side switch
+    put("Q1", 202.0, 98.0, 0)        # BSS131 low-side switch, SOT-23 (I-066)
     put("R32", 190.0, 101.0)         # run-permit LED series resistor
     put("D4", 190.0, 96.0)           # run-permit LED
-    put("D3", 212.0, 86.0, 90)       # 1N4007 coil flyback clamp
+    put("D3", 212.0, 86.0, 90)       # M7 (SMA 1N4007) coil flyback clamp
     put("R53", 205.5, 103.0, 90)     # run-permit read-back divider (I-016)
     put("R54", 205.5, 107.0, 90)
     put("K1", 225.0, 65.0, 0)        # G5LE-1 24 V, energised to allow run

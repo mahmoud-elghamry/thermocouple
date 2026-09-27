@@ -16,7 +16,7 @@ working, fix it here rather than working around it in a session.
 | Freerouting 2.4.1 | `%LOCALAPPDATA%\kicad-tools\freerouting.jar` | autorouting via Specctra DSN/SES |
 | Temurin JRE 25 | `%LOCALAPPDATA%\kicad-tools\jre25\*\bin\java.exe` | runs Freerouting |
 | avr-gcc | see `firmware/build.ps1` | firmware |
-| Konnect | `D:	ools\konnect\konnect.exe` | the KiCad MCP - 226 tools; IPC when KiCad is open, S-expressions when it is closed |
+| Konnect | `C:\Users\Public\AI-Tools\konnect\konnect.exe` (what `~/.claude.json` registers; `sch_layout/kon.py` needs it on PATH or in `KONNECT`) | the KiCad MCP - 226 tools; IPC when KiCad is open, S-expressions when it is closed |
 
 Freerouting and the JRE are **not** in the repository. Override the paths with
 `FREEROUTING_JAR` and `FREEROUTING_JAVA` if they move.
@@ -62,6 +62,25 @@ python apply_rules.py                        # net classes + .kicad_dru into the
 & $py close_gaps.py                          # joins whatever DRC still reports as open
 & $py check_board.py                         # structural checks DRC cannot make
 ```
+
+**Since the schematic is hierarchical (I-062), the order is different**, learned
+on the REV A2 run (2026-09-28):
+
+1. Schematic changes go into `sch_layout/` (a new part or a pin change in
+   `reva2.py`-style code called from `fixes.py`, its position in `extra.py`,
+   its block in `rootlayout.py`). Then run `build.py --in-place`. Do not run
+   `populate_schematic.py`: it refuses a hierarchical sheet. `run_all.ps1`
+   no longer calls it.
+2. A deliberate connectivity change needs a new baseline. Write it only
+   after `build.py`'s fingerprint lists exactly the differences you intended.
+3. `kicad-tool pcb sync` needs `KICAD10_FOOTPRINT_DIR` set. Without it, every
+   footprint comes back "unresolved" and new parts are not added.
+4. `build.py` changes the sheet files, so `board_provenance.py --check`
+   reports DRIFT. That is not hand work; run `--record`.
+5. **Freerouting once stopped by itself after 2 s** ("Fanout stage
+   interrupted", 151 unconnected), and `route.py` still exited 0. Re-running
+   `generate_board.py` + `route.py` worked. Always read the unconnected count;
+   DRC is the gate that catches it.
 
 ### After any generator run that ADDED parts
 

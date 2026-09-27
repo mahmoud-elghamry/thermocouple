@@ -15,6 +15,7 @@ def spec():
     for i,R in enumerate(("R40","R41","R42","R43")):
         P(R,ux+24+(9 if i%2 else 0),uy-6+2*i,90)
     P("R27",ux+24,uy+4,270); P("TP6",ux+48,uy+4)
+    P("R61",ux-13,uy+4,90)   # I-065: U11 OUTF -> 2k2 -> MISO_CTRL
     # ---- isolated 5 V and the 3.3 V sensor rail ------------------------
     ax,ay=352,30
     P("U12",ax,ay); P("C45",ax-14,ay+1); P("C46",ax+13,ay+1); P("C47",ax+19,ay+1)

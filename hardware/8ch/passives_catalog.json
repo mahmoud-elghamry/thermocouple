@@ -570,7 +570,7 @@
    "mpn": "0805W8F2202T5E",
    "stock": 731923,
    "unit_price_usd": 0.0018,
-   "why_it_matters": "run-permit read-back divider, upper leg;\n                                   with R54 it puts ~4.2 V on PC2 from 24 V"
+   "why_it_matters": "run-permit read-back divider, lower leg; with R53 (100k) it puts ~4.3 V on PC2 from 24 V"
   },
   "22p C0G 50V": {
    "alternates": [
@@ -629,6 +629,22 @@
    "stock": 350761,
    "unit_price_usd": 0.119571,
    "why_it_matters": "buck output capacitor"
+  },
+  "2k2": {
+   "alternates": [],
+   "footprint": "Resistor_SMD:R_0805_2012Metric",
+   "jlcpcb_basic": true,
+   "lcsc": "C17520",
+   "measured": {
+    "power_watts": 125,
+    "temperature_coefficient": null,
+    "tolerance_fraction": 0.01,
+    "voltage_rating": null
+   },
+   "mpn": "0805W8F2201T5E",
+   "note": "Added by hand 2026-09-28 for R61 (I-065) from LCSC C17520 (UNI-ROYAL, 1 %, 125 mW); re-run source_passives.py to refresh stock, price and alternates.",
+   "stock": 3061600,
+   "unit_price_usd": null
   },
   "3.3n 50V X7R": {
    "alternates": [
@@ -835,31 +851,6 @@
    "stock": 214257,
    "unit_price_usd": 0.001729,
    "why_it_matters": "feedback divider lower - directly sets the 5 V rail"
-  },
-  "4k7": {
-   "alternates": [
-    {
-     "lcsc": "C2907326",
-     "mpn": "FRC0805J472 TS"
-    },
-    {
-     "lcsc": "C26022",
-     "mpn": "0805W8J0472T5E"
-    }
-   ],
-   "footprint": "Resistor_SMD:R_0805_2012Metric",
-   "jlcpcb_basic": true,
-   "lcsc": "C17673",
-   "measured": {
-    "power_watts": 125,
-    "temperature_coefficient": null,
-    "tolerance_fraction": 0.01,
-    "voltage_rating": null
-   },
-   "mpn": "0805W8F4701T5E",
-   "stock": 7466162,
-   "unit_price_usd": 0.001586,
-   "why_it_matters": "run-permit read-back divider, lower leg"
   },
   "680R 1%": {
    "alternates": [

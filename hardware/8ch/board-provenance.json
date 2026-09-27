@@ -1,35 +1,35 @@
 {
  "note": "Hashes of the board and schematic as the generator last left them. If the files no longer match, someone edited by hand and running the generator would destroy that work. See AGENTS.md rules 8 and 9 and docs/decisions/0012.",
- "recorded": "2026-09-26T10:59:25+03:00",
+ "recorded": "2026-09-28T01:07:41+03:00",
  "generated_by": "generate_board.py",
  "files": {
   "thermocouple_8ch.kicad_pcb": {
-   "sha256": "8491900b67803cac2d21045c1940a37e6ef5f716d937076ed25fd51364183565",
-   "bytes": 3004681
+   "sha256": "32e5af358b9aaa91cbc2f1123ebcc9f13602706752efd90fa8193d9df3163512",
+   "bytes": 3016306
   },
   "thermocouple_8ch.kicad_sch": {
    "sha256": "53d39d9fcd00710cc63f0ce72d8e128e8cc9f05c0e63ab57ce25569cb4be7627",
    "bytes": 64368
   },
   "channel.kicad_sch": {
-   "sha256": "4e15cf5ed953732b4f05139828f7294a68a589926b80f59c4b33779ca9d68913",
+   "sha256": "6a2aef6761fbe176ba048548a4ed469e076098cce717341097c82c48c88c2a0b",
    "bytes": 62382
   },
   "power.kicad_sch": {
-   "sha256": "2372dbfd200426209d0f65064faf5315f1ed372dcae8188fb7546b33259ecb75",
-   "bytes": 82605
+   "sha256": "22d39a75cb6f4facdb582a5c3dcab221ad6c4058ba2b3c81c1c4ff1e09a97423",
+   "bytes": 82645
   },
   "mcu.kicad_sch": {
-   "sha256": "0cdc8c8a723ed5245cc57771e631524de232e54b2bfc5e41fe3f2e787c2f99e5",
+   "sha256": "61b28e35df2ef726f0fed8dce3acc194d5037fbccb2af0b1bf847874105a5d45",
    "bytes": 107049
   },
   "isolation.kicad_sch": {
-   "sha256": "9ee3a14df4dc766cf10fac8b4e4c4f0c68231a3d3ee85fe5f669abe32850762a",
-   "bytes": 95497
+   "sha256": "e1866b4d3d047494f62c6d944f3ae5db9a2261432273885918c3a68c4609e5b7",
+   "bytes": 97407
   },
   "relay_rs485.kicad_sch": {
-   "sha256": "45b69d79574ae41d7c4d7fa7ceaa0f9f5aae762f974847fb2fd14e4380e3f55a",
-   "bytes": 127012
+   "sha256": "5746ec5bb436cc5de1a9483eced188331020292ad0f5d5d054b85e9f3d47738a",
+   "bytes": 126801
   }
  }
 }

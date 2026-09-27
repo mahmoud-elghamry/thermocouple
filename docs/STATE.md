@@ -2,46 +2,46 @@
 
 **Read second, after `AGENTS.md`. Update before finishing. Hard limit: 60 lines.**
 
-**Last updated:** 2026-09-27 (workstation)
+**Last updated:** 2026-09-28 (workstation)
 
 ## Last session
 
-2026-09-26: schematic on six A4 sheets (`0021`), every net kept its netclass; panel
-fuse specified (`0020`); `I-064` cosmetic page frame. Details in git log.
+2026-09-27: pre-fabrication review (`I-065`..`I-069`, commit `cf69b03`).
 
-**2026-09-27:** ADM2587E datasheet in (120 mA max replaces the 100 mA estimate;
-load 0.425 A, fine). AGENTS.md rule 11 (stop at a safe point on low usage).
-**Two-layer backup `hardware/8ch-2layer/`** (`I-025`): routed, DRC 0 violations /
-0 parity, **14 unconnected, all `/+3V3_SENS`** - parked there; owner expects
-4-layer to be orderable from abroad, so this is low priority.
-
-**Pre-fabrication review 2026-09-27** (netlist pin by pin against datasheets):
-MAX31856, BAV199, ISO7760/61, IA0505S, LP2985, LM5164, ADM2587E, ATmega32A, ISP/LCD
-headers, diodes, Q1 pinout, every capacitor's voltage all verified correct. **Found:
-`I-065` ISP/MISO contention + F-suffix isolators select all sensors in reset (high),
-`I-066` Q1 60 V on a 58 V rail (high), `I-067` PC2 10 V in load dump, `I-068` F1 30 V
-PTC, `I-069` procurement traps.** Settle I-065/I-066 before ordering.
+**2026-09-28: REV A2** (`0022`), all five findings fixed. The board was
+regenerated and re-routed from scratch:
+`U10`/`U11` without the F suffix, plus `R61` 2k2 on U11's MISO (`I-065`);
+`Q1` BSS131 240 V SOT-23 (`I-066`); `R53`/`R54` 100k/22k (`I-067`); `F1`
+60 V 0.75 A 1812 PTC (`I-068`); D2 drawn unidirectional, D3 = M7 (`I-069`).
+Schematic changes live in `sch_layout/reva2.py`, and `build.py` reproduces them.
+Netlist contract is `netlist-baseline-reva2.json`; `BOARD_REV = "A2"`.
+**Board state:** Freerouting left `C41.1` (+5V_CTRL) open, so **one via and one
+track at (155.75, 42.9) were added by hand**, then `--record`. A regeneration
+will reroute and must be re-checked for that pad. Arithmetic in
+`CALCULATIONS.md` 4. Two-layer backup (`I-025`) is now a revision behind.
 
 ## Measured, not claimed
 
 | Check | Result |
 |---|---|
-| `validate.ps1` (workstation, KiCad 10.0.6, 10:59) | **passed**: ERC 0/0; netlist **IDENTICAL** 201/162/645; **DRC 0 errors, 0 warnings, 0 unconnected, 0 parity** |
-| `check_board.py` | **all 6 ok**; 162/162 nets keep their netclass across the 0021 rename |
-| `check_mpn_consistency.py` (now inside `validate.ps1`) | 128 / 128 match (all sheets) |
-| `build.py` from `05d6abd` (scratch, 11:05) | reproduces all six sheets (equal apart from UUIDs): IDENTICAL, ERC 0/0 |
-| Drill file | 0.20 mm x 6 (U14 only), every other hole >= 0.30 mm |
-| `firmware/build.ps1` (workstation, 2026-09-26) | exit 0; 4 images, 3 suites pass; 8ch image 5592 B (17.1 %) |
+| `validate.ps1` (workstation, KiCad 10.0.6, 2026-09-28 01:07) | **passed**: ERC 0/0; netlist **IDENTICAL** 202/163/647; **DRC 0 errors, 0 warnings, 0 unconnected, 0 parity** (`production/validation-20260928-010725-15416d`) |
+| `check_board.py` | **all 6 ok** |
+| `check_mpn_consistency.py` / `source_passives.py --check` | 129 / 129 match; 38 passive types, all with MPN |
+| `build.py --in-place` (2026-09-28) | IDENTICAL against reva2, ERC 0/0 |
+| `firmware/build.ps1` (workstation, 2026-09-28) | exit 0; 4 images, 3 suites pass; 8ch image 5592 B (17.1 %). No firmware change was needed |
 
 Freerouting's own "violations" count is its plane-less model, never the verdict.
 No IEC 61010 creepage analysis, SPICE, thermal, EMC or physical measurement.
 
 ## Next actions
-1. **Owner:** order 4-layer (`I-025`); get the fab quote incl. 0.2 mm holes.
-   10 BOM lines have no LCSC code (`I-051`, closed) - JLC global sourcing or hand-solder.
-2. **Owner: commit** the `0021` split and the `0020` fuse spec.
-3. **Bench, when boards arrive:** K1 (`I-058`), isolation (`I-004`), timing (`I-013`), `I-003`.
-4. Choose the `0020` fuse part and put it on the panel drawing; owner: `I-056`, `I-046`; `I-026` buy ungrounded probes (board ready).
+1. **Owner: review and commit REV A2** (nothing committed except the review, `cf69b03`).
+2. **Export the REV A2 package** into `production/8ch-reva2/` (TOOLS.md "Gerbers"),
+   then order. **Do not order `production/8ch-reva1/`**: that is the old circuit.
+   Check LCSC stock first: ISO7760DWR ~109, ISO7761DWR ~366, PTC ~2 k.
+3. **Bench, when boards arrive:** ISP through J5 (`I-065`); D2 band (`I-069`);
+   K1 (`I-058`); isolation (`I-004`); timing (`I-013`); `I-003`.
+4. Owner: the panel's maximum ambient temperature (F1 holds up to 70 °C);
+   the `0020` fuse part; `I-056`, `I-046`; `I-026` probes.
 
 ## Tooling, and the traps it sets
 

@@ -3508,8 +3508,129 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Transistor_FET:2N7000"
+		(symbol "power:PWR_FLAG"
+			(power global)
+			(pin_numbers
+				(hide yes)
+			)
 			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "#FLG"
+				(at 0 1.905 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "PWR_FLAG"
+				(at 0 3.81 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Special symbol for telling ERC where power comes from"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "flag power"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "PWR_FLAG_0_0"
+				(pin power_out line
+					(at 0 0 90)
+					(length 0)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(symbol "PWR_FLAG_0_1"
+				(polyline
+					(pts
+						(xy 0 0)
+						(xy 0 1.27)
+						(xy -1.016 1.905)
+						(xy 0 2.54)
+						(xy 1.016 1.905)
+						(xy 0 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Transistor_FET:Q_NMOS_GSD"
+			(pin_names
+				(offset 0)
 				(hide yes)
 			)
 			(exclude_from_sim no)
@@ -3528,7 +3649,7 @@
 					(justify left)
 				)
 			)
-			(property "Value" "2N7000"
+			(property "Value" "Q_NMOS_GSD"
 				(at 5.08 0 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -3539,21 +3660,8 @@
 					(justify left)
 				)
 			)
-			(property "Footprint" "Package_TO_SOT_THT:TO-92_Inline"
-				(at 5.08 -1.905 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-						(italic yes)
-					)
-					(justify left)
-				)
-			)
-			(property "Datasheet" "https://www.vishay.com/docs/70226/70226.pdf"
-				(at 5.08 -3.81 0)
+			(property "Footprint" ""
+				(at 5.08 2.54 0)
 				(show_name no)
 				(do_not_autoplace no)
 				(hide yes)
@@ -3561,10 +3669,9 @@
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left)
 				)
 			)
-			(property "Description" "0.2A Id, 200V Vds, N-Channel MOSFET, 2.6V Logic Level, TO-92"
+			(property "Datasheet" ""
 				(at 0 0 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -3575,7 +3682,7 @@
 					)
 				)
 			)
-			(property "ki_keywords" "N-Channel MOSFET Logic-Level"
+			(property "Description" "N-MOSFET transistor, gate/source/drain"
 				(at 0 0 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -3586,7 +3693,7 @@
 					)
 				)
 			)
-			(property "ki_fp_filters" "TO?92*"
+			(property "ki_keywords" "transistor NMOS N-MOS N-MOSFET"
 				(at 0 0 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -3597,7 +3704,7 @@
 					)
 				)
 			)
-			(symbol "2N7000_0_1"
+			(symbol "Q_NMOS_GSD_0_1"
 				(polyline
 					(pts
 						(xy 0.254 1.905)
@@ -3755,10 +3862,8 @@
 				)
 				(polyline
 					(pts
-						(xy 2.794 0.508)
 						(xy 2.921 0.381)
 						(xy 3.683 0.381)
-						(xy 3.81 0.254)
 					)
 					(stroke
 						(width 0)
@@ -3784,11 +3889,11 @@
 					)
 				)
 			)
-			(symbol "2N7000_1_1"
-				(pin passive line
-					(at 2.54 -5.08 90)
+			(symbol "Q_NMOS_GSD_1_1"
+				(pin input line
+					(at -5.08 0 0)
 					(length 2.54)
-					(name "S"
+					(name "G"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -3803,10 +3908,10 @@
 						)
 					)
 				)
-				(pin input line
-					(at -5.08 0 0)
+				(pin passive line
+					(at 2.54 -5.08 90)
 					(length 2.54)
-					(name "G"
+					(name "S"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -3842,280 +3947,160 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "power:PWR_FLAG"
-			(power global)
-			(pin_numbers
-				(hide yes)
-			)
-			(pin_names
-				(offset 0)
-				(hide yes)
-			)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(in_pos_files yes)
-			(duplicate_pin_numbers_are_jumpers no)
-			(property "Reference" "#FLG"
-				(at 0 1.905 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" "PWR_FLAG"
-				(at 0 3.81 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" ""
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Datasheet" ""
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Description" "Special symbol for telling ERC where power comes from"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "ki_keywords" "flag power"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(symbol "PWR_FLAG_0_0"
-				(pin power_out line
-					(at 0 0 90)
-					(length 0)
-					(name ""
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(symbol "PWR_FLAG_0_1"
-				(polyline
-					(pts
-						(xy 0 0)
-						(xy 0 1.27)
-						(xy -1.016 1.905)
-						(xy 0 2.54)
-						(xy 1.016 1.905)
-						(xy 0 1.27)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
 	)
 	(wire
 		(pts
 			(xy 92.71 58.42)
 			(xy 93.98 58.42)
 		)
-		(uuid "13efb954-3283-4273-b008-83b51c174a5c")
+		(uuid "20a009a5-91af-423e-a798-a3e28d7aee90")
 	)
 	(wire
 		(pts
 			(xy 92.71 58.42)
 			(xy 90.17 58.42)
 		)
-		(uuid "dc359870-ff92-4c84-b689-4d74f8e06dcc")
+		(uuid "a45d7dce-6d7e-44ba-a177-b87b4b92570e")
 	)
 	(wire
 		(pts
 			(xy 130.81 48.26)
 			(xy 134.62 48.26)
 		)
-		(uuid "f0a066ee-683e-4366-8018-c7210be9880f")
+		(uuid "06c8c3b1-5c16-4b90-a1b4-eb5d253a8662")
 	)
 	(wire
 		(pts
 			(xy 106.68 53.34)
 			(xy 101.6 53.34)
 		)
-		(uuid "35dce2e6-a7e5-4cda-a2c6-7492bf8dc42f")
+		(uuid "eb7c20ba-9579-4414-a04f-f0f5c05015a1")
 	)
 	(wire
 		(pts
 			(xy 106.68 53.34)
 			(xy 110.49 53.34)
 		)
-		(uuid "04ed4b58-aec5-4aa8-8d83-6ba58410c0b1")
+		(uuid "904f0da8-ce10-4c24-9a5b-1b2a7ca4332e")
 	)
 	(wire
 		(pts
 			(xy 110.49 53.34)
 			(xy 110.49 59.69)
 		)
-		(uuid "ff53822f-68df-4eea-8428-38f00350627f")
+		(uuid "59ce6521-d544-4a79-9912-7c01e69569cf")
 	)
 	(wire
 		(pts
 			(xy 106.68 68.58)
 			(xy 101.6 68.58)
 		)
-		(uuid "559f5016-5242-43ee-b4e0-a631328a7f95")
+		(uuid "b6d35197-ffe7-4b93-a31f-3eba4d0bc31a")
 	)
 	(wire
 		(pts
 			(xy 101.6 68.58)
 			(xy 101.6 63.5)
 		)
-		(uuid "43d09411-76ae-414f-a081-0465ec7a04e9")
+		(uuid "b055c003-1da6-49c9-a83c-f81a2c1b6300")
 	)
 	(wire
 		(pts
 			(xy 92.71 66.04)
 			(xy 95.25 66.04)
 		)
-		(uuid "6860b854-0ccb-4ba8-9e5d-e80ff4118d85")
+		(uuid "4f6f664c-9c88-4e18-86f4-174d016559d9")
 	)
 	(wire
 		(pts
 			(xy 95.25 66.04)
 			(xy 95.25 63.5)
 		)
-		(uuid "bbeca17c-0997-4396-b728-d65d15001e8a")
+		(uuid "7fdc01aa-c066-4f02-bc79-ea43de6767c1")
 	)
 	(wire
 		(pts
 			(xy 95.25 63.5)
 			(xy 101.6 63.5)
 		)
-		(uuid "470edae7-42de-4c95-a786-acaed0652c51")
+		(uuid "4f4587b0-7389-4154-a3a4-b8ec85d83b49")
 	)
 	(wire
 		(pts
 			(xy 119.38 71.12)
 			(xy 110.49 71.12)
 		)
-		(uuid "339fb5a5-1708-454a-a42b-42f3581643f6")
+		(uuid "638ba497-b900-403b-b117-c46a798a96b4")
 	)
 	(wire
 		(pts
 			(xy 110.49 71.12)
 			(xy 110.49 67.31)
 		)
-		(uuid "0fd07353-267c-48f0-9501-237457d0c22f")
+		(uuid "af7a291a-7b26-491a-abb3-7249b0d01c3d")
 	)
 	(wire
 		(pts
 			(xy 119.38 55.88)
 			(xy 113.03 55.88)
 		)
-		(uuid "e37c808f-2229-4ba2-bb71-1186910b6696")
+		(uuid "52c15ece-c6e1-4267-b93a-19f2d2e84573")
 	)
 	(wire
 		(pts
 			(xy 113.03 55.88)
 			(xy 113.03 59.69)
 		)
-		(uuid "9798549b-c651-404e-be0d-e6147317a919")
+		(uuid "c1422316-5569-462b-ba24-5b8303b87ffb")
 	)
 	(wire
 		(pts
 			(xy 113.03 59.69)
 			(xy 110.49 59.69)
 		)
-		(uuid "94c84105-e52d-4c71-9dfe-1563b1525849")
+		(uuid "cc17f2b8-159a-42bd-9d79-8416482819e2")
 	)
 	(wire
 		(pts
 			(xy 132.08 55.88)
 			(xy 137.16 55.88)
 		)
-		(uuid "13b34126-8249-48f5-8399-056a834ba72c")
+		(uuid "5a53da5d-ca8c-490c-a9b9-53679be93c31")
 	)
 	(wire
 		(pts
 			(xy 137.16 55.88)
 			(xy 137.16 63.5)
 		)
-		(uuid "530a7f2d-0e74-4a9e-8ef0-458830380632")
+		(uuid "65c59224-e00c-4d1a-aa5f-0b19ff8452d1")
 	)
 	(wire
 		(pts
 			(xy 137.16 63.5)
 			(xy 152.4 63.5)
 		)
-		(uuid "2fb8300c-5ec4-447c-a842-6d5871a5eab1")
+		(uuid "063df71d-5945-4808-90e4-b8db3cb9891d")
 	)
 	(wire
 		(pts
 			(xy 129.54 71.12)
 			(xy 135.89 71.12)
 		)
-		(uuid "66457e86-ec0e-4d73-8471-4bf470f3b091")
+		(uuid "b9d40612-90b9-41fa-ad12-9b2917e8b3d0")
 	)
 	(wire
 		(pts
 			(xy 135.89 71.12)
 			(xy 135.89 60.96)
 		)
-		(uuid "d2a23245-9fb9-4ce7-8e65-0f8748ce5041")
+		(uuid "92a35ac5-9295-4fcc-af2e-9df7f04df72c")
 	)
 	(wire
 		(pts
 			(xy 135.89 60.96)
 			(xy 152.4 60.96)
 		)
-		(uuid "d69fe501-b3d4-4ebe-bfaa-a3a3903d0719")
+		(uuid "b9b9dbb0-d8b0-46dc-9c3a-2f15f468ab91")
 	)
 	(hierarchical_label "RUN_PERMIT_SENSE"
 		(shape passive)
@@ -4126,7 +4111,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "32a2bd05-50fb-467a-92fe-cbc72eb4b8d0")
+		(uuid "a83b5ec7-a3f6-49e9-ba1a-deb9f9c4cd14")
 	)
 	(hierarchical_label "RUN_PERMIT_SENSE"
 		(shape passive)
@@ -4137,7 +4122,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "a8bb445f-8aca-4396-9102-e7b1c3eabe3e")
+		(uuid "7c3578c4-4df2-42a3-8974-3b9e33684eee")
 	)
 	(label "RELAY_LOW"
 		(at 109.22 53.34 0)
@@ -4147,7 +4132,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "0c70eefb-d9fd-4d2e-965d-d0baa9f28486")
+		(uuid "99546616-2d0f-46f9-b14b-b7de4c5a91ce")
 	)
 	(hierarchical_label "GND_CTRL"
 		(shape passive)
@@ -4158,7 +4143,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "dd3726f0-f3c0-46fa-96b1-ab1f90ff1183")
+		(uuid "097a7934-d809-4f95-a0fb-3eb67963b933")
 	)
 	(label "RELAY_GATE"
 		(at 92.71 58.42 90)
@@ -4168,7 +4153,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "52c579fc-0126-4abd-ab3f-2c443ec41dd3")
+		(uuid "fb3a7fb5-26d8-4c46-bdd5-21d39467b131")
 	)
 	(hierarchical_label "RUN_PERMIT_SENSE"
 		(shape passive)
@@ -4179,7 +4164,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "0b8bb78a-42da-4d28-9cd4-a3c035e18aac")
+		(uuid "27a2590f-c462-4662-9357-10b4c6ccc7bb")
 	)
 	(label "RELAY_COM"
 		(at 139.7 60.96 0)
@@ -4189,7 +4174,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "a187b67a-583d-440d-91f7-01712447d85f")
+		(uuid "592e49dc-c948-4db7-b783-ecaf91c430c3")
 	)
 	(hierarchical_label "+24V_PROT"
 		(shape passive)
@@ -4200,7 +4185,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "34bf63ac-18ab-4894-bccb-1a56bf475f33")
+		(uuid "248fa33b-b30c-476d-adc5-897dbc0eb070")
 	)
 	(label "RELAY_NO"
 		(at 135.89 55.88 0)
@@ -4210,7 +4195,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "021b63a3-a3d8-445a-a77c-e2cfa4392d6a")
+		(uuid "3f1244ab-ee4b-46a8-94a5-454b7c9b226c")
 	)
 	(label "RELAY_LED_A"
 		(at 130.81 48.26 90)
@@ -4220,7 +4205,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "4af3a93a-ba04-4fdf-9147-7cbb7a94f435")
+		(uuid "38b2e362-0c4f-40f8-8219-b8f86d1e9dc4")
 	)
 	(label "RELAY_NC"
 		(at 127 55.88 180)
@@ -4230,7 +4215,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "71c654eb-8059-4fc4-9995-c03619253a82")
+		(uuid "796a05f4-7ce0-49ce-b3c4-558e7722d7fb")
 	)
 	(hierarchical_label "RUN_PERMIT"
 		(shape passive)
@@ -4241,7 +4226,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "f4a7f2a7-721a-417d-95b9-f5b8e5e73bd0")
+		(uuid "87298f3a-3a1a-416a-b71e-d99b027d7cec")
 	)
 	(label "RELAY_LOW"
 		(at 123.19 48.26 90)
@@ -4251,7 +4236,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "ea639b02-7122-41aa-9be8-67c1c4b2fecd")
+		(uuid "fd0bb1fe-fc79-4965-8dc6-c5fb04adac91")
 	)
 	(hierarchical_label "+24V_PROT"
 		(shape passive)
@@ -4262,7 +4247,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "b5050c66-a37d-4091-aaf8-0198019f963d")
+		(uuid "80be9877-d6f0-4c16-98c0-a7b32afe2732")
 	)
 	(label "RELAY_NC"
 		(at 152.4 66.04 180)
@@ -4272,7 +4257,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "5a51515d-52a4-4a64-a37f-128ad7c678bc")
+		(uuid "55a35ec0-0d4a-4167-9c0c-935692c47378")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -4293,7 +4278,7 @@
 				)
 			)
 		)
-		(property "Value" "22k"
+		(property "Value" "100k"
 			(at 106.68 57.15 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4325,7 +4310,7 @@
 				)
 			)
 		)
-		(property "Description" "Run-permit read-back divider, upper leg"
+		(property "Description" "Run-permit read-back divider, upper leg (I-067)"
 			(at 106.68 57.15 90)
 			(hide yes)
 			(show_name no)
@@ -4336,7 +4321,7 @@
 				)
 			)
 		)
-		(property "MPN" "0805W8F2202T5E"
+		(property "MPN" "0805W8F1003T5E"
 			(at 106.68 57.15 90)
 			(hide yes)
 			(show_name no)
@@ -4347,7 +4332,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C17560"
+		(property "LCSC" "C149504"
 			(at 106.68 57.15 90)
 			(hide yes)
 			(show_name no)
@@ -4394,7 +4379,7 @@
 				)
 			)
 		)
-		(property "Value" "4k7"
+		(property "Value" "22k"
 			(at 106.68 64.77 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4426,7 +4411,7 @@
 				)
 			)
 		)
-		(property "Description" "Run-permit read-back divider, lower leg"
+		(property "Description" "Run-permit read-back divider, lower leg (I-067)"
 			(at 106.68 64.77 90)
 			(hide yes)
 			(show_name no)
@@ -4437,7 +4422,7 @@
 				)
 			)
 		)
-		(property "MPN" "0805W8F4701T5E"
+		(property "MPN" "0805W8F2202T5E"
 			(at 106.68 64.77 90)
 			(hide yes)
 			(show_name no)
@@ -4448,7 +4433,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C17673"
+		(property "LCSC" "C17560"
 			(at 106.68 64.77 90)
 			(hide yes)
 			(show_name no)
@@ -5023,7 +5008,7 @@
 				)
 			)
 		)
-		(property "Value" "1N4007"
+		(property "Value" "M7"
 			(at 113.03 63.5 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5055,7 +5040,7 @@
 				)
 			)
 		)
-		(property "Description" "Relay coil flyback clamp"
+		(property "Description" "Relay coil flyback clamp, 1N4007-class in SMA - do not order the through-hole 1N4007 (I-069)"
 			(at 110.49 63.5 0)
 			(hide yes)
 			(show_name no)
@@ -5066,7 +5051,7 @@
 				)
 			)
 		)
-		(property "MPN" "1N4007"
+		(property "MPN" "M7"
 			(at 110.49 63.5 0)
 			(hide yes)
 			(show_name no)
@@ -5088,7 +5073,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C727081"
+		(property "LCSC" "C95872"
 			(at 110.49 63.5 0)
 			(hide yes)
 			(show_name no)
@@ -5117,7 +5102,7 @@
 		)
 	)
 	(symbol
-		(lib_id "Transistor_FET:2N7000")
+		(lib_id "Transistor_FET:Q_NMOS_GSD")
 		(at 99.06 58.42 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -5136,7 +5121,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "2N7000"
+		(property "Value" "BSS131"
 			(at 104.14 58.42 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5147,7 +5132,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Package_TO_SOT_THT:TO-92_Inline_Wide"
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23"
 			(at 104.14 56.515 0)
 			(hide yes)
 			(show_name no)
@@ -5160,7 +5145,7 @@
 				(justify left)
 			)
 		)
-		(property "Datasheet" "https://www.vishay.com/docs/70226/70226.pdf"
+		(property "Datasheet" "../../docs/reference/datasheets/BSS131.pdf"
 			(at 104.14 54.61 0)
 			(hide yes)
 			(show_name no)
@@ -5172,7 +5157,7 @@
 				(justify left)
 			)
 		)
-		(property "Description" "Low-side driver for the 24 V run-permit relay | Manufacturer: onsemi | MPN: 2N7000"
+		(property "Description" "Low-side driver for the 24 V run-permit relay, 240 V: its drain sees the battery rail (I-066) | Manufacturer: Infineon | MPN: BSS131H6327XTSA1"
 			(at 99.06 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -5183,7 +5168,7 @@
 				)
 			)
 		)
-		(property "MPN" "2N7000"
+		(property "MPN" "BSS131H6327XTSA1"
 			(at 104.14 54.61 0)
 			(hide yes)
 			(show_name no)
@@ -5194,7 +5179,7 @@
 				)
 			)
 		)
-		(property "Manufacturer" "onsemi"
+		(property "Manufacturer" "Infineon"
 			(at 104.14 54.61 0)
 			(hide yes)
 			(show_name no)
@@ -5205,7 +5190,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C9114"
+		(property "LCSC" "C151498"
 			(at 104.14 54.61 0)
 			(hide yes)
 			(show_name no)
@@ -5356,343 +5341,343 @@
 			(xy 113.03 104.14)
 			(xy 113.03 101.6)
 		)
-		(uuid "459151c6-7058-4d99-b389-2ecfb546425d")
+		(uuid "941e0937-4fb3-4307-be97-b20ff64ab8b8")
 	)
 	(wire
 		(pts
 			(xy 113.03 121.92)
 			(xy 113.03 124.46)
 		)
-		(uuid "ed9cd1dc-a55b-469e-836d-0078002065a4")
+		(uuid "80a1a6c4-4adb-424d-a63a-e6812447270e")
 	)
 	(wire
 		(pts
 			(xy 113.03 124.46)
 			(xy 113.03 127)
 		)
-		(uuid "7cb0de19-11e2-4889-8874-bd1ed30af7f8")
+		(uuid "6f731580-34b2-4849-890e-869e977dba5d")
 	)
 	(wire
 		(pts
 			(xy 143.51 121.92)
 			(xy 143.51 124.46)
 		)
-		(uuid "c9f1696a-3a8f-4b99-886a-c542b8f7b017")
+		(uuid "897ebd2f-f0f8-4f2f-8d49-2520fa62153c")
 	)
 	(wire
 		(pts
 			(xy 143.51 124.46)
 			(xy 143.51 127)
 		)
-		(uuid "8c8e6df4-e5d4-40ac-b449-84cafb6e87c8")
+		(uuid "7d0d77dd-ec72-4953-b093-0793779dcf0f")
 	)
 	(wire
 		(pts
 			(xy 143.51 101.6)
 			(xy 143.51 104.14)
 		)
-		(uuid "c064b903-7a62-4165-8595-b216cca60909")
+		(uuid "e4cb9fe5-c0d1-4ec5-b83a-0d6b93a2b5e5")
 	)
 	(wire
 		(pts
 			(xy 113.03 127)
 			(xy 113.03 129.54)
 		)
-		(uuid "2fda0778-062a-41b1-b37c-550d116576a7")
+		(uuid "ce23cb03-0131-4162-9f0f-17af50f2185e")
 	)
 	(wire
 		(pts
 			(xy 143.51 127)
 			(xy 143.51 129.54)
 		)
-		(uuid "88198e9c-8882-49ab-97e5-16a920353571")
+		(uuid "15be9448-29df-4cb5-8f9e-2149a0866269")
 	)
 	(wire
 		(pts
 			(xy 179.07 101.6)
 			(xy 181.61 101.6)
 		)
-		(uuid "44bb6d5c-67cc-4ee7-adb9-d9fcc53b3afd")
+		(uuid "bde8fab3-e8e8-4249-93bb-755d8f6939eb")
 	)
 	(wire
 		(pts
 			(xy 179.07 121.92)
 			(xy 181.61 121.92)
 		)
-		(uuid "57d1c8bc-cca3-4f3d-8322-a29477aea42b")
+		(uuid "89ffa46b-478c-41ad-9b91-d735a092e013")
 	)
 	(wire
 		(pts
 			(xy 181.61 111.76)
 			(xy 179.07 111.76)
 		)
-		(uuid "e2d7e721-241a-46de-8040-9fcadc3e5820")
+		(uuid "271b57f8-fb38-44c1-9005-3367ab947116")
 	)
 	(wire
 		(pts
 			(xy 143.51 114.3)
 			(xy 146.05 114.3)
 		)
-		(uuid "0c92ca42-bee0-4f64-b932-5ec2b2895733")
+		(uuid "aa1fbebd-2d78-466a-8fba-32b88cd7b230")
 	)
 	(wire
 		(pts
 			(xy 146.05 114.3)
 			(xy 146.05 109.22)
 		)
-		(uuid "cf1cc1cd-0396-44cb-b366-e2414fc81483")
+		(uuid "08168358-5448-4b23-8c57-09376c5d0e44")
 	)
 	(wire
 		(pts
 			(xy 146.05 109.22)
 			(xy 143.51 109.22)
 		)
-		(uuid "6e9bfc74-683d-4ab9-ad0a-e25cfbabffa6")
+		(uuid "62ebcf5e-1ad9-4758-808f-67bf8d2cedae")
 	)
 	(wire
 		(pts
 			(xy 143.51 116.84)
 			(xy 148.59 116.84)
 		)
-		(uuid "2331a022-11d6-498d-a7ce-b01a660b711b")
+		(uuid "18b08fea-8f93-4990-9a75-3563cd147533")
 	)
 	(wire
 		(pts
 			(xy 148.59 116.84)
 			(xy 148.59 111.76)
 		)
-		(uuid "29367973-83bb-42bd-a9a3-251dcd224410")
+		(uuid "f76f6fff-b486-4aa9-8949-e0eea038cd6e")
 	)
 	(wire
 		(pts
 			(xy 148.59 111.76)
 			(xy 143.51 111.76)
 		)
-		(uuid "bb5d619c-efc2-462d-b68d-8e89a6d02441")
+		(uuid "a6c9f368-5b6f-4c84-af0d-2d52ecf8004d")
 	)
 	(wire
 		(pts
 			(xy 106.68 114.3)
 			(xy 113.03 114.3)
 		)
-		(uuid "76eb8618-13f6-4c00-a1fc-782bf66c3a90")
+		(uuid "dd030216-c0c7-46dd-9240-6f57842764da")
 	)
 	(wire
 		(pts
 			(xy 199.39 139.7)
 			(xy 207.01 139.7)
 		)
-		(uuid "bb391dec-4d88-4102-87fa-95fa5b617993")
+		(uuid "310ee166-0181-43f8-8f28-c4ce449d6cc3")
 	)
 	(wire
 		(pts
 			(xy 151.13 121.92)
 			(xy 143.51 121.92)
 		)
-		(uuid "5f014e14-f88d-4453-a2d3-e8f172e96ced")
+		(uuid "0995c0b4-68d9-422b-b315-126ed70485b9")
 	)
 	(wire
 		(pts
 			(xy 82.55 101.6)
 			(xy 92.71 101.6)
 		)
-		(uuid "81d1cd1e-e1d0-4a74-bfef-a3aacccdb49a")
+		(uuid "2dd21f56-d474-4a1b-9c6d-aa9b679f2844")
 	)
 	(wire
 		(pts
 			(xy 82.55 109.22)
 			(xy 92.71 109.22)
 		)
-		(uuid "df4cca82-599d-47d5-85e0-137560ad2d71")
+		(uuid "23b0d5f3-b5fe-4894-a81c-3bcffbb6190c")
 	)
 	(wire
 		(pts
 			(xy 151.13 91.44)
 			(xy 161.29 91.44)
 		)
-		(uuid "a4518586-30e0-4a06-9cdd-ebfe2a058c72")
+		(uuid "7e93fede-d32c-4c28-b0ca-fbaab5b2d7e0")
 	)
 	(wire
 		(pts
 			(xy 151.13 99.06)
 			(xy 161.29 99.06)
 		)
-		(uuid "beab3bef-d2f3-495e-ad9b-47067a5f3f3f")
+		(uuid "ef99b426-67a6-46ab-a532-1563ba8465e9")
 	)
 	(wire
 		(pts
 			(xy 151.13 99.06)
 			(xy 143.51 99.06)
 		)
-		(uuid "323781e8-1eba-4872-892a-38c7b6f7e759")
+		(uuid "996f6911-afce-46d2-925f-d99e9776ecec")
 	)
 	(wire
 		(pts
 			(xy 143.51 99.06)
 			(xy 143.51 101.6)
 		)
-		(uuid "65b60285-7fb8-4a4c-8bfb-6610e63fc8ba")
+		(uuid "aefdc1dc-a336-40d1-b68d-982a40ce0aa7")
 	)
 	(wire
 		(pts
 			(xy 106.68 106.68)
 			(xy 107.95 106.68)
 		)
-		(uuid "ddba8f85-5fae-44a9-b667-a9f893961e73")
+		(uuid "624921ff-7781-4990-a896-cfc2c67c5d80")
 	)
 	(wire
 		(pts
 			(xy 107.95 106.68)
 			(xy 107.95 111.76)
 		)
-		(uuid "e91da07b-679e-40f2-bbe1-870f0e67a86f")
+		(uuid "160f0d06-4ab6-4642-9c78-f6f42966c939")
 	)
 	(wire
 		(pts
 			(xy 107.95 111.76)
 			(xy 113.03 111.76)
 		)
-		(uuid "4c6a6b17-9d4c-49b6-8a09-6e0297447d71")
+		(uuid "87f79a6e-1e51-4a11-b153-12bfb65927fa")
 	)
 	(wire
 		(pts
 			(xy 214.63 114.3)
 			(xy 212.09 114.3)
 		)
-		(uuid "683d7178-42f5-4ef1-9cb5-ac8e2646be5a")
+		(uuid "680444b6-51ee-4b73-9166-af2e87d29f2f")
 	)
 	(wire
 		(pts
 			(xy 212.09 114.3)
 			(xy 212.09 101.6)
 		)
-		(uuid "5653434d-625a-47ab-a046-73fc51011969")
+		(uuid "0d29ce5c-c281-405a-a95d-01908231efe4")
 	)
 	(wire
 		(pts
 			(xy 212.09 101.6)
 			(xy 214.63 101.6)
 		)
-		(uuid "a1dd5dd1-6582-4c39-bd0d-4541f6d917b7")
+		(uuid "f459c80d-821f-4385-a34e-9473be45edb1")
 	)
 	(wire
 		(pts
 			(xy 214.63 111.76)
 			(xy 209.55 111.76)
 		)
-		(uuid "c6c27a6b-909a-483b-a8fa-2ed3356f0e16")
+		(uuid "af8e3516-b446-4fd7-a896-f1c7e1c22208")
 	)
 	(wire
 		(pts
 			(xy 209.55 111.76)
 			(xy 209.55 96.52)
 		)
-		(uuid "d2899024-6220-4a78-b4d4-5e41d708b14e")
+		(uuid "326f3b8d-0b36-4c6c-bb34-30ac1b48ec17")
 	)
 	(wire
 		(pts
 			(xy 209.55 96.52)
 			(xy 214.63 96.52)
 		)
-		(uuid "fa4f8f4f-e711-4c25-bcb4-1b1a89852b9b")
+		(uuid "becb22c4-ff29-43b8-846a-c3f281010b71")
 	)
 	(wire
 		(pts
 			(xy 179.07 104.14)
 			(xy 189.23 104.14)
 		)
-		(uuid "62d4cc0c-33be-4a32-9d56-dcf9acc6bbb0")
+		(uuid "3d25ef5a-7627-4594-8436-e3ea9be6e410")
 	)
 	(wire
 		(pts
 			(xy 189.23 104.14)
 			(xy 189.23 111.76)
 		)
-		(uuid "de8b69e4-56a9-4d6b-b69c-55fb63665552")
+		(uuid "356ca1fd-e78b-4712-82f6-cb7d488f207d")
 	)
 	(wire
 		(pts
 			(xy 113.03 101.6)
 			(xy 92.71 101.6)
 		)
-		(uuid "88a0208f-9c54-40ad-9857-fdb5fdf6c439")
+		(uuid "01b3d75d-4404-44b6-a94a-bee1d6b29c6d")
 	)
 	(wire
 		(pts
 			(xy 214.63 101.6)
 			(xy 214.63 99.06)
 		)
-		(uuid "2418d06c-6dea-4275-8f4b-ebd7f96b1b52")
+		(uuid "f7dfad22-950a-4031-9c71-fdf250598604")
 	)
 	(wire
 		(pts
 			(xy 214.63 99.06)
 			(xy 189.23 99.06)
 		)
-		(uuid "1efba124-149d-4d99-a981-3544e9b882b3")
+		(uuid "6eb03368-8e03-408d-af0d-23bbd305642f")
 	)
 	(wire
 		(pts
 			(xy 189.23 99.06)
 			(xy 189.23 101.6)
 		)
-		(uuid "9bad1b44-92a7-4e96-aa1a-981a50f5d5e0")
+		(uuid "4f4b6d1a-b3d2-41df-a4ac-3bc7e4cafcf2")
 	)
 	(wire
 		(pts
 			(xy 189.23 111.76)
 			(xy 199.39 111.76)
 		)
-		(uuid "170db338-320f-43c2-a226-b6bcba813478")
+		(uuid "cfe683e1-2209-4155-a551-f54649ffca43")
 	)
 	(wire
 		(pts
 			(xy 199.39 111.76)
 			(xy 199.39 132.08)
 		)
-		(uuid "3dbfbe09-b147-4afc-93c4-18f2bb753a2b")
+		(uuid "f43050ca-3427-4a15-a183-cd5d78c5b308")
 	)
 	(wire
 		(pts
 			(xy 179.07 124.46)
 			(xy 191.77 124.46)
 		)
-		(uuid "b029020d-de40-4a74-b455-3c21ccab592f")
+		(uuid "5d32565c-c19f-4518-837c-e6a019a3fd21")
 	)
 	(wire
 		(pts
 			(xy 191.77 124.46)
 			(xy 191.77 101.6)
 		)
-		(uuid "aa524069-5e03-4c13-b90d-f5825048c2a9")
+		(uuid "2284625e-32c0-4fc8-b066-d6d04251d3e2")
 	)
 	(wire
 		(pts
 			(xy 191.77 101.6)
 			(xy 189.23 101.6)
 		)
-		(uuid "b58af020-75e3-4d14-9141-9d9875cd88af")
+		(uuid "6c3a8fb5-0e71-4132-9225-a7ad7b91e645")
 	)
 	(wire
 		(pts
 			(xy 179.07 124.46)
 			(xy 179.07 127)
 		)
-		(uuid "cde1ead9-5d37-4de8-bdc4-23f945f5b099")
+		(uuid "0f877929-d5ee-41de-be20-d918143687ae")
 	)
 	(wire
 		(pts
 			(xy 179.07 127)
 			(xy 207.01 127)
 		)
-		(uuid "96be6847-37d2-41c9-8568-96c26fa860e2")
+		(uuid "6b89ca96-3620-41a6-80ae-790b069e381e")
 	)
 	(wire
 		(pts
 			(xy 207.01 127)
 			(xy 207.01 132.08)
 		)
-		(uuid "9c98ec14-deda-49ae-9147-5ef0934e14df")
+		(uuid "bed43f30-6691-4141-8e30-d2839da612bd")
 	)
 	(label "RS485_B"
 		(at 200.66 127 0)
@@ -5702,7 +5687,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "d2905781-c8e8-4b15-9beb-8a80a59b32a2")
+		(uuid "9aa6afe5-7bc4-4224-b2fe-77d033e6fce5")
 	)
 	(label "GND_RS485"
 		(at 143.51 128.27 270)
@@ -5712,7 +5697,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "45a1c21a-f1c5-4d7d-aac1-38272e799f79")
+		(uuid "ca6095a4-2aba-43a3-acb4-caa2980f4463")
 	)
 	(hierarchical_label "+5V_CTRL"
 		(shape passive)
@@ -5723,7 +5708,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "aa0c70ba-a2e2-453d-a798-e435a7c96c56")
+		(uuid "ece83433-8884-44b7-8457-f84ed25e6d5d")
 	)
 	(label "+5V_RS485"
 		(at 149.86 99.06 180)
@@ -5733,7 +5718,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "58649b78-7111-493e-87c9-fbab157d911f")
+		(uuid "f13219a2-bf7c-448d-9ee2-00fa67d672fd")
 	)
 	(hierarchical_label "GND_CTRL"
 		(shape passive)
@@ -5744,7 +5729,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "b10520f7-bccf-4778-9075-f0846e9274e7")
+		(uuid "05efdcef-5937-4c82-ab23-59c997b8826f")
 	)
 	(label "RS485_A"
 		(at 193.04 111.76 0)
@@ -5754,7 +5739,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "0d6a44a6-ddee-41fe-90a8-9c8737f1f73d")
+		(uuid "161690a7-b90f-4c45-bb75-e8f2f9c864f4")
 	)
 	(hierarchical_label "GND_CTRL"
 		(shape passive)
@@ -5765,7 +5750,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "596a0355-2c90-4142-9e53-2fbf303b0e75")
+		(uuid "9d0ca75e-9199-4eae-9019-9eeebc4b2ad7")
 	)
 	(hierarchical_label "RS485_DE"
 		(shape passive)
@@ -5776,7 +5761,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "b5e73ea8-b395-4186-97a1-0c95d242e41a")
+		(uuid "1e647808-50b6-4060-92c7-daa44085ca3d")
 	)
 	(label "RS485_RE_N"
 		(at 106.68 106.68 180)
@@ -5786,7 +5771,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "4a31aa78-dcca-4972-9537-75b2d18f6e0c")
+		(uuid "8bdf6ca0-d250-4794-98d4-cdebafeee3dc")
 	)
 	(label "RS485_TERM_A"
 		(at 179.07 101.6 90)
@@ -5796,7 +5781,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "ffadc7f6-1fce-453a-85fd-37282de463ec")
+		(uuid "34256fff-4e0b-45a6-92fa-3947c0c24548")
 	)
 	(label "RS485_A"
 		(at 213.36 96.52 180)
@@ -5806,7 +5791,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "d73cd6ad-0c77-49e3-b085-79b0d6cce760")
+		(uuid "896112c8-9bd5-48d2-aa32-594f2e6af545")
 	)
 	(label "RS485_BIAS_B"
 		(at 179.07 121.92 270)
@@ -5816,7 +5801,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "8186de35-76b3-4487-91cc-576fe2b9c59f")
+		(uuid "c02ef1bf-ee77-4afd-957e-e4de1a17869c")
 	)
 	(label "GND_RS485"
 		(at 156.21 91.44 0)
@@ -5826,7 +5811,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "1d15ebda-5294-4d78-92f2-3b7c0d380bd3")
+		(uuid "0cc487c6-ea50-4742-a9cf-fdc8ebdfb801")
 	)
 	(label "RS485_BIAS_A"
 		(at 180.34 111.76 180)
@@ -5836,7 +5821,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "45abf1fa-9173-4c58-b1a0-63735d6fbb37")
+		(uuid "e79f20f0-4ea4-4720-a59e-2a58b68937fe")
 	)
 	(label "GND_RS485"
 		(at 199.39 139.7 270)
@@ -5846,7 +5831,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "ffdd51bc-8b24-428c-b722-9e9e5f2ea03b")
+		(uuid "2972fcad-337f-42f4-af10-8d80d02cac74")
 	)
 	(label "RS485_A"
 		(at 144.78 109.22 0)
@@ -5856,7 +5841,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "c4308167-8e6b-4a3b-b8bd-213fc1bacb99")
+		(uuid "a26b906d-f171-45bc-a547-4487a34eda0d")
 	)
 	(label "RS485_B"
 		(at 147.32 111.76 0)
@@ -5866,7 +5851,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "6edb098a-160b-4711-8443-4b73314c65a5")
+		(uuid "374815ec-7d7f-42b8-b95f-56c17f9e6903")
 	)
 	(label "GND_RS485"
 		(at 214.63 116.84 180)
@@ -5876,7 +5861,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "e3c3ec40-bec7-49a1-8c59-239f11a1407b")
+		(uuid "57b8ea25-2571-4fd1-ae61-bdbafdb0c51f")
 	)
 	(hierarchical_label "CHASSIS_SHIELD"
 		(shape passive)
@@ -5887,7 +5872,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "562f24d1-e8b0-446b-9e0d-76b5d2a24207")
+		(uuid "32245f38-1900-49ae-a363-f671aa1f22c5")
 	)
 	(label "+5V_RS485"
 		(at 179.07 114.3 180)
@@ -5897,7 +5882,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "4c5db701-07b8-48a6-92af-8279f67f21b0")
+		(uuid "361f3d37-eb62-4deb-a932-fff87233e6b8")
 	)
 	(label "GND_RS485"
 		(at 189.23 121.92 0)
@@ -5907,7 +5892,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "1ab35a11-a4f7-44bb-8f5b-47c4e7be5283")
+		(uuid "954d7ca3-c630-44a0-9cea-fb1852cb2c8d")
 	)
 	(hierarchical_label "UART_RX"
 		(shape passive)
@@ -5918,7 +5903,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "44e79167-6334-44c7-9d87-7cb9c5dd5331")
+		(uuid "0d81dc63-4e13-444c-b67d-46e555157cb4")
 	)
 	(hierarchical_label "UART_TX"
 		(shape passive)
@@ -5929,7 +5914,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "59ee7c96-75c4-4443-baf4-6862dd68e76a")
+		(uuid "8ed1f966-f515-4d88-89a1-0d2419b217e6")
 	)
 	(symbol
 		(lib_id "Device:C")

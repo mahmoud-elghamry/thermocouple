@@ -20,4 +20,5 @@ def apply(S):
     # Konnect resolves the library through KICAD10_SYMBOL_DIR.
     k2=K(); k2.load("sch_components")
     r=k2.call("replace_component",schematic=S,reference="U12",new_lib_id="Converter_DCDC_Isolated:IA0505S"); assert '"units_replaced":1' in r,r
+    import reva2; reva2.apply(S)   # REV A2: I-065..I-069
 if __name__=="__main__": apply(sys.argv[1])

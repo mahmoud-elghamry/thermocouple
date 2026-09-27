@@ -22,7 +22,7 @@ them writes through Konnect (docs/decisions/0013):
                   (funcsheets.py, 0021)
 
 Then the gate, on the hierarchical result: kicad-cli exports the netlist,
-netlist_fingerprint.py must report IDENTICAL against netlist-baseline-reva1.json
+netlist_fingerprint.py must report IDENTICAL against netlist-baseline-reva2.json
 (which carries the hierarchical net names since I-062), and ERC must have no
 errors. A failure leaves the scratch copy for inspection and, with
 --in-place, the schematic put back as it was.
@@ -104,7 +104,7 @@ def gate(sch, work):
     net = os.path.join(work, "check.net"); erc = os.path.join(work, "erc.rpt")
     run("kicad-cli", "sch", "export", "netlist", "--output", net, sch)
     run(sys.executable, os.path.join(HW, "netlist_fingerprint.py"),
-        os.path.join(HW, "netlist-baseline-reva1.json"), net)
+        os.path.join(HW, "netlist-baseline-reva2.json"), net)
     run("kicad-cli", "sch", "erc", "--severity-error", "--severity-warning", "--output", erc, sch)
     report = open(erc, encoding="utf-8").read()
     errors = int(re.search(r"\*\* ERC messages: (\d+)\s+Errors (\d+)", report).group(2))

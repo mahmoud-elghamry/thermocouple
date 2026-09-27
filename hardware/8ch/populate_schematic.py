@@ -270,13 +270,15 @@ capacitor("C61", "22p C0G 50V", (18, 173), "XTAL2", "GND_CTRL",
           "Crystal load capacitor, XTAL2 - see the note above on CL")
 
 # --- I-016: run-permit read-back divider ----------------------------------
-# RELAY_LOW swings 0 V to +24 V. 22k/4.7k puts about 4.2 V at PC2 with +24 V
-# on the coil - a valid high on the 5 V rail with margin under VCC. Both nets
+# RELAY_LOW swings 0 V to +24 V. 100k/22k puts about 4.3 V at PC2 with +24 V
+# on the coil - a valid high on the 5 V rail with margin under VCC.  Was
+# 22k/4k7 until REV A2: a 58 V load dump then forced 1.2 mA into PC2's clamp
+# diode, now 0.28 mA (I-067, CALCULATIONS.md 4.3). Both nets
 # are CONTROL island, so the isolation rules are untouched. Firmware is already
 # written: set BOARD_HAS_RUN_PERMIT_SENSE to 1 in the same commit as this.
-resistor("R53", "22k", (255, 180), "RELAY_LOW", "RUN_PERMIT_SENSE",
+resistor("R53", "100k", (255, 180), "RELAY_LOW", "RUN_PERMIT_SENSE",
          "Run-permit read-back divider, upper leg")
-resistor("R54", "4k7", (255, 190), "RUN_PERMIT_SENSE", "GND_CTRL",
+resistor("R54", "22k", (255, 190), "RUN_PERMIT_SENSE", "GND_CTRL",
          "Run-permit read-back divider, lower leg")
 
 
@@ -287,29 +289,35 @@ for channel in range(1, 9):
 
 # Two six-channel isolators provide 10 forward SPI/control channels and one reverse MISO.
 add(Part(
-    "U10", "Isolator:ISO7760DW", (126, 55), "ISO7760FDWR",
+    "U10", "Isolator:ISO7760DW", (126, 55), "ISO7760DWR",
     "Package_SO:SOIC-16W_7.5x10.3mm_P1.27mm",
     {"1": "+5V_CTRL", "2": "SCK_CTRL", "3": "MOSI_CTRL", "4": "CS1_CTRL",
      "5": "CS2_CTRL", "6": "CS3_CTRL", "7": "CS4_CTRL", "8": "GND_CTRL",
      "9": "GND_SENS", "10": "CS4_SENS_RAW", "11": "CS3_SENS_RAW",
      "12": "CS2_SENS_RAW", "13": "CS1_SENS_RAW", "14": "MOSI_SENS_RAW",
      "15": "SCK_SENS_RAW", "16": "+3V3_SENS"},
-    manufacturer="Texas Instruments", mpn="ISO7760FDWR",
+    # NOT the F suffix: an ISO776xF drives an open input LOW, so with the
+    # MCU in reset every CS would select its sensor (I-065).
+    manufacturer="Texas Instruments", mpn="ISO7760DWR",
     datasheet="https://www.ti.com/lit/ds/symlink/iso7760.pdf",
     function="Reinforced digital isolation for SPI clock, MOSI, and CS1-CS4",
 ))
 add(Part(
-    "U11", "Isolator:ISO7761DW", (126, 98), "ISO7761FDWR",
+    "U11", "Isolator:ISO7761DW", (126, 98), "ISO7761DWR",
     "Package_SO:SOIC-16W_7.5x10.3mm_P1.27mm",
     {"1": "+5V_CTRL", "2": "CS5_CTRL", "3": "CS6_CTRL", "4": "CS7_CTRL",
-     "5": "CS8_CTRL", "6": "GND_CTRL", "7": "MISO_CTRL",
+     "5": "CS8_CTRL", "6": "GND_CTRL", "7": "MISO_ISO",
      "8": "GND_CTRL", "9": "GND_SENS", "10": "MISO_SENS_RAW",
      "11": "ISO_SPARE_SENS", "12": "CS8_SENS_RAW", "13": "CS7_SENS_RAW",
      "14": "CS6_SENS_RAW", "15": "CS5_SENS_RAW", "16": "+3V3_SENS"},
-    manufacturer="Texas Instruments", mpn="ISO7761FDWR",
+    manufacturer="Texas Instruments", mpn="ISO7761DWR",
     datasheet="https://www.ti.com/lit/ds/symlink/iso7761.pdf",
     function="Reinforced digital isolation for CS5-CS8 and reverse MISO",
 ))
+# I-065: the isolator's MISO output is push-pull and MISO_CTRL is also the
+# AVR's ISP MISO; 2k2 lets the AVR win while it is being programmed.
+resistor("R61", "2k2", (116, 101), "MISO_CTRL", "MISO_ISO",
+         "ISP series resistor between U11 OUTF and MISO_CTRL")
 capacitor("C41", "100n X7R", (116, 43), "+5V_CTRL", "GND_CTRL", "U10 control-side decoupling")
 capacitor("C42", "100n X7R", (136, 43), "+3V3_SENS", "GND_SENS", "U10 sensor-side decoupling")
 capacitor("C43", "100n X7R", (116, 112), "+5V_CTRL", "GND_CTRL", "U11 control-side decoupling")
@@ -337,8 +345,11 @@ add(Part("J1", "Connector_Generic:Conn_01x03", (187, 179), "24V_INPUT",
 # between J1 and the 5 V rail has to stand that off - not just the regulator.
 # That is why D1 is a 100 V Schottky and not the 40 V SS34, why D2 stands off
 # 60 V instead of 33 V, and why C53/C54 are 100 V parts.  decisions/0016, I-028.
-add(Part("F1", "Device:Polyfuse", (200, 174), "PTC 0.5A", "Fuse:Fuse_1206_3216Metric",
+# F1 is 60 V rated since REV A2: a PTC only interrupts safely at or below
+# its rated voltage, and the 30 V part saw a 28.8 V charge rail (I-068).
+add(Part("F1", "Device:Polyfuse", (200, 174), "PTC 0.75A 60V", "Fuse:Fuse_1812_4532Metric",
          {"1": "+24V_RAW", "2": "+24V_FUSED"},
+         manufacturer="LUTE", mpn="1812L075/60GR",
          function="Resettable input over-current protection - NOT sufficient alone on a "
                   "battery; an external inline fuse with real breaking capacity belongs "
                   "in the panel, see I-028"))
@@ -347,7 +358,7 @@ add(Part("D1", "Device:D_Schottky", (208, 174), "SS310", "Diode_SMD:D_SMA",
          manufacturer="MDD", mpn="SS310",
          function="Series reverse-polarity protection, 100 V 3 A - the 40 V SS34 it "
                   "replaces would fail on a 58 V load dump"))
-add(Part("D2", "Device:D_TVS", (211, 184), "SMBJ60A", "Diode_SMD:D_SMB",
+add(Part("D2", "Device:D_Zener", (211, 184), "SMBJ60A", "Diode_SMD:D_SMB",
          {"1": "+24V_PROT", "2": "GND_CTRL"},
          manufacturer="MDD", mpn="SMBJ60A",
          function="24 V input transient clamp - 60 V standoff so it does NOT conduct "
@@ -469,18 +480,15 @@ add(Part("J6", "Connector_Generic:Conn_02x05_Odd_Even", (78, 139), "MCU_EXPANSIO
          function="Service and future expansion header for unused MCU I/O"))
 
 # Fail-safe 24 V relay: PB3 must be continuously asserted to grant RUN permission.
-add(Part("Q1", "Transistor_FET:2N7000", (247, 188), "2N7000",
-         # 2N7000 in TO-92: pin 1 = Source, pin 2 = Gate, pin 3 = Drain.
-         # An earlier revision had 1/2 swapped, which tied the gate to GND and
-         # made the low-side switch permanently off (RUN_PERMIT could never
-         # assert).  Keep this mapping aligned with the symbol pin names.
-         # TO-92_Inline puts the leads on a 1.27 mm pitch, which leaves 0.22 mm
-         # between the RELAY_LOW and RELAY_GATE pads - the package, not the
-         # design, would be setting the clearance on a 24 V net.  The _Wide
-         # variant forms the same leads to 2.54 mm.
-         "Package_TO_SOT_THT:TO-92_Inline_Wide",
-         {"1": "GND_CTRL", "2": "RELAY_GATE", "3": "RELAY_LOW"},
-         manufacturer="onsemi", mpn="2N7000",
+add(Part("Q1", "Transistor_FET:Q_NMOS_GSD", (247, 188), "BSS131",
+         # BSS131 in SOT-23: pin 1 = Gate, pin 2 = Source, pin 3 = Drain
+         # (Infineon datasheet p1).  Was a 60 V 2N7000 until REV A2: its
+         # drain sees the battery rail through the coil, and D2 clamps only
+         # at 66.7-96.8 V, so a failed-short Q1 would grant RUN_PERMIT
+         # without the MCU (I-066).  240 V covers D2's worst clamp 2.5 x.
+         "Package_TO_SOT_SMD:SOT-23",
+         {"1": "RELAY_GATE", "2": "GND_CTRL", "3": "RELAY_LOW"},
+         manufacturer="Infineon", mpn="BSS131H6327XTSA1",
          function="Low-side driver for the 24 V run-permit relay"))
 resistor("R30", "100R", (235, 184), "RUN_PERMIT", "RELAY_GATE", "MOSFET gate stopper")
 resistor("R31", "100k", (241, 194), "RELAY_GATE", "GND_CTRL", "Relay driver default-off pull-down", rotation=0)
@@ -490,7 +498,7 @@ resistor("R31", "100k", (241, 194), "RELAY_GATE", "GND_CTRL", "Relay driver defa
 add(Part("K1", "Relay:G5LE-1", (265, 180), "G5LE-1 DC24",
          "Relay_THT:Relay_SPDT_Omron-G5LE-1", {"1": "RELAY_COM", "2": "+24V_PROT", "3": "RELAY_NO", "4": "RELAY_NC", "5": "RELAY_LOW"},
          manufacturer="Omron Electronics", mpn="G5LE-1 DC24", function="Energized-to-run SPDT dry-contact output"))
-add(Part("D3", "Device:D", (258, 193), "1N4007", "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal",
+add(Part("D3", "Device:D", (258, 193), "M7", "Diode_SMD:D_SMA",
          {"1": "+24V_PROT", "2": "RELAY_LOW"}, function="Relay coil flyback clamp"))
 resistor("R32", "4.7k 0.25W", (269, 194), "+24V_PROT", "RELAY_LED_A", "24 V relay status LED resistor")
 add(Part("D4", "Device:LED", (277, 194), "RUN PERMIT", "LED_THT:LED_D3.0mm",
@@ -572,6 +580,8 @@ def ensure_parts() -> None:
         "U1": "MCU_Microchip_ATmega:ATmega16L-8P",
         "U10": "Isolator:ISO7760DW",
         "U11": "Isolator:ISO7761DW",
+        "Q1": "Transistor_FET:Q_NMOS_GSD",
+        "D2": "Device:D_Zener",
         "U12": "Converter_DCDC_Isolated:IA0505S",
         "U13": "Regulator_Linear:LP2985-1.8",
     }

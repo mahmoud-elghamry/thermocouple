@@ -16,7 +16,7 @@ with, and must not be confused with, the single-channel board in `hardware/singl
 | Measurement | 8 × MAX31856, one per K-type input, on a shared isolated island |
 | Controller | ATmega32A-PU in a DIP-40 socket, internal RC oscillator, 5 V |
 | Local HMI | 16×2 HD44780 in 4-bit mode, five buttons, contrast pot |
-| Output | Energised-to-run SPDT dry contact (G5LE-1 24 V) via a 2N7000 low-side switch |
+| Output | Energised-to-run SPDT dry contact (G5LE-1 24 V) via a BSS131 (240 V) low-side switch, REV A2 (`0022`) |
 | Comms | Isolated half-duplex RS-485 (ADM2587E) with jumper-selected termination and bias |
 | Supply | 24 VDC in → PTC + series Schottky + TVS → TSR 1-2450 → 5 V |
 | Sensor supply | IA0505S isolated DC-DC → LP2985-3.3 → +3V3_SENS |
