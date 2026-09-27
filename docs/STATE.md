@@ -15,16 +15,16 @@ regenerated and re-routed from scratch:
 60 V 0.75 A 1812 PTC (`I-068`); D2 drawn unidirectional, D3 = M7 (`I-069`).
 Schematic changes live in `sch_layout/reva2.py`, and `build.py` reproduces them.
 Netlist contract is `netlist-baseline-reva2.json`; `BOARD_REV = "A2"`.
-**Board state:** Freerouting left `C41.1` (+5V_CTRL) open, so **one via and one
-track at (155.75, 42.9) were added by hand**, then `--record`. A regeneration
-will reroute and must be re-checked for that pad. Arithmetic in
+**Board state:** fully generated, no hand edits. `C41.1` gets a fixed via before
+routing (`stitching.FIXED_PAD_VIAS`); U14's thermal vias are 0.3 mm (`0023`), so
+the smallest hole is 0.3 mm. Arithmetic in
 `CALCULATIONS.md` 4. Two-layer backup (`I-025`) is now a revision behind.
 
 ## Measured, not claimed
 
 | Check | Result |
 |---|---|
-| `validate.ps1` (workstation, KiCad 10.0.6, 2026-09-28 01:07) | **passed**: ERC 0/0; netlist **IDENTICAL** 202/163/647; **DRC 0 errors, 0 warnings, 0 unconnected, 0 parity** (`production/8ch-reva2/validation-report`) |
+| `validate.ps1` (workstation, KiCad 10.0.6, 2026-09-28 01:43) | **passed**: ERC 0/0; netlist **IDENTICAL** 202/163/647; **DRC 0 errors, 0 warnings, 0 unconnected, 0 parity** (`production/8ch-reva2/validation-report`) |
 | `check_board.py` | **all 6 ok** |
 | `check_mpn_consistency.py` / `source_passives.py --check` | 129 / 129 match; 38 passive types, all with MPN |
 | `build.py --in-place` (2026-09-28) | IDENTICAL against reva2, ERC 0/0 |
@@ -35,9 +35,9 @@ No IEC 61010 creepage analysis, SPICE, thermal, EMC or physical measurement.
 
 ## Next actions
 1. **Owner: order REV A2** from `production/8ch-reva2/` (exported 2026-09-28 from
-   `156ef2d`, `RELEASE.txt` + `thermocouple_8ch_reva2_gerbers.zip`); quote incl. 0.2 mm holes.
-   Old packages are in `production/_OLD_DO_NOT_ORDER/`. Check LCSC stock first:
-   ISO7760DWR ~109, ISO7761DWR ~366, PTC ~2 k.
+   `RELEASE.txt` + `thermocouple_8ch_reva2_gerbers.zip`). Smallest hole 0.3 mm.
+   Old packages are in `production/_OLD_DO_NOT_ORDER/`. Any distributor is fine
+   (exact MPN; LCSC stock was ISO7760DWR ~109, ISO7761DWR ~366, PTC ~2 k).
 2. 10 BOM lines have no LCSC code (`I-051`) - JLC global sourcing or hand-solder.
 3. **Bench, when boards arrive:** ISP through J5 (`I-065`); D2 band (`I-069`);
    K1 (`I-058`); isolation (`I-004`); timing (`I-013`); `I-003`.

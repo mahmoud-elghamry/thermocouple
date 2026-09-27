@@ -118,6 +118,55 @@ def add_channel_supply_vias(board: pcbnew.BOARD) -> int:
     return added
 
 
+def add_u14_thermal_vias(board: pcbnew.BOARD) -> int:
+    """Six 0.3 mm vias under the LM5164 exposed pad, to the GND planes.
+
+    Where TI's reference layout and the KiCad _ThermalVias footprint put
+    them (x +-0.7, y -1.2/0/+1.2), moved to x +-0.6 so a 0.6 mm via stays
+    inside the 2.41 x 3.3 mm pad.  0.3 mm, not the footprint's 0.2 mm, so the
+    board has no hole below the fab's standard minimum (decisions/0023).
+    """
+    fp = next(f for f in board.GetFootprints() if f.GetReference() == "U14")
+    if fp.GetOrientationDegrees() % 180:
+        raise RuntimeError("U14 thermal-via grid assumes 0 or 180 deg")
+    ep = next(p for p in fp.Pads() if p.GetNumber() == "9")
+    cx, cy = to_mm(ep.GetPosition().x), to_mm(ep.GetPosition().y)
+    net = board.FindNet(ep.GetNetname())
+    for dx in (-0.6, 0.6):
+        for dy in (-1.2, 0.0, 1.2):
+            via = pcbnew.PCB_VIA(board)
+            via.SetNet(net)
+            via.SetPosition(v(cx + dx, cy + dy))
+            via.SetWidth(pcbnew.FromMM(0.6))
+            via.SetDrill(pcbnew.FromMM(0.3))
+            via.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
+            board.Add(via)
+    return 6
+
+
+# Supply pads the post-route stitching could not reach on three REV A2 runs,
+# each given its via before routing: (ref, pad) -> offset from the pad, mm.
+# C41.1 (+5V_CTRL at U10) sits between U10's control-side fan-out tracks.
+FIXED_PAD_VIAS = {("C41", "1"): (0.2, 1.4)}
+
+
+def add_fixed_pad_vias(board: pcbnew.BOARD) -> int:
+    for (ref, number), (dx, dy) in FIXED_PAD_VIAS.items():
+        fp = next(f for f in board.GetFootprints() if f.GetReference() == ref)
+        pad = next(p for p in fp.Pads() if p.GetNumber() == number)
+        px, py = to_mm(pad.GetPosition().x), to_mm(pad.GetPosition().y)
+        net = board.FindNet(pad.GetNetname())
+        add_track(board, net, (px, py), (px + dx, py + dy), pcbnew.F_Cu, 0.4)
+        via = pcbnew.PCB_VIA(board)
+        via.SetNet(net)
+        via.SetPosition(v(px + dx, py + dy))
+        via.SetWidth(pcbnew.FromMM(0.6))
+        via.SetDrill(pcbnew.FromMM(0.3))
+        via.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
+        board.Add(via)
+    return len(FIXED_PAD_VIAS)
+
+
 def add_plane_stitching(board: pcbnew.BOARD, via_mm: float = 0.8,
                         drill_mm: float = 0.4,
                         clearance: float = 0.25) -> tuple[int, list[str]]:

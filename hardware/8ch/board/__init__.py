@@ -38,7 +38,7 @@ from .zones import (BARRIER_AREAS, CONTROL_OUTLINE, OUTER_GROUND_POURS,
                     RS485_OUTLINE, SENSOR_OUTLINE, add_keepout,
                     add_outer_ground_pours, add_planes, add_zone, fill_zones)
 from .copper import add_chassis_ring, add_track
-from .stitching import (PLANE_NETS, add_channel_supply_vias,
+from .stitching import (PLANE_NETS, add_channel_supply_vias, add_u14_thermal_vias, add_fixed_pad_vias,
                         add_plane_stitching, stitch_pour_islands)
 from .connections import (close_open_connections, drop_dangling_vias,
                           obstacles)
@@ -52,7 +52,7 @@ __all__ = [
     "RING_INSET", "RING_WIDTH", "ROOT", "RS485_OUTLINE", "RS485_X0",
     "RS485_Y0", "SENSOR_OUTLINE", "SENSOR_X1", "ZONE_BOTTOM", "ZONE_LEFT",
     "ZONE_TOP",
-    "add_board_footprint", "add_chassis_ring", "add_channel_supply_vias",
+    "add_board_footprint", "add_chassis_ring", "add_channel_supply_vias", "add_u14_thermal_vias", "add_fixed_pad_vias",
     "add_keepout", "add_mechanics_and_silkscreen", "add_outer_ground_pours",
     "add_outline", "add_plane_stitching", "add_planes", "add_text",
     "add_track", "add_zone", "bare", "build_placements", "clear_generated",

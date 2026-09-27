@@ -43,6 +43,9 @@ PROPS = {
     "D3": dict(value="M7", fields={"MPN": "M7", "Manufacturer": "MDD", "LCSC": "C95872",
                "Description": "Relay coil flyback clamp, 1N4007-class in SMA - "
                "do not order the through-hole 1N4007 (I-069)"}),
+    # 0023: the plain EP footprint; board/stitching.py puts 0.3 mm thermal
+    # vias under the pad instead of the footprint's 0.2 mm ones.
+    "U14": dict(footprint="Package_SO:SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.41x3.3mm"),
     "U12": dict(fields={"Description": "Shared 1 kV functional-isolation supply for the "
                 "measurement island | Manufacturer: XP Power | MPN: IA0505S - not the "
                 "regulated 'IA0505S-1WR3' of another maker (I-069)"}),

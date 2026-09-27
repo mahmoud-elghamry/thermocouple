@@ -368,7 +368,7 @@ add(Part("D2", "Device:D_Zener", (211, 184), "SMBJ60A", "Diode_SMD:D_SMB",
 # module, whose 36 V ceiling cannot survive a battery.  Every value below is
 # derived in docs/reference/CALCULATIONS.md section 1 from TI SNVSAU4D.
 add(Part("U14", "Regulator_Switching:LM5164DDA", (221, 174), "LM5164DDAR",
-         "Package_SO:SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.41x3.3mm_ThermalVias",
+         "Package_SO:SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.41x3.3mm",   # thermal vias: board/stitching.py (0023)
          {"1": "GND_CTRL", "2": "+24V_PROT", "3": "VIN_UVLO", "4": "RON_SET",
           "5": "FB_5V", "7": "BST_5V", "8": "SW_5V", "9": "GND_CTRL"},
          manufacturer="Texas Instruments", mpn="LM5164DDAR",

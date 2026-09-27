@@ -70,6 +70,8 @@ def main() -> None:
     add_chassis_ring(board)
     supply_vias = add_channel_supply_vias(board)
     print(f"Placed {supply_vias} fixed supply and ground vias on the measurement channels")
+    print(f"Placed {add_u14_thermal_vias(board)} thermal vias under U14 (0023)")
+    print(f"Placed {add_fixed_pad_vias(board)} fixed pad vias (C41.1)")
     fill_zones(board)
     pcbnew.SaveBoard(str(BOARD_FILE), board)
     print(f"Generated {BOARD_FILE}")

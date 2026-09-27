@@ -175,9 +175,10 @@ def update_project() -> None:
     rules["min_clearance"] = 0.2
     rules["min_track_width"] = 0.2
     rules["min_via_diameter"] = 0.5
-    # 0.2, not 0.3: U14's thermal vias under the LM5164 pad are 0.2 mm
-    # drills (docs/decisions/0017).  Routed vias stay 0.3 (via_dimensions).
-    rules["min_through_hole_diameter"] = 0.2
+    # Back to 0.3 since 2026-09-28 (decisions/0023): U14's thermal vias are
+    # now 0.3 mm board vias placed by the generator, not the footprint's
+    # 0.2 mm ones (0017), so no hole on the board needs a fab extra.
+    rules["min_through_hole_diameter"] = 0.3
     rules["min_copper_edge_clearance"] = 0.5
     rules["min_hole_clearance"] = 0.25
     rules["min_hole_to_hole"] = 0.25

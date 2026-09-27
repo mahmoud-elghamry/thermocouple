@@ -1,6 +1,6 @@
 # 0017 — Keep U14's thermal vias; lower the board hole minimum to 0.2 mm
 
-* Status: accepted
+* Status: superseded by `0023` (2026-09-28: 0.3 mm board vias instead)
 * Date: 2026-09-25
 * Deciders: owner
 * Relates to: `I-060`, `I-061`, `docs/decisions/0016`
