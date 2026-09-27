@@ -2,26 +2,25 @@
 
 **Read second, after `AGENTS.md`. Update before finishing. Hard limit: 60 lines.**
 
-**Last updated:** 2026-09-26 (workstation)
+**Last updated:** 2026-09-27 (workstation)
 
 ## Last session
 
-**Schematic now six A4 files** (`0021`, amends `0019`): root (index of blocks),
-`power`, `mcu`, `isolation`, `relay_rs485`, `channel` (TC1-TC8). 56 sheet-internal
-nets gained the sheet path (`/POWER/+24V_RAW`); `apply_rules.py` patterns and
-`board/units.bare()` follow. **All 162 board nets keep their netclass** (compared
-before/after). Board nets renamed in place, copper unchanged; package + PDFs
-(`views/schematic.pdf` 13 pages, `schematic_short.pdf` root + 4 + TC1) re-exported
-11:02. **`I-028` (a) settled** (`0020`): external 1 A time-delay DC fuse, >= 80 V DC,
->= 10 kA, at the battery end; inrush in `CALCULATIONS.md` 1.9. New low `I-064`:
-board overlaps its PCB-editor page frame (cosmetic). Earlier today: `I-062`,
-`I-045`, `I-027`, REV A0 -> A1 silkscreen; committed `08c8d86`, `d9845ae`.
+2026-09-26: schematic on six A4 sheets (`0021`), every net kept its netclass; panel
+fuse specified (`0020`); `I-064` cosmetic page frame. Details in git log.
 
 **2026-09-27:** ADM2587E datasheet in (120 mA max replaces the 100 mA estimate;
 load 0.425 A, fine). AGENTS.md rule 11 (stop at a safe point on low usage).
 **Two-layer backup `hardware/8ch-2layer/`** (`I-025`): routed, DRC 0 violations /
 0 parity, **14 unconnected, all `/+3V3_SENS`** - parked there; owner expects
 4-layer to be orderable from abroad, so this is low priority.
+
+**Pre-fabrication review 2026-09-27** (netlist pin by pin against datasheets):
+MAX31856, BAV199, ISO7760/61, IA0505S, LP2985, LM5164, ADM2587E, ATmega32A, ISP/LCD
+headers, diodes, Q1 pinout, every capacitor's voltage all verified correct. **Found:
+`I-065` ISP/MISO contention + F-suffix isolators select all sensors in reset (high),
+`I-066` Q1 60 V on a 58 V rail (high), `I-067` PC2 10 V in load dump, `I-068` F1 30 V
+PTC, `I-069` procurement traps.** Settle I-065/I-066 before ordering.
 
 ## Measured, not claimed
 
