@@ -61,7 +61,8 @@ void app_protection_note_save_fault(app_protection_state_t *state);
 
 /* Marks a save-failure trip as resolved by a successful retry.  Does not
    itself clear the latch - app_protection_try_ack() still requires an
-   explicit acknowledgement (I-036). */
+   explicit acknowledgement (I-036), and that acknowledgement is refused while
+   any sample is invalid or above the reset temperature (I-073). */
 void app_protection_note_save_recovered(app_protection_state_t *state);
 
 void app_protection_evaluate(app_protection_state_t *state,

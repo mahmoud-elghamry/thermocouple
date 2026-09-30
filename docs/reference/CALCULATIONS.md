@@ -414,6 +414,19 @@ layout risk assessment, not a calculated oscillation or temperature. Compare
 against TI LM5164 section 7.4's compact loop/wide trace guidance, then verify
 the corrected layout physically. https://www.ti.com/lit/ds/symlink/lm5164.pdf .
 
+**After the fix (2026-10-01, `0026`), measured from the board:**
+
+| Path | Before | After |
+|---|---:|---:|
+| U14.2 VIN to C63.1 | 19.466 mm | **3.53 mm** (one straight 0.8 mm track, y 109.36) |
+| U14.2 VIN to C54.1 | 12.129 mm | **7.03 mm** (same track) |
+| U14.8 SW to L1.1 | 9.404 mm, 0.2 mm sections | **5.98 mm**, one 1.0 mm track |
+| U14.7 BST to C62.1 | 8.940 mm | **3.02 mm**, 0.4 mm |
+
+Thermal vias under U14: 6 x 0.3 / 0.6 mm (ring 0.15 mm), confirmed in the
+exported `.drl`. Board minimum ring is now 0.15 mm everywhere (was 0.10 on 41
+vias). Still a geometric result; the bench measurement is open (I-076).
+
 ### 5.3 Conditional external-voltage fault at a TC terminal (I-080)
 
 Inputs: 24 V accidentally applied to an input with a return to GND_SENS;

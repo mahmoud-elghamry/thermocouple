@@ -275,6 +275,100 @@ static void test_drive_fault(void)
     CHECK(protection.latched);
 }
 
+/* A save failure latches before any temperature trip can, and while it is
+   latched app_protection_evaluate() does nothing - so a channel that went
+   over its limit meanwhile has never been latched as a temperature trip.
+   A successful retry must therefore not be enough on its own: the ACK has to
+   pass the same temperature and validity checks as any other (I-073). */
+static void save_fault_recovered(app_protection_state_t *protection)
+{
+    app_protection_reset(protection);
+    app_protection_note_save_fault(protection);
+    app_protection_note_save_recovered(protection);
+}
+
+static void test_save_fault_ack_refused_until_recovered(void)
+{
+    app_protection_state_t protection;
+    hal_temperature_sample_t samples[HAL_TEMPERATURE_BANK_CHANNELS];
+
+    fill(samples, HAL_TEMPERATURE_BANK_CHANNELS, 200);
+
+    app_protection_reset(&protection);
+    app_protection_note_save_fault(&protection);
+    CHECK(protection.latched);
+    CHECK(protection.cause == APP_TRIP_CAUSE_SAVE_FAILED);
+    CHECK(!protection.save_fault_recovered);
+
+    /* Cold and valid, but the retry has not succeeded yet. */
+    CHECK(!app_protection_try_ack(&protection, samples,
+                                  HAL_TEMPERATURE_BANK_CHANNELS, 1150));
+    CHECK(protection.latched);
+    CHECK(!app_protection_output_permitted(true, &protection));
+}
+
+static void test_save_fault_recovered_ack_refused_while_hot(void)
+{
+    app_protection_state_t protection;
+    hal_temperature_sample_t samples[HAL_TEMPERATURE_BANK_CHANNELS];
+
+    /* Every channel over the limit - the I-073 reproduction. */
+    fill(samples, HAL_TEMPERATURE_BANK_CHANNELS, 1200);
+    save_fault_recovered(&protection);
+    CHECK(!app_protection_try_ack(&protection, samples,
+                                  HAL_TEMPERATURE_BANK_CHANNELS, 950));
+    CHECK(protection.latched);
+    CHECK(!app_protection_output_permitted(true, &protection));
+    /* The refused ACK leaves the recovered save pending, not forgotten. */
+    CHECK(protection.cause == APP_TRIP_CAUSE_SAVE_FAILED);
+    CHECK(protection.save_fault_recovered);
+
+    /* One hot channel is enough, and it need not be the first. */
+    fill(samples, HAL_TEMPERATURE_BANK_CHANNELS, 200);
+    samples[7].temperature_x10 = 1200;
+    CHECK(!app_protection_try_ack(&protection, samples,
+                                  HAL_TEMPERATURE_BANK_CHANNELS, 950));
+    CHECK(!app_protection_output_permitted(true, &protection));
+
+    /* Inside the hysteresis band - below the trip, above the reset
+       temperature - is still too hot to acknowledge. */
+    samples[7].temperature_x10 = 951;
+    CHECK(!app_protection_try_ack(&protection, samples,
+                                  HAL_TEMPERATURE_BANK_CHANNELS, 950));
+    CHECK(!app_protection_output_permitted(true, &protection));
+}
+
+static void test_save_fault_recovered_ack_refused_on_invalid(void)
+{
+    app_protection_state_t protection;
+    hal_temperature_sample_t samples[HAL_TEMPERATURE_BANK_CHANNELS];
+
+    fill(samples, HAL_TEMPERATURE_BANK_CHANNELS, 200);
+    samples[3].valid = false;
+    samples[3].faults = HAL_TEMPERATURE_FAULT_OPEN;
+    save_fault_recovered(&protection);
+    CHECK(!app_protection_try_ack(&protection, samples,
+                                  HAL_TEMPERATURE_BANK_CHANNELS, 950));
+    CHECK(protection.latched);
+    CHECK(!app_protection_output_permitted(true, &protection));
+}
+
+static void test_save_fault_recovered_ack_accepted_when_cool(void)
+{
+    app_protection_state_t protection;
+    hal_temperature_sample_t samples[HAL_TEMPERATURE_BANK_CHANNELS];
+
+    /* Exactly at the reset temperature is allowed, as for any other trip. */
+    fill(samples, HAL_TEMPERATURE_BANK_CHANNELS, 950);
+    save_fault_recovered(&protection);
+    CHECK(app_protection_try_ack(&protection, samples,
+                                 HAL_TEMPERATURE_BANK_CHANNELS, 950));
+    CHECK(!protection.latched);
+    CHECK(protection.cause == APP_TRIP_CAUSE_NONE);
+    CHECK(!protection.save_fault_recovered);
+    CHECK(app_protection_output_permitted(true, &protection));
+}
+
 /* --- display --------------------------------------------------------------- */
 
 static void test_channel_format(void)
@@ -486,6 +580,10 @@ int main(void)
     test_eight_channel_protection();
     test_config_lock();
     test_drive_fault();
+    test_save_fault_ack_refused_until_recovered();
+    test_save_fault_recovered_ack_refused_while_hot();
+    test_save_fault_recovered_ack_refused_on_invalid();
+    test_save_fault_recovered_ack_accepted_when_cool();
     test_channel_format();
     test_status_line();
     test_monitor_stuck();

@@ -72,6 +72,7 @@ def main() -> None:
     print(f"Placed {supply_vias} fixed supply and ground vias on the measurement channels")
     print(f"Placed {add_u14_thermal_vias(board)} thermal vias under U14 (0023)")
     print(f"Placed {add_fixed_pad_vias(board)} fixed pad vias (C41.1)")
+    print(f"Drew {add_power_stage_copper(board)} U14 power-stage segments (I-076)")
     fill_zones(board)
     pcbnew.SaveBoard(str(BOARD_FILE), board)
     print(f"Generated {BOARD_FILE}")

@@ -1,4 +1,4 @@
-/* Eight-channel thermocouple protection unit - THERMO-8CH REV A0.
+/* Eight-channel thermocouple protection unit - THERMO-8CH REV A2.
  *
  * Energised to run.  PB3 is HIGH only while the unit has scanned all eight
  * channels, every reading is trusted, a setpoint is stored, and none of the

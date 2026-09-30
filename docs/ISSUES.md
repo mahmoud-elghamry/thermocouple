@@ -33,8 +33,6 @@ Severity: **blocker** stops fabrication · **high** is a real failure mode ·
 
 | # | Sev | Issue | Close when |
 |---|---|---|---|
-| I-075 | blocker | **U14 thermal vias are 0.4 mm drill in a 0.6 mm pad, which leaves a 0.10 mm ring.** `stitching.py` asks for 0.3 mm, but a later routing step replaces the via drill. Confirmed in the board and the drill file on 2026-09-30. The 2026-09-28 claim "smallest hole 0.3 mm" was right about hole size but missed this. `CALCULATIONS` 5.2. | The final PCB **and** the exported `.drl` show six 0.3 mm drills at U14; the step that overrides them is fixed so it cannot recur |
-| I-076 | high | **The LM5164 power stage was autorouted.** VIN to C54 is 12.1 mm and VIN to C63 is 19.5 mm; TI section 7.4 wants the input caps at the pins. SW to L1 is 9.4 mm with 0.2 mm sections. Risks: ringing, and switching noise on a board that measures microvolts. `CALCULATIONS` 5.2; `production/review-20260929/regulator-copper.png`. | The U14 block is laid out by hand (fixed tracks before routing) to TI's guidance; DRC/parity clean; rails and noise measured on the bench (P2) |
 | I-078 | medium | **The order package is not uploadable as it stands.** `bom.csv`/`cpl.csv` are in KiCad's format, not the fab's. 17 BOM lines have no LCSC code: MAX31856 x8, LP2985, ADM2587E, U1, IA0505S, K1, C53, RV1, and 9 test points, which need no part. The THT split (factory or local technician) is not decided. Missing from the BOM: the DIP-40 socket, LCD and cable, jumper shunts, and the `0020` fuse and holder. | Fab chosen; every line has a code or an explicit "hand-fit"; BOM/CPL exported in the fab's format; the fab's matching page and rotation preview reviewed line by line **with the owner** |
 | I-079 | medium | **`production/8ch-reva2/RELEASE.txt` said the K1 coil is ~2.9 kOhm.** The G5LE-1 DC24 coil is **1.44 kOhm ±10 %** at 23 °C (16.7 mA; `datasheets/G5LE-relay.pdf`). The 2.9 came from an old I-058 text, copied without checking. The package is marked on hold. | The re-exported package's RELEASE text uses 1.44 kOhm |
 
@@ -43,15 +41,15 @@ Severity: **blocker** stops fabrication · **high** is a real failure mode ·
 | # | Sev | Issue | Close when |
 |---|---|---|---|
 | I-085 | high | **The system is 24 thermocouples; the board has 8** (owner, 2026-09-29). **Direction agreed 2026-10-01** (`0024`): three identical, autonomous 8-channel modules, each tripping its own relay. The owner still has to answer one question: one machine (all three contacts in series) or separate groups (one contact per machine). Either answer is panel wiring only, so this no longer blocks ordering the module. | The owner has answered the grouping question; the panel wiring drawing shows it |
-| I-073 | high | **Unsafe ACK after a save-failure recovery.** `protection.c:159` resets the trip without checking temperatures. With readings rising past the limit, 7 loop iterations permit RUN while it is hot. It was reproduced (`firmware/tests/reproductions/repro_save_ack.c`), and the code was read and confirmed 2026-09-30. The fix is small: fall through to the normal temperature check. | Fix + regression in the normal host test gate; `firmware/build.ps1` passes |
+| I-088 | low | After an ACK is refused because a channel is hot (I-073), the status line keeps saying `SAVE OK ACK`, not the temperature trip. The output is safe but the operator is not told why. `app_protection_evaluate` does not run while a trip is latched. Found by the I-073 sub-agent. | The status shows the reason for a refused ACK |
 | I-074 | medium | **A healthy boot latches a CH1 FAULT that needs an ACK,** while the display says SAFE (the output is correctly off). This is the driver's first-sweep "settling" meeting the app. Repro: `repro_boot.c`. Latching on boot may be desirable; showing SAFE is not. | Startup policy chosen (latch-and-show, or wait for the first valid sweep); display and output agree; regression added |
 | I-082 | medium | **`program.ps1` warns about a wrong image but flashes it anyway** (line 139 → 162). The legacy images have the opposite output logic. | It refuses an incompatible image; the technician package holds only the approved image, its hash and the fuses |
-| I-070 | low | `version.h:16` still says REV A0; the board is A2. | Aligned when I-073 is fixed |
 
 ## P2 — measure at the bench when boards arrive
 
 | # | Sev | Issue | Close when |
 |---|---|---|---|
+| I-076 | high | **Layout done 2026-10-01 (`0026`), measurement open.** The U14 stage is now placed and copper-drawn by `board/powerstage.py` and protected from the router. C63 to VIN is 3.5 mm (was 19.5), C54 is 7.0 mm (was 12.1), SW is one straight 1.0 mm track pin 8 to L1 (was 9.4 mm with 0.2 mm sections), and BST is 3.0 mm. `CALCULATIONS` 5.2. | Rails, ringing on SW and sensor noise measured on an assembled board |
 | I-058 | high | K1 coil pins were fixed in the schematic and PCB (2026-09-24/26). Before power-up: pins 2-5 read **1.44 kOhm ±10 %**, 1-4 read 0 Ohm and 1-3 open. | Measured on an assembled board |
 | I-003 | high | The IA0505S is unregulated; its light-load output may approach 6 V. Mitigated by the LP2985 (`0002`), but never measured. | Module output measured at real load |
 | I-004 | high | The isolation barrier was never tested electrically. The 3 mm in `.kicad_dru` is functional, not a standard. | Insulation test across the barrier |
@@ -71,7 +69,6 @@ Severity: **blocker** stops fabrication · **high** is a real failure mode ·
 | I-046 | medium | Konnect is AGPL-3.0; exposure today is zero (nothing distributed, no Konnect code in the repo). | Settled before shipping anything built around Konnect |
 | I-054 | low | kicad-tool clones inherit the donor's MPN; `check_mpn_consistency.py` in `validate.ps1` catches it. | kicad-tool fixed upstream |
 | I-056 | medium | Doc-system review (2026-09-17). The file-size and row-length parts are handled by `0025`. Still open: a dated evidence log, a decisions index, requirement-to-evidence traceability. | Those three exist, or are explicitly declined |
-| I-071 | medium | `.github/workflows/hardware.yml:53` still checks against the A1 baseline. | CI uses `netlist-baseline-reva2.json` |
 | I-084 | low | CI runs fewer checks than local `validate.ps1` (no DRC, parity or MPN check). | CI runs the same subset, or the difference is documented |
 | I-083 | low | `build.py` needs git history (base `05d6abd`); a source ZIP cannot regenerate the schematic. Not wrong, just coupled. | The release notes name the base commit, or the base is kept as a file |
 | I-072 | low | Stale overview text: `hardware/8ch/README.md` (TSR 1-2450), firmware comments on feedback. | Reconciled |

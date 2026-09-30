@@ -68,7 +68,9 @@ def find_java() -> Path:
 # Nets whose existing wiring must survive optimisation.
 # Wiring this project draws on purpose and does not want the optimiser to
 # move: the chassis ring, and the fixed supply escapes on each channel.
-PROTECTED_NETS = {"/CHASSIS_SHIELD", "/+3V3_SENS"}
+# The U14 power stage (I-076) is drawn by board/powerstage.py; only its
+# copper exists on those nets at export, so protecting the nets protects it.
+PROTECTED_NETS = {"/CHASSIS_SHIELD", "/+3V3_SENS"} | gb.POWER_STAGE_NETS
 PLANE_LAYERS = ("In1.Cu", "In2.Cu")
 
 
@@ -147,9 +149,18 @@ def import_ses() -> None:
 
     # Freerouting emits a few segments just under the minimum width (0.1874 mm
     # against a 0.20 mm floor).  Widening them is safe and keeps DRC honest.
+    # The SES import gives every via its netclass drill, so the 0.6 mm vias
+    # placed before routing (U14's thermal vias, the MAX31856 supply vias,
+    # C41.1) came back as 0.6/0.4 - a 0.10 mm ring (I-075).  Put back a
+    # 0.15 mm ring; DRC's min_via_annular_width now catches any miss.
+    redrilled = 0
     narrow = 0
     for track in tracks:
         if track.Type() == pcbnew.PCB_VIA_T:
+            width = pcbnew.ToMM(track.GetWidth(pcbnew.F_Cu))
+            if width - pcbnew.ToMM(track.GetDrillValue()) < 0.30 - 1e-6:
+                track.SetDrill(pcbnew.FromMM(round(width - 0.30, 3)))
+                redrilled += 1
             continue
         if pcbnew.ToMM(track.GetWidth()) < MIN_TRACK_MM - 1e-6:
             track.SetWidth(pcbnew.FromMM(MIN_TRACK_MM))
@@ -165,7 +176,8 @@ def import_ses() -> None:
         except AttributeError:
             pass
     pcbnew.SaveBoard(str(gb.BOARD_FILE), board)
-    print(f"Imported {SES.name}: widened {narrow} thin segments, "
+    print(f"Imported {SES.name}: re-drilled {redrilled} vias to a 0.15 mm ring, "
+          f"widened {narrow} thin segments, "
           f"discarded {len(chassis)} router-drawn chassis segments")
 
     subprocess.run([sys.executable, str(ROOT / "route.py"), "--finish"],

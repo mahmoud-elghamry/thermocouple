@@ -154,14 +154,16 @@ bool app_protection_try_ack(app_protection_state_t *state,
     if (state->cause == APP_TRIP_CAUSE_DRIVE) {
         return false;
     }
-    /* A save failure has nothing to do with temperature, so it is cleared on
-       its own condition: a retry must have succeeded first (I-036). */
-    if (state->cause == APP_TRIP_CAUSE_SAVE_FAILED) {
-        if (!state->save_fault_recovered) {
-            return false;
-        }
-        app_protection_reset(state);
-        return true;
+    /* A save failure needs its own condition first: a retry must have
+       succeeded (I-036).  That alone is not enough to clear it, though.
+       While this trip is latched, app_protection_evaluate() does not run, so
+       a channel that went over its limit during the save fault has never
+       been latched as a temperature trip.  The recovered save therefore
+       falls through to the same checks as any other acknowledgement: every
+       sample valid and at or below the reset temperature (I-073). */
+    if (state->cause == APP_TRIP_CAUSE_SAVE_FAILED &&
+        !state->save_fault_recovered) {
+        return false;
     }
     for (channel = 0u; channel < count; ++channel) {
         if (!samples[channel].valid ||

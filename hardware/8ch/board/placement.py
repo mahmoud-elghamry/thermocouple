@@ -114,17 +114,21 @@ def build_placements() -> dict[str, tuple[float, float, float]]:
     # input caps above VIN, L1 beside SW, output caps after L1, feedback
     # divider under FB, ripple injection above L1.
     put("U14", 172.0, 110.0, 0)
-    put("C54", 165.5, 104.5)         # 4.7u 100V at VIN
-    put("C63", 170.8, 104.5)         # 4.7u 100V at VIN
+    # I-076: the power stage is placed for TI's layout (section 7.4) and its
+    # high-current copper is drawn by board/powerstage.py, not the router.
+    # C63/C54 stand beside pins 1-2 at 90 deg: VIN pads level with pin 2
+    # (y 109.36), GND pads level with each other (106.42).
+    put("C63", 166.0, 107.89, 90)    # 4.7u 100V, VIN pad 1.2 mm from U14.2
+    put("C54", 162.5, 107.89, 90)    # 4.7u 100V, beside C63
     # 270, not 90: +24V pad on top, the two VIN_UVLO pads facing each other,
     # R60's GND pad at the bottom facing open board.  At 90 the GND pad sat
     # between +24V and VIN_UVLO and routing walled it in - no via fitted
     # within 6 mm (I-061, 2026-09-26).
-    put("R59", 163.5, 111.0, 270)    # UVLO divider, top
-    put("R60", 163.5, 115.0, 270)    # UVLO divider, bottom
-    put("R55", 167.5, 114.5)         # RON
-    put("C62", 176.5, 105.5)         # bootstrap
-    put("L1", 185.0, 110.0)          # 33u, 10.4 mm
+    put("R59", 164.0, 111.6)         # UVLO divider: +24V (x 163.2) -> UVLO (164.8)
+    put("R60", 164.0, 113.6, 180)    # UVLO (164.8) -> GND (163.2), GND pad on open board
+    put("R55", 167.5, 114.0)         # RON, pad 1 under U14.4
+    put("C62", 177.2, 108.7, 90)     # bootstrap: pad 1 BST (y 109.65), pad 2 on the SW track
+    put("L1", 184.6, 109.3)          # 33u, 10.4 mm; SW pad spans y 107.5-111.1, level with U14.8
     put("R58", 180.5, 102.5)         # ripple injection from SW
     put("C67", 184.5, 102.5)         # ripple injection to +5V
     put("C68", 172.5, 115.0)         # ripple injection to FB

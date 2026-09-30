@@ -47,10 +47,10 @@ jobs:
             --output /tmp/current.net \
             hardware/8ch/thermocouple_8ch.kicad_sch
 
-      - name: Compare against the REV A1 connectivity contract
+      - name: Compare against the REV A2 connectivity contract
         run: |
           python3 hardware/8ch/netlist_fingerprint.py \
-            hardware/8ch/netlist-baseline-reva1.json \
+            hardware/8ch/netlist-baseline-reva2.json \
             /tmp/current.net
 
       - name: No ERC errors

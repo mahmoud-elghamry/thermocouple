@@ -285,6 +285,59 @@ static void test_failed_save_and_recovery(void)
     CHECK(strstr(e->status, "SAFE") != NULL);
 }
 
+/* --- scenario 2b: recovered save acknowledged while hot (I-073) ----------- */
+
+/* The same failed-save sequence as scenario 2, with a second ACK once the
+   channels have cooled.  Preserved from the 2026-09-29 reproduction
+   (tests/reproductions/repro_save_ack.c), where RUN_PERMIT came on at ticks
+   24-30 with every channel 20 C over a 100 C limit. */
+static uint8_t buttons_failed_save_then_late_ack(unsigned t)
+{
+    if (t == 42u) return HAL_BUTTON_EVENT_ACK; /* cool by now: accepted */
+    return buttons_failed_save(t);
+}
+static int16_t temps_hot_during_save_fault_then_cool(unsigned t, uint8_t ch)
+{
+    (void)ch;
+    /* 90 -> 120 -> 80 C against a 100 C setpoint.  Each step is inside the
+       monitor's physical rate limit (APP_8CH_MAX_STEP_X10), so neither is
+       flagged as implausible: the only thing standing between the hot
+       channels and RUN_PERMIT is the acknowledgement check. */
+    if (t < 15u) return 900;
+    if (t < 32u) return 1200;
+    return 800;
+}
+
+static void test_recovered_save_ack_refused_while_hot(void)
+{
+    unsigned i;
+    const history_entry_t *e;
+
+    run_scenario(50u, true, 1000, buttons_failed_save_then_late_ack,
+                 temps_hot_during_save_fault_then_cool, saves_fail_once);
+    CHECK(history_len >= 43u);
+
+    /* The retry succeeds while every channel is over the limit. */
+    e = entry_at(23u);
+    CHECK(!e->permit);
+    CHECK(strstr(e->status, "SAVE OK ACK") != NULL);
+
+    /* ACK at tick 24 is refused: the unit must not run while hot, however
+       the trip was latched.  It stays off until the next accepted ACK. */
+    for (i = 24u; i < 42u; ++i) {
+        e = entry_at(i);
+        CHECK(!e->permit);
+        CHECK(strstr(e->status, "SAFE") == NULL);
+    }
+
+    /* Once the channels are back at or below the reset temperature, the same
+       acknowledgement is accepted and the unit runs normally. */
+    e = entry_at(42u);
+    CHECK(e->permit);
+    CHECK(strstr(e->status, "SAFE") != NULL);
+    CHECK(strstr(e->status, "100") != NULL);
+}
+
 /* --- scenario 3: simultaneous button events and a live trip --------------- */
 
 static uint8_t buttons_simultaneous(unsigned t)
@@ -356,6 +409,7 @@ int main(void)
 {
     test_first_time_setup();
     test_failed_save_and_recovery();
+    test_recovered_save_ack_refused_while_hot();
     test_simultaneous_events_and_trip();
     test_healthy_zero_not_rejected();
 

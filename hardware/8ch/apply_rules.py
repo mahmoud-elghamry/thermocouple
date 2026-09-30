@@ -175,6 +175,10 @@ def update_project() -> None:
     rules["min_clearance"] = 0.2
     rules["min_track_width"] = 0.2
     rules["min_via_diameter"] = 0.5
+    # 0.15, not KiCad's 0.1: the SES import once reset 39 pre-placed 0.6 mm
+    # vias to their netclass's 0.4 mm drill, a 0.10 mm ring, and DRC passed
+    # it (I-075). Every via the pipeline makes has >= 0.15 mm.
+    rules["min_via_annular_width"] = 0.15
     # Back to 0.3 since 2026-09-28 (decisions/0023): U14's thermal vias are
     # now 0.3 mm board vias placed by the generator, not the footprint's
     # 0.2 mm ones (0017), so no hole on the board needs a fab extra.
