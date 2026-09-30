@@ -1,5 +1,8 @@
-/* Historical 2026-09-29 reproduction for I-074.
- * Preserved from the review artifact; see README.md for scope and exit semantics.
+/* Reproduction for I-074, kept as a regression check now that it is fixed.
+ * Originally (2026-09-29) it showed a healthy boot latching a false CH1 FAULT
+ * while the display said SAFE.  Since FW 0.2.1 every power-up is an explicit
+ * startup latch that an ACK clears; the assertions below check that, with
+ * the real MAX31856 bank driver's settling sweep.  See README.md.
  * Runs current application source, not a frozen firmware copy.
  * Not part of the default test gate; integrate the relevant scenario when fixing.
  */
@@ -254,8 +257,14 @@ int main(void)
       const history_entry_t *e=entry_at(i);
       printf("tick=%u permit=%d channel='%s' status='%s'\n",i,(int)e->permit,e->channel,e->status);
     }
-    CHECK(!entry_at(19)->permit);
-    CHECK(strstr(entry_at(19)->status,"TRIP CH1 FAULT")!=NULL);
+    /* Fixed (I-074): off and waiting from the first frame, through the
+       driver's settling sweep, with no false sensor fault and never SAFE. */
+    for(i=0;i<20;i++) {
+      CHECK(!entry_at(i)->permit);
+      CHECK(strcmp(entry_at(i)->status,"START: PRESS ACK")==0);
+    }
+    /* ACK once the driver delivers valid 20 C readings: accepted. */
     CHECK(entry_at(20)->permit);
+    CHECK(strstr(entry_at(20)->status,"SAFE")!=NULL);
     return failures ? 1:0;
 }

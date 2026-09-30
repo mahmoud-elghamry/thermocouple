@@ -130,6 +130,9 @@ New-Item -ItemType Directory -Path $out | Out-Null     # fails if it exists: new
 & $cli sch export bom     --output "$out/bom.csv" --fields 'Reference,Value,Footprint,MPN,Manufacturer,LCSC,${QUANTITY}' --group-by 'Value,MPN,LCSC' thermocouple_8ch.kicad_sch
 ```
 
+The technician's kit (every through-hole part plus what is not on the board;
+`0027`): `<KiCad python> hardware\8ch\kit_list.py <release>	echnician_kit.csv 3`.
+
 Copy `docs/STATE.md`'s check numbers into the release folder as well. A
 fabrication package without the report it passed is not a package.
 

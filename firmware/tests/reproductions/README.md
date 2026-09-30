@@ -10,7 +10,7 @@ without retaining duplicate test plumbing indefinitely.
 | Source | What is real / modeled | Historical result on reviewed firmware |
 |---|---|---|
 | `repro_save_ack.c` | Real application/protection/settings/monitor; HAL doubles | Exit 1, seven failed safety assertions. Stored limit 100 C, first save fails at tick 11, inputs change 90 to 120 C at tick 15, successful retry at 23, ACK at 24. RUN_PERMIT is wrongly on at ticks 24–30. A fix must keep it off while hot or invalid and allow normal safe recovery. |
-| `repro_boot.c` | Real application **and** MAX31856 bank driver; SPI register model | Exit 0 **confirms the old defect**, not safe behavior: eight healthy 20 C inputs, stored 100 C limit, false CH1 FAULT persists through tick 19 and ACK clears it at 20. Rewrite these behavior assertions for the explicitly chosen startup policy when fixing I-074. |
+| `repro_boot.c` | Real application **and** MAX31856 bank driver; SPI register model | **I-074 fixed in FW 0.2.1; assertions rewritten.** Historical result on reviewed firmware: exit 0 confirmed the old defect (false CH1 FAULT through tick 19, ACK cleared it at 20, display said SAFE while off). Now exit 0 means the owner's 2026-10-01 policy holds: eight healthy 20 C inputs, stored 100 C limit, output off and status `START: PRESS ACK` for ticks 0-19 (through the driver's settling sweep, no false fault, never SAFE), ACK at tick 20 accepted, permit on, `SAFE`. The same scenario is covered in the normal gate by `test_app_integration.c`; this file keeps the real-driver variant. |
 
 Both were compiled with MSVC C11 `/W4 /WX` and rerun after relocation on
 2026-09-29. Output is in

@@ -60,6 +60,16 @@ void app_protection_reset(app_protection_state_t *state)
     state->cause = APP_TRIP_CAUSE_NONE;
 }
 
+void app_protection_startup_latch(app_protection_state_t *state)
+{
+    if (state == NULL || state->latched) {
+        return;
+    }
+    state->latched = true;
+    state->first_channel = 0u;
+    state->cause = APP_TRIP_CAUSE_STARTUP;
+}
+
 void app_protection_config_lock(app_protection_state_t *state)
 {
     if (state == NULL) {
@@ -362,6 +372,15 @@ void app_format_status_line(char out[17],
                        state->save_fault_recovered ? "SAVE OK ACK"
                                                     : "SAVE FAILED",
                        11u);
+            return;
+        case APP_TRIP_CAUSE_STARTUP:
+            /* Power-up: off until the operator acknowledges (I-074).  Never
+               SAFE here - the output is off.  A refused ACK says why. */
+            if (state->ack_refused) {
+                write_ack_refused(out, state);
+                return;
+            }
+            write_word(&out[0], "START: PRESS ACK", 16u);
             return;
         case APP_TRIP_CAUSE_CONFIG:
             /* Reachable only after a first-time save has succeeded and

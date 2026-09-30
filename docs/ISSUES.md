@@ -33,7 +33,7 @@ Severity: **blocker** stops fabrication · **high** is a real failure mode ·
 
 | # | Sev | Issue | Close when |
 |---|---|---|---|
-| I-078 | medium | **The order package is not uploadable yet.** **Done:** every line coded (`0027`): 5 exact-MPN codes; K1 is now G5LE-14 DC24, C53 is now the Rubycon YXF; U12 is XP IA0505S from DigiKey, hand-fit. The owner decided: factory fits SMD, the technician fits all THT (unless the factory THT price difference is small), 3 boards. **Left:** the fab choice; add the DIP-40 socket, LCD and cable, shunts and the `0020` fuse to a technician kit list; export BOM/CPL in the fab's format (SMD only); review the fab's matching page and preview with the owner. | Fab chosen; fab-format files exported; screenshots reviewed with the owner |
+| I-078 | medium | **The order package is not uploadable yet.** **Done:** every line coded (`0027`): 5 exact-MPN codes; K1 is now G5LE-14 DC24, C53 is now the Rubycon YXF; U12 is XP IA0505S from DigiKey, hand-fit. The owner decided: factory fits SMD, the technician fits all THT (unless the factory THT price difference is small), 3 boards. **Kit list done** (`kit_list.py` → `technician_kit.csv`: 13 through-hole purchase lines plus socket, LCD, cable, shunts and fuse, x3). **Left:** the fab choice; the LCD model and the `0020` fuse part; export BOM/CPL in the fab's format (SMD only); review the fab's matching page and preview with the owner. | Fab chosen; fab-format files exported; screenshots reviewed with the owner |
 | I-079 | medium | **`production/8ch-reva2/RELEASE.txt` said the K1 coil is ~2.9 kOhm.** The G5LE-1 DC24 coil is **1.44 kOhm ±10 %** at 23 °C (16.7 mA; `datasheets/G5LE-relay.pdf`). The 2.9 came from an old I-058 text, copied without checking. The package is marked on hold. | The re-exported package's RELEASE text uses 1.44 kOhm |
 
 ## P1 — before a unit protects a machine
@@ -41,7 +41,7 @@ Severity: **blocker** stops fabrication · **high** is a real failure mode ·
 | # | Sev | Issue | Close when |
 |---|---|---|---|
 | I-085 | high | **The system is 24 thermocouples; the board has 8** (owner, 2026-09-29). **Direction agreed 2026-10-01** (`0024`): three identical, autonomous 8-channel modules, each tripping its own relay. The owner still has to answer one question: one machine (all three contacts in series) or separate groups (one contact per machine). Either answer is panel wiring only, so this no longer blocks ordering the module. | The owner has answered the grouping question; the panel wiring drawing shows it |
-| I-074 | medium | **A healthy boot latches a CH1 FAULT that needs an ACK,** while the display says SAFE (the output is correctly off). This is the driver's first-sweep "settling" meeting the app. Repro: `repro_boot.c`. Latching on boot may be desirable; showing SAFE is not. | Startup policy chosen (latch-and-show, or wait for the first valid sweep); display and output agree; regression added |
+| I-089 | medium | **A watchdog or brown-out reset while running now stops the machine until someone presses ACK** (a consequence of I-074: every reset goes through the startup latch). This is fail-safe and it is what the owner chose, but a supply dip during cranking could stop an engine that was running. Owner to confirm it is acceptable. | The owner confirms, or asks for a different policy for a reset while running |
 
 ## P2 — measure at the bench when boards arrive
 

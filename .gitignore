@@ -112,3 +112,6 @@ konnect/
 # --- Operating system ------------------------------------------------------------
 Thumbs.db
 .DS_Store
+
+# Sub-agent worktrees (Claude Code isolation); never part of the repo.
+.claude/worktrees/

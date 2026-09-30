@@ -434,6 +434,168 @@ static void test_ack_refusal_status_text(void)
     CHECK(!protection.ack_refused);
 }
 
+/* I-074: every power-up starts latched with its own cause.  Nothing the
+   settling sweep reports can change that, and only a valid, cool ACK ends it. */
+static void test_startup_latch(void)
+{
+    app_protection_state_t protection;
+    hal_temperature_sample_t samples[HAL_TEMPERATURE_BANK_CHANNELS];
+    uint8_t index;
+
+    app_protection_reset(&protection);
+    app_protection_startup_latch(&protection);
+    CHECK(protection.latched);
+    CHECK(!protection.config_locked);
+    CHECK(protection.cause == APP_TRIP_CAUSE_STARTUP);
+    CHECK(!app_protection_output_permitted(true, &protection));
+    CHECK(!app_protection_output_permitted(false, &protection));
+
+    /* Evaluation does nothing while latched: an all-invalid first sweep, or
+       a hot channel, cannot stack a sensor fault or a temperature trip on
+       top of the startup state. */
+    for (index = 0u; index < HAL_TEMPERATURE_BANK_CHANNELS; ++index) {
+        samples[index].temperature_x10 = 0;
+        samples[index].faults = HAL_TEMPERATURE_FAULT_INIT;
+        samples[index].valid = false;
+    }
+    app_protection_evaluate(&protection, samples,
+                            HAL_TEMPERATURE_BANK_CHANNELS, 1000);
+    CHECK(protection.cause == APP_TRIP_CAUSE_STARTUP);
+    fill(samples, HAL_TEMPERATURE_BANK_CHANNELS, 1200);
+    app_protection_evaluate(&protection, samples,
+                            HAL_TEMPERATURE_BANK_CHANNELS, 1000);
+    CHECK(protection.cause == APP_TRIP_CAUSE_STARTUP);
+
+    /* ACK refused: settling sweep (every channel invalid), names channel 1. */
+    for (index = 0u; index < HAL_TEMPERATURE_BANK_CHANNELS; ++index) {
+        samples[index].temperature_x10 = 0;
+        samples[index].faults = HAL_TEMPERATURE_FAULT_INIT;
+        samples[index].valid = false;
+    }
+    CHECK(!app_protection_try_ack(&protection, samples,
+                                  HAL_TEMPERATURE_BANK_CHANNELS, 950));
+    CHECK(protection.latched);
+    CHECK(protection.ack_refused && protection.ack_refused_invalid);
+    CHECK(protection.ack_refused_channel == 0u);
+    CHECK(!app_protection_output_permitted(true, &protection));
+
+    /* ACK refused: one invalid channel among valid cool ones. */
+    fill(samples, HAL_TEMPERATURE_BANK_CHANNELS, 200);
+    samples[5].valid = false;
+    samples[5].faults = HAL_TEMPERATURE_FAULT_OPEN;
+    CHECK(!app_protection_try_ack(&protection, samples,
+                                  HAL_TEMPERATURE_BANK_CHANNELS, 950));
+    CHECK(protection.ack_refused_channel == 5u);
+
+    /* ACK refused: hot, including inside the hysteresis band. */
+    fill(samples, HAL_TEMPERATURE_BANK_CHANNELS, 200);
+    samples[2].temperature_x10 = 951;
+    CHECK(!app_protection_try_ack(&protection, samples,
+                                  HAL_TEMPERATURE_BANK_CHANNELS, 950));
+    CHECK(protection.ack_refused && !protection.ack_refused_invalid);
+    CHECK(protection.ack_refused_channel == 2u);
+    CHECK(protection.latched);
+    CHECK(protection.cause == APP_TRIP_CAUSE_STARTUP);
+    CHECK(!app_protection_output_permitted(true, &protection));
+
+    /* Exactly at the reset temperature, all valid: accepted. */
+    fill(samples, HAL_TEMPERATURE_BANK_CHANNELS, 950);
+    CHECK(app_protection_try_ack(&protection, samples,
+                                 HAL_TEMPERATURE_BANK_CHANNELS, 950));
+    CHECK(!protection.latched);
+    CHECK(protection.cause == APP_TRIP_CAUSE_NONE);
+    CHECK(!protection.ack_refused);
+    CHECK(app_protection_output_permitted(true, &protection));
+
+    /* Normal behaviour resumes: evaluation trips again on a hot channel. */
+    fill(samples, HAL_TEMPERATURE_BANK_CHANNELS, 1200);
+    app_protection_evaluate(&protection, samples,
+                            HAL_TEMPERATURE_BANK_CHANNELS, 1000);
+    CHECK(protection.latched);
+    CHECK(protection.cause == APP_TRIP_CAUSE_TEMPERATURE);
+    CHECK(!app_protection_output_permitted(true, &protection));
+
+    app_protection_startup_latch(NULL); /* must not crash */
+}
+
+/* The startup latch never outranks or weakens the causes that already block
+   ACK: config lock, drive fault. */
+static void test_startup_latch_precedence(void)
+{
+    app_protection_state_t protection;
+    hal_temperature_sample_t samples[HAL_TEMPERATURE_BANK_CHANNELS];
+
+    fill(samples, HAL_TEMPERATURE_BANK_CHANNELS, 200);
+
+    /* Blank EEPROM: boot does startup latch, then config lock.  The config
+       lock wins and an ACK is still refused while every channel is cold. */
+    app_protection_reset(&protection);
+    app_protection_startup_latch(&protection);
+    app_protection_config_lock(&protection);
+    CHECK(protection.cause == APP_TRIP_CAUSE_CONFIG);
+    CHECK(protection.config_locked);
+    CHECK(!app_protection_try_ack(&protection, samples,
+                                  HAL_TEMPERATURE_BANK_CHANNELS, 950));
+    CHECK(protection.latched);
+
+    /* The other order is harmless: startup latch does not replace a lock. */
+    app_protection_reset(&protection);
+    app_protection_config_lock(&protection);
+    app_protection_startup_latch(&protection);
+    CHECK(protection.cause == APP_TRIP_CAUSE_CONFIG);
+    CHECK(protection.config_locked);
+
+    /* A drive fault over the startup latch cannot be acknowledged. */
+    app_protection_reset(&protection);
+    app_protection_startup_latch(&protection);
+    app_protection_note_drive_fault(&protection);
+    CHECK(protection.cause == APP_TRIP_CAUSE_DRIVE);
+    CHECK(!app_protection_try_ack(&protection, samples,
+                                  HAL_TEMPERATURE_BANK_CHANNELS, 950));
+    CHECK(protection.latched);
+
+    /* A save failure cannot replace the startup latch (nothing to recover
+       from: the unit has not started). */
+    app_protection_reset(&protection);
+    app_protection_startup_latch(&protection);
+    app_protection_note_save_fault(&protection);
+    CHECK(protection.cause == APP_TRIP_CAUSE_STARTUP);
+}
+
+static void test_startup_status_text(void)
+{
+    app_protection_state_t protection;
+    hal_temperature_sample_t samples[HAL_TEMPERATURE_BANK_CHANNELS];
+    char line[17];
+
+    app_protection_reset(&protection);
+    app_protection_startup_latch(&protection);
+    app_format_status_line(line, &protection, 1000, false);
+    CHECK(strcmp(line, "START: PRESS ACK") == 0);
+    CHECK(strlen(line) == 16u);
+    CHECK(strstr(line, "SAFE") == NULL);
+
+    /* Refused ACK: the I-088 reason, then back once the cause has gone. */
+    fill(samples, HAL_TEMPERATURE_BANK_CHANNELS, 200);
+    samples[3].temperature_x10 = 1200;
+    CHECK(!app_protection_try_ack(&protection, samples,
+                                  HAL_TEMPERATURE_BANK_CHANNELS, 950));
+    app_format_status_line(line, &protection, 1000, false);
+    CHECK(strcmp(line, "NO ACK CH4 HOT  ") == 0);
+    samples[3].valid = false;
+    samples[3].faults = HAL_TEMPERATURE_FAULT_OPEN;
+    app_protection_ack_refusal_refresh(&protection, samples,
+                                       HAL_TEMPERATURE_BANK_CHANNELS, 950);
+    app_format_status_line(line, &protection, 1000, false);
+    CHECK(strcmp(line, "NO ACK CH4 FAULT") == 0);
+    samples[3] = good(200);
+    app_protection_ack_refusal_refresh(&protection, samples,
+                                       HAL_TEMPERATURE_BANK_CHANNELS, 950);
+    app_format_status_line(line, &protection, 1000, false);
+    CHECK(strcmp(line, "START: PRESS ACK") == 0);
+    CHECK(protection.latched);
+}
+
 /* --- display --------------------------------------------------------------- */
 
 static void test_channel_format(void)
@@ -650,6 +812,9 @@ int main(void)
     test_save_fault_recovered_ack_refused_on_invalid();
     test_save_fault_recovered_ack_accepted_when_cool();
     test_ack_refusal_status_text();
+    test_startup_latch();
+    test_startup_latch_precedence();
+    test_startup_status_text();
     test_channel_format();
     test_status_line();
     test_monitor_stuck();

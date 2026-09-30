@@ -23,7 +23,13 @@ typedef enum {
        only exists to make the failure visible and stop the unit until an
        operator has both retried it successfully and acknowledged the
        recovery (I-036). */
-    APP_TRIP_CAUSE_SAVE_FAILED
+    APP_TRIP_CAUSE_SAVE_FAILED,
+    /* Power-up (I-074).  Every boot starts latched: the output stays off
+       until the operator presses ACK, and that ACK is accepted only when
+       every channel is valid and at or below the reset temperature.  Not a
+       fault - it makes "off after power-up" an explicit, visible state
+       instead of a false sensor trip raised by the first sweep. */
+    APP_TRIP_CAUSE_STARTUP
 } app_trip_cause_t;
 
 typedef struct {
@@ -49,6 +55,12 @@ typedef struct {
 } app_protection_state_t;
 
 void app_protection_reset(app_protection_state_t *state);
+
+/* Latches the power-up state (I-074).  Call once at boot, after
+   app_protection_reset().  A no-op if something is already latched, so the
+   config lock applied afterwards still takes precedence and nothing is
+   downgraded. */
+void app_protection_startup_latch(app_protection_state_t *state);
 
 /* Latches a config trip and blocks acknowledgement until a setpoint is
    stored.  Called at boot when the EEPROM record does not validate. */

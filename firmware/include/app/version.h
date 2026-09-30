@@ -16,7 +16,7 @@
  * last one - the revision digit this string exists to show (I-070).
  */
 
-#define APP_FIRMWARE_VERSION "FW 0.2.0"
+#define APP_FIRMWARE_VERSION "FW 0.2.1"
 #define APP_TARGET_BOARD     "THERMO-8CH REVA2"
 
 /* Shown on the second LCD line at boot: converter, version. */

@@ -105,6 +105,12 @@ int main(void)
     initialize_samples();
     app_sensor_monitor_reset(&monitor);
     app_protection_reset(&protection);
+    /* Every power-up starts latched: output off until the operator presses
+       ACK with every channel valid and cool (I-074).  Latched before the
+       first scan, so the driver's settling sweep cannot latch a false sensor
+       fault on top, and the display says so rather than SAFE.  A blank
+       EEPROM replaces this with the config lock below. */
+    app_protection_startup_latch(&protection);
 
     hal_lcd_print_line(0u, APP_TARGET_BOARD);
     hal_lcd_print_line(1u, APP_BOOT_BANNER);
