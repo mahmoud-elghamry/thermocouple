@@ -346,3 +346,119 @@ they fail towards a short, which trips F1 and the panel fuse.
 
 **Verdict:** pass up to a 70 °C panel ambient. **The panel's maximum ambient
 has not been measured**; if it can exceed 70 °C, look again.
+
+## 5. Pre-order review, 2026-09-29 — additional limits
+
+These checks supplement prior calculations; they do not qualify an assembled
+unit. No hardware values were changed. Source evidence is in
+`production/review-20260929/` and issues I-075 through I-080.
+
+### 5.1 Battery-connected relay and indicator (I-077)
+
+Inputs: accepted design-basis rail excursion 58 V (`0016`); G5LE-1 DC24
+coil 1440 ohm +/-10%, 24 V nominal, maximum applied coil voltage 170% at
+23 C. Manufacturer: https://www.fa.omron.co.jp/product/item/G5LE-1_DC24/ .
+R32 is 4.7 kohm, RK73H2ATTD4701F, 0.25 W per KOA RK73H data sheet
+(https://www.koaspeer.com/pdfs/RK73H.pdf). Assume LED drop 2 V and neglect
+Q1/series-path voltage drop for this screening calculation.
+
+    maximum specified coil voltage at 23 C = 1.70 x 24 = 40.8 V
+    58 / 24 = 2.42 times nominal coil voltage
+    coil steady resistive power at 24 V = 24^2 / 1440 = 0.400 W
+    coil steady resistive power at 58 V = 58^2 / 1440 = 2.34 W
+    R32 at 24 V = (24 - 2)^2 / 4700 = 0.103 W
+    R32 at 58 V = (58 - 2)^2 / 4700 = 0.667 W = 2.67 x 0.25 W
+
+**Verdict:** normal nominal-rail operation and transient survival are different
+claims. The coil exceeds its published applied-voltage envelope and R32
+exceeds its continuous power rating during the assumed excursion. Coil
+inductance, pulse duration, temperature and repetition matter; these numbers
+do not prove a particular pulse burns either part. A pulse-survival check or
+protection change is required; the 100 V buck and 240 V Q1 do not settle it.
+
+**Weight agreed 2026-10-01 (I-077 → low):** the excursion is the ~350 ms load
+dump. The coil's thermal time constant is seconds, so its temperature cannot
+follow 2.34 W for 350 ms. R32's 0.67 W for 350 ms is inside the short-time
+overload that thick-film chips are normally rated for (typically 2.5x rated for
+seconds). That rating is not yet read from KOA's datasheet. So this is
+"unqualified on paper", not "expected to fail".
+
+### 5.2 U14 thermal vias and routed geometry (I-075/I-076)
+
+Inputs: six actual vias with 0.6 mm pads, 0.4 mm drills in native board
+analysis and released Excellon, versus decision 0023's 0.3 mm drills.
+
+    actual nominal annular ring = (0.6 - 0.4) / 2 = 0.10 mm
+    intended nominal annular ring = (0.6 - 0.3) / 2 = 0.15 mm
+
+**Verdict:** manufacturing DRC passes; this is a mismatch to the accepted
+assembly detail, not proof the fabricator cannot make it. Larger open holes
+increase the solder-wicking concern below the exposed pad. Assembler review
+of paste/via treatment is required. TI PowerPAD guidance:
+https://www.ti.com/lit/an/slma002g/slma002g.pdf .
+
+Route lengths below were computed by summing connected track centreline
+lengths between pad centres in `pcb.json` (Euclidean segment length
+sqrt(dx^2 + dy^2)); they exclude ground-plane return paths:
+
+| Path | Routed length | Direct pad-centre distance |
+|---|---:|---:|
+| U14.2 VIN to C54.1 | 12.129 mm | 7.343 mm |
+| U14.2 VIN to C63.1 | 19.466 mm | 4.869 mm |
+| U14.8 SW to L1.1 | 9.404 mm | — |
+| U14.7 BST to C62.1 | 8.940 mm | — |
+| U14.5 FB to R56.2 | 8.440 mm | — |
+
+**Verdict:** native `regulator-copper.png` confirms the detours; this is a
+layout risk assessment, not a calculated oscillation or temperature. Compare
+against TI LM5164 section 7.4's compact loop/wide trace guidance, then verify
+the corrected layout physically. https://www.ti.com/lit/ds/symlink/lm5164.pdf .
+
+### 5.3 Conditional external-voltage fault at a TC terminal (I-080)
+
+Inputs: 24 V accidentally applied to an input with a return to GND_SENS;
+100 ohm / 0.125 W series resistor; assumed clamped 3.3 V rail and 0.7 V
+diode drop. This assumption only estimates initial stress; the rail has no
+dedicated shunt and may rise.
+
+    current = (24 - 3.3 - 0.7) / 100 = 0.20 A
+    series-resistor power = 0.20^2 x 100 = 4.0 W
+    overload relative to continuous rating = 4.0 / 0.125 = 32 times
+
+**Verdict:** do not claim 24 V miswire survival from MAX31856 input ratings.
+Actual current depends on fault return, clamp behaviour and rail movement;
+this scenario can threaten the shared sensor supply. It is not a normal
+technician acceptance test or an assumed fault requirement.
+
+**Weight agreed 2026-10-01 (I-080 → low):** not a design requirement unless the owner asks for miswire tolerance.
+
+### 5.4 Sensor-island normal-load estimate
+
+Inputs from MAX31856 and ISO7760/61 data sheets: eight converters at 2 mA
+maximum each; sensor-side isolator current estimates 5.7 and 6.9 mA at the
+1 Mbps/DC table conditions; one selected 10 kohm CS pull-up at 3.3 V.
+Actual SPI is 500 kHz; mixed supply voltages/capacitive loading are not
+measured. This estimate does not replace the previous whole-board budget.
+
+    load estimate = 8 x 2 + 5.7 + 6.9 + 3.3 / 10 = 28.93 mA
+    LDO at assumed 6 V input: (6 - 3.3) x 0.02893 = 0.078 W
+    illustrative junction rise at 205.4 C/W = 0.078 x 205.4 = 16 C
+
+**Verdict:** useful normal-current margin against LP2985's 150 mA and the
+IA0505S positive output's 100 mA. Not a bound on module no-load voltage,
+board temperature, effective C48 capacitance or complete-system thermals.
+
+### 5.5 Corrected system capacity — sizing limits, not a selected design
+
+Inputs: owner clarified 24 thermocouples (decision 0024); current board and
+`HAL_TEMPERATURE_BANK_CHANNELS` implement eight; current outline from
+`board/config.py` is 250 x 140 mm.
+
+    number of eight-channel acquisition modules = 24 / 8 = 3
+    terminal positions if existing T+/T-/shield interface is retained = 24 x 3 = 72
+
+**Verdict:** three acquisition modules cover the count but do not establish a
+working network, master, shutdown grouping or system qualification. The current
+outline is not an optimized minimum and a new 24-channel board is not assumed
+to need three times its area. No 24-channel outline, layer requirement, total
+power budget or cost ratio is calculated without a placement/interface study.

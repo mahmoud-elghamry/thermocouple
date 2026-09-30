@@ -1,4 +1,4 @@
-# Thermo — 8-channel thermocouple protection unit
+# Thermo — 24-channel protection system; current board has 8 channels
 
 Read this file first. It is the entry point for every agent and every new
 session. Follow the AGENTS.md open standard, so Codex, Cursor, Copilot and
@@ -11,9 +11,12 @@ others read it directly; `CLAUDE.md` imports it for Claude Code.
 
 ## What this project is
 
-A protection unit that reads eight K-type thermocouples on the cylinder bodies
-of one engine and opens a dry contact when any exceeds a setpoint. The unit is
-in its own panel, with roughly 50 m cables and no VFD in the installation.
+A protection system for **24 K-type thermocouples** (owner clarified 2026-09-29).
+`hardware/8ch/` is the current eight-channel board, not the complete system.
+One 24-channel board versus several boards/master is undecided (`0024`).
+Machine grouping and common versus independent shutdown await the owner.
+Current placement is one panel or nearby boards; distant nodes are only an option.
+Earlier eight-channel basis: cylinder-body probes, roughly 50 m cables, no VFD.
 **It is being built to go on a real machine.** Treat decisions as safety-relevant.
 
 The output is energised-to-run: loss of power, reset, or a fault means the
@@ -25,7 +28,8 @@ contact opens and the machine cannot start.
 |---|---|---|
 | `docs/GOAL.md` | the goal and the requirements | the user |
 | `docs/STATE.md` | what is done, what is next — **read this second** | whoever worked last |
-| `docs/ISSUES.md` | open problems, numbered `I-001` | anyone |
+| `docs/ISSUES.md` | open problems by priority P0-P3, short rows (`0025`) — **read all of it third** | anyone |
+| `docs/ISSUES-closed.md` | archive of closed issues | anyone |
 | `docs/decisions/` | one file per decision, MADR format | whoever decided |
 | `docs/TOOLS.md` | the commands that actually work here | anyone |
 | `docs/reference/CALCULATIONS.md` | every computed value: inputs, formula, verdict | anyone - **add to it, never re-derive silently** |
@@ -122,9 +126,9 @@ authorized - run `board_provenance.py --check` first.
 
 - **MAX31856 is not a galvanic isolator.** It is a good thermocouple front end,
   but T+/T- are not separated from AGND/DGND.
-- **The sensor island isolates the group, not the channels.** All eight
-  thermocouples share one isolated ground. This is accepted (see
-  `docs/decisions/`), not solved.
+- **The current board isolates the group, not the channels.** Its eight
+  thermocouples share one isolated ground. This is accepted for the existing
+  module; do not extend the same-engine assumption to all 24 without confirmation.
 - **Cables run roughly 50 m from the engine to a separate panel; no VFD.**
   Layout symmetry and plane pairs help; only measurement settles performance.
 - **The isolation rules in `.kicad_dru` are functional, not certified.** No

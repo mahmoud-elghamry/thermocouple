@@ -1,58 +1,60 @@
 # Current state
 
-**Read second, after `AGENTS.md`. Update before finishing. Hard limit: 60 lines.**
+**Read second, after AGENTS.md; then read all of ISSUES.md (P0 first). Hard limit: 60 lines.**
+**Last updated:** 2026-10-01 (workstation)
 
-**Last updated:** 2026-09-28 (workstation)
+## Where we are
 
-## Last session
-
-2026-09-27: pre-fabrication review (`I-065`..`I-069`, commit `cf69b03`).
-
-**2026-09-28: REV A2** (`0022`), all five findings fixed. The board was
-regenerated and re-routed from scratch:
-`U10`/`U11` without the F suffix, plus `R61` 2k2 on U11's MISO (`I-065`);
-`Q1` BSS131 240 V SOT-23 (`I-066`); `R53`/`R54` 100k/22k (`I-067`); `F1`
-60 V 0.75 A 1812 PTC (`I-068`); D2 drawn unidirectional, D3 = M7 (`I-069`).
-Schematic changes live in `sch_layout/reva2.py`, and `build.py` reproduces them.
-Netlist contract is `netlist-baseline-reva2.json`; `BOARD_REV = "A2"`.
-**Board state:** fully generated, no hand edits. `C41.1` gets a fixed via before
-routing (`stitching.FIXED_PAD_VIAS`); U14's thermal vias are 0.3 mm (`0023`), so
-the smallest hole is 0.3 mm. Arithmetic in
-`CALCULATIONS.md` 4. Two-layer backup (`I-025`) is now a revision behind.
+* **REV A2 module** (8 channels, `0022`/`0023`) is designed, and the gates pass.
+  The order is **ON HOLD** for the four P0 rows in `ISSUES.md`:
+  * I-075: U14 vias are 0.4 mm, not 0.3;
+  * I-076: the buck layout is autorouted;
+  * I-078: the package is not in the fab's format and 17 lines have no code;
+  * I-079: the coil value in the RELEASE text was wrong.
+* **System = 24 thermocouples** (owner 2026-09-29). **Direction agreed 2026-10-01**
+  (`0024`): 3 identical autonomous REV A2 modules, each with its own relay.
+  * **Open owner question:** one machine (contacts in series) or separate groups
+    (one contact each). That is panel wiring only; the board is the same.
+  * A master later (display/config) is mainly firmware over the on-board
+    RS-485, plus a master device. It is never in the trip path (I-086).
+* **2026-09-29 review** (another agent): valid on I-073, I-075, I-076, I-079 and
+  I-085. Overstated, now marked with "Review weight" and moved to P3: I-077,
+  I-080, I-081 (accepted limit), I-086. Housekeeping: I-070..072, I-082..084.
+* **ISSUES.md restructured** (`0025`): priority index, short rows, closed rows in
+  `ISSUES-closed.md`; 72 KB → 11 KB. Review original: `production/review-20260929/`.
 
 ## Measured, not claimed
 
 | Check | Result |
 |---|---|
-| `validate.ps1` (workstation, KiCad 10.0.6, 2026-09-28 01:43) | **passed**: ERC 0/0; netlist **IDENTICAL** 202/163/647; **DRC 0 errors, 0 warnings, 0 unconnected, 0 parity** (`production/8ch-reva2/validation-report`) |
-| `check_board.py` | **all 6 ok** |
-| `check_mpn_consistency.py` / `source_passives.py --check` | 129 / 129 match; 38 passive types, all with MPN |
-| `build.py --in-place` (2026-09-28) | IDENTICAL against reva2, ERC 0/0 |
-| `firmware/build.ps1` (workstation, 2026-09-28) | exit 0; 4 images, 3 suites pass; 8ch image 5592 B (17.1 %). No firmware change was needed |
+| `validate.ps1` (2026-09-28 01:43, KiCad 10.0.6) | ERC 0/0; netlist IDENTICAL 202/163/647; DRC 0/0/0/0 — **but DRC does not catch I-075** |
+| review `run_all.ps1` snapshot (2026-09-29) | same numbers, source hashes unchanged |
+| U14 vias, read from the board (2026-09-30) | 6 vias, **0.4 mm drill / 0.6 mm pad**, GND_CTRL, x 171.4/172.6, y 108.8/110/111.2 |
+| `check_board.py` / MPN / passives | 6 ok; 129/129; 38 types with MPN |
+| `firmware/build.ps1` (2026-09-28) | exit 0; 4 images; 3 suites pass |
+| `tests/reproductions/` (review) | I-073: 7 assertions fail; I-074: defect confirmed. Not in the normal gate yet |
 
-Freerouting's own "violations" count is its plane-less model, never the verdict.
-No IEC 61010 creepage analysis, SPICE, thermal, EMC or physical measurement.
+No surge, EMC, thermal, isolation, ISP or contact-timing test; no SPICE.
 
-## Next actions
-1. **Owner: order REV A2** from `production/8ch-reva2/` (exported 2026-09-28 from
-   `RELEASE.txt` + `thermocouple_8ch_reva2_gerbers.zip`). Smallest hole 0.3 mm.
-   Old packages are in `production/_OLD_DO_NOT_ORDER/`. Any distributor is fine
-   (exact MPN; LCSC stock was ISO7760DWR ~109, ISO7761DWR ~366, PTC ~2 k).
-2. 10 BOM lines have no LCSC code (`I-051`) - JLC global sourcing or hand-solder.
-3. **Bench, when boards arrive:** ISP through J5 (`I-065`); D2 band (`I-069`);
-   K1 (`I-058`); isolation (`I-004`); timing (`I-013`); `I-003`.
-4. Owner: the panel's maximum ambient temperature (F1 holds up to 70 °C);
-   the `0020` fuse part; `I-056`, `I-046`; `I-026` probes.
+## Next actions (in order; confirm each step with the owner before doing it)
 
-## Tooling, and the traps it sets
-
-`Konnect` is the only KiCad MCP (`0013`); the cloud hook installs it (TOOLS.md). **`kicad-tool` clones a symbol to make a new one, so the clone inherits its MPN** (`I-054`); run `check_mpn_consistency.py` after any run that adds parts.
+1. **P0 hardware:** hand-place the U14 power stage (I-076); fix the via-drill
+   override (I-075); regenerate, validate, and check the `.drl` itself.
+2. **P0 package (I-078):** owner picks the fab and the THT split; fill the 17 codes;
+   export BOM/CPL in the fab's format; review the fab's matching and rotation
+   screenshots with the owner; re-export and fix RELEASE (I-079).
+3. **P1 firmware:** I-073 fix + regression, I-074 policy, I-082, I-070.
+4. Owner: machine grouping (I-085), panel max ambient (F1 is fine to 70 °C),
+   the exact `0020` fuse.
+5. Bench (P2) when boards arrive.
 
 ## Preserve for hardware work
 
-**The layout pass needs a label-only base.** `build.py` starts from `05d6abd`
-and refuses a schematic with wires, because its router only knows the wires it
-drew. After a generator change, commit the generator's label-only output and
-pass it as `--base`; never run the router over the wired sheet.
-`populate_schematic.py --refresh-properties` moves symbols (`I-052`): re-run `build.py`.
-Verify with `netlist_fingerprint.py`; never edit a baseline to pass (`I-058` did, on purpose).
+* Konnect is the only KiCad MCP (`0013`); run the provenance check before any board write.
+* `route.py` does not `--record`: run it after every route.
+* kicad-tool clones inherit their MPN (I-054).
+* `build.py` starts from `05d6abd` + `sch_layout/reva2.py`. Never route the wired sheet.
+* `kicad-tool pcb sync` needs `KICAD10_FOOTPRINT_DIR`. Freerouting is deterministic
+  for a given input.
+* **Check the exported drill file, not only DRC** (I-075).
+* Never change a baseline to make a gate pass.
