@@ -12,6 +12,22 @@ from kon import K
 from geom import load, body
 
 PROPS = {
+    # I-078 (2026-10-01): LCSC codes for lines that had none, exact MPN or
+    # the same die on tape-and-reel (+T, -REEL7). Substitutes (K1, C53, U12)
+    # wait for the owner.
+    **{f"U{n}": dict(fields={"MPN": "MAX31856MUD+T", "LCSC": "C2653162"}) for n in range(2, 10)},
+    "U13": dict(fields={"LCSC": "C129375"}),
+    "U15": dict(fields={"MPN": "ADM2587EBRWZ-REEL7", "LCSC": "C12081"}),
+    "U1": dict(fields={"LCSC": "C12703"}),
+    "RV1": dict(fields={"LCSC": "C34846"}),
+    # Substitutes approved by the owner 2026-10-01 (decisions/0027).
+    "K1": dict(value="G5LE-14 DC24", fields={"MPN": "G5LE-14 DC24", "LCSC": "C116965",
+               "Description": "Energized-to-run SPDT dry-contact output; G5LE-14 is the "
+               "fully sealed G5LE-1, same terminals (Omron datasheet) | Manufacturer: "
+               "Omron Electronics | MPN: G5LE-14 DC24"}),
+    "C53": dict(fields={"MPN": "100YXF22MEFC8X11.5", "Manufacturer": "Rubycon",
+                "LCSC": "C88838"}),
+
     "U10": dict(value="ISO7760DWR", fields={"MPN": "ISO7760DWR", "LCSC": "C882724",
                 "Description": "Reinforced digital isolation for SPI clock, MOSI, and CS1-CS4; "
                 "NOT the F suffix - default output must be HIGH (I-065) | "
@@ -48,7 +64,8 @@ PROPS = {
     "U14": dict(footprint="Package_SO:SOIC-8-1EP_3.9x4.9mm_P1.27mm_EP2.41x3.3mm"),
     "U12": dict(fields={"Description": "Shared 1 kV functional-isolation supply for the "
                 "measurement island | Manufacturer: XP Power | MPN: IA0505S - not the "
-                "regulated 'IA0505S-1WR3' of another maker (I-069)"}),
+                "regulated 'IA0505S-1WR3' of another maker (I-069). Not at LCSC: buy at "
+                "DigiKey 1470-1345-5-ND, hand-fit (0027)"}),
 }
 
 

@@ -330,6 +330,19 @@ static void test_recovered_save_ack_refused_while_hot(void)
         CHECK(strstr(e->status, "SAFE") == NULL);
     }
 
+    /* The operator is told why, not left looking at the old save text
+       (I-088).  Every channel is hot, so the first one is named; the
+       message holds for as long as the channels are still hot. */
+    for (i = 24u; i < 32u; ++i) {
+        e = entry_at(i);
+        CHECK(strcmp(e->status, "NO ACK CH1 HOT  ") == 0);
+    }
+    /* Once the readings are cool the message goes; the trip is still
+       latched and still waiting for a new ACK. */
+    e = entry_at(41u);
+    CHECK(!e->permit);
+    CHECK(strcmp(e->status, "SAVE OK ACK     ") == 0);
+
     /* Once the channels are back at or below the reset temperature, the same
        acknowledgement is accepted and the unit runs normally. */
     e = entry_at(42u);

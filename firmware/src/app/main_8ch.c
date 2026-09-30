@@ -67,6 +67,14 @@ static bool persist_setpoint(app_protection_state_t *protection,
     return true;
 }
 
+/* Temperature at or below which an acknowledgement is accepted. */
+static int16_t reset_temperature_for(int16_t active_setpoint_x10)
+{
+    return (active_setpoint_x10 >= APP_8CH_HYSTERESIS_X10)
+               ? (int16_t)(active_setpoint_x10 - APP_8CH_HYSTERESIS_X10)
+               : active_setpoint_x10;
+}
+
 int main(void)
 {
     app_protection_state_t protection;
@@ -168,15 +176,9 @@ int main(void)
             candidate_setpoint_x10 -= APP_8CH_SETPOINT_STEP_X10;
         }
         if ((events & HAL_BUTTON_EVENT_ACK) != 0u) {
-            int16_t reset_temperature_x10 =
-                (active_setpoint_x10 >= APP_8CH_HYSTERESIS_X10)
-                    ? (int16_t)(active_setpoint_x10 - APP_8CH_HYSTERESIS_X10)
-                    : active_setpoint_x10;
-
-            (void)app_protection_try_ack(&protection,
-                                         samples,
-                                         HAL_TEMPERATURE_BANK_CHANNELS,
-                                         reset_temperature_x10);
+            (void)app_protection_try_ack(
+                &protection, samples, HAL_TEMPERATURE_BANK_CHANNELS,
+                reset_temperature_for(active_setpoint_x10));
         }
 
         ++scan_ticks;
@@ -188,6 +190,11 @@ int main(void)
                                     samples,
                                     HAL_TEMPERATURE_BANK_CHANNELS,
                                     active_setpoint_x10);
+            /* Display only: drop a "NO ACK CHn" message once that channel no
+               longer stops an acknowledgement (I-088). */
+            app_protection_ack_refusal_refresh(
+                &protection, samples, HAL_TEMPERATURE_BANK_CHANNELS,
+                reset_temperature_for(active_setpoint_x10));
             /* A real trip closes the edit screen so it cannot hide behind
                it.  Config-lock and a pending save retry are the two states
                editing is meant to survive (I-036, I-037). */

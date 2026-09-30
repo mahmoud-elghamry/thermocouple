@@ -369,6 +369,71 @@ static void test_save_fault_recovered_ack_accepted_when_cool(void)
     CHECK(app_protection_output_permitted(true, &protection));
 }
 
+/* I-088: a refused ACK says why on the status line.  Display only - the
+   latch, and so RUN_PERMIT, is unchanged by any of this. */
+static void test_ack_refusal_status_text(void)
+{
+    app_protection_state_t protection;
+    hal_temperature_sample_t samples[HAL_TEMPERATURE_BANK_CHANNELS];
+    char line[17];
+
+    /* Hot channel 8, recovered save: names the channel. */
+    fill(samples, HAL_TEMPERATURE_BANK_CHANNELS, 200);
+    samples[7].temperature_x10 = 1200;
+    save_fault_recovered(&protection);
+    app_format_status_line(line, &protection, 1000, false);
+    CHECK(strcmp(line, "SAVE OK ACK     ") == 0);
+    CHECK(!app_protection_try_ack(&protection, samples,
+                                  HAL_TEMPERATURE_BANK_CHANNELS, 950));
+    app_format_status_line(line, &protection, 1000, false);
+    CHECK(strcmp(line, "NO ACK CH8 HOT  ") == 0);
+    CHECK(!app_protection_output_permitted(true, &protection));
+
+    /* Still hot on a refresh: the message stays. */
+    app_protection_ack_refusal_refresh(&protection, samples,
+                                       HAL_TEMPERATURE_BANK_CHANNELS, 950);
+    app_format_status_line(line, &protection, 1000, false);
+    CHECK(strcmp(line, "NO ACK CH8 HOT  ") == 0);
+
+    /* Cooled: the stale message goes, the trip stays latched. */
+    samples[7].temperature_x10 = 200;
+    app_protection_ack_refusal_refresh(&protection, samples,
+                                       HAL_TEMPERATURE_BANK_CHANNELS, 950);
+    app_format_status_line(line, &protection, 1000, false);
+    CHECK(strcmp(line, "SAVE OK ACK     ") == 0);
+    CHECK(protection.latched);
+    CHECK(!app_protection_output_permitted(true, &protection));
+
+    /* Invalid channel 4: a different word, still 16 characters. */
+    samples[3].valid = false;
+    samples[3].faults = HAL_TEMPERATURE_FAULT_OPEN;
+    CHECK(!app_protection_try_ack(&protection, samples,
+                                  HAL_TEMPERATURE_BANK_CHANNELS, 950));
+    app_format_status_line(line, &protection, 1000, false);
+    CHECK(strcmp(line, "NO ACK CH4 FAULT") == 0);
+
+    /* A new save failure replaces it with the save failure text. */
+    app_protection_note_save_fault(&protection);
+    app_format_status_line(line, &protection, 1000, false);
+    CHECK(strcmp(line, "SAVE FAILED     ") == 0);
+
+    /* Config path (first-time save done, waiting on ACK) behaves alike. */
+    fill(samples, HAL_TEMPERATURE_BANK_CHANNELS, 1200);
+    app_protection_reset(&protection);
+    app_protection_config_lock(&protection);
+    app_protection_config_unlock(&protection);
+    CHECK(!app_protection_try_ack(&protection, samples,
+                                  HAL_TEMPERATURE_BANK_CHANNELS, 950));
+    app_format_status_line(line, &protection, 1000, false);
+    CHECK(strcmp(line, "NO ACK CH1 HOT  ") == 0);
+
+    /* An accepted ACK clears everything. */
+    fill(samples, HAL_TEMPERATURE_BANK_CHANNELS, 200);
+    CHECK(app_protection_try_ack(&protection, samples,
+                                 HAL_TEMPERATURE_BANK_CHANNELS, 950));
+    CHECK(!protection.ack_refused);
+}
+
 /* --- display --------------------------------------------------------------- */
 
 static void test_channel_format(void)
@@ -584,6 +649,7 @@ int main(void)
     test_save_fault_recovered_ack_refused_while_hot();
     test_save_fault_recovered_ack_refused_on_invalid();
     test_save_fault_recovered_ack_accepted_when_cool();
+    test_ack_refusal_status_text();
     test_channel_format();
     test_status_line();
     test_monitor_stuck();

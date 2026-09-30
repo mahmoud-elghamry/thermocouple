@@ -430,7 +430,7 @@
   },
   "K1": {
    "footprint": "Relay_THT:Relay_SPDT_Omron-G5LE-1",
-   "value": "G5LE-1 DC24"
+   "value": "G5LE-14 DC24"
   },
   "L1": {
    "footprint": "Inductor_SMD:L_10.4x10.4_H4.8",
@@ -1784,7 +1784,7 @@
    "U9.13"
   ]
  },
- "note": "REV A2 connectivity (2026-09-28). Supersedes netlist-baseline-reva1.json, kept as the record of REV A1. Established from the 2026-09-27 pre-fabrication review, decisions/0022: exactly 12 differences against REV A1, each intended, no other pin moved. I-065: R61 2k2 added between U11 pin 7 (OUTF) and MISO_CTRL, new net /ISOLATION/MISO_ISO (U11.7, R61.2); U10/U11 ISO7760FDWR/ISO7761FDWR -> ISO7760DWR/ISO7761DWR (default output HIGH). I-066: Q1 2N7000 TO-92 -> BSS131 SOT-23; the symbol is now Q_NMOS_GSD, so the pin numbers change (G 2->1, S 1->2, D stays 3) while every terminal keeps its net: RELAY_GATE on the gate, GND_CTRL on the source, RELAY_LOW on the drain. I-067: R53/R54 22k/4k7 -> 100k/22k. I-068: F1 PTC 0.5A 1206 -> PTC 0.75A 60V 1812. I-069: D3 value 1N4007 -> M7 (same SMA footprint). 201/162/645 -> 202/163/647. Revised 2026-09-28 (decisions/0023): U14 footprint _ThermalVias -> plain EP; its thermal vias are now 0.3 mm board vias placed by board/stitching.py. Connectivity unchanged: 202/163/647.",
+ "note": "REV A2 connectivity (2026-09-28). Supersedes netlist-baseline-reva1.json, kept as the record of REV A1. Established from the 2026-09-27 pre-fabrication review, decisions/0022: exactly 12 differences against REV A1, each intended, no other pin moved. I-065: R61 2k2 added between U11 pin 7 (OUTF) and MISO_CTRL, new net /ISOLATION/MISO_ISO (U11.7, R61.2); U10/U11 ISO7760FDWR/ISO7761FDWR -> ISO7760DWR/ISO7761DWR (default output HIGH). I-066: Q1 2N7000 TO-92 -> BSS131 SOT-23; the symbol is now Q_NMOS_GSD, so the pin numbers change (G 2->1, S 1->2, D stays 3) while every terminal keeps its net: RELAY_GATE on the gate, GND_CTRL on the source, RELAY_LOW on the drain. I-067: R53/R54 22k/4k7 -> 100k/22k. I-068: F1 PTC 0.5A 1206 -> PTC 0.75A 60V 1812. I-069: D3 value 1N4007 -> M7 (same SMA footprint). 201/162/645 -> 202/163/647. Revised 2026-09-28 (decisions/0023): U14 footprint _ThermalVias -> plain EP; its thermal vias are now 0.3 mm board vias placed by board/stitching.py. Connectivity unchanged: 202/163/647. Revised 2026-10-01 (decisions/0027): K1 value G5LE-1 DC24 -> G5LE-14 DC24 (fully sealed variant, same footprint and terminals). Connectivity unchanged: 202/163/647.",
  "revised": "2026-09-28",
  "supersedes": "netlist-baseline-reva1.json"
 }

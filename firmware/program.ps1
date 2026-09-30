@@ -15,7 +15,9 @@
 #
 # Flashing a legacy image onto the eight-channel board inverts the safety
 # function silently: the machine runs when hot and stops when cold.  There is
-# no symptom until it matters (I-031).
+# no symptom until it matters (I-031).  This script therefore REFUSES (exit 2,
+# before touching the programmer) any image other than thermo_8ch_max31856.hex
+# unless -AllowUnapprovedImage is passed (I-082).
 #
 # Fuse values and the reasoning behind them: firmware/fuses.md
 
@@ -30,7 +32,11 @@ param(
     [string]$LowFuse = '0x3F',
     [string]$HighFuse = '0xD1',
     # Read the unit's current state and stop, changing nothing.
-    [switch]$ReadOnly
+    [switch]$ReadOnly,
+    # DANGEROUS. Allows flashing an image other than the approved
+    # thermo_8ch_max31856.hex. A legacy image inverts the safety output (I-082).
+    # Bench and simulation use only; never on a unit that goes on a machine.
+    [switch]$AllowUnapprovedImage
 )
 
 $ErrorActionPreference = 'Stop'
@@ -40,6 +46,30 @@ $imagePath = if ([System.IO.Path]::IsPathRooted($Image)) {
     $Image
 } else {
     Join-Path $root $Image
+}
+
+# --- 0. Refuse an unapproved image before the programmer is touched (I-082) ---
+# Judged on the file name alone, so it needs no hardware and no avrdude. Only
+# the approved eight-channel MAX31856 image is accepted by default; every other
+# image (simulation build, legacy single-channel, anything renamed) is refused.
+$approvedImage = 'thermo_8ch_max31856.hex'
+$imageLeaf = Split-Path $imagePath -Leaf
+if ($imageLeaf -ine $approvedImage) {
+    if (-not $AllowUnapprovedImage) {
+        [Console]::Error.WriteLine(@"
+REFUSED: '$imageLeaf' is not the approved image ($approvedImage).
+
+The legacy single-channel images drive PB3 with the OPPOSITE meaning (HIGH =
+alarm), so flashing one onto the eight-channel board makes the machine run
+when hot and stop when cold. Read the header of this script.
+
+Nothing was changed on the unit. To flash an unapproved image on purpose
+(bench or simulation only), pass -AllowUnapprovedImage.
+"@)
+        exit 2
+    }
+    Write-Warning '*** -AllowUnapprovedImage: flashing an image that is NOT the approved eight-channel MAX31856 image. ***'
+    Write-Warning "*** '$imageLeaf' may drive the safety output with the OPPOSITE meaning. Do NOT use this unit on a machine. ***"
 }
 
 # Returns the exe plus, for the Proteus-bundled copy, the -C argument it needs.
@@ -136,9 +166,6 @@ Nothing was changed on the unit.
 "@
 }
 Write-Host "image:      $imagePath"
-if ((Split-Path $imagePath -Leaf) -notlike 'thermo_8ch_max31856*') {
-    Write-Warning 'This is NOT the eight-channel MAX31856 image. Read the header of this script before continuing.'
-}
 Write-Host ''
 
 # --- 3. Fuses, then read back and refuse to lie about the result ------------

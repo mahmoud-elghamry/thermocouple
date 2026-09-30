@@ -600,9 +600,10 @@
   "22u 100V": {
    "footprint": "Capacitor_THT:CP_Radial_D8.0mm_P3.50mm",
    "jlcpcb_basic": false,
-   "manufacturer": "Panasonic",
-   "mpn": "EEUFC2A220",
-   "note": "Through-hole radial electrolytic, 22uF 100V, 8 mm, 105 degC. Replaces the 47uF 50V part: the supply is a battery and 50 V does not survive a 58 V load dump. The value dropped because this capacitor was never ride-through - 47uF buys 5.7 ms (CALCULATIONS.md section 2). Its job now is bulk and parallel damping for the 50 m feed, which 22uF does.",
+   "lcsc": "C88838",
+   "manufacturer": "Rubycon",
+   "mpn": "100YXF22MEFC8X11.5",
+   "note": "Through-hole radial electrolytic, 22uF 100V, 8 x 11.5 mm, 3.5 mm pitch, 105 degC, Rubycon YXF (LCSC C88838). Replaced Panasonic EEUFC2A220 on 2026-10-01: not stocked at LCSC (decisions/0027). Bulk and parallel damping for the 50 m feed, not ride-through (CALCULATIONS.md section 2).",
    "sourced": "manual"
   },
   "22u 25V X7R": {

@@ -36,6 +36,14 @@ typedef struct {
        app_protection_try_ack() requires before it will clear the trip
        (I-036). */
     bool save_fault_recovered;
+    /* Set when app_protection_try_ack() refused an acknowledgement because a
+       channel is hot or invalid; ack_refused_channel / ack_refused_invalid say
+       which and why (I-088).  Display only - it never changes when the run
+       permit is granted.  Cleared by reset, by a new save event, and by
+       app_protection_ack_refusal_refresh() once the cause has gone. */
+    bool ack_refused;
+    bool ack_refused_invalid;
+    uint8_t ack_refused_channel;
     uint8_t first_channel;
     app_trip_cause_t cause;
 } app_protection_state_t;
@@ -64,6 +72,14 @@ void app_protection_note_save_fault(app_protection_state_t *state);
    explicit acknowledgement (I-036), and that acknowledgement is refused while
    any sample is invalid or above the reset temperature (I-073). */
 void app_protection_note_save_recovered(app_protection_state_t *state);
+
+/* Drops a stale refused-ACK message once no channel blocks an acknowledgement
+   any more, so the status line does not keep blaming a channel that has since
+   cooled.  Display only. */
+void app_protection_ack_refusal_refresh(app_protection_state_t *state,
+                                        const hal_temperature_sample_t *samples,
+                                        uint8_t count,
+                                        int16_t reset_temperature_x10);
 
 void app_protection_evaluate(app_protection_state_t *state,
                              const hal_temperature_sample_t *samples,

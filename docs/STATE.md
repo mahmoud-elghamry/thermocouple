@@ -14,8 +14,10 @@
   * Firmware I-073 (unsafe ACK) fixed with 5 regression tests; I-070 and I-071
     done. This was a sub-agent in a worktree; I reviewed the diff and re-ran
     `build.ps1` in the main tree.
-* **Still P0:** I-078 (fab choice, THT split, 17 codes, fab-format BOM/CPL,
-  preview review with the owner) and I-079 (RELEASE text). The package in
+* Committed `6f6c22d`. After it (uncommitted): I-082 and I-088 fixed (Sonnet sub-agent,
+  reviewed and run here); I-078 has 5 LCSC codes added to the schematic (build IDENTICAL, ERC 0/0).
+* **Still P0:** I-078 (fab not chosen yet; technician kit list; fab-format BOM/CPL) and
+  I-079 (RELEASE text). Decided `0027`: 3 substitutes, the technician fits THT, 3 boards. The package in
   `production/8ch-reva2/` is **stale and ON HOLD**; re-export after I-078.
 * **System = 24 thermocouples:** 3 autonomous REV A2 modules (`0024`). The owner
   still has to say: one machine (contacts in series) or separate groups.
@@ -25,11 +27,12 @@
 
 | Check | Result |
 |---|---|
-| `validate.ps1` (2026-10-01 00:44, KiCad 10.0.6) | ERC 0/0; netlist IDENTICAL 202/163/647; **DRC 0/0/0/0 with min ring 0.15** (`production/validation-20261001-004451-eeba9f`) |
+| `validate.ps1` (2026-10-01 00:44, KiCad 10.0.6) | ERC 0/0; netlist IDENTICAL 202/163/647; **DRC 0/0/0/0 with min ring 0.15** (re-run 01:25 after the value sync: `production/validation-20261001-012504-9fa3a2`) |
 | `check_board.py` | all 6 ok |
 | vias, from the board and the exported `.drl` | 112 x 0.3, 6 x 0.35, 47 x 0.4, 2 x 0.5 drill; min ring 0.15; U14: six 0.3 mm |
 | power-stage copper (from board) | VIN-C63 3.53 mm, VIN-C54 7.03, SW-L1 5.98 at 1.0 mm, BST-C62 3.02 |
-| `firmware/build.ps1` (2026-10-01, main tree) | exit 0; 4 images (8ch 5598 B); 3 suites PASS incl. the new I-073 tests |
+| `firmware/build.ps1` (2026-10-01, main tree, after I-088) | exit 0; 4 images (8ch 5840 B); 3 suites PASS |
+| `program.ps1 -Image legacy_1ch_max31856.hex` | exit 2, refused, avrdude not called (I-082) |
 
 No surge, EMC, thermal, isolation, ISP or contact-timing test; no SPICE.
 
@@ -38,7 +41,7 @@ No surge, EMC, thermal, isolation, ISP or contact-timing test; no SPICE.
 1. **I-078:** the owner picks the fab and the THT split. I fill the 17 codes, export
    BOM/CPL in the fab's format, and review the fab's screenshots with the owner.
    Then re-export the package and fix RELEASE (I-079).
-2. P1 firmware: I-074 startup policy, I-088 refused-ACK message, I-082 image guard.
+2. P1 firmware: I-074 startup policy (owner: latch-and-show on boot, or wait for the first valid sweep).
    Owner: is "REVA2" on the boot screen OK, and should `FW 0.2.0` be bumped?
 3. Owner: machine grouping (I-085), panel max ambient, the `0020` fuse part.
 4. Bench (P2) when boards arrive.

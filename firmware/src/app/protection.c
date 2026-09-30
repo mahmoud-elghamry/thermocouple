@@ -32,6 +32,19 @@ static void write_fault_word(char out[17], uint8_t faults)
     write_word(&out[11], word, 5u);
 }
 
+/* "NO ACK CH1 HOT" / "NO ACK CH1 FAULT": the acknowledgement was refused and
+   this is the first channel that stopped it (I-088).  16 characters at most. */
+static void write_ack_refused(char out[17], const app_protection_state_t *state)
+{
+    write_word(&out[0], "NO ACK CH", 9u);
+    out[9] = (char)('1' + state->ack_refused_channel);
+    if (state->ack_refused_invalid) {
+        write_word(&out[11], "FAULT", 5u);
+    } else {
+        write_word(&out[11], "HOT", 3u);
+    }
+}
+
 void app_protection_reset(app_protection_state_t *state)
 {
     if (state == NULL) {
@@ -40,6 +53,9 @@ void app_protection_reset(app_protection_state_t *state)
     state->latched = false;
     state->config_locked = false;
     state->save_fault_recovered = false;
+    state->ack_refused = false;
+    state->ack_refused_invalid = false;
+    state->ack_refused_channel = 0u;
     state->first_channel = 0u;
     state->cause = APP_TRIP_CAUSE_NONE;
 }
@@ -88,6 +104,7 @@ void app_protection_note_save_fault(app_protection_state_t *state)
     state->latched = true;
     state->cause = APP_TRIP_CAUSE_SAVE_FAILED;
     state->save_fault_recovered = false;
+    state->ack_refused = false;
     state->first_channel = 0u;
 }
 
@@ -98,6 +115,7 @@ void app_protection_note_save_recovered(app_protection_state_t *state)
     }
     if (state->cause == APP_TRIP_CAUSE_SAVE_FAILED) {
         state->save_fault_recovered = true;
+        state->ack_refused = false;
     }
 }
 
@@ -134,12 +152,55 @@ void app_protection_evaluate(app_protection_state_t *state,
     }
 }
 
+/* First channel that stops an acknowledgement: invalid, or above the reset
+   temperature.  The single definition shared by try_ack and the refresh. */
+static bool first_blocking_channel(const hal_temperature_sample_t *samples,
+                                   uint8_t count,
+                                   int16_t reset_temperature_x10,
+                                   uint8_t *channel_out,
+                                   bool *invalid_out)
+{
+    uint8_t channel;
+
+    for (channel = 0u; channel < count; ++channel) {
+        if (!samples[channel].valid ||
+            samples[channel].temperature_x10 > reset_temperature_x10) {
+            *channel_out = channel;
+            *invalid_out = !samples[channel].valid;
+            return true;
+        }
+    }
+    return false;
+}
+
+void app_protection_ack_refusal_refresh(app_protection_state_t *state,
+                                        const hal_temperature_sample_t *samples,
+                                        uint8_t count,
+                                        int16_t reset_temperature_x10)
+{
+    uint8_t channel;
+    bool invalid;
+
+    if (state == NULL || !state->ack_refused) {
+        return;
+    }
+    if (samples == NULL || count == 0u ||
+        !first_blocking_channel(samples, count, reset_temperature_x10,
+                                &channel, &invalid)) {
+        state->ack_refused = false;
+        return;
+    }
+    state->ack_refused_channel = channel;
+    state->ack_refused_invalid = invalid;
+}
+
 bool app_protection_try_ack(app_protection_state_t *state,
                             const hal_temperature_sample_t *samples,
                             uint8_t count,
                             int16_t reset_temperature_x10)
 {
     uint8_t channel;
+    bool invalid;
 
     if (state == NULL || samples == NULL || count == 0u) {
         return false;
@@ -165,11 +226,14 @@ bool app_protection_try_ack(app_protection_state_t *state,
         !state->save_fault_recovered) {
         return false;
     }
-    for (channel = 0u; channel < count; ++channel) {
-        if (!samples[channel].valid ||
-            samples[channel].temperature_x10 > reset_temperature_x10) {
-            return false;
-        }
+    if (first_blocking_channel(samples, count, reset_temperature_x10,
+                               &channel, &invalid)) {
+        /* Remember why, so the status line can tell the operator (I-088).
+           No effect on the latch or the permit. */
+        state->ack_refused = true;
+        state->ack_refused_channel = channel;
+        state->ack_refused_invalid = invalid;
+        return false;
     }
     app_protection_reset(state);
     return true;
@@ -286,6 +350,10 @@ void app_format_status_line(char out[17],
             write_word(&out[9], "TEMP", 4u);
             return;
         case APP_TRIP_CAUSE_SAVE_FAILED:
+            if (state->save_fault_recovered && state->ack_refused) {
+                write_ack_refused(out, state);
+                return;
+            }
             /* Same wording whether the save just failed or a retry has since
                succeeded and is waiting on ACK - only the second word differs,
                so a partial read of the display cannot mistake one for the
@@ -299,6 +367,10 @@ void app_format_status_line(char out[17],
             /* Reachable only after a first-time save has succeeded and
                lifted config_locked: the value is stored, but the trip still
                needs the same acknowledgement as any other. */
+            if (state->ack_refused) {
+                write_ack_refused(out, state);
+                return;
+            }
             write_word(&out[0], "SAVE OK ACK", 11u);
             return;
         default:
