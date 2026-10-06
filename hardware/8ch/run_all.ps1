@@ -38,8 +38,7 @@ if (-not $env:KICAD_TOOL) {
 }
 
 try {
-  # populate_schematic.py writes flat sheets only and refuses the hierarchical
-  # schematic (I-062), so it cannot be step 1 any more. The schematic is built
+  # The hierarchical schematic (I-062) is built
   # by sch_layout/build.py --in-place (its own ERC + netlist gate) BEFORE this
   # script; steps 2-3 re-check what it left.
   Write-Output '== 1/8  schematic: built by sch_layout/build.py, not here =='

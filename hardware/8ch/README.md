@@ -71,7 +71,8 @@ current cannot become a measurement ground loop.
 | `thermocouple_8ch.kicad_pcb` | board |
 | `thermocouple_8ch.kicad_pro` | project, **including the net classes** |
 | `thermocouple_8ch.kicad_dru` | custom clearance rules (isolation, relay, chassis) |
-| `populate_schematic.py` | builds the schematic through kicad-tool |
+| `sch_layout/build.py` | builds the schematic (base `05d6abd` + `sch_layout/`), with its own ERC and netlist gate |
+| `kit_list.py` | the technician's through-hole kit list |
 | `apply_rules.py` | writes net classes and `.kicad_dru` into the project |
 | `board/` | the generator, split by responsibility - see `board/__init__.py` |
 | `generate_board.py` | command-line entry point for `board/` |
@@ -96,12 +97,12 @@ pwsh -File hardware\8ch\run_all.ps1
 
 The default validates a fresh snapshot under `production/` without changing the
 source hardware, including zone refill on the copy before DRC. Errors stop the
-pipeline; warnings remain visible. Full regeneration requires `-Regenerate` and
-is not authorized during the owner's REV A0 freeze. The commands below are the
-historical regeneration sequence, for a later authorized revision:
+pipeline; warnings remain visible. Full regeneration requires `-Regenerate`; the owner lifted the REV A0 freeze
+(`docs/decisions/0014`), so run `board_provenance.py --check` first. The commands
+below are the regeneration sequence:
 
 ```bash
-python populate_schematic.py --labels-only
+python sch_layout/build.py --in-place
 kicad-cli sch erc --output erc-report.rpt --severity-error --severity-warning thermocouple_8ch.kicad_sch
 kicad-cli sch export netlist --output thermocouple_8ch.net thermocouple_8ch.kicad_sch
 python apply_rules.py

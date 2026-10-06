@@ -51,7 +51,7 @@ $cli = 'C:\Program Files\KiCad\10.0\bin\kicad-cli.exe'
 $env:KICAD_CLI = $cli
 $env:KICAD10_FOOTPRINT_DIR = 'C:\Program Files\KiCad\10.0\share\kicad\footprints'
 
-python populate_schematic.py                 # add --labels-only to skip symbol work
+python sch_layoutuild.py --in-place       # schematic: base 05d6abd + sch_layout/ (own ERC + netlist gate)
 & $cli sch erc --output erc-report.rpt --severity-error --severity-warning thermocouple_8ch.kicad_sch
 & $cli sch export netlist --output thermocouple_8ch.net thermocouple_8ch.kicad_sch
 python apply_rules.py                        # net classes + .kicad_dru into the project
@@ -68,9 +68,9 @@ on the REV A2 run (2026-09-28):
 
 1. Schematic changes go into `sch_layout/` (a new part or a pin change in
    `reva2.py`-style code called from `fixes.py`, its position in `extra.py`,
-   its block in `rootlayout.py`). Then run `build.py --in-place`. Do not run
-   `populate_schematic.py`: it refuses a hierarchical sheet. `run_all.ps1`
-   no longer calls it.
+   its block in `rootlayout.py`). Then run `build.py --in-place`.
+   (`populate_schematic.py` was the flat-sheet tool; it is in `_old/` since
+   2026-10-06.)
 2. A deliberate connectivity change needs a new baseline. Write it only
    after `build.py`'s fingerprint lists exactly the differences you intended.
 3. `kicad-tool pcb sync` needs `KICAD10_FOOTPRINT_DIR` set. Without it, every
@@ -92,7 +92,7 @@ python hardware\8ch\check_mpn_consistency.py          # --fix rewrites mismatche
 and the clone brings the donor's `MPN`/`Manufacturer`/`LCSC` with it. On
 2026-09-16 that gave six new capacitors a **100 nF** part number and six new
 resistors a **10 k** one. ERC passed, the netlist fingerprint passed - neither
-looks at MPN. Run this whenever `populate_schematic.py` reports new symbols.
+looks at MPN. Run this whenever `build.py` adds symbols.
 `I-054`.
 
 ## Firmware
@@ -392,10 +392,8 @@ revisiting.
   read only the root after `I-062` - 56 symbols checked instead of 128, still
   "all match" (it now follows every `Sheetfile`). When a check's count drops,
   suspect the check.
-- **`populate_schematic.py` refuses the hierarchical root** (`I-062`): it
-  would re-add the 104 channel parts. Give it a flat copy with `--sch`; see
-  "Schematic layout". This also stops `run_all.ps1 -Regenerate` at step 1,
-  which is what STATE.md already asked for.
+- **`populate_schematic.py` (now in `_old/`) refused the hierarchical root**
+  (`I-062`); `sch_layout/build.py` replaced it.
 
 - **`PCB_VIA::GetWidth()` needs a layer argument** in KiCad 10. The no-argument
   form trips a wxWidgets assert that opens a modal dialog and hangs a headless

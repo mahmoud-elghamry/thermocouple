@@ -13,8 +13,8 @@ would have caught it is an order arriving with six 100 nF capacitors where the
 buck converter's input and output capacitors should be.
 
 So: this compares each symbol's MPN against what `passives_catalog.json` says
-that VALUE resolves to, and fails on any disagreement. Run it after any run of
-`populate_schematic.py` that added parts.
+that VALUE resolves to, and fails on any disagreement. Run it after any
+schematic build that added parts.
 
     python check_mpn_consistency.py          # exits non-zero on a mismatch
 

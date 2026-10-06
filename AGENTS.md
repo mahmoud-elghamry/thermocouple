@@ -48,6 +48,7 @@ hardware/single-channel/  superseded board, kept for reference - DO NOT MODIFY
 firmware/                 AVR C for the ATmega32A, with host unit tests
 simulation/               Proteus simulation project
 production/               fabrication output - generated, never committed
+_old/                     superseded files, reference only - never build or order from it
 docs/                     see the table above
 ```
 

@@ -2,7 +2,7 @@
 
 This project has two legitimate ways to change the hardware:
 
-  GENERATIVE   run populate_schematic.py / generate_board.py / route.py.
+  GENERATIVE   run sch_layout/build.py / generate_board.py / route.py.
                Everything is rebuilt from `board/` and the part tables. Any
                hand edit present at that moment is destroyed - not by policy,
                but because generate_board.py clears every track, via, zone and
