@@ -1,44 +1,37 @@
 # Current state
 
 **Read second, after AGENTS.md; then read all of ISSUES.md (P0 first). Hard limit: 60 lines.**
-**Last updated:** 2026-10-07 (cloud handoff, `codex/operator-requirements-20261007`).
+**Last updated:** 2026-10-08 (workstation, `0030`).
 
 ## Where we are
 
-* **REV A2 design is complete and passes every gate** (numbers below), firmware
-  FW 0.2.1 (boot waits for ACK, I-074). Last code commit `7df6798`.
-* **But it is NOT going to be ordered as is.** On 2026-10-06 an outside engineer
-  pointed out the board is 250 x 140 mm with 81 % empty area (I-090). It was
-  inherited from the first plan and never justified. Decision **`0028`**: shrink
-  before ordering, keep 4 layers. JLCPCB, 5 pcs, 4 layers: $46.60 now, $34.90 at
-  160 x 100, **$8.00 at 100 x 100**. Two layers rejected (`0028`, option C).
-* Owner: **3 autonomous modules, series contacts, per-channel setpoints, manual ACK**
-  (`0024`/`0029`). HMI delegated to design team; 24 V engine battery (`0016`).
-  Parts may change with verified suitability/stock; NORI likely fab (`0028`).
-* `production/8ch-reva2/` is **ON HOLD** (stale). The next order is **REV A3**.
-* Cleanup 2026-10-06: superseded files moved to **`_old/`** (see its README):
-  the 2-layer backup, `populate_schematic.py`, `init_board.py`, A0/A1 baselines,
-  old Arabic docs, a REV A0 `BOM.csv`, old validation snapshots; local ignored archive.
+* REV A2 passes every gate (below), FW 0.2.1; **not ordered**: 250 x 140 mm, 81 %
+  empty (I-090). Shrink, keep 4 layers (`0028`). `production/8ch-reva2/` ON HOLD;
+  next order is **REV A3**. Superseded files are in `_old/` (see its README).
 
-## Start here — next steps (recorded answers are not pending questions)
+## 2026-10-08: plan agreed (`0030`) — read it before any work
 
-1. **Design work:** I-092 dry-contact voltage/current envelope (A2 low-voltage only;
-   "line" is unqualified); I-091 select LCD/buttons/mounting; I-093 cable/termination;
-   actual probe model/grounding and mapping (I-026/I-085). Operator sets temperatures.
-   I-100: plan per-channel UI/protection/EEPROM; currently one shared module limit.
-   I-094 RS-485 form; I-095 compatible stocked parts; delivered NORI/import quote,
-   assembly, exact LCD and `0020` fuse. I-089 ACK confirmation is closed.
-2. **Agent, no owner input needed:** I-096 (re-derive the 5 V budget, recheck
-   F1/L1); I-097 firmware timing (scan 2 ticks, WDT 500 ms, one trip budget).
-3. Choose A (~160 x 100) or B (100 x 100) per `0028`. The agent draws the floor
-   plan and shows the owner **before** any board write.
-4. Shrink pass: schematic changes (if any) → `build.py` → new baseline only for
-   intended diffs → placement/config → route → all gates → `BOARD_REV` "A3",
-   firmware `APP_TARGET_BOARD` "THERMO-8CH REVA3".
-5. Then I-078: fab choice, fab-format BOM/CPL (SMD only), review the fab
-   preview with the owner, re-export the package, RELEASE text (I-079).
-   Order U12 from DigiKey early. Kit list: `kit_list.py`.
-6. Bench (P2) when boards arrive.
+* 3 identical 8-ch modules **stacked**, each trips alone, contacts in series; one
+  display/keypad on the top module (master by jumper, one firmware image); ACK =
+  one button, 3 separate contacts; non-isolated RS-485 (one panel, one battery).
+* Contact: **30 VDC / 1 A max, signal only**; gold-contact signal relay.
+* Probes made to order, junction type **unknown/mixed**: per-channel BIAS
+  footprint (0 Ω default) + one module reference to the engine (I-101, blocker).
+* Panel fuse must be re-sized for 3 modules (I-102).
+* **Work split:** W1 Claude workstation = only hardware writer (floor plan first,
+  shown to owner); W2 Codex = calculations/docs + core firmware; W3 cloud =
+  RS-485/master display in NEW files on `claude/*`, PR; owner merges.
+
+## Start here — next steps
+
+1. **W2 Codex (now):** I-102 fuse, I-096 power budget (normal + master module),
+   F1/L1 vs LM5164 limit; then firmware I-100 (8 limits, EEPROM) and I-097 timing.
+2. **W1 (now):** to-scale 100 x 100 floor plan (`0030` D7) shown to the owner
+   **before** any board write; part picks I-092 relay, I-094 transceiver, I-095.
+3. **W3 cloud:** RS-485 protocol + master display, new files only (`0030`).
+4. Shrink pass: schematic → `build.py` → baseline only for intended diffs →
+   placement → route → all gates → `BOARD_REV` "A3", FW "THERMO-8CH REVA3".
+5. I-078 fab files and owner preview; then the bench (P2), incl. I-101.
 
 ## Measured, not claimed (REV A2, before the shrink)
 

@@ -475,3 +475,48 @@ working network, master, shutdown grouping or system qualification. The current
 outline is not an optimized minimum and a new 24-channel board is not assumed
 to need three times its area. No 24-channel outline, layer requirement, total
 power budget or cost ratio is calculated without a placement/interface study.
+
+## 6. REV A3 planning, 2026-10-08 (`decisions/0030`)
+
+### 6.1 BIAS fight between grounded probes on one island
+
+Inputs: MAX31856 V_BIAS 0.735 V and R_BIAS 2 kOhm, **both typical only, no
+min/max** (datasheet p.3); R1-R16 = 100 Ohm per leg; K-type ~41 uV/degC
+(section 2). Cable resistance is not known and is left out (it adds to r).
+
+With grounded probes the engine joins every T- line. BIAS current then
+flows through each negative leg; the positive leg carries almost none, so
+the error is the drop across the negative leg's resistance r.
+
+Two channels, mismatch dV:
+
+    I = dV / (2 R_BIAS + 2 r) = 10 mV / 4.2 kOhm = 2.4 uA
+    error = I x r = 2.4 uA x 100 Ohm = 0.24 mV  ->  ~5.8 degC
+
+Eight channels, one source 10 mV above seven equal ones. The engine node
+sits near the average:
+
+    I = (7/8 x 10 mV) / (R_BIAS + r) = 8.75 mV / 2.1 kOhm = 4.2 uA
+    error = 4.2 uA x 100 Ohm = 0.42 mV  ->  ~10 degC
+
+**Verdict:** degrees of error per 10 mV of mismatch, of **either sign**, so
+it can read low. The real mismatch is unknown, because the datasheet gives no
+spread. Potential differences between points on the engine block enter the
+same network. This is a first-order model, not a measurement. Nothing here
+can damage a part: the currents are microamps. **Fix:** `0030` D6.
+
+The `0008` table had two errors. It assumed a ~250 Ohm loop and ignored
+R_BIAS, and it wrote 4 uA x 100 Ohm as 0.4 uV; the product is 400 uV.
+
+### 6.2 Panel fuse with three modules on one feed
+
+Section 1.9 gives 0.139 A²s for one module charging its ~32 uF through its
+own F1. Three identical modules switched on together, each through its own
+F1, draw three times the current at every instant:
+
+    I²t_total = ∫(3 i)² dt = 9 x 0.139 = 1.25 A²s
+
+**Verdict:** above the >= 1 A²s pre-arc floor that `0020` set for one module.
+Choose either a fuse with pre-arc I²t of 10 A²s or more, or one fuse per
+module. Wiring resistance lowers the real figure; this is the idealized
+upper bound.

@@ -15,8 +15,8 @@ A protection system for **24 K-type thermocouples** (owner clarified 2026-09-29)
 `hardware/8ch/` is the current eight-channel board, not the complete system.
 Three autonomous 8-channel modules are selected (`0024`, confirmed 2026-10-07).
 Their run-permit contacts are in series: any of the 24 channels trips the common circuit.
-Communications/master are optional later; sensor mapping and grounds still need checking.
-Current placement is one panel or nearby boards; distant nodes are only an option.
+**`0030` (2026-10-08): stacked in one panel; a master display reads all 24; each
+module also works alone. Read `0030` first: it holds the agents' work split.**
 Earlier eight-channel basis: cylinder-body probes, roughly 50 m cables, no VFD.
 Per-channel persistent setpoints and manual ACK are required (`0029`); firmware still has one shared limit per module (I-100).
 Supply: engine battery, nominal 24 V (`0016`). HMI selection/mounting is delegated to the design team (`0029`).
