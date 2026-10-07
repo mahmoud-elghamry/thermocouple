@@ -1,7 +1,7 @@
 # Current state
 
 **Read second, after AGENTS.md; then read all of ISSUES.md (P0 first). Hard limit: 60 lines.**
-**Last updated:** 2026-10-06 (workstation). A new conversation starts at "Start here".
+**Last updated:** 2026-10-07 (cloud handoff, `codex/operator-requirements-20261007`).
 
 ## Where we are
 
@@ -12,23 +12,22 @@
   inherited from the first plan and never justified. Decision **`0028`**: shrink
   before ordering, keep 4 layers. JLCPCB, 5 pcs, 4 layers: $46.60 now, $34.90 at
   160 x 100, **$8.00 at 100 x 100**. Two layers rejected (`0028`, option C).
-* An audit of other inherited choices (2026-10-06) produced **I-091..I-099**.
-  Five of them are owner questions that decide the new board's edge and area.
+* Owner: **3 autonomous modules, series contacts, per-channel setpoints, manual ACK**
+  (`0024`/`0029`). HMI delegated to design team; 24 V engine battery (`0016`).
+  Parts may change with verified suitability/stock; NORI likely fab (`0028`).
 * `production/8ch-reva2/` is **ON HOLD** (stale). The next order is **REV A3**.
 * Cleanup 2026-10-06: superseded files moved to **`_old/`** (see its README):
   the 2-layer backup, `populate_schematic.py`, `init_board.py`, A0/A1 baselines,
-  old Arabic docs, a REV A0 `BOM.csv`, old validation snapshots. Deleting was
-  blocked by the permission policy, so they were moved instead. `_old/` is now
-  ignored by Git and retained only as a local archive.
+  old Arabic docs, a REV A0 `BOM.csv`, old validation snapshots; local ignored archive.
 
-## Start here — next steps in order (confirm each with the owner)
+## Start here — next steps (recorded answers are not pending questions)
 
-1. **Owner answers** (none needs the agent first):
-   I-091 where the LCD/buttons go · I-092 what K1's contact drives ·
-   I-093 cable shield and where it ends · I-094 RS-485: isolated / plain / DNP ·
-   I-095 accept the part changes (TQFP MCU, 2x8 header, drop J6/C51/R17-R24).
-   Also still open: I-089 (reset while running waits for ACK; recommended yes),
-   I-085 grouping, panel max ambient, the `0020` panel fuse, the LCD model.
+1. **Design work:** I-092 dry-contact voltage/current envelope (A2 low-voltage only;
+   "line" is unqualified); I-091 select LCD/buttons/mounting; I-093 cable/termination;
+   actual probe model/grounding and mapping (I-026/I-085). Operator sets temperatures.
+   I-100: plan per-channel UI/protection/EEPROM; currently one shared module limit.
+   I-094 RS-485 form; I-095 compatible stocked parts; delivered NORI/import quote,
+   assembly, exact LCD and `0020` fuse. I-089 ACK confirmation is closed.
 2. **Agent, no owner input needed:** I-096 (re-derive the 5 V budget, recheck
    F1/L1); I-097 firmware timing (scan 2 ticks, WDT 500 ms, one trip budget).
 3. Choose A (~160 x 100) or B (100 x 100) per `0028`. The agent draws the floor
@@ -47,9 +46,10 @@
 |---|---|
 | `validate.ps1` 2026-10-06 22:09, after the cleanup | ERC 0/0; netlist IDENTICAL 202/163/647; 129/129 MPN match; DRC 0/0/0/0 (`production/validation-20261006-220958-ac80be`) |
 | `firmware/build.ps1` 2026-10-06, after the cleanup | 3 suites PASS; 4 images built (8ch FW 0.2.1, 5918 B on 2026-10-01) |
+| Cloud gates, 2026-10-07 | `make all test`: 4 targets/3 suites pass; ERC/DRC 0/0; netlist 202/163/647 identical; 129 MPN match; source unchanged (`production/validation-20261007-080427-e91cea`) |
 | Board area (pcbnew, 2026-10-06) | 250.1 x 140.1 mm; 193 parts, courtyards 67 cm² = 19 % |
 
-No surge, EMC, thermal, isolation, ISP or contact-timing test; no SPICE.
+No physical qualification/SPICE; cloud: `source /workspace/.thermo-tools/activate.sh` (draft saved). Git works; GitHub API HTTP 403.
 
 ## Preserve for hardware work
 
