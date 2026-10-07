@@ -1,11 +1,11 @@
-# 0024 — System requires 24 thermocouples; board topology is not selected
+# 0024 — Three autonomous eight-channel modules; common shutdown
 
-* Status: accepted for system channel count; **direction agreed 2026-10-01** (see the end); machine grouping still pending
+* Status: accepted; three autonomous modules agreed 2026-10-01; **common series shutdown confirmed 2026-10-07** (updates below)
 * Date: 2026-09-29
 * Decider: owner, explicit clarification in the review conversation
 * Supersedes: the assumption that the complete product has only eight channels
 
-## Context and confirmed intent
+## Original context (2026-09-29; resolved by updates below)
 
 The owner clarified that the project must read **24 thermocouples**. A prior
 proposal was to split acquisition over multiple boards communicating with a
@@ -32,7 +32,7 @@ acknowledgement and output-fault behavior. RS-485 hardware is present but UART/
 Modbus/master firmware is not implemented. The old protocol deferral cannot
 be used to call the proposed networked 24-channel system complete.
 
-## Alternatives to compare — not selected
+## Original alternatives (selection recorded below)
 
 1. One 24-channel PCB, initially assess four layers: fewer inter-board wires
    and duplicated support circuits; larger replaceable unit and a new layout.
@@ -93,3 +93,22 @@ the wiring between modules, judged simpler than a new design (not yet costed).
 
 Still true, as recorded above: contacts in series do not cure I-081 (a welded
 contact or shorted driver). That is an accepted, documented limit (owner).
+
+## Update 2026-10-07 — common shutdown confirmed
+
+The owner confirmed **three independent eight-channel modules**, with their
+**run-permit relay contacts in series**. A temperature trip or detected sensor
+fault on any of the 24 channels opens the common machine-permission circuit.
+The series connection is between relay contacts, not thermocouple inputs.
+Separate shutdown groups are not selected for this installation.
+
+Communication may be added later between modules, to an external master, or
+with one module acting as master after checking its resources. It is optional
+and must not bypass any module's autonomous protection. No master or protocol
+is implemented by this clarification.
+
+I-085 stays open for the installation wiring drawing and physical sensor mapping.
+Per-channel setpoints are selected in `0029`, with implementation tracked as
+I-100; common versus independent shutdown is answered. A common shutdown does
+not prove equal probe ground potentials.
+The accepted I-081 contact/driver failure limitation remains.

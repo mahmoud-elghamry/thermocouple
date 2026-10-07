@@ -13,10 +13,13 @@ others read it directly; `CLAUDE.md` imports it for Claude Code.
 
 A protection system for **24 K-type thermocouples** (owner clarified 2026-09-29).
 `hardware/8ch/` is the current eight-channel board, not the complete system.
-One 24-channel board versus several boards/master is undecided (`0024`).
-Machine grouping and common versus independent shutdown await the owner.
+Three autonomous 8-channel modules are selected (`0024`, confirmed 2026-10-07).
+Their run-permit contacts are in series: any of the 24 channels trips the common circuit.
+Communications/master are optional later; sensor mapping and grounds still need checking.
 Current placement is one panel or nearby boards; distant nodes are only an option.
 Earlier eight-channel basis: cylinder-body probes, roughly 50 m cables, no VFD.
+Per-channel persistent setpoints and manual ACK are required (`0029`); firmware still has one shared limit per module (I-100).
+Supply: engine battery, nominal 24 V (`0016`). HMI selection/mounting is delegated to the design team (`0029`).
 **It is being built to go on a real machine.** Treat decisions as safety-relevant.
 
 The output is energised-to-run: loss of power, reset, or a fault means the
@@ -63,7 +66,7 @@ placement files, renders and netlists belong in `production/` or are ignored.
 2. **Do not touch `hardware/single-channel/`.** It is the superseded board, kept
    only for reference.
 3. **Do not commit or push** unless the user asks. Leave work in the tree for
-   review.
+   review. **Never merge, even if subsequently requested** (owner, cloud session).
 4. **Firmware is in scope.** Several open issues are firmware faults with
    safety consequences; a PCB-only reading of a task is too narrow.
 5. **Update `docs/STATE.md` before you finish.** The next session starts there.

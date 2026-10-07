@@ -67,10 +67,11 @@ is chosen after the owner answers I-091 to I-096, not before**:
   realistic**. In that case it is one schematic change plus one layout pass,
   done once.
 
-## Open (owner)
+## Remaining design work
 
-1. Answer I-091 (HMI location), I-092 (what K1 switches), I-093 (cable shield),
-   I-094 (RS-485 form) and I-095 (part changes). I-096 is a calculation for
+1. Complete I-091 (HMI delegated to design team in `0029`), I-092 (dry-contact
+   ratings), I-093 (shield termination), I-094 (RS-485 form) and I-095 (verified parts).
+   The owner conditionally accepts part changes (update below). I-096 is for
    the agent to do.
 2. Then choose A or B. The agent proposes the floor plan and the owner approves
    it before any board write.
@@ -83,3 +84,27 @@ is chosen after the owner answers I-091 to I-096, not before**:
 * Every hardware gate is re-run and re-quoted after the shrink. The power-stage
   distances in `CALCULATIONS` 5.2 are re-measured, not assumed.
 * I-025 (two-layer backup) is closed; the backup is in `_old/8ch-2layer/`.
+
+## Update 2026-10-07 — sourcing candidate and conditional part changes
+
+The owner permits changing the MCU and other components **provided the exact
+replacements are available and suitable for normal use**. Exact choices,
+ATmega32A-AU stock, proposed deletions and the floor plan still need review. Check
+pin mapping, electrical/reset behavior, package, lifecycle and dated supplier
+stock before committing to a replacement. The LCD will sit off the main PCB;
+button mounting and cable distance remain design work (I-091, delegated in `0029`).
+
+**NORI Solutions is the likely supplier, not a final order decision.** The
+owner reports local two-layer fabrication and imported four-layer boards.
+The supplied calculator screenshot at <https://norisolutions.com/pcb-fabrication>
+shows **5 boards, 100 x 100 mm, 4 layers, FR-4 1.6 mm, green, EGP 2,530 total
+(EGP 506 each), estimated 2–3 weeks**. No Gerbers are uploaded in the screenshot.
+This is an indicative bare-board quote, not proof the current design fits that
+size. Finish, stack-up, copper, manufacturing limits, assembly, tax and delivery
+inclusions must be confirmed; direct page access in this cloud returned HTTP 403.
+
+Compare like-for-like delivered totals: PCB + shipping + customs/taxes/clearance
++ payment costs, with assembly and components separately identified. The
+historical JLCPCB 100 x 100 quote above totals about USD 39–41 with shipping,
+before import costs. Re-quote the actual verified A3 size and specifications
+with both suppliers before ordering; do not assume the promotional price lasts.

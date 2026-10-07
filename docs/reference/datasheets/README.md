@@ -24,6 +24,15 @@ URLs rot. About 23 MB in total.
 
 ## Not here
 
+The **actual physical K-type probe** and extension cable have no recorded
+manufacturer/model. The owner reports a probably grounded junction and accepts
+the shielded extension-cable basis (`0029`, 2026-10-07). `MAX31856.pdf` is the
+reader IC's datasheet, not the probe's. It is already available offline; do not
+download it again or substitute a generic probe catalog as an exact match.
+An electrically ungrounded junction still measures temperature. Identify the
+installed/chosen probe before obtaining its exact temperature/insulation limits.
+ADI/Omega reference download attempts in this cloud returned HTTP 403.
+
 Not downloaded: `IA0505S` (`U12`, XP Power), the SMBJ TVS series
 (`D2`; Littelfuse blocks download - the SMBJ33A figures used in `I-028` are
 33 V standoff, 36.7-40.6 V breakdown, 53.3 V clamping, 600 W at 10/1000 us),
