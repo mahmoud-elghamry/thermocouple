@@ -24,7 +24,8 @@
 
 **OPEN 2026-10-08 (blocker I-101):** probes cannot be specified ungrounded, so the
 8x MAX31856 front end is in question. Leading option: mux + one ADC per module
-(as the Murphy TDXM does). Research reports: `production/review-20261008/` (local).
+(as Murphy TDXM / NI 9213 do: mux + AD7124-8 or ADS124S08, T- biased via 10-39 MΩ).
+Reports (local): `production/review-20261008/research-frontend.md`, `research-mechanics.md`.
 Decide the front end **before** the floor plan; `0030` D6 is provisional.
 
 ## Start here — next steps
