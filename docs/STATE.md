@@ -12,8 +12,8 @@
 ## 2026-10-08: plan agreed (`0030`) — read it before any work
 
 * 3 identical 8-ch modules **stacked**, each trips alone, contacts in series; one
-  display/keypad on the top module (master by jumper, one firmware image); ACK =
-  one button, 3 separate contacts; non-isolated RS-485 (one panel, one battery).
+  boards identical incl. buttons; **20x4 LCD on standoffs on the master only**, door
+  untouched; ACK line + diode per board; non-isolated RS-485 (one panel).
 * Contact: **30 VDC / 1 A max, signal only**; gold-contact signal relay.
 * Probes made to order, junction type **unknown/mixed**: per-channel BIAS
   footprint (0 Ω default) + one module reference to the engine (I-101, blocker).
@@ -21,6 +21,11 @@
 * **Work split:** W1 Claude workstation = only hardware writer (floor plan first,
   shown to owner); W2 Codex = calculations/docs + core firmware; W3 cloud =
   RS-485/master display in NEW files on `claude/*`, PR; owner merges.
+
+**OPEN 2026-10-08 (blocker I-101):** probes cannot be specified ungrounded, so the
+8x MAX31856 front end is in question. Leading option: mux + one ADC per module
+(as the Murphy TDXM does). Research reports: `production/review-20261008/` (local).
+Decide the front end **before** the floor plan; `0030` D6 is provisional.
 
 ## Start here — next steps
 

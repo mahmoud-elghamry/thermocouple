@@ -39,6 +39,45 @@ non-isolated link to another engine. Closes the direction of I-094. The
 current saving from removing the ADM2587E must be re-derived (I-096); it is
 not assumed.
 
+**D4a. Display, buttons and ACK: on identical main boards, no extra PCB (owner, 2026-10-08).** The panel door is not modified.
+* **All three boards are the same PCB and the same assembly.** Each carries
+  the setup buttons, the ACK button, a keyed LCD header, the stack header,
+  its ACK fan-out diode and a role/address jumper. On the lower boards the
+  buttons are simply unused.
+* **The 20x4 LCD module is fitted only on the master** (the top board), on
+  four standoffs above it. The board reserves the standoff holes and an LCD
+  keep-out with no tall parts under it. The buttons sit outside the LCD
+  outline so they stay reachable. A module used alone fits its own LCD.
+* **ACK fan-out:** the master's ACK button pulls one ACK line in the stack
+  header low. Each board meets that line through **its own diode** (cathode
+  to the line, anode to its ACK input, pull-up to its own 5 V). An unpowered
+  board then neither sources nor sinks current, and ACK never travels over
+  RS-485. This needs bench qualification.
+* **Floor-plan constraints this creates:**
+  * A 20x4 module is roughly 98 x 60 mm. On a 100 x 100 mm board it covers
+    most of the top face, so the terminals must stay outside its outline.
+  * In a stack, the screws of the lower boards' terminals are under the
+    board above. **Pluggable terminal blocks** (the plug is wired off-board,
+    then pushed in from the side) or side-screw terminals are therefore
+    likely needed.
+  * The floor plan decides whether 100 x 100 holds. If it does not, a
+    16x2 LCD or a slightly larger board are the fallbacks, both shown to the
+    owner.
+* Dropped idea: a separate small HMI board (owner did not want a second PCB).
+* To ask the operations engineer: is opening the door to read the display and
+  press ACK acceptable? Nothing is asked of him to change.
+
+**D1a. A single 24-channel board stays rejected (owner, 2026-10-08).** The
+terminals set its size: 24 x ~15 mm three-screw blocks is ~360 mm of edge
+(~240 mm with the shield bonded at panel entry). Even split over two edges,
+that is a board of roughly 120-180 mm by ~130 mm, near today's 250 x 140 mm
+area, against ~100 x 100 mm of panel footprint for the stack. It is a rough
+estimate, not a placement study. It would also be a new design: one MCU and
+isolator set for 24 converters, and 24 BIAS outputs on one island.
+**Kept as a later option (owner):** once the three-module system works, a
+24-channel board may be designed as a second product variant. It is not on
+the REV A3 path.
+
 **D4. One display + keypad, on the top module (master role).** It shows all
 24 channels, and setpoints and options for every module are set there. Every
 module keeps its own setpoints in its own EEPROM. A write carries **module
@@ -49,10 +88,7 @@ from a different firmware per position: a wrong image must not be able to
 change a module's protection (I-082). A module used alone uses its own
 LCD/buttons.
 
-**ACK** is one physical push-button with **three separate NO contacts**, one
-per module. It is not sent over RS-485, and the three inputs are never joined
-directly (backfeed into an unpowered module). The firmware keeps
-release-before-press and requires fresh local readings before ACK.
+**ACK** is one push-button on the master, fanned out by diodes (D4a), never sent over RS-485. The three ACK inputs are never joined directly, because that would backfeed into an unpowered module. The firmware keeps release-before-press and requires fresh local readings before ACK. (Superseded idea: a panel button with three separate NO contacts, dropped with the door change.)
 
 **D5. Signal relay with gold-clad contacts** replaces the G5LE-14 DC24.
 Marked rating: **30 VDC / 1 A maximum, signal loads only**. The minimum
