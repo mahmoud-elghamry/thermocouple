@@ -18,7 +18,7 @@
 * `0032` = circuit + parts after Codex/Opus reviews (power `CALCULATIONS` 7, front end, floor plan).
 
 **2026-10-09: 24-ch board, `hardware/24ch/` (README there), decisions `0032`-`0033`.**
-Schematic 467 symbols, ERC 0/0, 12 pages A3/A4. Board 170 x 145 kept (`0033` D1).
+Schematic 467 symbols, ERC 0/0, 12 pages A3/A4. Board 170 x 145 (`0033` D1). Fab NORI (I-106); parts ~$105 (`gen/cost.py`).
 **Board ROUTED + silkscreen; fab set `production/24ch-reva3-20261009/` (gen/fab.py, 11:1x): its `drc-report.rpt`
 = 0 DRC violations, 0 unconnected pads, 0 footprint errors (schematic parity). Board = `output/finish23-silk.kicad_pcb` + saved fills.**
 Done today: last 2 routes by hand/maze (TC21 pair: old PA loop is now NA, PA + 2 CS_CJ5_ISO pieces on In2.Cu,
@@ -26,7 +26,6 @@ Done today: last 2 routes by hand/maze (TC21 pair: old PA loop is now NA, PA + 2
 65 tracks nudged to 0.2 (`finish.py nori`) + 5 by hand, 33 router stubs deleted (`finish.py dangling`),
 `pcb sync` (C8545/C28260), EP vias off the paste (I-110), installer silkscreen (`gen/silk.py`, 0 silk warnings).
 BOM 93 lines, CPL 441 parts; only the 5 buttons lack an LCSC code (I-108).
-Fab NORI (`0033` D2, I-106); parts $104.9/board, 52 extended codes (`gen/cost.py`).
 
 ## Start here - next steps
 
