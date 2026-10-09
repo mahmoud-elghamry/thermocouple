@@ -1,22 +1,20 @@
 # Current state
 
 **Read second, after AGENTS.md; then read all of ISSUES.md (P0 first). Hard limit: 60 lines.**
-**Last updated:** 2026-10-09 (workstation, `0031`-`0033`).
+**Last updated:** 2026-10-09 (workstation, `0031`-`0034`).
 
 ## Where we are
 
-* REV A2 passes every gate (below), FW 0.2.1; **not ordered**: 250 x 140 mm, 81 %
-  empty (I-090). Shrink, keep 4 layers (`0028`). `production/8ch-reva2/` ON HOLD;
-  next order is **REV A3**. Superseded files are in `_old/` (see its README).
+* REV A2 (8ch, reference) passes every gate (below), FW 0.2.1; never ordered. Next order is the
+  24-ch **REV A3**. Superseded files are in `_old/` (see its README).
 
 ## 2026-10-08: ONE 24-channel board (`0031`) — read it before any work
 
 * `0031` supersedes most of `0030`; still valid there: D2 comms never in trip path, D5, D8.
 * Front end **3x AD7124-8** on one isolated island in parallel; 20 M TC- bias, mid-rail reference
   wire, CJ sensors at the terminals, open-TC check one channel per scan (~4 s each).
-* 20x4 LCD on standoffs + 5 buttons on the board; trip relay + alarm relay
-  (30 VDC / 1 A signal); isolated RS-485/Modbus fitted (ADM2587E); 20x4 LCD bought locally; shield at panel entry (48 TC
-  terminals); plate mounting; **all parts from one source** (NORI, I-103).
+* 20x4 LCD (bought locally) + 5 buttons (+ panel header, `0034` D2); trip + alarm relay (30 VDC / 1 A signal);
+  isolated RS-485/Modbus (ADM2587E); shield at panel entry; **all parts from one source** (NORI, I-103).
 * `0032` = circuit + parts after Codex/Opus reviews (power `CALCULATIONS` 7, front end, floor plan).
 
 **2026-10-09: 24-ch board, `hardware/24ch/` (README there), decisions `0032`-`0033`.**
@@ -26,8 +24,7 @@ Schematic 467 symbols, ERC 0/0, 12 pages A3/A4. Board 170 x 145 kept (`0033` D1)
 Done today: last 2 routes by hand/maze (TC21 pair: old PA loop is now NA, PA + 2 CS_CJ5_ISO pieces on In2.Cu,
 `0033` D4), `rules.py` full (outer pours, NORI pad-to-track 0.2 on pads, relay_area only for contacts),
 65 tracks nudged to 0.2 (`finish.py nori`) + 5 by hand, 33 router stubs deleted (`finish.py dangling`),
-`pcb sync` (C8545/C28260, 0 pad changes), EP vias off the paste (I-110 closed), installer silkscreen by `gen/silk.py`
-(every terminal pin labelled, buttons/LEDs/test points by function; 0 silk warnings). Warnings left: 3 maze staircase stubs.
+`pcb sync` (C8545/C28260), EP vias off the paste (I-110), installer silkscreen (`gen/silk.py`, 0 silk warnings).
 BOM 93 lines, CPL 441 parts; only the 5 buttons lack an LCSC code (I-108).
 Fab NORI (`0033` D2, I-106); parts $104.9/board, 52 extended codes (`gen/cost.py`).
 
