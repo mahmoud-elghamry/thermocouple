@@ -13,10 +13,10 @@ others read it directly; `CLAUDE.md` imports it for Claude Code.
 
 A protection system for **24 K-type thermocouples** (owner clarified 2026-09-29).
 `hardware/8ch/` is the current eight-channel board, not the complete system.
-Three autonomous 8-channel modules are selected (`0024`, confirmed 2026-10-07).
-Their run-permit contacts are in series: any of the 24 channels trips the common circuit.
-**`0030` (2026-10-08): stacked in one panel; a master display reads all 24; each
-module also works alone. Read `0030` first: it holds the agents' work split.**
+**`0031` (2026-10-08): ONE 24-channel board, 3x AD7124-8 front end (grounded,
+insulated or mixed probes), all parts from one source. Read `0031` first: it
+holds the agents' work split and supersedes most of `0030` and `0024`.**
+Any of the 24 channels trips the common run-permit contact.
 Earlier eight-channel basis: cylinder-body probes, roughly 50 m cables, no VFD.
 Per-channel persistent setpoints and manual ACK are required (`0029`); firmware still has one shared limit per module (I-100).
 Supply: engine battery, nominal 24 V (`0016`). HMI selection/mounting is delegated to the design team (`0029`).
@@ -109,7 +109,9 @@ placement files, renders and netlists belong in `production/` or are ignored.
 
 ## Build and check
 
-Full details in `docs/TOOLS.md`. The short version:
+Full details in `docs/TOOLS.md`. **24-ch board: read its "24-channel board" section before
+touching placement or routing** - generative until placement is frozen, incremental after;
+check `padcheck.py` before any long router run. The short version:
 
 ```powershell
 pwsh -File hardware\8ch\run_all.ps1      # validate a snapshot; source hardware stays unchanged
@@ -128,11 +130,11 @@ authorized - run `board_provenance.py --check` first.
 
 ## Hard constraints — do not design around these
 
-- **MAX31856 is not a galvanic isolator.** It is a good thermocouple front end,
-  but T+/T- are not separated from AGND/DGND.
-- **The current board isolates the group, not the channels.** Its eight
-  thermocouples share one isolated ground. This is accepted for the existing
-  module; do not extend the same-engine assumption to all 24 without confirmation.
+- **Neither MAX31856 nor AD7124-8 is a galvanic isolator.** T+/T- are not
+  separated from the converter's ground.
+- **The board isolates the group, not the channels.** All 24 thermocouples
+  share one isolated island; accepted because all 24 are on one engine (owner,
+  2026-10-08, `0031`). A probe on another machine needs a fresh review.
 - **Cables run roughly 50 m from the engine to a separate panel; no VFD.**
   Layout symmetry and plane pairs help; only measurement settles performance.
 - **The isolation rules in `.kicad_dru` are functional, not certified.** No

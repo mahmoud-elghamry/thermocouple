@@ -1,6 +1,7 @@
 # 0030 — REV A3: three stacked modules, per-channel probe bias, signal contact, work split
 
-* Status: accepted (owner, 2026-10-08); engineering items marked "verify" still open
+* Status: **partly superseded by `0031`** (same day): one 24-channel board with AD7124-8
+  replaces D1, D1a, D3, D4, D4a, D6, D7 and W3. D2, D5 and D8 still apply.
 * Date: 2026-10-08
 * Deciders: owner; plan reviewed by Codex gpt-6.1-sol (read-only,
   `production/review-20261008/codex-plan-review.md`, local)

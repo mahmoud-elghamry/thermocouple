@@ -9,10 +9,10 @@ alone. Changes go through `docs/decisions/`.
 
 ## The goal
 
-A system that reads **24 K-type thermocouples** using **three autonomous
-eight-channel modules**. Their run-permit contacts are in series: any channel
-trip opens the common shutdown circuit (owner confirmed 2026-10-07,
-`decisions/0024`). The existing board implements one module, not the whole system.
+A system that reads **24 K-type thermocouples** on **one 24-channel board**
+(owner, 2026-10-08, `decisions/0031`; replaces three modules, `0024`). Any channel
+trip opens the potential-free shutdown contact. A standalone 8-channel unit is the
+same board partly fitted.
 
 It is going onto real equipment. It is not a demonstration.
 
@@ -38,12 +38,12 @@ That rationale must be rechecked if channel assignment spans different machines.
 
 | # | Requirement | Status |
 |---|---|---|
-| R-1 | Read 24 K-type thermocouples | Three 8-channel modules selected; complete physical system not built or tested |
+| R-1 | Read 24 K-type thermocouples, grounded, insulated or mixed | One board, 3x AD7124-8 (`0031`); not designed or tested yet |
 | R-2 | Open the common potential-free dry-contact circuit when any channel exceeds its own setpoint | Dry contact exists; per-channel limits pending I-100; contact/load ratings unresolved I-092; A2 low-voltage only; I-081 accepted limit |
 | R-3 | Energised to run — power loss, reset or fault must stop the machine | Local implementation; series shutdown selected; single-fault limitations in I-081 |
 | R-4 | Show readings, channel limits and state locally | LCD off-board; display type/mounting/buttons delegated to design team (`0029`); current 16x2/5-button UI needs per-channel editing |
 | R-5 | Latch startup/reset/trip until manual ACK with valid, cool channels | Owner reconfirmed 2026-10-07 (`0029`, I-089 closed); per-channel reset checks pending I-100; I-073 fixed |
-| R-6 | Detect a broken or shorted sensor and treat it as a trip | partial — plausibility checks do not prove detection of every short; see `I-011` |
+| R-6 | Detect a broken sensor (each channel checked about every 4 s) and trip or alarm, as configured | Owner 2026-10-08 (`0031` D2, D5): alarm-only acceptable, default open. Wire-to-wire or wire-to-sheath shorts can read plausibly on any two-wire front end; see `I-011` |
 | R-7 | Survive an engine installation and 50 m cable runs | **not proven — needs measurement** |
 | R-8 | Each channel has its own operator-settable persistent setpoint; values chosen at commissioning | Accepted 2026-10-07 (`0029`); current firmware stores one shared limit per module; per-channel UI/EEPROM/protection not implemented (I-100) |
 | R-9 | Optional later communication between modules or with a master; RS-485/Modbus RTU is a candidate | Protocol/master not written; autonomous trips and series contacts do not depend on communication (`0024`, I-086) |

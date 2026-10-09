@@ -520,3 +520,349 @@ F1, draw three times the current at every instant:
 Choose either a fuse with pre-arc I²t of 10 A²s or more, or one fuse per
 module. Wiring resistance lowers the real figure; this is the idealized
 upper bound.
+
+---
+
+## 7. One 24-channel board (decisions/0031), 2026-10-08
+
+Context: `0031`, I-096/I-102. Candidate budget, **not qualification**.
+For this architecture, this section replaces the estimates in 1.1/1.8,
+5.4/5.5 and the three-module fuse case in 6.2; their history is retained.
+Topology and existing capacitor values were read from REV A2
+`hardware/8ch/power.kicad_sch` and `isolation.kicad_sch`.
+“Worst” below means the stated screening envelope, including assumptions;
+it is not a guaranteed sum of manufacturer maxima. No parts are selected here.
+
+### 7.1 Island load and isolated converter (T4)
+
+AD7124-8 full power, gain 16-128 (covers PGA operation), internal reference,
+diagnostics on, excitation/VBIAS off; analog input buffers are already included.
+Source: [ADI AD7124-8 Rev F, Table 3 pp.9-10, notes 11/13](https://www.analog.com/media/en/technical-documentation/data-sheets/ad7124-8.pdf).
+Internal-reference operation does **not** require the two reference buffers.
+
+    each ADC typ = (875 analog + 55 digital + 50 reference + 4 diagnostics) uA = 0.984 mA
+    each ADC max = (1200 + 80 + 70 + 5) uA = 1.355 mA
+
+| 3.3 V load | Typ, mA | Worst, mA | Input/source |
+|---|---:|---:|---|
+| 3x AD7124-8 | 2.952 | 4.065 | 3 x above; static digital-current test conditions |
+| ISO7760 + ISO7761 secondary | 7.100 | 12.600 | Local ISO776x Rev H, 5.12 p.15: 1 Mbps ICC2 typ 3.4 + 3.7; maximum of AC/DC cases 5.7 + 6.9 |
+| Up to 3 terminal CJ sensors | 0.900 | 1.500 | Assumed 3 x 0.3 / 0.5 mA; part not chosen |
+| Selected CS pull-ups | 0.990 | 1.100 | Assumed 3 simultaneous 10 kOhm pull-ups: 3 x 3.3/10 k; worst 3.465 V / 9.5 kOhm |
+| Bias, independent reference check, digital activity allowance | 0.100 | 1.000 | Assumed allocation; high-value TC bias alone is negligible |
+| Burnout slot | 0.012 | 0.015 | Assumed 4 uA source per ADC, three banks concurrently; 15 uA allowance; no duty-cycle credit |
+| **3.3 V total** | **12.054** | **20.280** | Sum |
+| LP2985 ground/enable current, added at module output | 0.350 | 1.000 | Conservative proxy from 50 mA row, including enable allowance; actual load is lower |
+| **Module output current** | **12.404** | **21.280** | LDO input = output load + ground/enable current |
+
+Isolators: local `ISO7760.pdf`/`ISO7761.pdf`, Rev H pp.13/15.
+Assume 500 kHz SPI, <=15 pF/output, unused inputs held at valid rails.
+Tables specify equal supplies; using ICC1 at 5 V and ICC2 at 3.3 V for the
+mixed-supply board is an estimate. DC LOW costs more than DC HIGH; an
+all-HIGH idle island gives only about 11.2 mA at the module output.
+
+Module model used: **MORNSUN B0505S-1WR3 single-output**, not the fitted
+XP IA0505S dual-output. [B_S-1WR3, 2026.09.07-A/7, pp.1-4](https://www.mornsun-power.com/public/uploads/pdf/B_S-1WR3.pdf):
+200 mA max/**20 mA min**, 1 W, 78/82% full-load efficiency,
+8 mA typical no-load input (no maximum), load regulation specified at
+10-100% load. Its typical light-load curve is about 75% at 10% load.
+The older [manufacturer explanation](https://www.mornsun-power.com/html/news-detail/blog-posts/217.html)
+also says >75% at 10%, but quotes 5 mA no-load; use the newer 8 mA figure.
+
+    loading at nominal 5 V = 12.404/200 = 6.2% typ; 21.280/200 = 10.6% worst
+    assume module output 5.5 V typ / 6 V screening high
+    assume effective efficiency 65% typ / 50% worst below/near minimum load
+    I5_in = max(I_no-load, Viso x Iiso / (V5 x efficiency))
+    typ = max(8, 5.5 x 12.404 / (5 x 0.65)) = 21.0 mA -> budget 22 mA
+    worst = max(15 assumed, 6 x 21.280 / (4.75 x 0.50)) = 53.8 mA -> budget 55 mA
+
+Effective efficiency includes idle losses: **do not add 8 mA again**.
+Neither efficiency below 10% load nor the 6 V ceiling is guaranteed.
+Capacity is ample, but **minimum loading fails in typical and idle operation**.
+Require a module specified at the actual minimum load, or guaranteed loading
+>=20 mA across reset/idle/RUN. An illustrative separate 20 mA preload at the
+module output adds <=51 mA to the 5 V budget and <=0.12 W locally at 6 V;
+it is not fitted or selected. Put that load upstream of the LDO when assessing
+the following thermal numbers. The actual IA0505S needs its own dual-output/
+cross-regulation check; these MORNSUN figures cannot qualify it.
+
+LP2985IM5X-3.3/NOPB is covered by
+[TI LP2985-N Rev AB, pp.4-6](https://www.ti.com/lit/ds/symlink/lp2985-n.pdf).
+Local `LP2985.pdf` could not be decoded (damaged PDF), so use that manufacturer
+source: 150 mA, 16 V input, legacy 50 mA dropout <=225 mV over temperature,
+ground current 350 uA typ / 900 uA max at 50 mA; thetaJA 205.4 C/W.
+Require Viso >=3.465 + 0.225 = **3.69 V**, using assumed +/-5% island rail.
+At assumed 4.5 V module minimum there is 0.81 V margin.
+
+    P_LDO = (Viso - 3.3) x I3V3 + Viso x Iground
+    typ = (5.5 - 3.3) x 0.012054 + 5.5 x 0.000350 = 28.4 mW
+    worst screening = (6 - 3.3) x 0.020280 + 6 x 0.001 = 60.8 mW
+    illustrative junction rise = 0.0608 x 205.4 = 12.5 C
+
+**Verdict:** LDO current, dropout and dissipation are comfortable within these
+assumptions (85 C ambient -> about 98 C junction, below 125 C). I-003 stays
+open: measure startup, idle and running Viso; 6 V is a screening point,
+not a verified maximum. LDO output-capacitance/ESR compliance remains necessary.
+
+### 7.2 5 V budget and battery current (T1)
+
+| Control-rail load | Typ, mA | Worst, mA | Formula/source |
+|---|---:|---:|---|
+| ATmega1284P-AU, 8 MHz | 8.0 | 20.0 | Core 5.6 typ / 9 max at 5 V with peripherals disabled: [Atmel-42719C, Table 29-3 p.411, peripheral increments pp.428-429](https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-42719-ATmega1284P_Datasheet.pdf); totals are assumed oscillator/peripheral/I/O allowances |
+| LCD backlight + logic | 126.5 | 183.0 | Assumed 125 + 1.5 typ, 180 + 3 worst; see resistor below |
+| ADM2587E, transmitting | 98.0 | 150.0 | Local Rev C Table 1 p.3: 98 typ at 54 Ohm; 150 is an **assumed allowance**, not its specified max |
+| ISO7760 + ISO7761 primary | 9.7 | 22.0 | Local Rev H 5.10 p.13: 1 Mbps 5.0 + 4.7 typ; all-LOW DC max 11.3 + 10.6 rounded up |
+| Island DC-DC input | 22.0 | 55.0 | 7.1, includes all island loads and LDO ground current |
+| Two LEDs | 4.0 | 5.0 | Assumed 2 mA each; 1.5 kOhm, 2 V LED drop gives (5-2)/1500; allowance covers 5.25 V, 1.8 V, -5% R |
+| Control pull-ups, LCD contrast, buck feedback, buttons | 2.0 | 5.0 | Assumed aggregate allocation; negligible button load except pull-ups |
+| **Total, two-ended terminated bus** | **270.2** | **440.0** | Sum; both columns assume continuous transmission |
+
+LCD screening proposal: **12 Ohm +/-5%, >=0.5 W** in series with a bare
+backlight assumed Vf = 3.5 V typ, >=3.2 V worst. Ityp = (5-3.5)/12 =
+125 mA; Iworst = (5.25-3.2)/11.4 = 180 mA; resistor worst dissipation =
+(5.25-3.2)^2/11.4 = 0.369 W. Verify brightness, Vf and any built-in resistor
+on the locally bought module; the existing 220 Ohm R29 does not establish
+this current. Assumed rails: 5 V +/-5%, 3.3 V +/-5%.
+
+ADM2587E correction to 1.1: **120 mA max is specified at 120 Ohm**, not at
+54 Ohm. A single termination can use 72 mA typ at the datasheet's 100 Ohm
+test load as a conservative proxy for 120 Ohm: total **244.2 mA typ**.
+No local termination can still leave a far-end termination. A completely
+unterminated/receive-only bus draws less; no unverified saving is credited.
+At a single 120 Ohm load, replacing the 150 mA allowance by the published
+120 mA gives **410 mA** total. Two 120 Ohm ends are nominally 60 Ohm; 54 Ohm
+is the standard heavier test load. Never add termination current on top of
+these already-loaded input figures.
+
+Use the **efficiency method of 1.8**: Iin = V5 x I5 / (efficiency x VIN).
+Assume 90% typ (as 1.8), 85% worst; not guaranteed efficiency minima.
+
+| Battery/VIN idealized | Buck input typ, mA (5 V, 270.2 mA) | Buck input worst, mA (5.25 V, 440 mA) |
+|---|---:|---:|
+| 9 V | 166.8 | 302.0 |
+| 24 V | 62.5 | 113.2 |
+| 32 V | 46.9 | 84.9 |
+
+G6K-2F-Y DC24: [Omron G6K K106-E1, ratings p.2](https://components.omron.com/us-en/system/files/2026-05/datasheet_pdf/K106-E1.pdf)
+gives 4.6 mA, 5220 Ohm +/-10% at 23 C; “approx.100 mW” is a family figure.
+Actual nominal resistive power is 24^2/5220 = **110 mW per coil**.
+Typical RUN uses one coil; screening worst permits both energized.
+
+    two coils worst at 32 V = 2 x 32/(0.9 x 5220) = 13.62 mA
+    per coil worst power at 32 V = 32^2/(0.9 x 5220) = 218 mW
+    per coil at 58 V = 58^2/(0.9 x 5220) = 716 mW
+
+These are battery loads, not buck-output loads. Coil cold resistance below
+23 C is not bounded here. Datasheet 150% maximum is instantaneous, with a
+note to apply rated voltage only: **32 V continuous is not established**;
+5.1's G5LE pulse discussion cannot qualify a G6K load dump.
+
+For upstream sizing include both coils, 2 mA assumed battery-side dividers/
+auxiliaries, assumed D1 drop 0.5 V and F1 R1max 0.5 Ohm (4.4).
+Solve Ibat = P5/[0.85 x (Vbat-0.5-0.5 Ibat)] + 2 Vbat/4698 + 0.002.
+A **0.50 A 5 V design envelope** covers 440 mA plus the illustrative
+51 mA module preload; this reserve does not select that mitigation.
+
+| Battery | Whole-board worst, 440 mA rail | With 0.50 A rail envelope | 1 A fuse / envelope |
+|---|---:|---:|---:|
+| 9 V | 0.332 A | 0.377 A | 2.65x |
+| 24 V | 0.128 A | 0.144 A | 6.94x |
+| 32 V | 0.102 A | 0.114 A | 8.78x |
+
+**Verdict:** the isolated converter is ~22/55 mA here, not ~265 mA.
+I-096's old load was inflated, but the new LCD and fitted RS-485 bring this
+candidate back to **0.270 A typ / 0.440 A screening worst**; do not carry
+the old “real ~0.22 A” estimate into this architecture.
+
+### 7.3 LM5164 / L1 / F1 adequacy (T2)
+
+LM5164 local SNVSAU4D pp.4/6: 1 A output; peak current limit
+1.25-1.75 A. At the 0.50 A design envelope there is 2x output-current
+capacity. Reuse 1.4: dIL = Vout/(f L) x (1-Vout/VIN).
+Screen with Lmin = 33 x 0.8 = 26.4 uH and fmin = 270 kHz
+(**assumed tolerance bounds**, nominal f = 303.4 kHz from 1.2).
+
+| VIN | dIL at 5.25 V | Peak = 0.50 + dIL/2 | RMS = sqrt(0.50^2 + dIL^2/12) |
+|---|---:|---:|---:|
+| 9 V | 0.307 A | 0.653 A | 0.508 A |
+| 24 V | 0.575 A | 0.788 A | 0.527 A |
+| 32 V | 0.616 A | 0.808 A | 0.531 A |
+| 58 V | 0.670 A | 0.835 A | 0.536 A |
+
+**L1 verdict:** 33 uH remains suitable; 2.2 A thermal rating is generous
+(4.1x the 0.536 A screen), not required by this operating load.
+A replacement would need thermal capability above **0.54 A RMS plus
+temperature margin**, and saturation capability above the **1.75 A maximum
+converter limit plus tolerance/delay margin**, not merely above 0.835 A.
+The existing 2.9 A saturation claim in 1.4 was not independently verified
+from an L1 datasheet. Do not reduce inductance just because DC load fell.
+
+**F1 verdict:** 4.4's verified hold currents are 0.49 A at 60 C, 0.45 A at
+70 C and 0.35 A at 85 C. The 9 V envelope is 0.377 A: adequate through
+70 C with **19% hold-current margin**, but not at 85 C. At nominal 24 V
+there is 3.12x margin even at 70 C. No current-based case for downsizing F1
+across the full cranking/temperature requirement: the 0.5 A row holds only
+0.30 A at 70 C.
+
+At a *protected buck VIN* of 6 V, the envelope needs
+5.25 x 0.50/(0.85 x 6) + about 5 mA coils/auxiliaries = **0.520 A**.
+That exceeds F1's 60/70/85 C hold values; it holds at 50 C (0.57 A).
+A 6 V *battery* cannot provide regulated 5 V through D1/F1: UVLO and the
+1.6 ripple limit still apply. Near-floor hold-up is therefore not proven.
+Requirement for any revised PTC: hold >0.52 A at the specified maximum
+ambient, with agreed margin (25% would require >=0.65 A there); retain
+>=58 V design-basis voltage capability and coordinate with the panel fuse.
+The present 60 V rating still has only 2 V load-dump margin.
+
+**Chain verdict:** sufficient for the stated 9-32 V / <=70 C envelope;
+thermal/noise measurements and actual efficiency remain open. The enlarged
+board does not require a higher-current buck or L1. F1's hot cranking limit
+needs the operating envelope settled before any rating reduction.
+
+### 7.4 One-board panel fuse and inrush (T3)
+
+Direct battery capacitance remains **31.4 uF**: C53 22 + C54/C63 4.7 each.
+Assume +20% upper capacitance: 37.68 uF. C64/C65 are **output-side**;
+do not add them directly to battery capacitance.
+Use 1.9's RC step method and F1 Rmin = 0.090 Ohm (local PTC p.3).
+
+    I2t_input = Vbat^2 x Cin/(2 R)
+    28 V nominal C: 28^2 x 31.4e-6/(2 x 0.090) = 0.137 A2s
+    32 V, +20% C: 32^2 x 37.68e-6/(2 x 0.090) = 0.214 A2s
+
+Wiring/diode impedance is omitted, as in 1.9. Rmin is a 25 C datum;
+using it as a minimum for cold hot-plug is an assumption, not certification.
+
+Downstream startup inventory (assumed +20% ceilings, ceramics not credited
+with DC-bias reductions):
+
+| Rail | Nominal C | Upper C | Basis |
+|---|---:|---:|---|
+| 5 V control | 100 uF | 120 uF | C64/C65 44 + C55 10 + DC-DC input C45 10 + assumed 36 for ADM/MCU/LCD/bypass additions |
+| Unregulated island | 11 uF | 13.2 uF | C46 10 + LP2985 input C47 1 |
+| 3.3 V island | 10 uF | 12 uF | C48 4.7 + assumed 5.3 for new ADC/CJ/reference decoupling |
+
+    stored downstream energy = 0.5 x (120u x 5.25^2 + 13.2u x 6^2 + 12u x 3.465^2)
+                             = 1.96 mJ
+
+Converters prevent treating this as a direct battery RC pulse; stored energy
+alone does not determine fuse I2t. LM5164 soft-start is 1.75-4.75 ms
+(local p.6). Assume **one successful startup within 20 ms**, including
+island startup, no repeated hiccup/restarts. Conservatively give the panel
+the full 1.75 A switch-current ceiling continuously, without duty-cycle
+credit, plus 0.02 A for battery branches. Thus:
+
+    I2t_start <= 1.77^2 x 0.020 = 0.0627 A2s
+    overlapping pulses: I2t_total <= (sqrt(I2t_input) + sqrt(I2t_start))^2
+                                    = (sqrt(0.214) + sqrt(0.0627))^2 = 0.509 A2s
+
+The overlap inequality avoids simply adding pulses that could coincide;
+the startup allowance includes downstream loads/capacitor charging.
+It assumes no additional path bypasses the buck current limit and ignores
+unbounded switching overshoot. These are screening bounds to verify at bench.
+
+**Verdict:** **0020 stands for one board**, conditionally: 1 A time-delay,
+>=80 V DC, >=10 kA DC interrupt rating, and verified pre-arc I2t >=1 A2s.
+Steady margin is 2.65x at 9 V with the 0.50 A rail reserve; the idealized
+6 V protected-input envelope is still only 0.520 A. Inrush screening margin
+is **1/0.509 = 1.96x** at 32 V including assumed downstream startup.
+6.2's 9x multiplier and 1.25 A2s three-module result no longer apply.
+Select the exact fuse/holder against DC voltage, prospective battery fault
+current, temperature derating and repetitive-pulse limits; no fuse part is
+qualified by “time-delay” alone.
+
+### 7.5 Unverified inputs, ranked by effect (T5)
+
+1. **Island supply choice/minimum loading:** MORNSUN is a calculation model,
+   not an IA0505S substitute approval. Below-minimum-load output, startup
+   overshoot and mixed/reset loads are unbounded; 4.5/5.5/6 V screening,
+   65/50% effective efficiency and 15 mA no-load ceiling are assumed.
+   A separate 20 mA preload is illustrative; no mitigation is selected.
+2. **LCD:** exact module, bare/built-in backlight resistance, Vf 3.5/>=3.2 V,
+   useful brightness at 125 mA, logic 1.5/3 mA, and resistor +/-5%/thermal
+   behaviour. This dominates the uncertain continuous load.
+3. **Startup/fuse:** 20 ms successful startup, no hiccup/repeat pulses,
+   1.77 A input ceiling without overshoot, R_F1 >=0.090 Ohm at cold ambient,
+   capacitance +20% bounds and added 36/5.3 uF. Exact fuse pre-arc I2t,
+   derating, DC interrupt/holder ratings and prospective short current unverified.
+4. **Battery/temperature envelope:** 9-32 V sustained, actual minimum at buck
+   pins, maximum panel ambient, D1 0.5 V drop, 90/85% buck efficiency and
+   the retained suppressed 58 V load-dump basis. F1 can fail the hot
+   near-floor hold requirement; neither 6 V battery regulation nor fast
+   transient survival is established.
+5. **RS-485 operating condition:** termination/topology and transmit duty
+   unknown; 150 mA at double termination is an allowance with no specified
+   manufacturer maximum. A no-termination saving is not credited.
+6. **G6K coil environment:** both-on state is a screening case; resistance
+   tolerance is specified at 23 C, not the minimum cold temperature.
+   Continuous 32 V and 58 V pulse survival require a separate check.
+7. **Isolators/rails/L1:** mixed 5/3.3 V current-table use, <=15 pF outputs,
+   valid unused-input levels and 500 kHz SPI; +/-5% rails; L >=26.4 uH,
+   f >=270 kHz and L1 saturation/thermal derating. These are not measured.
+8. **MCU and auxiliary loads:** 8/20 mA MCU total; 2/5 mA control auxiliaries,
+   1/2 mA battery auxiliaries; two ~2 mA LEDs with assumed Vf/R tolerances.
+   Final GPIO/oscillator/peripheral configuration is not fixed.
+9. **Front-end additions:** three CJ sensors at 0.3/0.5 mA, three selected
+   10 kOhm pull-ups, 4 uA burnout source/15 uA combined allowance,
+   0.1/1 mA bias/independent-reference/digital allocation. New protection,
+   engine-reference current and CJ parts must fit that allowance.
+10. **LDO implementation:** 0.35/1 mA ground/enable allowance uses a higher-load
+    proxy; output ESR/effective capacitance, package copper and actual
+    junction rise are unverified. A module-output preload was assumed
+    upstream of the LDO; placing it on 3.3 V changes LDO dissipation.
+
+**Handoff:** W1 to carry these conditional verdicts into I-096/I-102/STATE
+and the component/operating-envelope decisions. No hardware, firmware,
+issue, state or decision file was changed for this calculation.
+
+### 7.6 W1 addendum: changes from `0032` revision 1 (2026-10-08)
+
+Inputs: G6K-2F-Y DC5 coil ~100 mW nominal (Omron family figure; exact
+resistance to read from K106-E1 before the schematic), island preload 270 ohm.
+
+    two DC5 coils on 5 V   = 2 x 0.100 W / 5 V           = 40 mA (was 13.6 mA from the battery)
+    preload at module out  = 5.5 V / 270 ohm              = 20.4 mA, 0.11 W
+    preload seen at 5 V    = 5.5 x 20.4 / (5 x 0.65)      = 34.5 mA (7.1 efficiency model)
+    new 5 V worst          = 440 + 40 + 34.5              = 515 mA (> 0.50 A envelope by 3 %)
+    battery at 9 V, worst  = 5.25 x 0.515 / (0.85 x 8.0)  = 0.398 A (8.0 V after D1/F1 drops, 7.2)
+
+Verdict: LM5164 (1 A) and L1 unchanged. F1 hold 0.45 A at 70 degC still covers
+0.40 A at 9 V; the envelope should be restated as **0.52 A** and the PTC
+requirement in 7.3 (> 0.52 A hold at max ambient for a 6 V protected input)
+stands. The DC24 coils no longer load the battery directly.
+
+**7.6 update (`0032` revision 2):** the preload moves to the 3.3 V rail,
+150 ohm: 3.3 / 150 = 22.0 mA, 73 mW. Module output becomes 12.4 + 22.0 =
+34.4 mA typ (17 % load) and 21.3 + 22.0 = 43.3 mA worst. With assumed 70 %
+typ / 60 % worst efficiency at that load: 5.5 x 34.4 / (5 x 0.70) = 54 mA typ,
+6 x 43.3 / (4.75 x 0.60) = 91 mA worst at the 5 V input, against 22 + 34.5 =
+56.5 mA typ and 55 + 34.5 = 89.5 mA worst before. The 0.52 A envelope stands.
+LDO: (5.5 - 3.3) x 34.4 mA + 5.5 x 0.35 mA = 77 mW typ; (6 - 3.3) x 43.3 mA
++ 6 x 1 mA = 123 mW worst, 25 degC rise at 205 C/W; fine.
+
+### 7.7 W1 addendum: island load with the `0032` rev 3-4 parts (2026-10-08)
+
+Changes since 7.1: 3x ISO7761 (was 2), 6x ADT7310 (was 3 allowed), island CS
+pull-ups removed (rev 4), preload 150 ohm on 3.3 V (7.6). Same sources and
+allocations as 7.1 (ISO776x Rev H p.15 ICC2; CJ 0.3/0.5 mA allocation each).
+
+    3x AD7124            2.952 typ   4.065 worst  mA   (7.1)
+    3x ISO7761 side 2    3 x 3.7 = 11.1 typ   3 x 6.9 = 20.7 worst
+    6x ADT7310           6 x 0.3 = 1.8 typ    6 x 0.5 = 3.0 worst
+    ref/mid/comparator/misc  0.3 typ   1.0 worst
+    island load          16.2 typ    28.8 worst
+    + preload 22.0       38.2 typ    50.8 worst   (+ LDO ground 0.35 / 1.0)
+    module input at 5 V  5.5 x 38.6 / (5 x 0.72) = 59 mA typ;  6 x 51.8 / (4.75 x 0.62) = 106 mA worst
+The 7.6 worst total (515 mA) contains the island module input at 55 mA and the
+preload's 34.5 mA. Replacing those 89.5 mA with the new 106 mA, and the coils
+40 -> 42 mA: 515 - 89.5 + 106 + 2 = **533.5 mA**. That is **above the 0.52 A
+envelope of 7.6; restate it as 0.55 A**. Battery at 9 V: 5.25 x 0.534 /
+(0.85 x 8.0) = 0.412 A against F1's 0.45 A hold at 70 degC: **8 % margin**,
+thin; the PTC choice (I-096, F601) must be checked against this. LDO worst:
+(6 - 3.3) x 51.8 mA + 6 x 1 mA = 146 mW, 30 degC rise at 205 C/W: fine.
+
+With the schematic's actual backlight resistor R502 = 22 ohm (7.2 assumed
+12 ohm): worst (5.25 - 3.2) / (22 x 0.95) = 98 mA instead of 183 mA, so the
+5 V worst becomes 533.5 - 85 = **448.5 mA** and the 9 V battery current
+5.25 x 0.449 / (0.85 x 8.0) = **0.347 A (23 % margin on F1 at 70 degC)**. Keep
+R502 >= 22 ohm unless the bought LCD proves too dim; then re-run this line.

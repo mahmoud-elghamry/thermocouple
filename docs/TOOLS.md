@@ -383,6 +383,98 @@ skills, 2 agents and 4 hooks to the global config; only the MCP server is wired
 up here. The hooks guard the IPC-versus-file-fallback case and are worth
 revisiting.
 
+## 24-channel board (`hardware/24ch/`) - pipeline and the order of work
+
+Lessons from 2026-10-08, when routing took a whole day it should not have.
+Read `hardware/24ch/README.md` for the commands; this is the *order* and why.
+
+**Two phases. Know which one you are in.**
+
+1. **Generative, until placement is frozen.** `gen/build.py` (schematic),
+   `kicad-tool pcb sync`, `gen/place.py`, `gen/rules.py --route-prep`,
+   `gen/fanout.py`. Each run rebuilds from the generator and wipes every hand
+   edit. Any move of a part invalidates all tracks, so routing restarts from
+   `output/fanned.kicad_pcb`. Do placement experiments here, not after routing.
+2. **Incremental, once a routing result is kept.** Never run `place.py` again.
+   Freerouting reads the tracks already on the board and routes only what is
+   missing, so a second run *continues* (`route24.py --board <kept copy>`);
+   lock the good tracks first so it does not rip them up. The last few
+   connections in congested spots are finished by direct edits:
+   **Konnect (`pcb_routing`, `pcb_export`) through a running KiCad first**,
+   or a person in KiCad with the interactive router (push-and-shove) - an
+   engineer closes 50-80 short connections in a few hours. Computer-use on the
+   KiCad window is the last resort, after Konnect was tried.
+
+**Before any long Freerouting run (each pass is 2-8 minutes):**
+
+**Interactive finishing and locks (2026-10-09):** the handed-off board had
+3,336 locked tracks/vias and 558 unlocked. KiCad's Shove router cannot move
+locked surrounding copper. Locking a kept route is useful when protecting it
+from an autorouter, but is not a permanent finishing setting: before a local
+Shove operation, select and unlock the necessary neighbouring tracks/vias,
+leave footprints and unrelated copper protected, then save and re-run DRC.
+Do not interpret a blocked escape as proof that the board needs re-placement.
+
+- Run `gen/padcheck.py`. Freerouting sees the DSN clearance (net class + the
+  `--pad` margin). If that is larger than the gap between two pads *of the same
+  part*, every such pad is "already a violation" and Freerouting never connects
+  it. On 2026-10-08 the AD7124 LFCSP (0.25 mm between pads) against 0.20 +
+  0.06 mm, and the relays (1.4 mm) against a 2.0 mm Contact class, left ~85
+  connections that no number of passes could route. Fix: class clearance below
+  the tightest in-part gap (Island/Default 0.15 mm, Contact 1.0 mm); the big
+  clearances *to other classes* (3 mm island, 2 mm contacts) belong in
+  `.kicad_dru` pair rules, and `route24.py --contact-rule` passes the contact
+  one to the router as a `class_class` rule.
+- Watch the unrouted count per pass in `output/freerouting*.log`. If it stops
+  falling for ~5 passes, stop and find the cause; more passes, more threads or
+  a longer run will not fix a rule or placement problem.
+- Result of the 2026-10-09 variants (same board, 30 passes, KiCad DRC after import):
+  router margin 25 um -> 395-488 clearance errors (Freerouting rounds below 0.15 mm);
+  40 um plus the contact/chassis pair rules -> 10 errors, 25 unconnected. Those are
+  now `route24.py` defaults. The router's own "unrouted" count (69) includes plane
+  nets; only KiCad DRC's unconnected count matters.
+- Prefer 2-3 variants in parallel (`--board output/var_x.kicad_pcb --tag x`,
+  each with its own `var_x.kicad_pro` copy) over one long run.
+- Long router runs cost no model usage. If you must stop (usage limit, owner
+  away), **start the long run in the background first**, then stop.
+
+**Finishing the last connections (2026-10-09), in this order:**
+1. `gen/finish.py drc` then `finish.py stubs` (pad-to-via stubs the router dropped).
+2. `route24.py --tag x --passes 2` on a **locked** board (`finish.py lock`): a short
+   fill. Longer locked or unlocked runs did not help - Freerouting counted ~209
+   "unrouted" against KiCad's 13 and gained one per 5-10 min pass.
+3. `gen/maze.py` - a grid maze router (0.05 mm) with the real clearances (0.21 to
+   pads/vias/power, 0.16 signal-to-signal, 2 mm contacts, 1.5 mm chassis), domain and
+   barrier masks, via-to-plane endings for plane nets. `--skip NET` leaves a net for
+   hand routing (it would have drawn a 40 mm decoupling loop).
+4. `maze.py --ripup` -> `finish.py rip` -> `maze.py`: rips the few signal tracks in the
+   way; the rip-up's target nets route first, else the ripped nets retake the corridor.
+* Codex in the desktop app, asked to use KiCad's interactive router, wrote a script per
+  connection on board copies instead: 4 of 7 correct, but >50 % of the owner's weekly
+  limit. Prefer `maze.py`; give an agent the GUI only with a hard budget.
+
+* **Driving the KiCad GUI (2026-10-09).** The computer-use MCP returned an all-dark screenshot on this
+  machine every time, while a GDI capture worked: `gen/kicad_ui.ps1` (cap / crop / click / keys, DPI-aware,
+  Windows scaling 125 % -> clicks are in the 1536x864 screenshot frame). Calibrate board mm to screen from
+  the status bar `X Y`. Only with the owner away from the keyboard: keys go to the foreground window, and
+  in pcbnew plain letters are hotkeys (a stray Ctrl+A selected 5683 items). The interactive router (X, Shove)
+  could not leave a pad boxed in by another net's track - fix the blocker first.
+* **One writer, also for scratch copies.** After a session restart an orphaned background loop kept writing
+  `output/work.kicad_pcb` while a new one started - both runs were wasted. `tasklist | grep python` first.
+* **When a general tool fails twice on one connection, stop and route it by hand coordinates**
+  (`finish.py add NET LAYER W x1,y1 x2,y2 ... [via]`) after reading the blockers (`near.py`-style listing of
+  tracks in a box). Rip-up loops around a dense LFCSP cascaded instead of converging.
+
+**Looking at the board yourself:** `kicad-cli pcb export pdf` (or `sch export
+pdf`) and render pages with PyMuPDF (`pip install pymupdf` into
+`C:\Users\malgh\AppData\Local\Programs\Python\Python310`); `kicad-tool ...
+render-region` needs `rsvg-convert`, which is not installed. Konnect's
+`pcb_export` also writes SVG/PNG. Ask the owner for photos only of what is not
+in the files (the LCD module bought locally, the enclosure, the panel).
+
+**Schematic pages are A4 or A3 only** (owner, 2026-10-08): `build.py`
+splits sheets and refuses anything bigger.
+
 ## Things that will bite you
 
 - **A gate that reads a file can pass on the wrong file.** Two did on
@@ -402,7 +494,18 @@ revisiting.
   accessor then returns bare pointers, for the rest of the process. Clearing is
   done in a child process (`generate_board.py --clear-only`).
 - **Freerouting's multi-threaded optimiser is broken** by its own warning and
-  generates clearance violations. Always `--threads 1`.
+  generates clearance violations. Always `--threads 1` for a run you keep
+  (on 2026-10-08 a single-thread 24-ch pass took 8 min against 2.5 min on 4
+  threads; 4-thread runs are for comparing variants, and their result must pass
+  KiCad DRC before it is kept).
+- **Killing `route24.py` does not stop Freerouting.** The Java process keeps
+  running (`taskkill /F /IM java.exe`), and Freerouting writes its `.ses` only
+  at the end - a cancelled run leaves nothing to import.
+- **Codex 0.162 alpha cannot run any command with the elevated Windows sandbox**
+  (`helper_unknown_error: setup refresh had errors`; it then reviews blind). Run
+  `codex exec -c 'windows.sandbox="unelevated"' -s read-only -o report.md - < brief.txt`.
+- **`kicad-tool` on Windows needs `KICAD_CLI`** (its default is the macOS path;
+  the error is a bare `[WinError 2]`) and `KICAD10_FOOTPRINT_DIR` for `pcb sync`.
 - **Freerouting rounds clearances down** (0.2454 mm against a 0.25 mm rule), so
   `route.py` pads the values it writes into the DSN.
 - **KiCad exports every copper layer as `(type signal)`.** `route.py` rewrites
