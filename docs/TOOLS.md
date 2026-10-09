@@ -475,6 +475,16 @@ in the files (the LCD module bought locally, the enclosure, the panel).
 **Schematic pages are A4 or A3 only** (owner, 2026-10-08): `build.py`
 splits sheets and refuses anything bigger.
 
+**Finishing the 24-ch board (2026-10-09)** - `gen/finish.py nori` pushes tracks off pads to the NORI
+0.2 mm (re-run until DRC is clean; tracks pinned at both ends by hand), `finish.py dangling` deletes
+router stubs, each checked by a DRC run on a copy (pcbnew cannot load a second board after a Remove:
+board edits run in a child process). `maze.py` with `THERMO24_MAZE_IN2=1` may use In2.Cu. A work copy in
+`output/` needs its own `.kicad_pro`/`.kicad_dru` next to it, or DRC uses default 0.2 mm classes.
+`gen/silk.py` places labels by obstacle search (pads, Fab body outlines, other text; KiCad text boxes
+include line spacing - use the glyph box); board min text height 0.8 mm. `gen/fab.py` runs DRC with
+`--refill-zones --save-board` so the Gerbers carry the pours DRC checked (scripts save boards unfilled).
+Render check: `kicad-cli pcb render --side top`.
+
 ## Things that will bite you
 
 - **A gate that reads a file can pass on the wrong file.** Two did on

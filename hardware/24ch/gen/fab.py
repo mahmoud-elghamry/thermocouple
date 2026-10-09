@@ -20,6 +20,8 @@ ROOT = os.path.dirname(os.path.dirname(HW))
 CLI = os.environ.get("KICAD_CLI", r"C:\Program Files\KiCad\10.0\bin\kicad-cli.exe")
 PCB = os.path.join(HW, "thermo24.kicad_pcb")
 SCH = os.path.join(HW, "thermo24.kicad_sch")
+BARE = ("#", "H", "TP")      # power symbols, mounting holes, test pads: nothing to buy or place
+LAYERS = "F.Cu,In1.Cu,In2.Cu,B.Cu,F.Paste,B.Paste,F.SilkS,B.SilkS,F.Mask,B.Mask,Edge.Cuts"
 
 
 def run(*args):
@@ -31,7 +33,8 @@ def run(*args):
 
 def drc_ok(out):
     rpt = os.path.join(out, "drc-report.rpt")
-    run("pcb", "drc", "--schematic-parity", "--refill-zones", "--severity-error", "-o", rpt, PCB)
+    # --save-board: the plotted pours are exactly the ones DRC checked (scripts save boards unfilled)
+    run("pcb", "drc", "--schematic-parity", "--refill-zones", "--save-board", "--severity-error", "-o", rpt, PCB)
     txt = open(rpt, encoding="utf-8").read()
     m = re.search(r"\*\* Found (\d+) DRC violations", txt)
     u = re.search(r"\*\* Found (\d+) unconnected pads", txt)
@@ -48,7 +51,7 @@ def bom_cpl(out):
     for c in ET.parse(xml).getroot().iter("comp"):
         f = {x.get("name"): x.text or "" for x in c.iter("field")}
         fp = (c.findtext("footprint") or "").split(":")[-1]
-        if not fp or c.get("ref").startswith("#") or c.get("ref").startswith("H"):
+        if not fp or c.get("ref").startswith(BARE):
             continue
         key = (c.findtext("value"), fp, f.get("LCSC", ""), f.get("MPN", ""))
         lines[key].append(c.get("ref"))
@@ -64,6 +67,8 @@ def bom_cpl(out):
         r, w = csv.DictReader(fi), csv.writer(fo)
         w.writerow(["Designator", "Mid X", "Mid Y", "Layer", "Rotation"])
         for row in r:
+            if row["Ref"].startswith(BARE):
+                continue
             w.writerow([row["Ref"], row["PosX"] + "mm", row["PosY"] + "mm",
                         "Top" if row["Side"] == "top" else "Bottom", row["Rot"]])
     missing = [refs for (v, fp, l, m), refs in lines.items() if not l]
@@ -77,8 +82,8 @@ def main():
         raise SystemExit("DRC not clean - no fabrication files written")
     g = os.path.join(out, "gerber")
     os.makedirs(g, exist_ok=True)
-    run("pcb", "export", "gerbers", "-o", g + os.sep, PCB)
-    run("pcb", "export", "drill", "-o", g + os.sep, PCB)
+    run("pcb", "export", "gerbers", "--check-zones", "--subtract-soldermask", "--layers", LAYERS, "-o", g + os.sep, PCB)
+    run("pcb", "export", "drill", "--generate-map", "--map-format", "pdf", "-o", g + os.sep, PCB)
     shutil.make_archive(os.path.join(out, "thermo24-gerbers"), "zip", g)
     bom_cpl(out)
     run("sch", "export", "pdf", "-o", os.path.join(out, "thermo24-schematic.pdf"), SCH)
