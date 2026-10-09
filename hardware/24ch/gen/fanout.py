@@ -99,20 +99,21 @@ def track(b, a, z, net, w, layer=pcbnew.F_Cu):
 
 
 def lfcsp(b, ref, items, tracks):
-    """AD7124 LFCSP: 4 vias in the exposed pad; AVSS/DGND/REFIN1- pins tied to
-    the pad on F.Cu; AVDD/IOVDD escape straight out with 0.2 mm track."""
+    """AD7124 LFCSP: 5 vias on the gap cross of the exposed pad's 4 paste windows
+    (1.45 mm squares at +-0.9, I-110: a hole under paste wicks solder, no X-ray at
+    NORI); AVSS/DGND/REFIN1- pins tied to the pad on F.Cu; AVDD/IOVDD escape
+    straight out with 0.2 mm track. On the routed board some were dropped where a
+    B.Cu track crosses the pad (U101: 2, U201: 2, U301: 4)."""
     fp = b.FindFootprintByReference(ref)
     pads = {p.GetNumber(): p for p in fp.Pads() if p.GetNumber()}
     ep = pads["33"]
     c = ep.GetPosition()
-    if any(t.Type() == pcbnew.PCB_VIA_T and t.GetPosition() == pcbnew.VECTOR2I(c.x + mm(0.8), c.y + mm(0.8))
-           for t in tracks):
+    if any(t.Type() == pcbnew.PCB_VIA_T and t.GetPosition() == c for t in tracks):
         return 0
     n = 0
-    for dx in (-0.8, 0.8):
-        for dy in (-0.8, 0.8):
-            tracks.append(via(b, pcbnew.VECTOR2I(c.x + mm(dx), c.y + mm(dy)), ep.GetNet()))
-            n += 1
+    for dx, dy in ((0, 0), (0, -1.25), (0, 1.25), (-1.25, 0), (1.25, 0)):
+        tracks.append(via(b, pcbnew.VECTOR2I(c.x + mm(dx), c.y + mm(dy)), ep.GetNet()))
+        n += 1
     for num in ("3", "13", "23"):
         p = pads[num]
         q = p.GetPosition()

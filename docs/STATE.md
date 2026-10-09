@@ -21,22 +21,21 @@
 
 **2026-10-09: 24-ch board, `hardware/24ch/` (README there), decisions `0032`-`0033`.**
 Schematic 467 symbols, ERC 0/0, 12 pages A3/A4. Board 170 x 145 kept (`0033` D1).
-**Board ROUTED (`thermo24.kicad_pcb` = `output/finish20-synced.kicad_pcb`): kicad-cli DRC with schematic
-parity `output/drc-synced.rpt` (2026-10-09 09:49): 0 DRC violations, 0 unconnected pads, 0 footprint errors.**
+**Board ROUTED (`thermo24.kicad_pcb` = `output/finish22-ep.kicad_pcb`): kicad-cli DRC with schematic
+parity `output/drc-ep.rpt` (2026-10-09 10:45): 0 DRC violations, 0 unconnected pads, 0 footprint errors.**
 Done today: last 2 routes by hand/maze (TC21 pair: old PA loop is now NA, PA + 2 CS_CJ5_ISO pieces on In2.Cu,
 `0033` D4), `rules.py` full (outer pours, NORI pad-to-track 0.2 on pads, relay_area only for contacts),
 65 tracks nudged to 0.2 (`finish.py nori`) + 5 by hand, 33 router stubs deleted (`finish.py dangling`),
-`pcb sync` (C8545/C28260, 0 pad changes). Warnings left: silkscreen only (103) + 3 maze staircase stubs.
+`pcb sync` (C8545/C28260, 0 pad changes), EP vias off the paste (I-110 closed). Warnings left: silkscreen only (103) + 3 maze staircase stubs.
 Fab NORI (`0033` D2, I-106); parts $104.9/board, 52 extended codes (`gen/cost.py`).
 
 ## Start here - next steps
 
-1. **I-110** EP vias out of the paste windows (U301-U303, check U601), DRC 0.
-2. **I-108** silkscreen for installers (channel numbers, K+/K-, contacts, polarity) + clear the silk warnings;
+1. **I-108** silkscreen for installers (channel numbers, K+/K-, contacts, polarity) + clear the silk warnings;
    then `gen/fab.py` (Gerber/drill/BOM/CPL) into `production/`.
-3. Independent review of the routed board (big Codex review, `0033`), then files to NORI; owner asks NORI I-106.
-4. **I-108:** LCD drawing -> buttons + panel cut-out. Owner: engine-ground DC/AC at cranking (I-101).
-5. Firmware for the 24-ch board after hardware (I-100, I-104, I-097).
+2. Independent review of the routed board (big Codex review, `0033`), then files to NORI; owner asks NORI I-106.
+3. **I-108:** LCD drawing -> buttons + panel cut-out. Owner: engine-ground DC/AC at cranking (I-101).
+4. Firmware for the 24-ch board after hardware (I-100, I-104, I-097).
 
 ## Measured, not claimed (REV A2, before the shrink)
 

@@ -231,7 +231,8 @@ def add_keepout(b, pts, name):
 
 
 def add_thermal_vias(b):
-    """Six 0.3 mm vias in U601's exposed pad to the GND planes (decision 0023)."""
+    """Three 0.3 mm vias in U601's exposed pad to the GND planes (decision 0023), on the
+    gap between its paste windows (I-110: none under paste; the other gaps are too narrow)."""
     fp = b.FindFootprintByReference("U601")
     ep = [p for p in fp.Pads() if p.GetNumber() == "9"][0]
     c = ep.GetPosition()
@@ -240,8 +241,8 @@ def add_thermal_vias(b):
         if t.Type() == pcbnew.PCB_VIA_T and t.GetNetname() == "GND" and \
                 abs(t.GetPosition().x - c.x) < mm(2) and abs(t.GetPosition().y - c.y) < mm(2):
             return   # already there
-    for dx in (-0.6, 0.6):
-        for dy in (-0.9, 0.0, 0.9):
+    for dx in (-0.6, 0.0, 0.6):
+        for dy in (0.0,):
             v = pcbnew.PCB_VIA(b)
             v.SetPosition(pcbnew.VECTOR2I(c.x + mm(dx), c.y + mm(dy)))
             v.SetWidth(mm(0.6))
