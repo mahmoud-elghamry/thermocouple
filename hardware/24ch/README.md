@@ -54,7 +54,7 @@ y < 22. `fpinfo.py` lists courtyard sizes.
 
 ## Not done yet
 
-See `docs/STATE.md` and I-107 (routing), I-110 (EP vias), I-108 (buttons/silk). Older list:
-
-Routing result and DRC to zero, silkscreen tidy, BOM/LCSC codes for the parts
-marked without one, fab outputs, and every "check" item in `0032`.
+See `docs/STATE.md`. Board repairs from the Astra review (`docs/decisions/0034`):
+I-111 decoupling/buck parts beside their pins, I-112 fiducials, I-113 RUN PERMIT
+label, I-114 CJ sensors, button header (`0034` D2), I-115 gates, I-116 accessory BOM.
+Then `gen/fab.py` again. Every "check" item in `0032` still applies.

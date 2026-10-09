@@ -12,7 +12,8 @@ others read it directly; `CLAUDE.md` imports it for Claude Code.
 ## What this project is
 
 A protection system for **24 K-type thermocouples** (owner clarified 2026-09-29).
-`hardware/8ch/` is the current eight-channel board, not the complete system.
+**`hardware/24ch/` (REV A3) is the active board** (routed, fab set 2026-10-09, repairs open: I-111..I-116);
+`hardware/8ch/` (REV A2) is the earlier eight-channel board, kept as reference.
 **`0031` (2026-10-08): ONE 24-channel board, 3x AD7124-8 front end (grounded,
 insulated or mixed probes), all parts from one source. Read `0031` first: it
 holds the agents' work split and supersedes most of `0030` and `0024`.**
@@ -46,7 +47,8 @@ rots — that has already happened here once.
 ## Repository layout
 
 ```
-hardware/8ch/             the 8-channel board - the active hardware work
+hardware/24ch/            the 24-channel board - THE ACTIVE HARDWARE WORK (README there)
+hardware/8ch/             the 8-channel board REV A2 - reference
 hardware/single-channel/  superseded board, kept for reference - DO NOT MODIFY
 firmware/                 AVR C for the ATmega32A, with host unit tests
 simulation/               Proteus simulation project
@@ -81,7 +83,8 @@ placement files, renders and netlists belong in `production/` or are ignored.
    KiCad window held unsaved edits from 00:59. Run
    `python hardware/8ch/board_provenance.py --check` before writing the board;
    it refuses while KiCad holds a `~*.lck`. **Do not close KiCad to get past
-   it** - it may be holding unsaved work. Ask the user. Working in `firmware/`
+   it** - it may be holding unsaved work. The 24-ch tools (`gen/finish.py`, `maze.py`,
+   `fab.py`) have no such guard yet (I-115): check for `~*.lck` in `hardware/24ch` yourself and ask the user if KiCad is open. Working in `firmware/`
    or `docs/` at the same time is fine.
 9. **Two ways to change the hardware. Know which one you are in.**
    *Generative* - run the pipeline; it rebuilds everything from `board/` and the

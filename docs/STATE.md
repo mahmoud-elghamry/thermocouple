@@ -33,9 +33,16 @@ Fab NORI (`0033` D2, I-106); parts $104.9/board, 52 extended codes (`gen/cost.py
 
 ## Start here - next steps
 
-1. Independent review of the routed board (big Codex review, `0033`), then files to NORI; owner asks NORI I-106.
-2. **I-108:** LCD drawing -> button part (LCSC code) + panel cut-out. Owner: engine-ground DC/AC at cranking (I-101).
-3. Firmware for the 24-ch board after hardware (I-100, I-104, I-097).
+**2026-10-09 Astra review** (`docs/reference/review-20261009-astra.md`) -> `0034` + ISSUES I-111..I-120.
+The fab set above is NOT orderable until these board repairs are done (`0034` D3, local only):
+1. **I-111** move decoupling/bootstrap/input caps beside their pins (LM5164 first, then ISO7761,
+   AD7124, MCU), re-route those nets; measure pin-to-cap distances; DRC 0/0/0.
+2. **I-112** three fiducials; **I-113** silk RUN PERMIT C-NO, CHASSIS; **0034 D2** button header
+   (schematic `c_mcu.py` + `pcb sync`) and tact-switch LCSC codes; **I-114** CJ sensors closer if room.
+3. **I-115** gates (`build.py` exit codes, unique release folder + hashes), **I-116** accessory BOM,
+   then `gen/fab.py`. NORI order spec in I-106 (ENIG, tented vias, coating question).
+4. Firmware after hardware: I-118 heartbeat, I-119 port list, I-104, I-100; open TC trips (`0034` D1).
+5. Bench/field tests I-120; engine-ground measurement at the first engine test (I-101).
 
 ## Measured, not claimed (REV A2, before the shrink)
 
