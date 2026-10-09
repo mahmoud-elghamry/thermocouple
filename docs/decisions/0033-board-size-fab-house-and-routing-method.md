@@ -48,6 +48,15 @@ continues). Last connections through Konnect with KiCad open, or a person in
 KiCad; computer-use last. Details and the parameter comparison:
 `docs/TOOLS.md`, "24-channel board".
 
+*Added 2026-10-09 - three short runs on In2.Cu.* Under U301 every F.Cu crossing of
+the B.Cu SPI bus was taken, so TC21_PA (~10 mm) and two CS_CJ5_ISO pieces (~8 + 7 mm)
+run on In2.Cu, the +3V3_ISO plane layer; In1 (GND_ISO) stays whole under them, so
+their return path is unchanged and the 3V3 plane only gets three narrow slots.
+Rejected: moving C391/C392 or U301 (re-places the ADC decoupling and re-routes the
+area) and a schematic pin swap (firmware change for one route). The TC21 pair is no
+longer side by side (NA takes the long loop); acceptable for a slow, filtered
+thermocouple input, recorded for the review.
+
 **D5 - Schematic pages A4 or A3 only** (owner: no A2 paper). `build.py`
 splits sheets and refuses a larger page.
 

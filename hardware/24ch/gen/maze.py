@@ -34,6 +34,9 @@ RES = 0.05                     # grid step, mm
 W, H = 170.0, 145.0
 NX, NY = int(W / RES), int(H / RES)
 LAYERS = (pcbnew.F_Cu, pcbnew.B_Cu)
+if os.environ.get("THERMO24_MAZE_IN2"):     # also In2.Cu (+3V3_ISO plane layer), at a cost per step
+    LAYERS += (pcbnew.In2_Cu,)
+IN2_PENALTY = 2.0
 VIA_D, VIA_DR, VIA_COST = 0.6, 0.3, 40
 CONTACT = {"TRIP_COM", "TRIP_NO", "TRIP_NC", "TRIP_MID", "ALM_COM", "ALM_NO", "ALM_NC"}
 PLANE = {"GND_ISO": "ISLAND", "+3V3_ISO": "ISLAND", "GND": "CONTROL", "+5V": "CONTROL"}
@@ -205,6 +208,11 @@ def find_item(b, desc, pos):
                     return pad
     for t in b.GetTracks():
         if t.GetNetname() == net and t.HitTest(p, mm(0.01)):
+            if t.Type() != pcbnew.PCB_VIA_T:      # a track ending on its own via: start from the via
+                for v in b.GetTracks():           # (it reaches every layer)
+                    if v.Type() == pcbnew.PCB_VIA_T and v.GetNetname() == net and \
+                            (v.HitTest(t.GetStart(), 0) or v.HitTest(t.GetEnd(), 0)):
+                        return v
             return t
     return None
 
@@ -260,11 +268,14 @@ def astar(blocked, starts, goals, via_ok, via_goal, soft=None, penalty=0.0):
                 dist[nxt] = ng
                 heapq.heappush(heap, (ng + h(nx, ny), ng, nxt, cur))
         if via_ok[gy, gx]:
-            nxt = (1 - L, gx, gy)
-            ng = g + VIA_COST
-            if ng < dist.get(nxt, 1e18):
-                dist[nxt] = ng
-                heapq.heappush(heap, (ng + h(gx, gy), ng, nxt, cur))
+            for L2 in range(len(blocked)):
+                if L2 == L or blocked[L2][gy, gx]:
+                    continue
+                nxt = (L2, gx, gy)
+                ng = g + VIA_COST
+                if ng < dist.get(nxt, 1e18):
+                    dist[nxt] = ng
+                    heapq.heappush(heap, (ng + h(gx, gy), ng, nxt, cur))
     return None
 
 
@@ -276,7 +287,8 @@ def simplify(path):
         if z[0] != a[0]:
             pts.append(a[1:])
             runs.append((cur_layer, pts))
-            vias.append(a[1:])
+            if not vias or vias[-1] != a[1:]:
+                vias.append(a[1:])
             cur_layer, pts, last_dir = z[0], [z[1:]], None
             continue
         d = (z[1] - a[1], z[2] - a[2])
@@ -310,9 +322,9 @@ def route_one(b, item_a, item_b, net, dry):
     blocked = obstacles(b, net, nc, w)
     dm = domain_mask(dom, w / 2 + 0.05)
     blocked = [m | ~dm for m in blocked]
-    via_ok = via_sites(~(blocked[0] | blocked[1]), w)
+    via_ok = via_sites(~np.logical_or.reduce(blocked), w)
     starts, goals = [], []
-    for li in range(2):
+    for li in range(len(LAYERS)):
         for item, out in ((item_a, starts), (item_b, goals)):
             if item is None or not item.IsOnLayer(LAYERS[li]):
                 continue
@@ -322,7 +334,10 @@ def route_one(b, item_a, item_b, net, dry):
                 blocked[li][gy, gx] = False
                 out.append((li, gx, gy))
     via_goal = net in PLANE and PLANE[net] == dom
-    res = astar(blocked, starts, goals, via_ok, via_goal)
+    soft = None
+    if len(LAYERS) > 2:
+        soft = [np.zeros((NY, NX), bool), np.zeros((NY, NX), bool), np.ones((NY, NX), bool)]
+    res = astar(blocked, starts, goals, via_ok, via_goal, soft, IN2_PENALTY)
     if res is None:
         print(f"  NO PATH for {net}")
         return False
@@ -388,7 +403,7 @@ def plan_ripup(b, item_a, item_b, net):
         hard.append(h | ~dm)
         soft.append(sf)
     starts, goals = [], []
-    for li in range(2):
+    for li in range(len(LAYERS)):
         for item, out in ((item_a, starts), (item_b, goals)):
             if not item.IsOnLayer(LAYERS[li]):
                 continue
@@ -396,7 +411,7 @@ def plan_ripup(b, item_a, item_b, net):
             for gy, gx in zip(ys, xs):
                 hard[li][gy, gx] = False
                 out.append((li, gx, gy))
-    res = astar(hard, starts, goals, via_sites(~(hard[0] | hard[1]), w), False, soft, 20.0)
+    res = astar(hard, starts, goals, via_sites(~np.logical_or.reduce(hard), w), False, soft, 20.0)
     if res is None:
         print(f"  {net}: no path even through soft copper")
         return []

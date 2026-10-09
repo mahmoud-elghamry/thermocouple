@@ -142,10 +142,12 @@ def write_dru():
              "# FUNCTIONAL isolation for a prototype, not an IEC 61010 qualification.",
              "",
              "# NORI Solutions (fab/assembler, 0033 D2): pad-to-track 0.2 mm minimum. First, so",
-             "# every larger rule below overrides it.",
+             "# every larger rule below overrides it. Vias follow their track/space (0.09 mm;",
+             "# the net classes keep 0.15) - confirm with NORI (I-106).",
              '(rule "nori_pad_to_track" (constraint clearance (min 0.2mm))',
-             "  (condition \"((A.Type == 'Pad' || A.Type == 'Via') && B.Type == 'Track') || "
-             "((B.Type == 'Pad' || B.Type == 'Via') && A.Type == 'Track')\"))", "",
+             "  (condition \"(A.Type == 'Pad' && B.Type == 'Track') || (B.Type == 'Pad' && A.Type == 'Track')\"))", "",
+             "# Pads already joined by tracks or plane vias: one spoke into an outer pour is enough.",
+             '(rule "pour_spokes" (constraint min_resolved_spokes 1))', "",
              '(rule "island_to_rest" (constraint clearance (min 3mm))',
              f'  (condition "{pair(isl, others)}"))', "",
              '(rule "rs485_to_rest" (constraint clearance (min 3mm))',
@@ -165,10 +167,12 @@ def write_dru():
              '(rule "relay_spare_to_contact" (constraint clearance (min 0.3mm))',
              "  (condition \"A.NetName == 'unconnected-(K701-Pad7)' && B.NetClass == 'Contact'\"))", "",
              "# Inside a relay's courtyard its own coil-contact rating is the barrier (contact",
-             "# tracks have to leave pins 1.4 mm apart).",
+             "# tracks have to leave pins 1.4 mm apart). Only relaxes contact_to_rest: two",
+             "# low-voltage nets there keep their normal class clearance.",
              '(rule "relay_area" (constraint clearance (min 0.5mm))',
-             "  (condition \"(A.intersectsCourtyard('K701') && B.intersectsCourtyard('K701')) || "
-             "(A.intersectsCourtyard('K702') && B.intersectsCourtyard('K702'))\"))", "",
+             "  (condition \"((A.intersectsCourtyard('K701') && B.intersectsCourtyard('K701')) || "
+             "(A.intersectsCourtyard('K702') && B.intersectsCourtyard('K702'))) && "
+             "(A.NetClass == 'Contact' || B.NetClass == 'Contact')\"))", "",
              "# Relay pads: the G6K's own coil-contact rating covers its pin spacing.",
              '(rule "relay_own_pins" (constraint clearance (min 0.3mm))',
              "  (condition \"(A.memberOfFootprint('K701') && B.memberOfFootprint('K701')) || "
