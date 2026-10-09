@@ -31,7 +31,7 @@ BOM 93 lines, CPL 441 parts; only the 5 buttons lack an LCSC code (I-108).
 
 **2026-10-09 Astra review** (`docs/reference/review-20261009-astra.md`) -> `0034` + ISSUES I-111..I-120.
 The fab set above is NOT orderable until these board repairs are done (`0034` D3, local only):
-1. **I-111** move decoupling/bootstrap/input caps beside their pins (LM5164 first, then ISO7761,
+1. **I-111** move decoupling/bootstrap/input caps beside their pins (gate: `gen/pincaps.py`, now 18 BAD; LM5164 first, then ISO7761,
    AD7124, MCU), re-route those nets; measure pin-to-cap distances; DRC 0/0/0.
 2. **I-112** three fiducials; **I-113** silk RUN PERMIT C-NO, CHASSIS; **0034 D2** button header
    (schematic `c_mcu.py` + `pcb sync`) and tact-switch LCSC codes; **I-114** CJ sensors closer if room.
