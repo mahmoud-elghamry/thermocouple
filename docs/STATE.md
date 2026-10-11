@@ -32,10 +32,9 @@ installer silk (I-113), V_BIAS guard pours (`gen/vbias_pour.py`, I-105). Gates: 
 ERC 0/0 (468 symbols); `pincaps.py` 33/33 pass (exit 0).
 New tools: `move.py`, `capnear.py` (spot search, rip, `via`), `finish.py dedupe`, `guard.py` on every writer.
 **I-111 closed** (`0035` D6, owner: AD7124 supplies by plane vias, REGCAP/REFOUT <= 5 mm): `pincaps.py` 0 over.
-**Next:** (1) LCD drawing from the owner -> check H6-H9/J502 (I-108). (2) alternates (I-103).
-(3) release `production/24ch-reva3-20261011-092859-940d10/` (DRC 0/0/0, pincaps 0, tree uncommitted -
-re-run `gen/fab.py` after a commit) -> NORI quote incl. ACCESSORIES.csv (I-078). Board warnings: 8 track stubs
-DRC calls dangling but that carry a connection (were 3 before); 0 errors.
+**Next (only P0 left = I-078):** send `production/24ch-reva3-20261011-094327-940d10/` (git 7c7e25c, clean;
+DRC 0/0/0, pincaps 0) to NORI for the turnkey quote incl. ACCESSORIES.csv. I-108 closed (owner: buy a 2004A that
+fits H6-H9/J502), I-106/I-103 closed (ORDER-NOTES). Board warnings: 8 dangling stubs, 0 errors.
 Then firmware P1 (I-118/119/104/100); bench P2 (I-120, I-101, I-105).
 
 ## Measured, not claimed (REV A2, before the shrink)

@@ -5,7 +5,7 @@ Panel-button cable housing XH 6 pin for J503,1,C144405,XHP-6,JST,LCSC,"21,420 in
 XH crimp contacts,6,C140573,SXH-001T-P0.6,JST,LCSC,"996,800 in stock; alt C385122"
 Panel push buttons (UP DOWN SET ESC ACK),5,,,,local,"industrial 12-16 mm, momentary NO, oil/glove rated - pick with the panel (0034 D2)"
 LCD 16 pin female header for J502,1,C350305,2685Y-116CNG1SNA01,HOAUC,LCSC,"330 in stock; or solder the LCD pins"
-20x4 HD44780 LCD,1,,,,local,"bought locally (0031 D4); drawing needed for H6-H9 and J502 (I-108)"
+20x4 HD44780 LCD,1,,,,local,"bought locally (0031 D4): standard 2004A 98x60 mm, M3 holes 93x55 mm centres, 16-pin row on top, pin 1 7.5 mm right of the top-left hole (fits H6-H9/J502)"
 LCD standoffs M3 female-female ~15-20 mm,4,,,,local,"length from the LCD drawing (face ~24 mm above board)"
 Board standoffs M3 x 10 mm + screws M3 x 6,6,,,,local,"not on LCSC"
 Jumper shunts 2.54 mm for JP731-JP733,3,,,,local,"not found on LCSC; fit per RS-485 bus position"
