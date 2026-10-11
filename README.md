@@ -1,78 +1,48 @@
-# Thermo — 8-channel thermocouple protection unit
+# Thermo — 24-channel thermocouple protection board
 
 > Working on this repository with an AI agent? Start at **`AGENTS.md`**,
 > then `docs/STATE.md`.
 
-A protection unit that reads eight K-type thermocouples — one per cylinder body
-of an engine — and opens a dry contact when any reaches an operator-set
-temperature. It sits in a separate panel with roughly 50 m sensor cables and
-no VFD in the installation. It is being built to go on real equipment.
+One board that reads **24 K-type thermocouples** on one engine (grounded,
+insulated or mixed probes, roughly 50 m cables, no VFD) and opens a common
+run-permit contact when any channel passes its own setpoint, the sensor fails
+or the unit itself fails. It is being built to go on real equipment.
 
-The output is **energised to run**: loss of power, a reset, a sensor fault or a
-missing setpoint all open the contact, so the engine cannot start.
+The output is **energised to run**: loss of power, a reset or a fault opens
+the contact, so the engine cannot start.
 
 ## Where things are
 
 | | |
 |---|---|
-| **The active board** | `hardware/8ch/` — 4-layer engineering prototype; check evidence in `docs/STATE.md`, prior Gerbers in `production/8ch/` |
-| **The firmware for it** | `firmware/`, target `thermo_8ch_max31856` |
-| **Programming a unit** | `firmware/fuses.md`, then `firmware/program.ps1` |
+| **The active board** | `hardware/24ch/` (REV A3, 3x AD7124-8) — see its README; repairs before ordering in `docs/ISSUES.md` P0 |
+| **Earlier 8-channel board** | `hardware/8ch/` (REV A2) — reference only, never ordered |
+| **Firmware** | `firmware/` — today only the 8-channel images; the 24-channel firmware is not written yet (I-100, I-104, I-118, I-119) |
 | **What is done and what is next** | `docs/STATE.md` |
 | **Open problems** | `docs/ISSUES.md` |
-| **Why things are the way they are** | `docs/decisions/` |
+| **Why things are the way they are** | `docs/decisions/` (start with `0031`) |
 | **Commands that actually work here** | `docs/TOOLS.md` |
 
-`hardware/single-channel/` is a **superseded** board kept only as the record of
-what was fabricated earlier. Do not work from it and do not modify it.
+`hardware/single-channel/` and `_old/` are **superseded** and kept only as a
+record. Do not work from them and do not modify them.
 
-## Build
-
-```powershell
-pwsh -File firmware\build.ps1
-```
-
-Builds four images with warnings as errors and runs the host tests:
-
-| Image | For |
-|---|---|
-| `thermo_8ch_max31856` | **the real board** |
-| `thermo_8ch_max6675_sim` | Proteus simulation — Proteus has no MAX31856 model |
-| `legacy_1ch_max31856` | the superseded single-channel board |
-| `legacy_1ch_max6675` | the same, Proteus |
+## Build and check
 
 ```powershell
-pwsh -File hardware\8ch\run_all.ps1
+pwsh -File firmware\build.ps1                 # firmware images + host tests
+cd hardware\24ch\gen; python build.py          # 24-ch schematic, ERC, netlist check
+python docs\check_docs.py                     # entry documents agree with each other
 ```
 
-Checks a fresh snapshot, including ERC, connectivity contract and DRC with zone
-refill on the copy. Source hardware remains unchanged. `-Regenerate` rewrites
-the board and is not authorized while the owner keeps REV A0 frozen.
-
-> **The images are not interchangeable.** The eight-channel image drives PB3
-> HIGH only while it is *safe to run*. The legacy single-channel images drive
-> the same pin HIGH on *over-temperature*. Flashing the wrong one inverts the
-> safety function with no visible symptom. `program.ps1` warns you.
+> **The firmware images are not interchangeable.** The eight-channel image
+> drives the run output HIGH only while it is *safe to run*; the legacy
+> single-channel images drive the same pin HIGH on *over-temperature*.
+> Flashing the wrong one inverts the safety function. `program.ps1` warns you.
 
 ## State
 
-This is an **engineering prototype**, not a finished product. It has never been
-built or electrically tested. Specifically:
-
-- The isolation barrier has never been measured (`I-004`), and the rules in
-  `.kicad_dru` are functional, not qualified against any standard.
-- The trip time is calculated at 623 ms against a 1 s requirement, but has not
-  been measured on hardware (`I-013`).
-- The schematic produces a correct netlist and passes ERC, but it is not a
-  drawing anyone can review or sign (`I-002`).
-- Modbus RTU is deferred: there is no crystal, and the internal RC oscillator
-  is not accurate enough for a reliable UART (`docs/decisions/0010`).
-- EEPROM setpoint persistence is implemented; application integration status
-  and the I-036/I-037 fixes are recorded in `docs/STATE.md`.
-- Sensor diagnostics are partial: plausibility checks do not prove detection
-  of every thermocouple short or every stale-data failure.
-- The relay contact is marked **low-voltage loads only** and the clearances
-  match that, not a mains rating.
-
-`docs/ISSUES.md` is the full list. Nothing here is claimed as done without a
+An **engineering prototype**: nothing has been built or electrically tested.
+The isolation rules in `.kicad_dru` are functional, not qualified against any
+standard; the contacts are rated for low-voltage signal loads only (30 VDC /
+1 A). `docs/ISSUES.md` is the full list; nothing is claimed as done without a
 report to back it.

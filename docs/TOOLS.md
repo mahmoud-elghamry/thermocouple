@@ -485,6 +485,20 @@ include line spacing - use the glyph box); board min text height 0.8 mm. `gen/fa
 `--refill-zones --save-board` so the Gerbers carry the pours DRC checked (scripts save boards unfilled).
 Render check: `kicad-cli pcb render --side top`.
 
+- **24-ch gates (I-115):** `gen/build.py` and `gen/fab.py` exit non-zero if kicad-cli fails or writes no fresh report (exit 5 = violations, also a fail); `gen/guard.py` (`check`, `claim`, `sha256`) refuses while KiCad holds a `~*.lck` or another tool holds `output/.writer.json`; `fab.py` writes a new `production/24ch-reva3-<time>-<sha6>/` from a snapshot copy (source never saved) with `MANIFEST.txt` and `ORDER-NOTES.txt`. Test on copies: `THERMO24_SCH_OUT` (build.py), `THERMO24_FAB_PCB` / `THERMO24_FAB_SCH` / `THERMO24_FAB_OUT` (fab.py), `THERMO24_WRITER_CLAIM`.
+
+**Local repairs on the 24-ch board (2026-10-11, `0035`):** `gen/capnear.py U403 1 C407 [--soft-vias]
+[--avoid "TC*"] [--apply [--rip]]` finds a spot within N mm of a pin and scores what is in the way;
+`capnear.py via REF PAD [mm]` puts a plane via beside a pad (never in it, never in a band); `move.py` moves
+named parts and drops only their own-net tracks; then `finish.py dangling`, `finish.py dedupe`, `maze.py`,
+`pincaps.py`. A rip-up near the AD7124 went badly (maze made DOUT_ISO 168 mm): there, route by hand
+(`finish.py add`) after listing **all layers** in the box, B.Cu included.
+* pcbnew python: `via.GetWidth()` without a layer raises a modal assert dialog that hangs the script -
+  use `GetWidth(pcbnew.F_Cu)`. After `board.Remove(zone)` the zone list is stale: read first, remove last.
+* Delete tracks "touching a pad" by the pad's **own net** only - another net's segment can end under a pad.
+* Paths with backslashes written through a bash heredoc can turn ``/`` into control characters; check
+  with `python -m py_compile` and a grep for control characters.
+
 ## Things that will bite you
 
 - **A gate that reads a file can pass on the wrong file.** Two did on

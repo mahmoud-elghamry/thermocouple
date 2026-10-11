@@ -1,7 +1,8 @@
 # Goal and requirements
 
 **Owner: the user.** An agent may propose a change here but must not rewrite it
-alone. Changes go through `docs/decisions/`.
+alone. Changes go through `docs/decisions/`. Status column synced to `0031`-`0034`
+2026-10-11 at the owner's request.
 
 **Keep under 120 lines.**
 
@@ -38,15 +39,15 @@ That rationale must be rechecked if channel assignment spans different machines.
 
 | # | Requirement | Status |
 |---|---|---|
-| R-1 | Read 24 K-type thermocouples, grounded, insulated or mixed | One board, 3x AD7124-8 (`0031`); not designed or tested yet |
-| R-2 | Open the common potential-free dry-contact circuit when any channel exceeds its own setpoint | Dry contact exists; per-channel limits pending I-100; contact/load ratings unresolved I-092; A2 low-voltage only; I-081 accepted limit |
-| R-3 | Energised to run — power loss, reset or fault must stop the machine | Local implementation; series shutdown selected; single-fault limitations in I-081 |
-| R-4 | Show readings, channel limits and state locally | LCD off-board; display type/mounting/buttons delegated to design team (`0029`); current 16x2/5-button UI needs per-channel editing |
+| R-1 | Read 24 K-type thermocouples, grounded, insulated or mixed | One board REV A3, 3x AD7124-8 (`0031`, `0032`): schematic and routed board exist, layout repairs open (`docs/ISSUES.md` P0); not built or tested |
+| R-2 | Open the common potential-free dry-contact circuit when any channel exceeds its own setpoint | Trip relay G6K-2F-Y, both NO poles in series (`0032` rev 3); signal loads only, 30 VDC / 1 A (I-092); per-channel limits are 24-ch firmware (I-100); I-081 accepted limit |
+| R-3 | Energised to run — power loss, reset or fault must stop the machine | Relay held only by a heartbeat from completed scans (I-118); single-fault limits in I-081 |
+| R-4 | Show readings, channel limits and state locally | 20x4 LCD on standoffs on the board, five buttons plus a header for panel buttons (`0031` D4, `0034` D2); per-channel editing is firmware (I-100) |
 | R-5 | Latch startup/reset/trip until manual ACK with valid, cool channels | Owner reconfirmed 2026-10-07 (`0029`, I-089 closed); per-channel reset checks pending I-100; I-073 fixed |
-| R-6 | Detect a broken sensor (each channel checked about every 4 s) and trip or alarm, as configured | Owner 2026-10-08 (`0031` D2, D5): alarm-only acceptable, default open. Wire-to-wire or wire-to-sheath shorts can read plausibly on any two-wire front end; see `I-011` |
+| R-6 | Detect a broken sensor (each channel checked about every 4 s) | **Open sensor trips by default**; "alarm only" is a deliberate, saved per-channel setting the display shows (owner 2026-10-09, `0034` D1; replaces `0031` D5's open default). Wire-to-wire or wire-to-sheath shorts can read plausibly on any two-wire front end; see `I-011` |
 | R-7 | Survive an engine installation and 50 m cable runs | **not proven — needs measurement** |
-| R-8 | Each channel has its own operator-settable persistent setpoint; values chosen at commissioning | Accepted 2026-10-07 (`0029`); current firmware stores one shared limit per module; per-channel UI/EEPROM/protection not implemented (I-100) |
-| R-9 | Optional later communication between modules or with a master; RS-485/Modbus RTU is a candidate | Protocol/master not written; autonomous trips and series contacts do not depend on communication (`0024`, I-086) |
+| R-8 | Each channel has its own operator-settable persistent setpoint; values chosen at commissioning | Accepted 2026-10-07 (`0029`); the 24-ch firmware is not written yet; the 8-ch firmware has one shared limit (I-100) |
+| R-9 | Communication with a PLC/SCADA master | Isolated RS-485 / Modbus RTU fitted on the board (`0031` D7, I-094); protocol not written; never in the trip path (I-086) |
 
 ## What it must not do
 
@@ -54,14 +55,14 @@ That rationale must be rechecked if channel assignment spans different machines.
 - Report a temperature it is not confident in.
 - Depend on the isolation barrier for mains-level separation. It is not
   qualified for that.
-- Treat potential-free contacts as unlimited ratings; REV A2 permits low-voltage loads only.
+- Treat potential-free contacts as unlimited ratings; they carry low-voltage signal loads only (30 VDC / 1 A).
 
 ## Response time
 
-The trip must happen within **1 s** of the setpoint being crossed. The existing
-eight-channel timing budget is in `I-013`; physical timing is unmeasured.
-The three-module installation needs contact/load timing verified; communication
-is not in the selected shutdown path. Watchdog timing still needs work (I-097).
+The trip must happen within **1 s** of the setpoint being crossed. The 24-ch
+scan is ~0.62 s for 14 slots (I-119); contact timing is measured at the bench
+(I-013, I-120). Communication is not in the shutdown path. Watchdog timing:
+I-097, I-118.
 
 ## Explicitly out of scope for now
 
@@ -71,9 +72,9 @@ is not in the selected shutdown path. Watchdog timing still needs work (I-097).
 
 ## Isolation and installation questions
 
-The existing board's eight thermocouples share one isolated island. That isolates
-the group from the controller but **not the channels from each other**.
-Three independent modules are selected; that does not validate probe grounding.
+All 24 thermocouples share one isolated island. That isolates the group from
+the controller but **not the channels from each other**; accepted because all
+24 are on one engine (owner, `0031`). A probe on another machine needs a fresh review.
 
 Accepted, and the reasoning is now on record correctly in
 `docs/decisions/0009-operating-environment-corrected.md`: the eight sensors sit

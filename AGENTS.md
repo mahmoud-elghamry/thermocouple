@@ -19,7 +19,7 @@ insulated or mixed probes), all parts from one source. Read `0031` first: it
 holds the agents' work split and supersedes most of `0030` and `0024`.**
 Any of the 24 channels trips the common run-permit contact.
 Earlier eight-channel basis: cylinder-body probes, roughly 50 m cables, no VFD.
-Per-channel persistent setpoints and manual ACK are required (`0029`); firmware still has one shared limit per module (I-100).
+Per-channel persistent setpoints and manual ACK are required (`0029`); the 24-ch firmware is not written yet (I-100).
 Supply: engine battery, nominal 24 V (`0016`). HMI selection/mounting is delegated to the design team (`0029`).
 **It is being built to go on a real machine.** Treat decisions as safety-relevant.
 
@@ -50,7 +50,7 @@ rots — that has already happened here once.
 hardware/24ch/            the 24-channel board - THE ACTIVE HARDWARE WORK (README there)
 hardware/8ch/             the 8-channel board REV A2 - reference
 hardware/single-channel/  superseded board, kept for reference - DO NOT MODIFY
-firmware/                 AVR C for the ATmega32A, with host unit tests
+firmware/                 AVR C, host unit tests; 8-ch images only so far (24-ch board: ATmega1284P)
 simulation/               Proteus simulation project
 production/               fabrication output - generated, never committed
 _old/                     superseded files, reference only - never build or order from it
@@ -71,10 +71,12 @@ placement files, renders and netlists belong in `production/` or are ignored.
    review. **Never merge, even if subsequently requested** (owner, cloud session).
 4. **Firmware is in scope.** Several open issues are firmware faults with
    safety consequences; a PCB-only reading of a task is too narrow.
-5. **Update `docs/STATE.md` before you finish.** The next session starts there.
+5. **Update `docs/STATE.md` before you finish**, and run `python docs/check_docs.py` (exit 0).
 6. **Record decisions.** If you chose between real alternatives — a part, an
    architecture, a tolerance — add a file to `docs/decisions/`. Include what you
-   rejected and why.
+   rejected and why. **A decision that replaces an earlier one sweeps GOAL, README,
+   ISSUES rows and STATE in the same change** and adds the old wording to
+   `docs/superseded.txt` (I-117: skipped sweeps left GOAL describing three modules).
 7. **No pointless complexity.** If a part or a feature can be removed and the
    unit still meets its goal, propose removing it.
 8. **One writer on the hardware at a time.** `thermocouple_8ch.kicad_pcb` is a
@@ -83,8 +85,8 @@ placement files, renders and netlists belong in `production/` or are ignored.
    KiCad window held unsaved edits from 00:59. Run
    `python hardware/8ch/board_provenance.py --check` before writing the board;
    it refuses while KiCad holds a `~*.lck`. **Do not close KiCad to get past
-   it** - it may be holding unsaved work. The 24-ch tools (`gen/finish.py`, `maze.py`,
-   `fab.py`) have no such guard yet (I-115): check for `~*.lck` in `hardware/24ch` yourself and ask the user if KiCad is open. Working in `firmware/`
+   it** - it may be holding unsaved work. Every 24-ch tool that saves the board goes
+   through `gen/guard.py`: it refuses while KiCad holds a `~*.lck` or another tool holds `output/.writer.json`. Working in `firmware/`
    or `docs/` at the same time is fine.
 9. **Two ways to change the hardware. Know which one you are in.**
    *Generative* - run the pipeline; it rebuilds everything from `board/` and the

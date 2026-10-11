@@ -1,7 +1,7 @@
 # Current state
 
 **Read second, after AGENTS.md; then read all of ISSUES.md (P0 first). Hard limit: 60 lines.**
-**Last updated:** 2026-10-09 (workstation, `0031`-`0034`).
+**Last updated:** 2026-10-11 (workstation: doc sync, NORI answers, then the P0 repairs).
 
 ## Where we are
 
@@ -19,26 +19,24 @@
 
 **2026-10-09: 24-ch board, `hardware/24ch/` (README there), decisions `0032`-`0033`.**
 Schematic 467 symbols, ERC 0/0, 12 pages A3/A4. Board 170 x 145 (`0033` D1). Fab NORI (I-106); parts ~$105 (`gen/cost.py`).
-**Board ROUTED + silkscreen; fab set `production/24ch-reva3-20261009/` (gen/fab.py, 11:1x): its `drc-report.rpt`
-= 0 DRC violations, 0 unconnected pads, 0 footprint errors (schematic parity). Board = `output/finish23-silk.kicad_pcb` + saved fills.**
-Done today: last 2 routes by hand/maze (TC21 pair: old PA loop is now NA, PA + 2 CS_CJ5_ISO pieces on In2.Cu,
-`0033` D4), `rules.py` full (outer pours, NORI pad-to-track 0.2 on pads, relay_area only for contacts),
-65 tracks nudged to 0.2 (`finish.py nori`) + 5 by hand, 33 router stubs deleted (`finish.py dangling`),
-`pcb sync` (C8545/C28260), EP vias off the paste (I-110), installer silkscreen (`gen/silk.py`, 0 silk warnings).
-BOM 93 lines, CPL 441 parts; only the 5 buttons lack an LCSC code (I-108).
+Board routed 2026-10-09 (history: git log). The 2026-10-09 fab set is **outdated**, moved to `production/_OLD_DO_NOT_ORDER/`
+(board changed 2026-10-11) - never order from it; `gen/fab.py` makes a new one. Board: `hardware/24ch/thermo24.kicad_pcb`.
 
 ## Start here - next steps
 
-**2026-10-09 Astra review** (`docs/reference/review-20261009-astra.md`) -> `0034` + ISSUES I-111..I-120.
-The fab set above is NOT orderable until these board repairs are done (`0034` D3, local only):
-1. **I-111** move decoupling/bootstrap/input caps beside their pins (gate: `gen/pincaps.py`, now 18 BAD; LM5164 first, then ISO7761,
-   AD7124, MCU), re-route those nets; measure pin-to-cap distances; DRC 0/0/0.
-2. **I-112** three fiducials; **I-113** silk RUN PERMIT C-NO, CHASSIS; **0034 D2** button header
-   (schematic `c_mcu.py` + `pcb sync`) and tact-switch LCSC codes; **I-114** CJ sensors closer if room.
-3. **I-115** gates (`build.py` exit codes, unique release folder + hashes), **I-116** accessory BOM,
-   then `gen/fab.py`. NORI order spec in I-106 (ENIG, tented vias, coating question).
-4. Firmware after hardware: I-118 heartbeat, I-119 port list, I-104, I-100; open TC trips (`0034` D1).
-5. Bench/field tests I-120; engine-ground measurement at the first engine test (I-101).
+**2026-10-11 (one session):** docs synced to `0031`-`0035`, `docs/check_docs.py` guards them (CI too);
+ISSUES re-triaged (P0 = blocks the order only). NORI: our spec rides in ORDER-NOTES (I-106, I-105).
+Board (`thermo24.kicad_pcb`, backups `output/bak/`): LM5164 stage re-laid (`gen/buck24.py`), ISO7761 +
+MCU caps beside pins, crystal to the XTAL pins (I-121), J503 panel-button header (`0034` D2), fiducials,
+installer silk (I-113), V_BIAS guard pours (`gen/vbias_pour.py`, I-105). Gates: DRC+parity+refill 0/0/0;
+ERC 0/0 (468 symbols); `pincaps.py` 33/33 pass (exit 0).
+New tools: `move.py`, `capnear.py` (spot search, rip, `via`), `finish.py dedupe`, `guard.py` on every writer.
+**I-111 closed** (`0035` D6, owner: AD7124 supplies by plane vias, REGCAP/REFOUT <= 5 mm): `pincaps.py` 0 over.
+**Next:** (1) LCD drawing from the owner -> check H6-H9/J502 (I-108). (2) alternates (I-103).
+(3) release `production/24ch-reva3-20261011-092859-940d10/` (DRC 0/0/0, pincaps 0, tree uncommitted -
+re-run `gen/fab.py` after a commit) -> NORI quote incl. ACCESSORIES.csv (I-078). Board warnings: 8 track stubs
+DRC calls dangling but that carry a connection (were 3 before); 0 errors.
+Then firmware P1 (I-118/119/104/100); bench P2 (I-120, I-101, I-105).
 
 ## Measured, not claimed (REV A2, before the shrink)
 

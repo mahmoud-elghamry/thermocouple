@@ -94,7 +94,8 @@ is not modified.
 **alarm** relay of the same signal type (owner, 2026-10-08), for warnings that
 must not stop the engine: open thermocouple, approaching limit. Whether an
 open thermocouple trips or only alarms is a firmware setting; its default is
-still to be chosen (owner said alarm-only is acceptable). Both contacts:
+still to be chosen (owner said alarm-only is acceptable). **Superseded by `0034` D1:
+an open thermocouple trips by default.** Both contacts:
 30 VDC / 1 A maximum, signal loads only.
 
 **D6. All parts from one source** (owner, 2026-10-08). The board will most

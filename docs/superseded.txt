@@ -1,0 +1,19 @@
+# Phrases that describe a superseded design. docs/check_docs.py fails if one
+# appears in an entry document (AGENTS, README, GOAL, STATE, ISSUES, hardware/24ch/README).
+# When a decision supersedes something, add the old wording here in the same change.
+# Format: phrase | what replaced it   (matched case-insensitively, as plain text)
+alarm-only acceptable, default open | 0034 D1: an open thermocouple trips by default
+alarm-only default | 0034 D1: an open thermocouple trips by default
+three modules are selected | 0031: one 24-channel board
+three-module installation | 0031: one 24-channel board
+three independent modules | 0031: one 24-channel board
+autonomous modules | 0031: one 24-channel board
+blocks ordering the module | 0031: one 24-channel board
+all 8 inputs per module | 0031: one 24-channel board
+8 operator-adjustable | 0031: 24 channels, 24 limits
+LCD off-board | 0031 D4: 20x4 LCD on standoffs on the board
+16x2 | 0031 D4: 20x4 LCD
+Modbus RTU is deferred | 0031 D7: isolated RS-485/Modbus fitted
+RS-485/Modbus RTU is a candidate | 0031 D7: isolated RS-485/Modbus fitted
+8-channel thermocouple protection unit | 0031: one 24-channel board
+finish23-silk | the board is hardware/24ch/thermo24.kicad_pcb (one file, no output/ copy)

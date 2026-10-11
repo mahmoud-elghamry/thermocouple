@@ -1,7 +1,8 @@
 # 0032 — Front-end circuit and first part picks for the 24-channel board
 
-* Status: **proposed, revision 1** (W1, 2026-10-08) after Codex reviews (see the end);
-  before the schematic. Values are first-pass; every "check" is open.
+* Status: **accepted, revision 4** (2026-10-08): revision 1 after Codex reviews, then
+  revisions 2-4 at the end of this file, which override the text above them. The 24-ch
+  schematic implements revision 4; every "check" not closed in `ISSUES.md` is still open.
 * Relates to: `0031` (architecture), I-101, I-103, I-091, I-093, I-094, I-095,
   I-096; Codex review `production/review-20261008/codex-frontend-review.md`
 * Sources: AD7124-8 Rev B (LCSC C97314 PDF), local datasheets, LCSC stock read
