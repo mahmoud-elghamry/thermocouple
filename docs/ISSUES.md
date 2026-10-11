@@ -33,7 +33,7 @@ Severity: **blocker** stops fabrication · **high** is a real failure mode ·
 
 | # | Sev | Issue | Close when |
 |---|---|---|---|
-| I-078 | medium | **Send the release to NORI and review the quote.** Release `production/24ch-reva3-20261011-094327-940d10/` (git 7c7e25c, tree clean, DRC 0/0/0, pincaps 0, BOM 94 lines all LCSC): send the zip, BOM, CPL, ORDER-NOTES and ACCESSORIES.csv. NORI reads stock on the day and asks before any substitution (ORDER-NOTES; was I-103). Earlier: bare 4-layer EGP 8,710 for 5 / 11,500 for 10 (2026-10-09), parts ~$105/board (`gen/cost.py`). | NORI quote (PCB + assembly + each ACCESSORIES line covered or excluded) reviewed with the owner |
+| I-078 | medium | **Send the release to NORI and review the quote.** Release `production/24ch-reva3-20261011-102504-940d10/` (git 6c1063a, tree clean, DRC 0/0/0, pincaps 0, BOM 94 lines all LCSC): send the zip, BOM, CPL, ORDER-NOTES and ACCESSORIES.csv. NORI reads stock on the day and asks before any substitution (ORDER-NOTES; was I-103). Earlier: bare 4-layer EGP 8,710 for 5 / 11,500 for 10 (2026-10-09), parts ~$105/board (`gen/cost.py`). | NORI quote (PCB + assembly + each ACCESSORIES line covered or excluded) reviewed with the owner |
 
 ## P1 — before a unit protects a machine
 

@@ -32,7 +32,7 @@ installer silk (I-113), V_BIAS guard pours (`gen/vbias_pour.py`, I-105). Gates: 
 ERC 0/0 (468 symbols); `pincaps.py` 33/33 pass (exit 0).
 New tools: `move.py`, `capnear.py` (spot search, rip, `via`), `finish.py dedupe`, `guard.py` on every writer.
 **I-111 closed** (`0035` D6, owner: AD7124 supplies by plane vias, REGCAP/REFOUT <= 5 mm): `pincaps.py` 0 over.
-**Next (only P0 left = I-078):** send `production/24ch-reva3-20261011-094327-940d10/` (git 7c7e25c, clean;
+**Next (only P0 left = I-078):** send `production/24ch-reva3-20261011-102504-940d10/` (git 6c1063a, clean;
 DRC 0/0/0, pincaps 0) to NORI for the turnkey quote incl. ACCESSORIES.csv. I-108 closed (owner: buy a 2004A that
 fits H6-H9/J502), I-106/I-103 closed (ORDER-NOTES). Board warnings: 8 dangling stubs, 0 errors.
 Then firmware P1 (I-118/119/104/100); bench P2 (I-120, I-101, I-105).
