@@ -133,14 +133,20 @@ These are order instructions (I-106). Where and how you assemble is your busines
 
 PCB
 - 4 layers, FR4, 1.6 mm finished, 1 oz copper on all layers.
-- ENIG surface finish (the 0.5 mm LFCSP parts need a flat finish).
+- ENIG surface finish (the 0.5 mm LFCSP parts need a flat finish). The .gbrjob file says "Finish: None"
+  (KiCad default) - ignore it, ENIG applies.
 - All vias tented (mask over every via).
-- Files: gerber/ (Gerbers + drill) and thermo24-gerbers.zip.
+- Min track 0.2 mm, min clearance 0.15 mm, min via 0.3 mm drill / 0.6 mm pad.
+- Files: gerber/ (Gerbers + drill, PTH and NPTH in one file) and thermo24-gerbers.zip.
 
 ASSEMBLY
 - Turnkey: you buy every part from the LCSC codes in BOM-JLCPCB.csv; CPL-JLCPCB.csv is the placement list.
-- Top-side assembly. Use our paste layer as is: window-pane paste on the exposed pads (AD7124, LM5164);
+- All parts on the top side; SMT plus through-hole (terminal blocks, TC headers, relays, B0505S, LEDs,
+  pin headers, buttons, trimmer). H1-H10 are mounting holes and TP* are test pads: no part, not in the CPL.
+- Use our paste layer as is: window-pane paste on the exposed pads (AD7124, LM5164);
   U601's exposed-pad vias are tented, no paste fill through them.
+- Before production, send us the placement preview (every part's pin 1 / polarity against the silkscreen)
+  for written approval. CPL rotations are KiCad's; apply your machine offsets.
 - Wash the flux off after reflow.
 - No part substitution without our written approval. Customs and shipping are yours.
 
