@@ -3,6 +3,7 @@
   (lib (name "Button_Switch_THT") (type "KiCad") (uri "${KICAD10_FOOTPRINT_DIR}/Button_Switch_THT.pretty") (options "") (descr ""))
   (lib (name "Capacitor_SMD") (type "KiCad") (uri "${KICAD10_FOOTPRINT_DIR}/Capacitor_SMD.pretty") (options "") (descr ""))
   (lib (name "Capacitor_THT") (type "KiCad") (uri "${KICAD10_FOOTPRINT_DIR}/Capacitor_THT.pretty") (options "") (descr ""))
+  (lib (name "Connector_JST") (type "KiCad") (uri "${KICAD10_FOOTPRINT_DIR}/Connector_JST.pretty") (options "") (descr ""))
   (lib (name "Connector_Phoenix_MC") (type "KiCad") (uri "${KICAD10_FOOTPRINT_DIR}/Connector_Phoenix_MC.pretty") (options "") (descr ""))
   (lib (name "Connector_PinHeader_2.54mm") (type "KiCad") (uri "${KICAD10_FOOTPRINT_DIR}/Connector_PinHeader_2.54mm.pretty") (options "") (descr ""))
   (lib (name "Converter_DCDC") (type "KiCad") (uri "${KICAD10_FOOTPRINT_DIR}/Converter_DCDC.pretty") (options "") (descr ""))
