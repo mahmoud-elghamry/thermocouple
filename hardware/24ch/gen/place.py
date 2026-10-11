@@ -239,10 +239,12 @@ def main():
 
 
 if __name__ == "__main__":
-    import sys
-    if "--drop" in sys.argv:
-        bd = pcbnew.LoadBoard(BOARD)
-        drop_removed(bd)
-        pcbnew.SaveBoard(BOARD, bd)
-    else:
-        main()
+    import guard      # I-115: refuse while KiCad or another tool holds the board
+    with guard.claim(str(BOARD), "place.py"):
+        import sys
+        if "--drop" in sys.argv:
+            bd = pcbnew.LoadBoard(BOARD)
+            drop_removed(bd)
+            pcbnew.SaveBoard(BOARD, bd)
+        else:
+            main()

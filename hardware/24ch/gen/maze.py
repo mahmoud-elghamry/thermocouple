@@ -101,6 +101,10 @@ def raster(poly_set, mask):
 
 def shape(item, layer, extra_mm):
     ps = pcbnew.SHAPE_POLY_SET()
+    if isinstance(item, pcbnew.PAD) and item.GetAttribute() == pcbnew.PAD_ATTRIB_NPTH:
+        # a mounting hole has no copper but blocks every layer (board hole clearance 0.25)
+        item.TransformHoleToPolygon(ps, mm(extra_mm + 0.06), mm(0.005), pcbnew.ERROR_OUTSIDE)
+        return ps
     item.TransformShapeToPolygon(ps, layer, mm(extra_mm), mm(0.005), pcbnew.ERROR_OUTSIDE)
     return ps
 
@@ -108,7 +112,7 @@ def shape(item, layer, extra_mm):
 def items_on(b, layer):
     for fp in b.GetFootprints():
         for p in fp.Pads():
-            if p.IsOnLayer(layer):
+            if p.IsOnLayer(layer) or p.GetAttribute() == pcbnew.PAD_ATTRIB_NPTH:
                 yield p, True, fp.GetReference()
     for t in b.GetTracks():
         if t.Type() == pcbnew.PCB_VIA_T:
@@ -323,6 +327,12 @@ def route_one(b, item_a, item_b, net, dry):
     dm = domain_mask(dom, w / 2 + 0.05)
     blocked = [m | ~dm for m in blocked]
     via_ok = via_sites(~np.logical_or.reduce(blocked), w)
+    no_via = np.zeros((NY, NX), bool)         # own-net SMD pads: never a via in the pad (solder wicking)
+    for fp in b.GetFootprints():
+        for p in fp.Pads():
+            if p.GetNetCode() == nc and p.GetAttribute() == pcbnew.PAD_ATTRIB_SMD:
+                raster(shape(p, p.GetLayer(), VIA_D / 2 + 0.05), no_via)
+    via_ok &= ~no_via
     starts, goals = [], []
     for li in range(len(LAYERS)):
         for item, out in ((item_a, starts), (item_b, goals)):
@@ -474,4 +484,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import guard      # I-115: refuse while KiCad or another tool holds the board
+    with guard.claim(str(BOARD), "maze.py"):
+        main()

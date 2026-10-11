@@ -203,4 +203,6 @@ def find_spot(b, pad, items, tracks):
 
 
 if __name__ == "__main__":
-    main()
+    import guard      # I-115: refuse while KiCad or another tool holds the board
+    with guard.claim(str(BOARD), "fanout.py"):
+        main()

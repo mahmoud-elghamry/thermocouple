@@ -7,6 +7,7 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 
@@ -21,7 +22,7 @@ from c_out import outputs
 from c_power import power
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.dirname(HERE)
+OUT = os.environ.get("THERMO24_SCH_OUT") or os.path.dirname(HERE)   # env: test on a scratch folder
 LIB = os.path.join(OUT, "lib")
 PROJECT = "thermo24"
 ROOT_UUID = uid("root")
@@ -103,6 +104,7 @@ def sheet_block(s, x, y, page):
 
 
 def main():
+    os.makedirs(OUT, exist_ok=True)
     customlib.write(os.path.join(LIB, "thermo24.kicad_sym"))
     all_sheets = sheets()
     add_flags(all_sheets)
@@ -163,22 +165,41 @@ def write_project():
                 '(uri "${KIPRJMOD}/lib/thermo24.kicad_sym")(options "")(descr "project parts"))\n)\n')
 
 
+def kicad(args, out, ok=(0,)):
+    """Run kicad-cli; return (returncode, text of `out`). Exits unless the tool ran,
+    returned one of `ok`, and wrote `out` during this call (an old file proves nothing)."""
+    if os.path.exists(out):
+        os.remove(out)
+    t0 = time.time() - 2          # file-system mtime granularity
+    try:
+        r = subprocess.run([CLI, *args], capture_output=True, text=True)
+    except OSError as e:
+        raise SystemExit(f"kicad-cli not runnable ({CLI}): {e}")
+    if r.returncode not in ok:
+        raise SystemExit(f"kicad-cli {' '.join(args[:3])} failed, exit {r.returncode}: "
+                         f"{(r.stderr or r.stdout)[-400:]}")
+    if not os.path.exists(out) or os.path.getmtime(out) < t0:
+        raise SystemExit(f"kicad-cli {' '.join(args[:3])} exit {r.returncode} but wrote no fresh {out}")
+    with open(out, encoding="utf-8") as f:
+        return r.returncode, f.read()
+
+
 def run_erc():
+    """ERC gate: 0 errors and 0 warnings. kicad-cli exit 5 = violations found (fail, report
+    printed); any other non-zero exit, or no fresh report, is a tool failure (exit)."""
     rpt = os.path.join(OUT, "erc-report.rpt")
-    subprocess.run([CLI, "sch", "erc", "--severity-error", "--severity-warning", "-o", rpt,
-                    os.path.join(OUT, f"{PROJECT}.kicad_sch")], capture_output=True, text=True)
-    with open(rpt, encoding="utf-8") as f:
-        txt = f.read()
+    rc, txt = kicad(["sch", "erc", "--exit-code-violations", "--severity-error", "--severity-warning",
+                     "-o", rpt, os.path.join(OUT, f"{PROJECT}.kicad_sch")], rpt, ok=(0, 5))
     tail = [l for l in txt.splitlines() if "ERC messages" in l or "Errors" in l]
-    print("ERC:", " | ".join(tail) or txt[-300:])
-    return "** ERC messages: 0" in txt
+    print("ERC:", " | ".join(tail) or txt[-300:], f"(kicad-cli exit {rc})")
+    return rc == 0 and "** ERC messages: 0" in txt
 
 
 def check_netlist(model_parts):
     xml = os.path.join(OUT, f"{PROJECT}.xml")
-    subprocess.run([CLI, "sch", "export", "netlist", "--format", "kicadxml", "-o", xml,
-                    os.path.join(OUT, f"{PROJECT}.kicad_sch")], capture_output=True, text=True)
-    r = ET.parse(xml).getroot()
+    _, txt = kicad(["sch", "export", "netlist", "--format", "kicadxml", "-o", xml,
+                    os.path.join(OUT, f"{PROJECT}.kicad_sch")], xml)
+    r = ET.fromstring(txt)
     got = {}
     for n in r.iter("net"):
         name = n.get("name").rsplit("/", 1)[-1]

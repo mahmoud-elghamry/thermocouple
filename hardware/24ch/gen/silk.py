@@ -1,6 +1,6 @@
 """Silkscreen: what an installer or a tester needs, placed where it can be read.
 
-Every terminal pin gets its function (channel 1+ ... 24-, +24V/0V/SH, C/NO/NC,
+Every terminal pin gets its function (channel 1+ ... 24-, +24V/0V/CHAS, C/NO/NC,
 A/B/GND), buttons and LEDs get their function, test points their signal; part
 references are hidden except where they help service (connectors, ICs, relays
 - only if they fit), the Fab layer keeps them all for assembly. A small placer
@@ -174,17 +174,20 @@ def main():
             P.text(f"{chan(ref, n1)}", 11.3, (y1 + y2) / 2, (0.6, 0.8), 90, reach=1.0)
     # J401: no room beside its two pins; the plug's pin 1 is the footprint's triangle
     P.text("ENGINE REF: 1 FEED 2 SENSE", 7.8, 97.6, (0.6, 0.8), reach=2.5)
+    P.text("2 WIRES, JOINED ONLY AT THE ENGINE", 7.8, 96.2, (0.6, 0.8), reach=3.0, must=False)
     P.text("K-TYPE TC: n+ / n-", 30.0, 131.0, 0.9, reach=6, must=False)
 
     # power, contacts, bus: function of every terminal, and a title
-    for ref, names, title in (("J601", ("+24V", "0V", "SH"), "SUPPLY"),
-                              ("J701", ("C", "NO", "NC"), "TRIP"),
+    # I-113: J601 pin 3 is CHASSIS (shield bar), not a cable shield pin; the run permit is C-NO
+    for ref, names, title in (("J601", ("+24V", "0V", "CHAS"), "SUPPLY"),
+                              ("J701", ("C", "NO", "NC"), "RUN PERMIT C-NO"),
                               ("J702", ("C", "NO", "NC"), "ALARM")):
         ps = pins(b, ref)
         for (num, x, y), s_ in zip(ps, names):
             P.text(s_, x, 12.3, 1.0, bold=True, prefer=(0, 1), reach=1.8)
         # title in the free space under the block (the relays sit right below C/NO/NC)
-        P.text(title, ps[2][1], 15.5, 1.0, bold=True, prefer=(1, 1), reach=7)
+        size = (0.7, 0.9) if len(title) > 8 else 1.0
+        P.text(title, ps[2][1], 15.5, size, bold=True, prefer=(1, 1), reach=10)
     # RS-485: resistors sit under the pins, so one legend in pin order
     ps = pins(b, "J703")
     P.text("RS-485:  A   B   GND", ps[1][1], 14.6, 0.9, reach=5, prefer=(0, 1))
@@ -194,6 +197,8 @@ def main():
         P.text(s, T(fp.GetPosition().x), T(fp.GetPosition().y), (0.7, 0.8), reach=4.5)
     num, x, y = pins(b, "J502")[0]
     P.text("LCD 1", x - 3.0, y, 0.9, reach=2.5, prefer=(-1, 0))
+    num, x, y = pins(b, "J503")[0]
+    P.text("PANEL BTN 1 UP 2 DN 3 SET 4 ESC 5 ACK 6 0V", x, y + 3.0, (0.6, 0.8), reach=4, prefer=(0, 1), must=False)
     num, x, y = pins(b, "J501")[0]
     P.text("ISP 1", x, y + 2.6, 0.8, reach=4, prefer=(0, 1))
 
@@ -242,5 +247,7 @@ def strip():
 
 
 if __name__ == "__main__":
-    import sys
-    strip() if "--strip" in sys.argv else main()
+    import guard      # I-115: refuse while KiCad or another tool holds the board
+    with guard.claim(str(BOARD), "silk.py"):
+        import sys
+        strip() if "--strip" in sys.argv else main()

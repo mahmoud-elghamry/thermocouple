@@ -13,7 +13,7 @@ cd hardware\24ch\gen
 python build.py      # writes the sheets, runs ERC, checks the netlist against the model
 ```
 
-`build.py` exits non-zero unless ERC has **0 errors and 0 warnings** and every
+`build.py` exits non-zero unless kicad-cli ran cleanly and wrote fresh reports, ERC has **0 errors and 0 warnings** and every
 pin in the exported netlist matches the model in `gen/c_*.py`.
 
 | File | What it holds |
@@ -46,6 +46,8 @@ Run with KiCad's python (`C:/Program Files/KiCad/10.0/bin/python.exe`), in order
 | 4 | `rules.py` | domains by pad position (a net in two domains stops it), net classes, `.kicad_dru`, planes, barrier keep-outs, U601 thermal vias |
 | 5 | `route24.py --passes 30 --threads 4 [--board copy --tag x]` | Freerouting via DSN/SES, then zone refill |
 | 6 | `finish.py` / `maze.py` | **incremental only, after a routing result is kept**: DRC, stubs, lock, hand routes (`add`), maze router + rip-up |
+| - | `guard.py`, `fab.py` | `guard.py`: write guard for every tool that saves the board (refuses while KiCad has it open or another tool holds `output/.writer.json`; `guard.sha256`). `fab.py`: a NEW `production/24ch-reva3-<time>-<sha6>/` per run, DRC and plots on a snapshot copy (source never saved), `MANIFEST.txt` (commit, hashes, DRC, KiCad version), `ORDER-NOTES.txt` (I-106/I-105) |
+| 7 | `buck24.py`, `move.py`, `capnear.py`, `fiducials.py`, `vbias_pour.py`, `silk.py` | **local repairs (`0034` D3, `0035`)**: buck stage, move parts, put a cap beside its pin (`capnear.py U403 1 C407 --apply`, `capnear.py via REF PAD`), fiducials, V_BIAS guard pours, silkscreen; then `finish.py dangling`/`dedupe`, `maze.py`, `pincaps.py` |
 | - | `cost.py`, `view.py`, `kicad_ui.ps1`, `padcheck.py` | BOM cost from LCSC; render a region; drive the KiCad GUI; pad-gap check before routing |
 
 Domains: sensor island = x < 42 or y > 103 (mm, y down); barrier bands x 42-45

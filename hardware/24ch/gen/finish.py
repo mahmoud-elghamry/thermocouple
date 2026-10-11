@@ -11,6 +11,7 @@ Works on ../thermo24.kicad_pcb after a routing result was kept (docs/TOOLS.md,
     python finish.py add NET LAYER W x1,y1 x2,y2 [...] [via]   # a hand route: track chain, optional via at the end
     python finish.py dangling            # delete dangling track/via stubs (DRC warnings)
     python finish.py nori                # push tracks off pads to the NORI pad-to-track minimum (from the DRC report)
+    python finish.py dedupe              # delete exact duplicate segments and same-net vias whose holes overlap
 """
 import json
 import math
@@ -244,13 +245,48 @@ def dangling():
             counts = list(ex.map(_unconnected, stems))
         safe = {u for u, c in zip(uu, counts) if c == base}
         kept |= set(uu) - safe
-        if not safe or _unconnected(_copy_without(safe, "all")) != base:
-            print("dangling: nothing more is safe to delete as a set")
+        if not safe:
             break
+        if _unconnected(_copy_without(safe, "all")) != base:
+            # as a set they break something; take the individually safe ones one at a time
+            taken = set()
+            for u in sorted(safe):
+                if _unconnected(_copy_without(taken | {u}, "one")) == base:
+                    taken.add(u)
+            kept |= safe - taken
+            if not taken:
+                print("dangling: nothing more is safe to delete")
+                break
+            safe = taken
         stem = _copy_without(safe, "all")
         open(BOARD, "wb").write(open(stem + ".kicad_pcb", "rb").read())
         removed += len(safe)
     print(f"dangling: removed {removed} stub tracks/vias, kept {len(kept)} that carry a connection")
+
+
+def dedupe():
+    """Repeated maze/rip-up runs can leave the same segment twice, or a second via on top of a
+    same-net via (DRC hole_to_hole). Keep the first of each; nothing else is touched."""
+    b = pcbnew.LoadBoard(BOARD)
+    seen, gone, vias = set(), [], []
+    for t in b.GetTracks():
+        if t.Type() == pcbnew.PCB_VIA_T:
+            p = t.GetPosition()
+            if any(v.GetNetCode() == t.GetNetCode() and (v.GetPosition() - p).EuclideanNorm() < mm(0.6)
+                   for v in vias):
+                gone.append(t)
+            else:
+                vias.append(t)
+            continue
+        k = (t.GetNetCode(), t.GetLayer(), t.GetWidth(),
+             tuple(sorted([(t.GetStart().x, t.GetStart().y), (t.GetEnd().x, t.GetEnd().y)])))
+        if k in seen:
+            gone.append(t)
+        seen.add(k)
+    for t in gone:
+        b.Remove(t)
+    pcbnew.SaveBoard(BOARD, b)
+    print(f"dedupe: removed {len(gone)} duplicate segments/vias")
 
 
 def add(net, layer, width, pts, end_via):
@@ -277,8 +313,7 @@ def add(net, layer, width, pts, end_via):
     print(f"add: {len(xy) - 1} segments on {net}{' + via' if end_via else ''}")
 
 
-if __name__ == "__main__":
-    cmd = sys.argv[1] if len(sys.argv) > 1 else "drc"
+def run(cmd):
     if cmd == "drc":
         drc()
     elif cmd == "stubs":
@@ -301,6 +336,9 @@ if __name__ == "__main__":
     elif cmd == "nori":
         nori()
         drc()
+    elif cmd == "dedupe":
+        dedupe()
+        drc()
     elif cmd == "unlock":
         lock(False)
     elif cmd == "add":
@@ -309,3 +347,13 @@ if __name__ == "__main__":
         add(args[0], args[1], float(args[2]), args[3:-1] if via else args[3:], via)
     else:
         raise SystemExit(__doc__)
+
+
+if __name__ == "__main__":
+    cmd = sys.argv[1] if len(sys.argv) > 1 else "drc"
+    if cmd == "_without":                # child of `dangling`: writes a temp copy, parent holds the claim
+        _without(sys.argv[2])
+    else:
+        import guard      # I-115: refuse while KiCad or another tool holds the board
+        with guard.claim(BOARD, "finish.py"):
+            run(cmd)

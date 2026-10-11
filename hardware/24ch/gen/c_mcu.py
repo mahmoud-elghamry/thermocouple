@@ -52,8 +52,12 @@ def mcu():
              "C34846", "Bourns", "outside the LCD shadow"),
         R("R502", "22R", "+5V", "LCD_LED_A", "1206W4F220JT5E", "C17958", fp=R1206,
           desc="backlight ~68 mA at Vf 3.5 V; adjust to the bought module"),
+        Part("J503", "Connector_Generic:Conn_01x06", "PANEL BUTTONS",
+             {"1": "BTN_UP", "2": "BTN_DOWN", "3": "BTN_SET", "4": "BTN_ESC", "5": "BTN_ACK", "6": "GND"},
+             "Connector_JST:JST_XH_B6B-XH-A_1x06_P2.50mm_Vertical", "B6B-XH-A(LF)(SN)", "C144397", "JST",
+             "panel buttons on a cable, in parallel with SW501-SW505 (0034 D2)"),
     ] + [Part(f"SW{501+i}", "Switch:SW_Push", n, {"1": f"BTN_{n}", "2": "GND"},
-              "Button_Switch_THT:SW_PUSH_6mm", "", "", "",
-              "tall actuator needed: LCD face ~24 mm above the board")
+              "Button_Switch_THT:SW_PUSH_6mm", "ZX-QC66-9.5CJ", "C7470135", "Megastar",
+              "6x6 THT, 9.5 mm: bench use; the panel buttons go on J503 (0034 D2)")
          for i, n in enumerate(["UP", "DOWN", "SET", "ESC", "ACK"])])
     return s

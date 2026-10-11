@@ -289,5 +289,7 @@ def strip():
 
 
 if __name__ == "__main__":
-    import sys
-    strip() if "--strip" in sys.argv else main()
+    import guard      # I-115: refuse while KiCad or another tool holds the board
+    with guard.claim(str(BOARD), "rules.py"):
+        import sys
+        strip() if "--strip" in sys.argv else main()
