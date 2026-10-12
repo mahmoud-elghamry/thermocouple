@@ -114,7 +114,7 @@ def bom_cpl(out, pcb, sch):
                         "Top" if row["Side"] == "top" else "Bottom", row["Rot"]])
     missing = [refs for (v, fp, l, m), refs in lines.items() if not l]
     with open(os.path.join(out, "DNP.txt"), "w", encoding="utf-8") as fh:
-        fh.write("Footprints on the board, parts NOT fitted (0036):\n" + " ".join(sorted(dnp)) + "\n")
+        fh.write("Footprints that stay empty on this order (please do not fit):\n" + " ".join(sorted(dnp)) + "\n")
     print(f"BOM: {len(lines)} lines; without LCSC code: {missing}; DNP: {len(dnp)}")
     return len(lines), missing
 
