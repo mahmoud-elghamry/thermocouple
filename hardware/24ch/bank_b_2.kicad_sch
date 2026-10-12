@@ -1212,7 +1212,7 @@
 				)
 			)
 		)
-		(symbol "thermo24:ADT7310"
+		(symbol "thermo24:TMP126"
 			(pin_names
 				(offset 1.016)
 			)
@@ -1227,7 +1227,7 @@
 					)
 				)
 			)
-			(property "Value" "ADT7310"
+			(property "Value" "TMP126"
 				(at 0 -12.7 0)
 				(effects
 					(font
@@ -1235,7 +1235,7 @@
 					)
 				)
 			)
-			(property "Footprint" "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm"
+			(property "Footprint" "Package_TO_SOT_SMD:SOT-363_SC-70-6"
 				(at 0 0 0)
 				(effects
 					(font
@@ -1244,7 +1244,7 @@
 					(hide yes)
 				)
 			)
-			(property "Datasheet" "https://www.analog.com/media/en/technical-documentation/data-sheets/ADT7310.pdf"
+			(property "Datasheet" "https://www.ti.com/lit/ds/symlink/tmp126.pdf"
 				(at 0 0 0)
 				(effects
 					(font
@@ -1253,7 +1253,7 @@
 					(hide yes)
 				)
 			)
-			(property "Description" "+/-0.5 degC 16-bit SPI digital temperature sensor"
+			(property "Description" "+/-0.25 degC 14-bit 3-wire SPI temperature sensor (single SIO data pin), CRC option"
 				(at 0 0 0)
 				(effects
 					(font
@@ -1262,7 +1262,7 @@
 					(hide yes)
 				)
 			)
-			(symbol "ADT7310_0_1"
+			(symbol "TMP126_0_1"
 				(rectangle
 					(start -7.62 5.08)
 					(end 7.62 -5.08)
@@ -1275,47 +1275,11 @@
 					)
 				)
 			)
-			(symbol "ADT7310_1_1"
+			(symbol "TMP126_1_1"
 				(pin input line
 					(at -12.7 2.54 0)
 					(length 5.08)
 					(name "SCLK"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin input line
-					(at -12.7 0 0)
-					(length 5.08)
-					(name "DIN"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin input line
-					(at -12.7 -2.54 0)
-					(length 5.08)
-					(name "~{CS}"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1330,17 +1294,17 @@
 						)
 					)
 				)
-				(pin tri_state line
-					(at 12.7 2.54 180)
+				(pin input line
+					(at -12.7 0 0)
 					(length 5.08)
-					(name "DOUT"
+					(name "~{CS}"
 						(effects
 							(font
 								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "2"
+					(number "1"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1348,10 +1312,28 @@
 						)
 					)
 				)
-				(pin open_collector line
+				(pin bidirectional line
+					(at 12.7 2.54 180)
+					(length 5.08)
+					(name "SIO"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
 					(at 12.7 0 180)
 					(length 5.08)
-					(name "~{INT}"
+					(name "ALERT"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1359,24 +1341,6 @@
 						)
 					)
 					(number "5"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin open_collector line
-					(at 12.7 -2.54 180)
-					(length 5.08)
-					(name "~{CT}"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "6"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1394,7 +1358,7 @@
 							)
 						)
 					)
-					(number "8"
+					(number "6"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1412,7 +1376,7 @@
 							)
 						)
 					)
-					(number "7"
+					(number "2"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -8638,7 +8602,7 @@
 		)
 	)
 	(symbol
-		(lib_id "thermo24:ADT7310")
+		(lib_id "thermo24:TMP126")
 		(at 254 185.42 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -8655,7 +8619,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "ADT7310TRZ"
+		(property "Value" "TMP126DCKR"
 			(at 267.7 174.66 0)
 			(effects
 				(font
@@ -8664,7 +8628,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm"
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-363_SC-70-6"
 			(at 254 185.42 0)
 			(effects
 				(font
@@ -8682,7 +8646,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "cold junction at the seam of header J201"
+		(property "Description" "cold junction at header J201; SIO on DOUT, written through R443; ALERT unused, grounded (datasheet allows) (0036)"
 			(at 254 185.42 0)
 			(effects
 				(font
@@ -8691,7 +8655,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "ADT7310TRZ-REEL7"
+		(property "MPN" "TMP126DCKR"
 			(at 254 185.42 0)
 			(effects
 				(font
@@ -8700,7 +8664,7 @@
 				(hide yes)
 			)
 		)
-		(property "Manufacturer" "ADI"
+		(property "Manufacturer" "TI"
 			(at 254 185.42 0)
 			(effects
 				(font
@@ -8709,7 +8673,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C578060"
+		(property "LCSC" "C5219998"
 			(at 254 185.42 0)
 			(effects
 				(font
@@ -8717,6 +8681,9 @@
 				)
 				(hide yes)
 			)
+		)
+		(pin "4"
+			(uuid "bdf9d1ad-c07a-5b7a-ad54-4d6da125ff00")
 		)
 		(pin "1"
 			(uuid "df98737a-f7d4-5ecf-ab2b-0a23e416262c")
@@ -8724,23 +8691,14 @@
 		(pin "3"
 			(uuid "11832f0b-014b-5a38-bfd4-703be755f7a3")
 		)
-		(pin "4"
-			(uuid "bdf9d1ad-c07a-5b7a-ad54-4d6da125ff00")
-		)
-		(pin "2"
-			(uuid "ffa457ec-9bc5-53b4-8a27-c35b48a7c59d")
-		)
 		(pin "5"
 			(uuid "d17a1ea2-489c-5ee4-afbc-5ee5b558f004")
 		)
 		(pin "6"
 			(uuid "151cabc2-cf43-58be-823f-8adfebb89b18")
 		)
-		(pin "8"
-			(uuid "91f29cf7-7faf-54b3-afa8-26d356e25151")
-		)
-		(pin "7"
-			(uuid "5e2a4822-1227-5a3d-88fd-88f7dd2542d9")
+		(pin "2"
+			(uuid "ffa457ec-9bc5-53b4-8a27-c35b48a7c59d")
 		)
 		(instances
 			(project "thermo24"
@@ -8760,7 +8718,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "4a925bbc-5c2a-5227-ae5d-6fadcc6492f6")
+		(uuid "b7b6b7e4-e741-5f8e-8938-7555d292b4cf")
 	)
 	(global_label "SCLK_ISO"
 		(shape bidirectional)
@@ -8772,7 +8730,7 @@
 			)
 			(justify right)
 		)
-		(uuid "e3291b8d-67ca-5885-aff3-a0134a11c94a")
+		(uuid "ad0cd65e-c073-55a0-928e-4f8dd7b30a69")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 238.76 182.88 0)
 			(effects
@@ -8792,9 +8750,9 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "6799ec86-8b7f-5445-91ed-bed3247ecacb")
+		(uuid "4a925bbc-5c2a-5227-ae5d-6fadcc6492f6")
 	)
-	(global_label "DIN_ISO"
+	(global_label "CS_CJ3_ISO"
 		(shape bidirectional)
 		(at 238.76 185.42 180)
 		(fields_autoplaced yes)
@@ -8804,41 +8762,9 @@
 			)
 			(justify right)
 		)
-		(uuid "bb871efb-e593-5b11-90ed-ba98b4b39e1a")
+		(uuid "e3291b8d-67ca-5885-aff3-a0134a11c94a")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 238.76 185.42 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-	)
-	(wire
-		(pts
-			(xy 241.3 187.96)
-			(xy 238.76 187.96)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b7b6b7e4-e741-5f8e-8938-7555d292b4cf")
-	)
-	(global_label "CS_CJ3_ISO"
-		(shape bidirectional)
-		(at 238.76 187.96 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "ad0cd65e-c073-55a0-928e-4f8dd7b30a69")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 238.76 187.96 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8856,7 +8782,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "f90f8e6a-c748-519d-9c35-2c2bd8fe1979")
+		(uuid "6799ec86-8b7f-5445-91ed-bed3247ecacb")
 	)
 	(global_label "DOUT_ISO"
 		(shape bidirectional)
@@ -8868,7 +8794,7 @@
 			)
 			(justify left)
 		)
-		(uuid "5415ae60-cd0d-5a5f-a399-c2b9da8b5ae1")
+		(uuid "bb871efb-e593-5b11-90ed-ba98b4b39e1a")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 269.24 182.88 0)
 			(effects
@@ -8879,13 +8805,37 @@
 			)
 		)
 	)
-	(no_connect
-		(at 266.7 185.42)
-		(uuid "807c32fb-2962-56e0-b078-4409a7da85b7")
+	(wire
+		(pts
+			(xy 266.7 185.42)
+			(xy 269.24 185.42)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "482c9e0b-a074-5799-9c7e-b91889115681")
 	)
-	(no_connect
-		(at 266.7 187.96)
-		(uuid "6aab3793-7af0-57ef-b68b-3ebb386ac932")
+	(global_label "GND_ISO"
+		(shape bidirectional)
+		(at 269.24 185.42 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "87cc63e3-7a97-5826-8a37-c9bb1871ffa0")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 269.24 185.42 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 	)
 	(wire
 		(pts
@@ -8896,7 +8846,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "ae7f6771-9470-5269-9311-ad3688f5540f")
+		(uuid "daebfdf9-c904-59ae-8b46-d77fc1446414")
 	)
 	(global_label "+3V3_ISO"
 		(shape bidirectional)
@@ -8908,7 +8858,7 @@
 			)
 			(justify left)
 		)
-		(uuid "ab64a0b6-2684-55b9-b930-b5a3f087e864")
+		(uuid "8cae4a9b-d007-5514-8327-6d670b660294")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 254 172.72 0)
 			(effects
@@ -8928,7 +8878,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "96e3186c-36f4-5907-9b3b-f57d8d493675")
+		(uuid "f90f8e6a-c748-519d-9c35-2c2bd8fe1979")
 	)
 	(global_label "GND_ISO"
 		(shape bidirectional)
@@ -8940,7 +8890,7 @@
 			)
 			(justify right)
 		)
-		(uuid "983733f8-9eb6-561a-b1fe-22a2040cac20")
+		(uuid "5415ae60-cd0d-5a5f-a399-c2b9da8b5ae1")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 254 198.12 0)
 			(effects
@@ -9103,7 +9053,7 @@
 		)
 	)
 	(symbol
-		(lib_id "thermo24:ADT7310")
+		(lib_id "thermo24:TMP126")
 		(at 322.58 185.42 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -9120,7 +9070,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "ADT7310TRZ"
+		(property "Value" "TMP126DCKR"
 			(at 336.28 174.66 0)
 			(effects
 				(font
@@ -9129,7 +9079,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm"
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-363_SC-70-6"
 			(at 322.58 185.42 0)
 			(effects
 				(font
@@ -9147,7 +9097,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "cold junction at the seam of header J202"
+		(property "Description" "cold junction at header J202; SIO on DOUT, written through R443; ALERT unused, grounded (datasheet allows) (0036)"
 			(at 322.58 185.42 0)
 			(effects
 				(font
@@ -9156,7 +9106,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "ADT7310TRZ-REEL7"
+		(property "MPN" "TMP126DCKR"
 			(at 322.58 185.42 0)
 			(effects
 				(font
@@ -9165,7 +9115,7 @@
 				(hide yes)
 			)
 		)
-		(property "Manufacturer" "ADI"
+		(property "Manufacturer" "TI"
 			(at 322.58 185.42 0)
 			(effects
 				(font
@@ -9174,7 +9124,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C578060"
+		(property "LCSC" "C5219998"
 			(at 322.58 185.42 0)
 			(effects
 				(font
@@ -9182,6 +9132,9 @@
 				)
 				(hide yes)
 			)
+		)
+		(pin "4"
+			(uuid "a9828a8b-5f64-5da2-916c-9ceaa4d8e7f2")
 		)
 		(pin "1"
 			(uuid "02c93acb-bace-5a16-aaf6-b1ffe566eeaa")
@@ -9189,23 +9142,14 @@
 		(pin "3"
 			(uuid "7b8bddcb-3859-5a6d-8d65-19b452fb2513")
 		)
-		(pin "4"
-			(uuid "a9828a8b-5f64-5da2-916c-9ceaa4d8e7f2")
-		)
-		(pin "2"
-			(uuid "8613ded6-1004-5c75-9084-51a477bc62e9")
-		)
 		(pin "5"
 			(uuid "770319b7-cc31-54d3-be0f-b5e3e2e64888")
 		)
 		(pin "6"
 			(uuid "6279e211-9b36-58ab-8f3a-2142d3c51175")
 		)
-		(pin "8"
-			(uuid "f7440bc1-cbb2-591e-a708-d68b51d9015a")
-		)
-		(pin "7"
-			(uuid "a0107f15-2232-5eba-9e73-d77ac05165c8")
+		(pin "2"
+			(uuid "8613ded6-1004-5c75-9084-51a477bc62e9")
 		)
 		(instances
 			(project "thermo24"
@@ -9225,7 +9169,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "d213f080-44c8-542c-9152-7fc2d8e82b92")
+		(uuid "7ab73d89-50c5-5b06-ba34-2b5c37d0a4e2")
 	)
 	(global_label "SCLK_ISO"
 		(shape bidirectional)
@@ -9237,7 +9181,7 @@
 			)
 			(justify right)
 		)
-		(uuid "1a89be3d-81d6-5f3f-b67c-6eeeebc0d212")
+		(uuid "bb323e01-f1d8-51cf-81df-7f0541081469")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 307.34 182.88 0)
 			(effects
@@ -9257,9 +9201,9 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "747c43f7-e8e5-5ddc-a566-aecb3fbe5ad6")
+		(uuid "d213f080-44c8-542c-9152-7fc2d8e82b92")
 	)
-	(global_label "DIN_ISO"
+	(global_label "CS_CJ4_ISO"
 		(shape bidirectional)
 		(at 307.34 185.42 180)
 		(fields_autoplaced yes)
@@ -9269,41 +9213,9 @@
 			)
 			(justify right)
 		)
-		(uuid "93d2fec2-b175-5a02-b170-c0bf0e297c63")
+		(uuid "1a89be3d-81d6-5f3f-b67c-6eeeebc0d212")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 307.34 185.42 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-	)
-	(wire
-		(pts
-			(xy 309.88 187.96)
-			(xy 307.34 187.96)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "7ab73d89-50c5-5b06-ba34-2b5c37d0a4e2")
-	)
-	(global_label "CS_CJ4_ISO"
-		(shape bidirectional)
-		(at 307.34 187.96 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "bb323e01-f1d8-51cf-81df-7f0541081469")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 307.34 187.96 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9321,7 +9233,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "5d27e186-157f-5266-aac4-498b3ab69701")
+		(uuid "747c43f7-e8e5-5ddc-a566-aecb3fbe5ad6")
 	)
 	(global_label "DOUT_ISO"
 		(shape bidirectional)
@@ -9333,7 +9245,7 @@
 			)
 			(justify left)
 		)
-		(uuid "c10ce1ea-c07e-59c0-b01e-f06bfd5c0e9b")
+		(uuid "93d2fec2-b175-5a02-b170-c0bf0e297c63")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 337.82 182.88 0)
 			(effects
@@ -9344,13 +9256,37 @@
 			)
 		)
 	)
-	(no_connect
-		(at 335.28 185.42)
-		(uuid "671b2c83-015e-5fcc-927b-68df9caac691")
+	(wire
+		(pts
+			(xy 335.28 185.42)
+			(xy 337.82 185.42)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e06bceb2-8ffe-5ab1-8386-ec1de5ea483b")
 	)
-	(no_connect
-		(at 335.28 187.96)
-		(uuid "63575411-c0e7-5fa5-9d3a-7fb02d620156")
+	(global_label "GND_ISO"
+		(shape bidirectional)
+		(at 337.82 185.42 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "2d8cfd06-e310-5f7d-950d-ef34351725b0")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 337.82 185.42 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 	)
 	(wire
 		(pts
@@ -9361,7 +9297,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "0aff194c-33c9-5933-93f8-785fb6978f32")
+		(uuid "65012f83-3273-5bcc-b88c-5816d4deea96")
 	)
 	(global_label "+3V3_ISO"
 		(shape bidirectional)
@@ -9373,7 +9309,7 @@
 			)
 			(justify left)
 		)
-		(uuid "d8748883-cbe9-5ca0-84ac-99409e6b3504")
+		(uuid "bc10d4c2-31e5-5772-aef8-888744ac1946")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 322.58 172.72 0)
 			(effects
@@ -9393,7 +9329,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "336f5c5e-57a2-58e7-971c-18cc9c850b04")
+		(uuid "5d27e186-157f-5266-aac4-498b3ab69701")
 	)
 	(global_label "GND_ISO"
 		(shape bidirectional)
@@ -9405,7 +9341,7 @@
 			)
 			(justify right)
 		)
-		(uuid "b9f55142-6b24-5d3b-a158-a4b03bd30fda")
+		(uuid "c10ce1ea-c07e-59c0-b01e-f06bfd5c0e9b")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 322.58 198.12 0)
 			(effects

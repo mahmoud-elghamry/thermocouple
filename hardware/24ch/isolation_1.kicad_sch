@@ -2205,7 +2205,7 @@
 		)
 		(uuid "6826a3e5-5dc4-5700-8f25-d72f4a1a6359")
 	)
-	(text "Digital isolators: SPI to the three AD7124 and six ADT7310"
+	(text "Digital isolators: SPI to the three AD7124 and six TMP126"
 		(exclude_from_sim no)
 		(at 15 67.511 0)
 		(effects
@@ -2214,7 +2214,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "25e09c3d-6e4b-5418-9cd4-5853ee0aa715")
+		(uuid "777c0788-dbce-5f8c-bbe6-adc6138e44a1")
 	)
 	(text "Series damping, MISO contention resistor, pull-ups"
 		(exclude_from_sim no)
@@ -4025,7 +4025,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "ISO7761DWR"
+		(property "Value" "CA-IS3761HW"
 			(at 49.26 90.84 0)
 			(effects
 				(font
@@ -4052,7 +4052,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "ISO7761 pinout, 5 forward / 1 reverse, default output high (0036)"
 			(at 38.1 109.22 0)
 			(effects
 				(font
@@ -4061,7 +4061,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "ISO7761DWR"
+		(property "MPN" "CA-IS3761HW"
 			(at 38.1 109.22 0)
 			(effects
 				(font
@@ -4070,7 +4070,7 @@
 				(hide yes)
 			)
 		)
-		(property "Manufacturer" "TI"
+		(property "Manufacturer" "Chipanalog"
 			(at 38.1 109.22 0)
 			(effects
 				(font
@@ -4079,7 +4079,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C2871529"
+		(property "LCSC" "C528656"
 			(at 38.1 109.22 0)
 			(effects
 				(font
@@ -4933,7 +4933,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "ISO7761DWR"
+		(property "Value" "CA-IS3761HW"
 			(at 128 90.84 0)
 			(effects
 				(font
@@ -4960,7 +4960,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "ISO7761 pinout, 5 forward / 1 reverse, default output high (0036)"
 			(at 116.84 109.22 0)
 			(effects
 				(font
@@ -4969,7 +4969,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "ISO7761DWR"
+		(property "MPN" "CA-IS3761HW"
 			(at 116.84 109.22 0)
 			(effects
 				(font
@@ -4978,7 +4978,7 @@
 				(hide yes)
 			)
 		)
-		(property "Manufacturer" "TI"
+		(property "Manufacturer" "Chipanalog"
 			(at 116.84 109.22 0)
 			(effects
 				(font
@@ -4987,7 +4987,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C2871529"
+		(property "LCSC" "C528656"
 			(at 116.84 109.22 0)
 			(effects
 				(font
@@ -5885,7 +5885,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "ISO7761DWR"
+		(property "Value" "CA-IS3761HW"
 			(at 206.74 90.84 0)
 			(effects
 				(font
@@ -5912,7 +5912,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "ISO7761 pinout, 5 forward / 1 reverse, default output high (0036)"
 			(at 195.58 109.22 0)
 			(effects
 				(font
@@ -5921,7 +5921,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "ISO7761DWR"
+		(property "MPN" "CA-IS3761HW"
 			(at 195.58 109.22 0)
 			(effects
 				(font
@@ -5930,7 +5930,7 @@
 				(hide yes)
 			)
 		)
-		(property "Manufacturer" "TI"
+		(property "Manufacturer" "Chipanalog"
 			(at 195.58 109.22 0)
 			(effects
 				(font
@@ -5939,7 +5939,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C2871529"
+		(property "LCSC" "C528656"
 			(at 195.58 109.22 0)
 			(effects
 				(font
@@ -7275,8 +7275,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "2c72d9fd-7a07-5aab-b503-e655539ab4a1")
-		(property "Reference" "R415"
+		(uuid "3bad3828-1754-54c0-8219-33b6a241012d")
+		(property "Reference" "R443"
 			(at 65.316 166.64 0)
 			(effects
 				(font
@@ -7285,7 +7285,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "100k"
+		(property "Value" "22k"
 			(at 65.316 169.24 0)
 			(effects
 				(font
@@ -7312,7 +7312,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "defined DOUT with all devices deselected"
+		(property "Description" "TMP126 3-wire SPI: MOSI reaches each SIO through 22k, SIO drives DOUT; 22k not 10k keeps the AD7124 DOUT load ~0.15 mA (spec at 0.1 mA); also defines DOUT when all are deselected (0036)"
 			(at 63.5 167.64 0)
 			(effects
 				(font
@@ -7321,7 +7321,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "0805W8F1003T5E"
+		(property "MPN" "0805W8F2202T5E"
 			(at 63.5 167.64 0)
 			(effects
 				(font
@@ -7330,7 +7330,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C149504"
+		(property "LCSC" "C17560"
 			(at 63.5 167.64 0)
 			(effects
 				(font
@@ -7340,15 +7340,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "dae3eea6-394c-51d0-9b69-9814609df6d8")
+			(uuid "5adc23e9-0a0e-55ac-86db-8845c7779165")
 		)
 		(pin "2"
-			(uuid "40a245c2-9cd7-5be0-9ffc-b84d48cbc2e3")
+			(uuid "2c311ecf-a11a-5568-8de2-1ba384cce3a1")
 		)
 		(instances
 			(project "thermo24"
 				(path "/396a983b-08a5-57c9-b07a-3d6ae939cc55/4bce2767-831f-5e10-a27a-e3e09fc61d98"
-					(reference "R415")
+					(reference "R443")
 					(unit 1)
 				)
 			)
@@ -7363,9 +7363,9 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "c93ed87c-0b30-5c83-8d25-96c3c2ec9c07")
+		(uuid "b3570880-b002-563e-a404-dbbfc90db40b")
 	)
-	(global_label "DOUT_ISO"
+	(global_label "DIN_ISO"
 		(shape bidirectional)
 		(at 63.5 161.29 90)
 		(fields_autoplaced yes)
@@ -7375,7 +7375,7 @@
 			)
 			(justify left)
 		)
-		(uuid "b40cadf3-1414-5c67-8ee0-ae4ecc7e9c6a")
+		(uuid "496f025a-5d0a-5c89-ad69-78349976b2eb")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 63.5 161.29 0)
 			(effects
@@ -7395,9 +7395,9 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "53d4642b-244a-51e2-8f48-fd37b57e954b")
+		(uuid "f448eec6-82f6-5025-8f91-2db833ffee1e")
 	)
-	(global_label "+3V3_ISO"
+	(global_label "DOUT_ISO"
 		(shape bidirectional)
 		(at 63.5 173.99 270)
 		(fields_autoplaced yes)
@@ -7407,7 +7407,7 @@
 			)
 			(justify right)
 		)
-		(uuid "e63b01c8-e464-5172-a1e0-00644b86a42d")
+		(uuid "57d6524f-cae5-53b0-b236-32b3c1b77f83")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 63.5 173.99 0)
 			(effects

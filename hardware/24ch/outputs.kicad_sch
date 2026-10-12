@@ -4183,7 +4183,7 @@
 		)
 		(uuid "827950b8-d588-586d-a0f1-fbcfb7b06a77")
 	)
-	(text "Isolated RS-485 / Modbus RTU (never in the trip path)"
+	(text "Isolated RS-485 / Modbus RTU (never in the trip path) - DNP: footprints only, fit when a site needs it (0036)"
 		(exclude_from_sim no)
 		(at 15 119.6124 0)
 		(effects
@@ -4192,7 +4192,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "13045f7a-09a7-5d0c-ab7f-c7e42d64b200")
+		(uuid "fd90ac48-36e4-5ba0-9b71-a4ffc1a57a77")
 	)
 	(text "Power flags (ERC only)"
 		(exclude_from_sim no)
@@ -7838,7 +7838,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "7777fe2e-5454-526e-9c37-1a871007cdad")
 		(property "Reference" "U703"
 			(at 27.94 128.68 0)
@@ -8507,7 +8507,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "c0ee69d0-9691-5f76-a98a-ea7e57d07c13")
 		(property "Reference" "R733"
 			(at 78.016 141.24 0)
@@ -8949,7 +8949,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "12c5a08c-a5e2-5f13-86a8-cac1526babee")
 		(property "Reference" "C735"
 			(at 114.592 138.7 0)
@@ -9100,7 +9100,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "eefe2dda-e25c-51da-a6bb-d9add535db74")
 		(property "Reference" "C736"
 			(at 129.832 141.24 0)
@@ -9229,7 +9229,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "3ca70a9c-552a-50c5-a483-d59bf338c12a")
 		(property "Reference" "C731"
 			(at 142.532 138.7 0)
@@ -9380,7 +9380,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "48d008c5-ac62-5399-b165-6e0494c553d6")
 		(property "Reference" "C732"
 			(at 157.772 138.7 0)
@@ -9531,7 +9531,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "2077835d-4486-5360-b3c6-beb1bd6c042b")
 		(property "Reference" "C733"
 			(at 170.472 141.24 0)
@@ -9660,7 +9660,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "3bd1bbc6-4a7a-5a2c-965f-d74337a5b992")
 		(property "Reference" "C734"
 			(at 183.172 141.24 0)
@@ -9789,7 +9789,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "5aa44f52-f0f0-558c-979e-ce6edf37f848")
 		(property "Reference" "D731"
 			(at 201.93 129.95 0)
@@ -9951,7 +9951,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "5b0ef3e0-67a9-5c37-9940-4a36b40e1b17")
 		(property "Reference" "JP731"
 			(at 253.53 126 0)
@@ -10080,7 +10080,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "f829e836-bc6c-5e68-aa16-9629e955c7f9")
 		(property "Reference" "R734"
 			(at 265.976 141.24 0)
@@ -10209,7 +10209,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "8c1bca08-0cef-567b-87fd-5fb52af560e2")
 		(property "Reference" "JP732"
 			(at 296.71 126 0)
@@ -10338,7 +10338,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "5d8d5739-667f-5fd2-af13-6df6ef6bbb57")
 		(property "Reference" "R735"
 			(at 311.696 141.24 0)
@@ -10467,7 +10467,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "5c2c9b64-0f33-5775-9799-834ffc9e9be7")
 		(property "Reference" "JP733"
 			(at 342.43 126 0)
@@ -10596,7 +10596,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "48893659-b75b-5bc5-8353-fa4368ae4a4e")
 		(property "Reference" "R736"
 			(at 354.876 141.24 0)
@@ -10725,7 +10725,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "94cf4924-d5db-5238-a135-640ce653ec0c")
 		(property "Reference" "J703"
 			(at 385.61 128.54 0)

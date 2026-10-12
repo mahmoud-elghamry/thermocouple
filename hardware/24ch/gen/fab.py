@@ -84,11 +84,14 @@ def drc_counts(out, pcb):
 def bom_cpl(out, pcb, sch):
     xml = os.path.join(out, "netlist.xml")
     run("sch", "export", "netlist", "--format", "kicadxml", "-o", xml, sch, out=xml)
-    lines = defaultdict(list)
+    lines, dnp = defaultdict(list), []
     for c in ET.parse(xml).getroot().iter("comp"):
         f = {x.get("name"): x.text or "" for x in c.iter("field")}
         fp = (c.findtext("footprint") or "").split(":")[-1]
         if not fp or c.get("ref").startswith(BARE):
+            continue
+        if any(p.get("name") == "dnp" for p in c.iter("property")):
+            dnp.append(c.get("ref"))     # footprint on the board, part not fitted (0036)
             continue
         key = (c.findtext("value"), fp, f.get("LCSC", ""), f.get("MPN", ""))
         lines[key].append(c.get("ref"))
@@ -98,18 +101,21 @@ def bom_cpl(out, pcb, sch):
         for (val, fp, lcsc, mpn), refs in sorted(lines.items(), key=lambda kv: kv[1][0]):
             w.writerow([val, ",".join(sorted(refs)), fp, lcsc, mpn, len(refs)])
     pos = os.path.join(out, "pos.csv")
-    run("pcb", "export", "pos", "--format", "csv", "--units", "mm", "--side", "both", "-o", pos, pcb, out=pos)
+    run("pcb", "export", "pos", "--format", "csv", "--units", "mm", "--side", "both", "--exclude-dnp",
+        "-o", pos, pcb, out=pos)
     with open(pos, encoding="utf-8") as fi, open(os.path.join(out, "CPL-JLCPCB.csv"), "w", newline="",
                                                    encoding="utf-8") as fo:
         r, w = csv.DictReader(fi), csv.writer(fo)
         w.writerow(["Designator", "Mid X", "Mid Y", "Layer", "Rotation"])
         for row in r:
-            if row["Ref"].startswith(BARE):
+            if row["Ref"].startswith(BARE) or row["Ref"] in dnp:
                 continue
             w.writerow([row["Ref"], row["PosX"] + "mm", row["PosY"] + "mm",
                         "Top" if row["Side"] == "top" else "Bottom", row["Rot"]])
     missing = [refs for (v, fp, l, m), refs in lines.items() if not l]
-    print(f"BOM: {len(lines)} lines; without LCSC code: {missing}")
+    with open(os.path.join(out, "DNP.txt"), "w", encoding="utf-8") as fh:
+        fh.write("Footprints on the board, parts NOT fitted (0036):\n" + " ".join(sorted(dnp)) + "\n")
+    print(f"BOM: {len(lines)} lines; without LCSC code: {missing}; DNP: {len(dnp)}")
     return len(lines), missing
 
 
@@ -142,6 +148,7 @@ ASSEMBLY
 - Top-side assembly. Use our paste layer as is: window-pane paste on the exposed pads (AD7124, LM5164);
   U601's exposed-pad vias are tented, no paste fill through them.
 - Wash the flux off after reflow.
+- DNP.txt lists footprints that stay EMPTY (RS-485 block, 0036): they are not in the BOM or CPL; do not fit them.
 - No part substitution without our written approval. Customs and shipping are yours.
 
 CONFORMAL COATING (I-105) - done by NORI if offered, otherwise by us after delivery

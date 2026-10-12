@@ -17,3 +17,4 @@ Modbus RTU is deferred | 0031 D7: isolated RS-485/Modbus fitted
 RS-485/Modbus RTU is a candidate | 0031 D7: isolated RS-485/Modbus fitted
 8-channel thermocouple protection unit | 0031: one 24-channel board
 finish23-silk | the board is hardware/24ch/thermo24.kicad_pcb (one file, no output/ copy)
+ADT7310 | 0036 D1: TMP126 cold-junction sensors

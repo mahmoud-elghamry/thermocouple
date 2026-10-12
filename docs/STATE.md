@@ -1,12 +1,22 @@
 # Current state
 
 **Read second, after AGENTS.md; then read all of ISSUES.md (P0 first). Hard limit: 60 lines.**
-**Last updated:** 2026-10-11 (workstation: doc sync, NORI answers, then the P0 repairs).
+**Last updated:** 2026-10-12 (workstation, branch `cheaper-parts`: cost-down variant `0036`).
+
+## Branch `cheaper-parts` (2026-10-12, `0036`) - the cost-down variant of the 24-ch board
+
+* TMP126 x6 (+ R443 22k DIN-DOUT, R415 gone), CA-IS3761HW x3, RS-485 block DNP (footprints kept,
+  `DNP.txt`), BOCHEN trimmer, SAMWHA 22u; external watchdog tried and removed. Parts ~$72/board.
+* Board edited incrementally (`gen/delta.py`, `capnear.py`, hand routes); TC traces cut by the first
+  delta run were restored from `output/bak/thermo24-pre-0036.kicad_pcb` (analog nets now identical to it).
+* Gates 2026-10-12: ERC 0/0 (471 symbols); `fab.py` DRC/unconnected/parity 0/0/0, pincaps 0 over, BOM 86
+  lines, DNP 16: `production/24ch-reva3-20261012-110400-6145a2` (tree DIRTY: commit first, then re-run fab).
+  `cost.py` not re-run (jlcsearch returned nothing 2026-10-12); cost by hand, `CALCULATIONS` 8.1.
+* Next: owner review, commit, fresh `fab.py`, I-123 stock check, NORI quote for this variant.
 
 ## Where we are
 
-* REV A2 (8ch, reference) passes every gate (below), FW 0.2.1; never ordered. Next order is the
-  24-ch **REV A3**. Superseded files are in `_old/` (see its README).
+* REV A2 (8ch, reference) passes every gate (below), never ordered; next order is the 24-ch **REV A3**.
 
 ## 2026-10-08: ONE 24-channel board (`0031`) — read it before any work
 
@@ -39,15 +49,8 @@ Then firmware P1 (I-118/119/104/100); bench P2 (I-120, I-101, I-105).
 
 ## Measured, not claimed (REV A2, before the shrink)
 
-| Check | Result |
-|---|---|
-| Workstation, 2026-10-09 | 8ch snapshot `production/validation-20261009-043553-906505`: ERC/DRC 0/0, netlist identical; firmware 4 builds / 3 suites PASS. Separate 24ch report above. |
-| `validate.ps1` 2026-10-06 22:09, after the cleanup | ERC 0/0; netlist IDENTICAL 202/163/647; 129/129 MPN match; DRC 0/0/0/0 (`production/validation-20261006-220958-ac80be`) |
-| `firmware/build.ps1` 2026-10-06, after the cleanup | 3 suites PASS; 4 images built (8ch FW 0.2.1, 5918 B on 2026-10-01) |
-| Cloud gates, 2026-10-07 | `make all test`: 4 targets/3 suites pass; ERC/DRC 0/0; netlist 202/163/647 identical; 129 MPN match; source unchanged (`production/validation-20261007-080427-e91cea`) |
-| Board area (pcbnew, 2026-10-06) | 250.1 x 140.1 mm; 193 parts, courtyards 67 cm² = 19 % |
-
-No physical qualification/SPICE. Git works; GitHub API HTTP 403.
+8-ch REV A2: ERC/DRC 0/0, netlist identical, firmware 4 builds / 3 suites PASS (2026-10-09 snapshot
+`production/validation-20261009-043553-906505`; history in git). No physical qualification/SPICE.
 
 ## Preserve for hardware work
 * Konnect is the only KiCad MCP (`0013`); run `board_provenance.py --check` before any board write, `--record` after.

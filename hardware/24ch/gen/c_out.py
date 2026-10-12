@@ -2,6 +2,7 @@
 from model import Part, Sheet, R, C, TP, NC
 
 C100N = ("CC0805KRX7R9BB104", "C49678")
+RS485_FITTED = {"R737", "R738"}   # DE pull-down and RxD pull-up keep the MCU pins defined
 TB3 = "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-3_1x03_P5.00mm_Horizontal"
 
 
@@ -61,7 +62,7 @@ def outputs():
             relay(1, "RUN", "RUN_PERMIT", "RUN_SENSE", ("3A4GUD", "C52034646")))
     s.block("Alarm relay (warning, never stops the engine by itself)",
             relay(2, "ALARM", "ALARM_DRIVE", "ALARM_SENSE", ("204-10SURD/S530-A3-L", "C99771")))
-    s.block("Isolated RS-485 / Modbus RTU (never in the trip path)", [
+    s.block("Isolated RS-485 / Modbus RTU (never in the trip path) - DNP: footprints only, fit when a site needs it (0036)", [
         Part("U703", "Interface_UART:ADM2587E", "ADM2587EBRWZ", {
             "GND1": "GND", "VCC": "+5V", "RxD": "UART_RX", "~{RE}": "RS485_RE_N",
             "DE": "RS485_DE", "TxD": "UART_TX", "GND2": "GND_RS485", "Visoout": "+3V3_RS485",
@@ -92,5 +93,8 @@ def outputs():
              "WJ128V-5.0-3P", "C8270", "KANGNEX",
              "cable shield bonds at the panel-entry bar, like the TC shields"),
     ])
+    for part in s.blocks[-1][1]:           # footprints stay, parts are fitted on demand (0036)
+        if part.ref not in RS485_FITTED:
+            part.dnp = True
     s.flags = ["GND_RS485"]
     return s

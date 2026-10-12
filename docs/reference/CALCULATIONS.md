@@ -866,3 +866,39 @@ With the schematic's actual backlight resistor R502 = 22 ohm (7.2 assumed
 5 V worst becomes 533.5 - 85 = **448.5 mA** and the 9 V battery current
 5.25 x 0.449 / (0.85 x 8.0) = **0.347 A (23 % margin on F1 at 70 degC)**. Keep
 R502 >= 22 ohm unless the bought LCD proves too dim; then re-run this line.
+
+## 8. Cheaper-parts variant (decisions/0036), 2026-10-12
+
+### 8.1 Parts cost per board
+
+Inputs: `hardware/24ch/output/cost.csv` (2026-10-09, LCSC 10-piece prices, total $104.91) and LCSC
+listings read 2026-10-12 (`production/review-20261012-cheaper/*.md`).
+
+    ADT7310 x6 -> TMP126DCKR x6     6 x (5.4045 - 2.2415)      = -18.98
+    ISO7761 x3 -> CA-IS3761HW x3    3 x (2.9219 - 1.61)        =  -3.94
+    RS-485 block DNP (16 parts)     ADM2587E 7.645 + SM712 0.43 + J703 0.21 + caps/R/JP ~0.36 = -8.64
+    3296W trimmer -> BOCHEN         0.96 - 0.19                =  -0.77
+    22u 1210 x2 -> SAMWHA           2 x (0.36 - 0.16)          =  -0.40
+    R415 removed, R443 22k added                                ~  0.00
+    total                                                       = -32.73  ->  104.91 - 32.73 = **$72.2**
+
+At the real order quantity (10 boards buy 30-510 pieces of a line; `frontend-alternatives.md`):
+AD7124-8 $8.79 at 30 (-3.6), BAV199 $0.0293 at 300 (-2.5), TMP126 $1.99 at 30 (-1.5): **~$64.6**.
+Verdict: about 38 % off the parts. Bare PCB, assembly, accessories and freight are not in this figure.
+
+### 8.2 Supply budget effect
+
+* RS-485 not fitted: the 150 mA ADM2587E allowance of 7.7 leaves the 5 V load (worst ~0.30 A instead
+  of 0.449 A). Keep 7.7's 0.449 A as the design case: a site may fit the block later (0036 D2).
+* Island: ADT7310 worst 3.0 mA total (7.7) is replaced by six TMP126, each below that figure per
+  the TI datasheet (supply current per conversion, not re-derived here); R443 adds at most
+  3.3 V / 22k = 0.15 mA. The island worst of 7.7 does not rise. Unverified: TMP126 current at
+  the conversion rate the firmware will use.
+
+### 8.3 TMP126 write timing through R443 (review item c)
+
+    tau = 22k x ~180 pF (bus: 6 TMP126 + 3 AD7124 + isolator + trace, estimated) = ~4 us
+    a written bit must settle ~3 tau = 12 us -> SCLK <= ~40 kHz for TMP126 writes with 22k
+The review computed 125 kHz for 10k; 22k halves that. Writes are one 16-bit command per read,
+6 sensors per scan: 6 x 32 bits / 40 kHz = ~5 ms per scan, inside the ~0.62 s budget (I-119).
+Reads (TMP126 drives SIO directly) and all AD7124 traffic are not slowed. Firmware note (I-119).

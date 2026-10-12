@@ -1,4 +1,4 @@
-"""One acquisition bank: 8 thermocouple inputs, AD7124-8, two ADT7310.
+"""One acquisition bank: 8 thermocouple inputs, AD7124-8, two TMP126 (0036).
 
 Decision 0032 (rev 2): per leg TC -> 2.2k -> BAV199 to the island rails ->
 1k -> AIN; 10n differential and 1n per leg at the ADC; 20M from the TC-
@@ -84,11 +84,11 @@ def bank(b):
     cj = []
     for i in range(2):
         j = 2 * (b - 1) + i + 1
-        cj.append(Part(f"U{u+2+i}", "thermo24:ADT7310", "ADT7310TRZ", {
-            "SCLK": "SCLK_ISO", "DIN": "DIN_ISO", "DOUT": "DOUT_ISO", "~{CS}": f"CS_CJ{j}_ISO",
-            "~{INT}": NC, "~{CT}": NC, "VDD": ISO, "GND": GND},
-            "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm", "ADT7310TRZ-REEL7", "C578060", "ADI",
-            f"cold junction at the seam of header J{100*b+1+i}"))
+        cj.append(Part(f"U{u+2+i}", "thermo24:TMP126", "TMP126DCKR", {
+            "SCLK": "SCLK_ISO", "SIO": "DOUT_ISO", "~{CS}": f"CS_CJ{j}_ISO",
+            "ALERT": GND, "VDD": ISO, "GND": GND},
+            "Package_TO_SOT_SMD:SOT-363_SC-70-6", "TMP126DCKR", "C5219998", "TI",
+            f"cold junction at header J{100*b+1+i}; SIO on DOUT, written through R443; ALERT unused, grounded (datasheet allows) (0036)"))
         cj.append(C(f"C{u+99-9*i}", "100n", ISO, GND, "CC0805KRX7R9BB104", "C49678"))
     s.block("Cold-junction sensors (one per 4-channel header)", cj)
     return s

@@ -3800,7 +3800,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "CL32B226KAJNNNE"
+		(property "MPN" "CS3225X7R226K250NRL"
 			(at 96.52 83.82 0)
 			(effects
 				(font
@@ -3809,7 +3809,16 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C309062"
+		(property "Manufacturer" "SAMWHA"
+			(at 96.52 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C2918511"
 			(at 96.52 83.82 0)
 			(effects
 				(font
@@ -3951,7 +3960,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "CL32B226KAJNNNE"
+		(property "MPN" "CS3225X7R226K250NRL"
 			(at 114.3 83.82 0)
 			(effects
 				(font
@@ -3960,7 +3969,16 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C309062"
+		(property "Manufacturer" "SAMWHA"
+			(at 114.3 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C2918511"
 			(at 114.3 83.82 0)
 			(effects
 				(font
