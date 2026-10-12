@@ -10,7 +10,8 @@
 * Board edited incrementally (`gen/delta.py`, `capnear.py`, hand routes); TC traces cut by the first
   delta run were restored from `output/bak/thermo24-pre-0036.kicad_pcb` (analog nets now identical to it).
 * Terminals J601/J701/J702/J703 turned to face the edge (`0036` D7); supplier files are an RFQ (D8).
-  Gates and the release folder for NORI: next line (written after the release run).
+  Release for NORI: **`production/24ch-reva3-20261012-205016-b7ff12`** (git 5fb185c, clean; DRC 0/0/0,
+  pincaps 0 over, BOM 86 lines/426 parts, DNP 16); the zip sent is `production/NORI-thermo24-20261012.zip`.
 * Next: I-123 stock check and NORI quote for this variant (older sets are in `_OLD_DO_NOT_ORDER`).
 
 ## Where we are
