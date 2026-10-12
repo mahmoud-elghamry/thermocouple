@@ -55,6 +55,19 @@ ADS1248 x6 instead of AD7124 (-$5, full re-route); Chinese 24-bit ADCs (no burno
 CRC confirmed); 2-layer PCB (`0028`, uV island). Fab choice (NORI ~$220 vs JLCPCB ~$55 bare for
 10, `pcb-and-similar-boards.md`) is the owner's, outside this decision.
 
+**D7 - Screw terminals J601, J701, J702, J703 turned 180 deg: wire entry at the board edge** (owner
+spotted it in the 3D view, 2026-10-12). They faced into the board with the relays ~2 mm in front: no
+wire could go in. Turned about the middle pin, pin numbers swapped in the schematic (pin 3 <-> 1), so
+each position keeps its net, its silkscreen label and its copper. J703's back then touched the RS-485
+row: C733/C734/C736/R734/R735/D731 moved 0.5 mm with their track ends; BIAS_B rerouted around pin 1.
+The part fits either way round, so ORDER-NOTES names the direction.
+
+**D8 - Supplier files are a request for a quotation, not conditions** (owner, 2026-10-12). LCSC codes
+are reference part numbers; equivalents welcome; preferences stated as preferences; a word asked before
+replacing the few accuracy parts. BOM/CPL renamed `BOM.csv`/`CPL.csv`; the supplier's ACCESSORIES.csv
+carries only what they could supply, without internal notes. Design sources (KiCad files, schematic
+PDF) are not sent unless asked.
+
 ## Consequences
 
 * Parts ~$105 -> ~$72/board at 10-piece prices, ~$65 at the real order quantity (CALCULATIONS 8.1).

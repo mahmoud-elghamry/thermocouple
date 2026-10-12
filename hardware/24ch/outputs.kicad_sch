@@ -6204,7 +6204,7 @@
 		)
 		(uuid "4108b67f-f8af-5490-b33f-0fe17fdad208")
 	)
-	(label "TRIP_COM"
+	(label "TRIP_NC"
 		(at 294.64 27.94 180)
 		(effects
 			(font
@@ -6246,7 +6246,7 @@
 		)
 		(uuid "d426b6b3-03d8-5c80-a4bb-5d6f208e2678")
 	)
-	(label "TRIP_NC"
+	(label "TRIP_COM"
 		(at 294.64 33.02 180)
 		(effects
 			(font
@@ -7779,7 +7779,7 @@
 		)
 		(uuid "9c33dff2-1033-55f3-b5d9-087f7f4cd2ba")
 	)
-	(label "ALM_COM"
+	(label "ALM_NC"
 		(at 223.52 78.74 180)
 		(effects
 			(font
@@ -7821,7 +7821,7 @@
 		)
 		(uuid "cc681bee-5c1f-5b2c-a2ec-8db750f96c68")
 	)
-	(label "ALM_NC"
+	(label "ALM_COM"
 		(at 223.52 83.82 180)
 		(effects
 			(font
@@ -10828,7 +10828,7 @@
 		)
 		(uuid "faa927ec-d8c9-5cd3-a16f-7ea1efbf8beb")
 	)
-	(label "RS485_A"
+	(label "GND_RS485"
 		(at 375.92 127 180)
 		(effects
 			(font
@@ -10870,7 +10870,7 @@
 		)
 		(uuid "9a6f90fe-29ab-5472-bb10-77b20598c64d")
 	)
-	(label "GND_RS485"
+	(label "RS485_A"
 		(at 375.92 132.08 180)
 		(effects
 			(font

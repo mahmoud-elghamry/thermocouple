@@ -51,7 +51,7 @@ def relay(n, label, drive, sense, led):
           desc="read-back: low when the coil is energised"),
         C(f"C{b+3}", "100n", sense, "GND", *C100N),
         Part(f"J{700+n}", "Connector_Generic:Conn_01x03", f"{p} C-NO-NC",
-             {"1": f"{p}_COM", "2": f"{p}_NO", "3": f"{p}_NC"}, TB3,
+             {"3": f"{p}_COM", "2": f"{p}_NO", "1": f"{p}_NC"}, TB3,   # turned 180 deg: entry at the edge (0036 D7)
              "WJ128V-5.0-3P", "C8270", "KANGNEX", "30 VDC / 1 A max, signal loads only"),
     ]
 
@@ -89,7 +89,7 @@ def outputs():
              "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical", "PZ254V-11-02P", "C492401"),
         R("R736", "680R 1%", "RS485_BIAS_B", "GND_RS485", "0805W8F6800T5E", "C17798"),
         Part("J703", "Connector_Generic:Conn_01x03", "RS485 A B GND",
-             {"1": "RS485_A", "2": "RS485_B", "3": "GND_RS485"}, TB3,
+             {"3": "RS485_A", "2": "RS485_B", "1": "GND_RS485"}, TB3,   # turned 180 deg (0036 D7)
              "WJ128V-5.0-3P", "C8270", "KANGNEX",
              "cable shield bonds at the panel-entry bar, like the TC shields"),
     ])

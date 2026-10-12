@@ -36,7 +36,8 @@ def netlist():
         props = {p.get("name"): p.get("value") for p in c.iter("property")}
         fields = {f.get("name"): f.text or "" for f in c.iter("field")}
         comps[c.get("ref")] = dict(fp=c.findtext("footprint") or "", value=c.findtext("value"),
-                                   mpn=fields.get("MPN", ""), lcsc=fields.get("LCSC", ""), dnp="dnp" in props)
+                                   mpn=fields.get("MPN", ""), lcsc=fields.get("LCSC", ""),
+                                   mfr=fields.get("Manufacturer", ""), dnp="dnp" in props)
     for n in root.iter("net"):
         for node in n.iter("node"):
             pads[(node.get("ref"), node.get("pin"))] = n.get("name")
@@ -53,6 +54,17 @@ def own_tracks(b, fp):
                 hit.append(t)
                 break
     return hit
+
+
+def set_field(f, name, val):
+    """Field text like the rest of the board: on F.Fab, hidden (never printed on the silkscreen)."""
+    find = lambda: next((x for x in f.GetFields() if x.GetName() == name), None)
+    if find() is None:
+        f.SetField(name, val)
+    fld = find()
+    fld.SetText(val)
+    fld.SetLayer(pcbnew.F_Fab)
+    fld.SetVisible(False)
 
 
 def load_fp(fpid):
@@ -120,9 +132,12 @@ def main(args):
                 b.Add(new)
             f = new
         f.SetValue(c["value"])
-        for k in ("mpn", "lcsc"):
-            if c[k]:
-                f.SetField(k.upper(), c[k])
+        for name, val in (("MPN", c["mpn"]), ("LCSC", c["lcsc"]), ("Manufacturer", c["mfr"])):
+            if val:
+                set_field(f, name, val)
+        if f is not onboard.get(ref):      # a new or replaced footprint follows the board's text style
+            f.Reference().SetVisible(False)
+            f.Value().SetVisible(False)
         if f.IsDNP() != c["dnp"]:
             log.append(f"dnp {ref} -> {c['dnp']}")
             f.SetDNP(c["dnp"])

@@ -9,10 +9,9 @@
   `DNP.txt`), BOCHEN trimmer, SAMWHA 22u; external watchdog tried and removed. Parts ~$72/board.
 * Board edited incrementally (`gen/delta.py`, `capnear.py`, hand routes); TC traces cut by the first
   delta run were restored from `output/bak/thermo24-pre-0036.kicad_pcb` (analog nets now identical to it).
-* Gates 2026-10-12: ERC 0/0 (471 symbols); `fab.py` DRC/unconnected/parity 0/0/0, pincaps 0 over, BOM 86
-  lines, DNP 16: **`production/24ch-reva3-20261012-195222-6145a2`** (git e5059ce, tree clean) - the set for NORI.
-  `cost.py` not re-run (jlcsearch returned nothing 2026-10-12); cost by hand, `CALCULATIONS` 8.1.
-* Next: I-123 stock check and NORI quote for this variant (the 110400 set is in `_OLD_DO_NOT_ORDER`).
+* Terminals J601/J701/J702/J703 turned to face the edge (`0036` D7); supplier files are an RFQ (D8).
+  Gates and the release folder for NORI: next line (written after the release run).
+* Next: I-123 stock check and NORI quote for this variant (older sets are in `_OLD_DO_NOT_ORDER`).
 
 ## Where we are
 

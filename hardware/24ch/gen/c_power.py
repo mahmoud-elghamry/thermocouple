@@ -8,7 +8,7 @@ def power():
     s = Sheet("POWER", "power.kicad_sch", "Battery input and 5 V buck", "A3")
     s.block("Battery input: external panel fuse (0020), PTC, reverse and surge protection", [
         Part("J601", "Connector_Generic:Conn_01x03", "24V IN",
-             {"1": "+24V_RAW", "2": "GND", "3": "CHASSIS"},
+             {"3": "+24V_RAW", "2": "GND", "1": "CHASSIS"},   # turned 180 deg, wire entry at the board edge (0036 D7)
              "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-3_1x03_P5.00mm_Horizontal",
              "WJ128V-5.0-3P", "C8270", "KANGNEX"),
         Part("F601", "Device:Polyfuse", "0.75A 60V", {"1": "+24V_RAW", "2": "+24V_FUSED"},
