@@ -11,8 +11,8 @@
   delta run were restored from `output/bak/thermo24-pre-0036.kicad_pcb` (analog nets now identical to it).
 * Terminals J601/J701/J702/J703 turned to face the edge (`0036` D7); supplier files are an RFQ (D8).
   Release for NORI: **`production/24ch-reva3-20261012-205016-b7ff12`** (git 5fb185c, clean; DRC 0/0/0,
-  pincaps 0 over, BOM 86 lines/426 parts, DNP 16); the zip sent is `production/NORI-thermo24-20261012.zip`.
-* Next: I-123 stock check and NORI quote for this variant (older sets are in `_OLD_DO_NOT_ORDER`).
+  pincaps 0 over, BOM 86 lines/426 parts, DNP 16); zip to send: `production/NORI-thermo24-20261014.zip` (adds ASSEMBLY-SPEC.pdf).
+* JLCPCB turnkey quote 2026-10-14 (CALCULATIONS 8.4): 10 boards $897 + ship, 5 $572. Next: NORI quote to compare.
 
 ## Where we are
 

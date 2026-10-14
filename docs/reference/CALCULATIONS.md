@@ -902,3 +902,25 @@ Verdict: about 38 % off the parts. Bare PCB, assembly, accessories and freight a
 The review computed 125 kHz for 10k; 22k halves that. Writes are one 16-bit command per read,
 6 sensors per scan: 6 x 32 bits / 40 kHz = ~5 ms per scan, inside the ~0.62 s budget (I-119).
 Reads (TMP126 drives SIO directly) and all AD7124 traffic are not slowed. Firmware note (I-119).
+
+### 8.4 JLCPCB turnkey quote, read 2026-10-14 (quote only, nothing ordered)
+
+Owner uploaded the Gerbers of release `24ch-reva3-20261012-205016-b7ff12` and signed in; BOM/CPL
+of the same release entered on cart.jlcpcb.com. Settings: 4L FR-4 1.6 mm, ENIG 1U", flying-probe
+test, Standard PCBA top side (Economic refused: THT parts), JLC adds 2 x 5 mm rails (170 x 155).
+All 86 BOM lines matched to the given LCSC codes (72 unique), no shortfall, LM5164 included.
+"Confirm Parts Placement" and "Confirm production file" auto-selected at $0.
+
+| USD | 5 boards | 10 boards |
+|---|---|---|
+| PCB (eng. fee 25 + ENIG + board) | 60.90 | 80.20 |
+| Setup 25.75 + stencil 8.27 + feeders 93.00 (fixed) | 127.02 | 127.02 |
+| Components (72 items, incl. attrition) | 358.59 | 645.78 |
+| SMT + hand-solder 3.61 + manual (THT) + packaging | 25.18 | 44.20 |
+| **Total ex shipping** | **571.69 (114.3/board)** | **897.20 (89.7/board)** |
+| Weight | 2.28 kg | 3.63 kg |
+| Shipping to Egypt (jlcpcb.com/shipping): FedEx 6-8 d / UPS 3-5 d / DHL 2-5 d | 59.63 / 77.46 / 108.43 | 80.64 / 107.85 / 150.96 |
+
+Bare boards only (no rails, 0.55 kg / 0.98 kg): leaded HASL 40.30 / 55.40, lead-free HASL 45.90 /
+61.60, ENIG 59.70 / 77.70; UPS to Egypt ~$47. Import duties/VAT in Egypt are not included (the
+calculator does not mark Egypt DDP): UNVERIFIED. Build: PCB 3 days + assembly 5-6 days + transit.

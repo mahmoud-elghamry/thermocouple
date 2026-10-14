@@ -66,7 +66,9 @@ The part fits either way round, so ORDER-NOTES names the direction.
 are reference part numbers; equivalents welcome; preferences stated as preferences; a word asked before
 replacing the few accuracy parts. BOM/CPL renamed `BOM.csv`/`CPL.csv`; the supplier's ACCESSORIES.csv
 carries only what they could supply, without internal notes. Design sources (KiCad files, schematic
-PDF) are not sent unless asked.
+PDF) are not sent unless asked. NORI asked for the assembly specification in one file (2026-10-14):
+`ASSEMBLY-SPEC.pdf` (`gen/assembly_spec.py`) adds the power-on test - 24 V, current-limited, expected
+voltages at the 11 test points, GND-GNDI open - and what we ask back with the boards.
 
 ## Consequences
 

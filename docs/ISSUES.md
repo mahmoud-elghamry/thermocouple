@@ -34,7 +34,7 @@ Severity: **blocker** stops fabrication · **high** is a real failure mode ·
 | # | Sev | Issue | Close when |
 |---|---|---|---|
 | I-078 | medium | **Send the release to NORI and review the quote.** Release `production/24ch-reva3-20261011-094327-940d10/` (git 7c7e25c, tree clean, DRC 0/0/0, pincaps 0, BOM 94 lines all LCSC): send the zip, BOM, CPL, ORDER-NOTES and ACCESSORIES.csv. NORI reads stock on the day and asks before any substitution (ORDER-NOTES; was I-103). Earlier: bare 4-layer EGP 8,710 for 5 / 11,500 for 10 (2026-10-09), parts ~$105/board (`gen/cost.py`). | NORI quote (PCB + assembly + each ACCESSORIES line covered or excluded) reviewed with the owner |
-| I-123 | medium | **Stock on the day of the order** (lookup 2026-10-12): LM5164DDAR C477928 not in LCSC's own stock (other suppliers $1.89, 7-9 days); R401 150R 1206 C17917 only 6 pcs (10 boards need 10); TMP126 688, CA-IS3761HW 2,058. Applies to the main-branch NORI order too. | The fab confirms every line, or an approved alternate is recorded |
+| I-123 | medium | **Stock on the day of the order** (lookup 2026-10-12): LM5164DDAR C477928 not in LCSC's own stock (other suppliers $1.89, 7-9 days); R401 150R 1206 C17917 only 6 pcs (10 boards need 10); TMP126 688, CA-IS3761HW 2,058. Applies to the main-branch NORI order too. JLCPCB turnkey quote 2026-10-14: all 72 lines matched, no shortfall, LM5164 and R401 included (CALCULATIONS 8.4). | The fab confirms every line, or an approved alternate is recorded |
 
 ## P1 — before a unit protects a machine
 

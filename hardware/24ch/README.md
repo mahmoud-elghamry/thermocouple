@@ -49,6 +49,7 @@ Run with KiCad's python (`C:/Program Files/KiCad/10.0/bin/python.exe`), in order
 | - | `guard.py`, `fab.py` | `guard.py`: write guard for every tool that saves the board (refuses while KiCad has it open or another tool holds `output/.writer.json`; `guard.sha256`). `fab.py`: a NEW `production/24ch-reva3-<time>-<sha6>/` per run, DRC and plots on a snapshot copy (source never saved), `MANIFEST.txt` (commit, hashes, DRC, KiCad version), `ORDER-NOTES.txt` (I-106/I-105) |
 | 7 | `buck24.py`, `move.py`, `capnear.py`, `fiducials.py`, `vbias_pour.py`, `silk.py` | **local repairs (`0034` D3, `0035`)**: buck stage, move parts, put a cap beside its pin (`capnear.py U403 1 C407 --apply`, `capnear.py via REF PAD`), fiducials, V_BIAS guard pours, silkscreen; then `finish.py dangling`/`dedupe`, `maze.py`, `pincaps.py` |
 | - | `cost.py`, `view.py`, `kicad_ui.ps1`, `padcheck.py` | BOM cost from LCSC (skips DNP); render a region; drive the KiCad GUI; pad-gap check before routing |
+| - | `assembly_spec.py` | `ASSEMBLY-SPEC.pdf` for the assembler: build preferences, power-on test with expected test-point values and map, what we ask back (`0036` D8; needs PyMuPDF, `py -3`) |
 | - | `delta.py` | carry a schematic change onto the routed board: replace/add/remove footprints, re-net pads, DNP flags, `OLD>NEW@DEG` reuse (`0036`) |
 
 Domains: sensor island = x < 42 or y > 103 (mm, y down); barrier bands x 42-45

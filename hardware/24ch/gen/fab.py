@@ -163,6 +163,8 @@ FILES
 - CPL.csv              : placement list (all parts on the top side).
 - DNP.txt              : footprints that stay empty on this order (not in the BOM or CPL).
 - ACCESSORIES.csv      : loose items (mating plugs, standoffs). Please quote them if you can supply them.
+- ASSEMBLY-SPEC.pdf    : the full build preferences, the power-on test with expected values, and
+                         what we would like back with the boards.
 
 PCB (preferred)
 - FR4, 1.6 mm, 1 oz copper on all layers, ENIG finish (several fine-pitch and exposed-pad parts).
