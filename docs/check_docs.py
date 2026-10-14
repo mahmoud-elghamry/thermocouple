@@ -11,6 +11,7 @@ product (Astra R-10, I-117). This catches the mechanical part of that drift:
 3. every decision number named in an entry document has a file;
 4. every decision file has a Status line;
 5. no phrase listed in docs/superseded.txt appears in an entry document.
+A new product's STATE.md is added to PRODUCT_STATE (0037 D4).
 
 Run: python docs/check_docs.py   (exit 0 = clean; 1 = findings printed)
 """
@@ -19,9 +20,10 @@ import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PRODUCT_STATE = ["hardware/24ch/STATE.md", "hardware/8ch/STATE.md", "firmware/STATE.md"]   # 0037 D4
 ENTRY = ["AGENTS.md", "README.md", "docs/GOAL.md", "docs/STATE.md", "docs/ISSUES.md",
-         "hardware/24ch/README.md"]
-LIMITS = {"AGENTS.md": 150, "docs/STATE.md": 60, "docs/GOAL.md": 120}
+         "hardware/24ch/README.md"] + PRODUCT_STATE
+LIMITS = {"AGENTS.md": 150, "docs/STATE.md": 60, "docs/GOAL.md": 120, **{s: 60 for s in PRODUCT_STATE}}
 ROW = re.compile(r"^\| (I-\d{3}) \|", re.M)
 
 

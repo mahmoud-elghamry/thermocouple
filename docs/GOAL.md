@@ -12,8 +12,8 @@ alone. Changes go through `docs/decisions/`. Status column synced to `0031`-`003
 
 A system that reads **24 K-type thermocouples** on **one 24-channel board**
 (owner, 2026-10-08, `decisions/0031`; replaces three modules, `0024`). Any channel
-trip opens the potential-free shutdown contact. A standalone 8-channel unit is the
-same board partly fitted.
+trip opens the potential-free shutdown contact. The owner added (2026-10-14, `0037`) an
+8-channel option and a 36-channel board in the same family: same architecture, 1 or 5 banks.
 
 It is going onto real equipment. It is not a demonstration.
 
@@ -47,7 +47,7 @@ That rationale must be rechecked if channel assignment spans different machines.
 | R-6 | Detect a broken sensor (each channel checked about every 4 s) | **Open sensor trips by default**; "alarm only" is a deliberate, saved per-channel setting the display shows (owner 2026-10-09, `0034` D1; replaces `0031` D5's open default). Wire-to-wire or wire-to-sheath shorts can read plausibly on any two-wire front end; see `I-011` |
 | R-7 | Survive an engine installation and 50 m cable runs | **not proven — needs measurement** |
 | R-8 | Each channel has its own operator-settable persistent setpoint; values chosen at commissioning | Accepted 2026-10-07 (`0029`); the 24-ch firmware is not written yet; the 8-ch firmware has one shared limit (I-100) |
-| R-9 | Communication with a PLC/SCADA master | Isolated RS-485 / Modbus RTU fitted on the board (`0031` D7, I-094); protocol not written; never in the trip path (I-086) |
+| R-9 | Communication with a PLC/SCADA master | Isolated RS-485 / Modbus RTU fitted on the board (`0031` D7, I-094; owner 2026-10-14 keeps it fitted, reversing `0036` D2); protocol not written; never in the trip path (I-086) |
 
 ## What it must not do
 

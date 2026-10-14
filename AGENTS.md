@@ -1,4 +1,4 @@
-# Thermo — 24-channel protection system; current board has 8 channels
+# Thermo — thermocouple protection boards: one family of 8, 24 and 36 channels
 
 Read this file first. It is the entry point for every agent and every new
 session. Follow the AGENTS.md open standard, so Codex, Cursor, Copilot and
@@ -11,13 +11,12 @@ others read it directly; `CLAUDE.md` imports it for Claude Code.
 
 ## What this project is
 
-A protection system for **24 K-type thermocouples** (owner clarified 2026-09-29).
-**`hardware/24ch/` (REV A3) is the active board** (routed, fab set 2026-10-09, repairs open: I-111..I-116);
-`hardware/8ch/` (REV A2) is the earlier eight-channel board, kept as reference.
-**`0031` (2026-10-08): ONE 24-channel board, 3x AD7124-8 front end (grounded,
-insulated or mixed probes), all parts from one source. Read `0031` first: it
-holds the agents' work split and supersedes most of `0030` and `0024`.**
-Any of the 24 channels trips the common run-permit contact.
+A protection system for **K-type thermocouples** on engines. **`0037` (2026-10-14): one board
+family on the 24-ch architecture** - banks of one AD7124-8 each: 8 ch = 1 bank, 24 ch = 3, 36 ch = 5 -
+and **one firmware** for all of them. **`hardware/24ch/` (REV A3, cost-down variant `0036`) is the
+board being ordered**; `0031` holds its architecture (grounded, insulated or mixed probes).
+`hardware/8ch/` (REV A2, MAX31856) is reference; a new 8-ch and a 36-ch board derive from the 24-ch one.
+Any channel trips the common run-permit contact.
 Earlier eight-channel basis: cylinder-body probes, roughly 50 m cables, no VFD.
 Per-channel persistent setpoints and manual ACK are required (`0029`); the 24-ch firmware is not written yet (I-100).
 Supply: engine battery, nominal 24 V (`0016`). HMI selection/mounting is delegated to the design team (`0029`).
@@ -31,7 +30,7 @@ contact opens and the machine cannot start.
 | File | What it holds | Who owns it |
 |---|---|---|
 | `docs/GOAL.md` | the goal and the requirements | the user |
-| `docs/STATE.md` | what is done, what is next — **read this second** | whoever worked last |
+| `docs/STATE.md` | index of the products — **read this second**, then the product's own `STATE.md` (`hardware/<board>/`, `firmware/`) | whoever worked last |
 | `docs/ISSUES.md` | open problems by priority P0-P3, short rows (`0025`) — **read all of it third** | anyone |
 | `docs/ISSUES-closed.md` | archive of closed issues | anyone |
 | `docs/decisions/` | one file per decision, MADR format | whoever decided |
@@ -40,24 +39,26 @@ contact opens and the machine cannot start.
 | `docs/reference/` | long background documents | reference only |
 
 Do not add a new file to `docs/` for your own notes. Findings go into
-`docs/ISSUES.md`, decisions into `docs/decisions/`, progress into
-`docs/STATE.md`. A review that lives in its own file gets read once and then
+`docs/ISSUES.md` (new rows tagged [24ch]/[8ch]/[36ch]/[fw]/[all]), decisions into `docs/decisions/`,
+progress into the product's `STATE.md`. A review that lives in its own file gets read once and then
 rots — that has already happened here once.
 
 ## Repository layout
 
 ```
-hardware/24ch/            the 24-channel board - THE ACTIVE HARDWARE WORK (README there)
-hardware/8ch/             the 8-channel board REV A2 - reference
+hardware/24ch/            the 24-channel board REV A3 - being ordered (README, STATE.md there)
+hardware/8ch/             the 8-channel board REV A2 - reference; the new 8-ch derives from 24ch
+hardware/36ch/            the 36-channel board - not created yet (0037)
 hardware/single-channel/  superseded board, kept for reference - DO NOT MODIFY
-firmware/                 AVR C, host unit tests; 8-ch images only so far (24-ch board: ATmega1284P)
+firmware/                 AVR C, host unit tests; 8-ch REV A2 images so far; one family firmware next
 simulation/               Proteus simulation project
 production/               fabrication output - generated, never committed
 _old/                     superseded files, reference only - never build or order from it
 docs/                     see the table above
 ```
 
-Sources are tracked; anything a script regenerates is not. Gerbers, drill and
+Products are folders, not branches (`0037` D3): `main` is the official line; a chat works in its own
+branch and the owner merges. Sources are tracked; anything a script regenerates is not. Gerbers, drill and
 placement files, renders and netlists belong in `production/` or are ignored.
 
 ## Rules
@@ -71,7 +72,8 @@ placement files, renders and netlists belong in `production/` or are ignored.
    review. **Never merge, even if subsequently requested** (owner, cloud session).
 4. **Firmware is in scope.** Several open issues are firmware faults with
    safety consequences; a PCB-only reading of a task is too narrow.
-5. **Update `docs/STATE.md` before you finish**, and run `python docs/check_docs.py` (exit 0).
+5. **Update your product's `STATE.md` before you finish** (and the index `docs/STATE.md` only when a
+   headline changes), and run `python docs/check_docs.py` (exit 0).
 6. **Record decisions.** If you chose between real alternatives — a part, an
    architecture, a tolerance — add a file to `docs/decisions/`. Include what you
    rejected and why. **A decision that replaces an earlier one sweeps GOAL, README,
@@ -109,7 +111,7 @@ placement files, renders and netlists belong in `production/` or are ignored.
    The usage limit is background, not the plan: work normally. If your tool
    warns that the session or weekly limit is close and nobody is answering,
    finish the step in hand, leave the tree consistent (gates re-run or the
-   change reverted), update `docs/STATE.md`, and stop. Never stop halfway
+   change reverted), update the product's `STATE.md`, and stop. Never stop halfway
    through a write to the board or schematic.
 
 ## Build and check
