@@ -177,6 +177,7 @@ If not, we will do it ourselves.</p>
 
 <h2>12. Accessories (ACCESSORIES.csv)</h2>
 <p>Mating plugs 3.81 mm 8-pin x6 and 2-pin x1, XH 6-pin housing with contacts, LCD 16-pin socket,
+2.54 mm jumper shunts x3 (loose, for JP731-JP733),
 M3 x 10 standoffs. If you also have the 3.81 mm plugs and headers in other colours, please quote them.</p>
 """
 

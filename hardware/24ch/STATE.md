@@ -7,11 +7,11 @@
 
 * REV A3, cost-down variant `0036` is the official 24-ch board (the original parts: tag `24ch-premium`).
   TMP126 x6 (+ R443 22k DIN-DOUT), CA-IS3761HW x3, RS-485 block DNP (footprints kept), BOCHEN trimmer,
-  SAMWHA 22u (RS-485 DNP was reverted by the owner 2026-10-14, see Next 0). Parts ~$72/board at 10-piece prices (CALCULATIONS 8.1).
-* Release: **`production/24ch-reva3-20261012-205016-b7ff12`** (git 5fb185c; DRC 0/0/0, pincaps 0 over,
-  BOM 86 lines/426 parts, DNP 16). To send: `production/NORI-thermo24-20261014.zip` (adds
-  ASSEMBLY-SPEC.pdf, `gen/assembly_spec.py`) and, on request, `production/NORI-thermo24-pcb-20261014.zip`
-  (board + project + rules of the release snapshot, KiCad 10).
+  SAMWHA 22u. RS-485 fitted again (owner 2026-10-14, `0036` D9). Parts ~$81/board at 10-piece prices with RS-485 (CALCULATIONS 8.1).
+* Release: **`production/24ch-reva3-20261014-072946-4b1601`** (git 2694c59 clean; RS-485 fitted, `0036` D9;
+  DRC 0/0/0, pincaps 0 over, BOM 95 lines/442 parts, DNP none). To send:
+  `production/NORI-thermo24-4b1601.zip` (fab files + ASSEMBLY-SPEC.pdf) and `NORI-thermo24-pcb-4b1601.zip`
+  (board + project + rules, KiCad 10). The 2026-10-12 set NORI got first is in `_OLD_DO_NOT_ORDER`.
 * Quotes: JLCPCB turnkey 2026-10-14 - 10 boards $897.20, 5 boards $571.69 ex shipping, all 72 part lines
   matched (CALCULATIONS 8.4). NORI: package sent by the owner 2026-10-14; quote pending (I-078).
 * Board edited incrementally (`gen/delta.py`, `capnear.py`, hand routes); analog TC nets are identical to
@@ -19,8 +19,7 @@
 
 ## Next
 
-0. **RS-485 is fitted again** (owner 2026-10-14, reverses `0036` D2): clear the DNP flags, new release,
-   new NORI zip; JP731-733 headers fitted, jumper caps as accessories. NORI must get the new set.
+0. **Send NORI the 4b1601 set** (RS-485 fitted, `0036` D9): it replaces the 2026-10-12 files.
 1. NORI quote, compare with JLCPCB (I-078, I-123); owner decides where to order.
 2. When the order is placed: review the assembler's placement preview (pin-1 of every polarised part).
 3. Installation drawing for the technician (I-085), wiring numbering, heat test per channel.
