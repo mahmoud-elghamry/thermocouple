@@ -6664,7 +6664,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "outside the LCD shadow"
+		(property "Description" "outside the LCD shadow; 3296W outline (0036)"
 			(at 53.34 180.34 0)
 			(effects
 				(font
@@ -6673,7 +6673,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "3296W-1-103LF"
+		(property "MPN" "3296W-1-103"
 			(at 53.34 180.34 0)
 			(effects
 				(font
@@ -6682,7 +6682,7 @@
 				(hide yes)
 			)
 		)
-		(property "Manufacturer" "Bourns"
+		(property "Manufacturer" "BOCHEN"
 			(at 53.34 180.34 0)
 			(effects
 				(font
@@ -6691,7 +6691,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C34846"
+		(property "LCSC" "C118954"
 			(at 53.34 180.34 0)
 			(effects
 				(font

@@ -8,7 +8,7 @@ def power():
     s = Sheet("POWER", "power.kicad_sch", "Battery input and 5 V buck", "A3")
     s.block("Battery input: external panel fuse (0020), PTC, reverse and surge protection", [
         Part("J601", "Connector_Generic:Conn_01x03", "24V IN",
-             {"1": "+24V_RAW", "2": "GND", "3": "CHASSIS"},
+             {"3": "+24V_RAW", "2": "GND", "1": "CHASSIS"},   # turned 180 deg, wire entry at the board edge (0036 D7)
              "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-3_1x03_P5.00mm_Horizontal",
              "WJ128V-5.0-3P", "C8270", "KANGNEX"),
         Part("F601", "Device:Polyfuse", "0.75A 60V", {"1": "+24V_RAW", "2": "+24V_FUSED"},
@@ -36,8 +36,8 @@ def power():
         C("C604", "2.2n C0G", "BST_5V", "SW_5V", "CL21C222JBFNNNE", "C28260", desc="bootstrap; JLC basic part"),
         Part("L601", "Device:L", "33u 2.2A", {"1": "SW_5V", "2": "+5V"},
              "Inductor_SMD:L_10.4x10.4_H4.8", "SMDRH104R-330MT", "C9936", "Sunlord"),
-        C("C605", "22u 25V", "+5V", "GND", "CL32B226KAJNNNE", "C309062", fp=C1210),
-        C("C606", "22u 25V", "+5V", "GND", "CL32B226KAJNNNE", "C309062", fp=C1210),
+        C("C605", "22u 25V", "+5V", "GND", "CS3225X7R226K250NRL", "C2918511", fp=C1210, mfr="SAMWHA"),
+        C("C606", "22u 25V", "+5V", "GND", "CS3225X7R226K250NRL", "C2918511", fp=C1210, mfr="SAMWHA"),
         C("C607", "10u", "+5V", "GND", "CL21B106KOQNNNE", "C95841"),
         Part("D603", "Device:D_Zener", "SMBJ5.0A", {"K": "+5V", "A": "GND"}, "Diode_SMD:D_SMB",
              "SMBJ5.0A", "C83333", "Littelfuse", "5 V crowbar: a shorted high-side FET blows F601 (review M6)"),

@@ -84,32 +84,38 @@ def drc_counts(out, pcb):
 def bom_cpl(out, pcb, sch):
     xml = os.path.join(out, "netlist.xml")
     run("sch", "export", "netlist", "--format", "kicadxml", "-o", xml, sch, out=xml)
-    lines = defaultdict(list)
+    lines, dnp = defaultdict(list), []
     for c in ET.parse(xml).getroot().iter("comp"):
         f = {x.get("name"): x.text or "" for x in c.iter("field")}
         fp = (c.findtext("footprint") or "").split(":")[-1]
         if not fp or c.get("ref").startswith(BARE):
             continue
+        if any(p.get("name") == "dnp" for p in c.iter("property")):
+            dnp.append(c.get("ref"))     # footprint on the board, part not fitted (0036)
+            continue
         key = (c.findtext("value"), fp, f.get("LCSC", ""), f.get("MPN", ""))
         lines[key].append(c.get("ref"))
-    with open(os.path.join(out, "BOM-JLCPCB.csv"), "w", newline="", encoding="utf-8") as fh:
+    with open(os.path.join(out, "BOM.csv"), "w", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
-        w.writerow(["Comment", "Designator", "Footprint", "LCSC", "MPN", "Qty"])
+        w.writerow(["Comment", "Designator", "Footprint", "LCSC (reference)", "MPN", "Qty"])
         for (val, fp, lcsc, mpn), refs in sorted(lines.items(), key=lambda kv: kv[1][0]):
             w.writerow([val, ",".join(sorted(refs)), fp, lcsc, mpn, len(refs)])
     pos = os.path.join(out, "pos.csv")
-    run("pcb", "export", "pos", "--format", "csv", "--units", "mm", "--side", "both", "-o", pos, pcb, out=pos)
-    with open(pos, encoding="utf-8") as fi, open(os.path.join(out, "CPL-JLCPCB.csv"), "w", newline="",
+    run("pcb", "export", "pos", "--format", "csv", "--units", "mm", "--side", "both", "--exclude-dnp",
+        "-o", pos, pcb, out=pos)
+    with open(pos, encoding="utf-8") as fi, open(os.path.join(out, "CPL.csv"), "w", newline="",
                                                    encoding="utf-8") as fo:
         r, w = csv.DictReader(fi), csv.writer(fo)
         w.writerow(["Designator", "Mid X", "Mid Y", "Layer", "Rotation"])
         for row in r:
-            if row["Ref"].startswith(BARE):
+            if row["Ref"].startswith(BARE) or row["Ref"] in dnp:
                 continue
             w.writerow([row["Ref"], row["PosX"] + "mm", row["PosY"] + "mm",
                         "Top" if row["Side"] == "top" else "Bottom", row["Rot"]])
     missing = [refs for (v, fp, l, m), refs in lines.items() if not l]
-    print(f"BOM: {len(lines)} lines; without LCSC code: {missing}")
+    with open(os.path.join(out, "DNP.txt"), "w", encoding="utf-8") as fh:
+        fh.write("Footprints that stay empty on this order (please do not fit):\n" + " ".join(sorted(dnp)) + "\n")
+    print(f"BOM: {len(lines)} lines; without LCSC code: {missing}; DNP: {len(dnp)}")
     return len(lines), missing
 
 
@@ -126,38 +132,60 @@ def board_size(pcb):
     return f"{max(xs) - min(xs):.1f} x {max(ys) - min(ys):.1f} mm"
 
 
+def supplier_accessories(src, dst):
+    """The supplier's copy of accessories.csv: only what they could supply (an LCSC reference or the
+    board standoffs), no internal status notes, no RS-485 items while that block is DNP (0036)."""
+    with open(src, encoding="utf-8") as fi:
+        rows = list(csv.DictReader(fi))
+    with open(dst, "w", newline="", encoding="utf-8") as fo:
+        w = csv.writer(fo)
+        w.writerow(["Item", "Qty per board", "Reference part (LCSC)", "MPN", "Maker"])
+        for r in rows:
+            item = r["Item"]
+            if "JP731" in item or not (r["LCSC"] or item.lower().startswith("board standoffs")):
+                continue
+            w.writerow([item, r["Qty per board"], r["LCSC"], r["MPN"], r["Maker"]])
+
+
 def write_order_notes(out, pcb, name):
-    txt = f"""ORDER NOTES - {name}
-Board: Thermo 24-channel protection unit, REV A3. Size (Edge.Cuts): {board_size(pcb)}.
-These are order instructions (I-106). Where and how you assemble is your business; this is what the board needs.
+    # Written for the supplier: a request for a quotation, not a list of conditions (owner, 2026-10-12).
+    txt = f"""REQUEST FOR QUOTATION - Thermo 24-channel board ({name})
+Board size {board_size(pcb)}, 4 layers. Quantity: please quote 5 and 10 boards.
 
-PCB
-- 4 layers, FR4, 1.6 mm finished, 1 oz copper on all layers.
-- ENIG surface finish (the 0.5 mm LFCSP parts need a flat finish). The .gbrjob file says "Finish: None"
-  (KiCad default) - ignore it, ENIG applies.
-- All vias tented (mask over every via).
-- Min track 0.2 mm, min clearance 0.15 mm, min via 0.3 mm drill / 0.6 mm pad.
-- Files: gerber/ (Gerbers + drill, PTH and NPTH in one file) and thermo24-gerbers.zip.
+Hello, and thank you for looking at this. We would like a quotation for the bare boards and for
+assembly. Everything below is our preferred build; if you work differently or suggest a better or
+cheaper option, please tell us - we are glad to discuss it.
 
-ASSEMBLY
-- Turnkey: you buy every part from the LCSC codes in BOM-JLCPCB.csv; CPL-JLCPCB.csv is the placement list.
-- All parts on the top side; SMT plus through-hole (terminal blocks, TC headers, relays, B0505S, LEDs,
-  pin headers, buttons, trimmer). H1-H10 are mounting holes and TP* are test pads: no part, not in the CPL.
-- Use our paste layer as is: window-pane paste on the exposed pads (AD7124, LM5164);
-  U601's exposed-pad vias are tented, no paste fill through them.
-- Before production, send us the placement preview (every part's pin 1 / polarity against the silkscreen)
-  for written approval. CPL rotations are KiCad's; apply your machine offsets.
-- Wash the flux off after reflow.
-- No part substitution without our written approval. Customs and shipping are yours.
+FILES
+- thermo24-gerbers.zip : Gerbers + drill (4 copper layers).
+- BOM.csv              : parts list. The LCSC column is a reference part number only - you can source
+                         the parts wherever suits you; equivalents are welcome.
+- CPL.csv              : placement list (all parts on the top side).
+- DNP.txt              : footprints that stay empty on this order (not in the BOM or CPL).
+- ACCESSORIES.csv      : loose items (mating plugs, standoffs). Please quote them if you can supply them.
+- ASSEMBLY-SPEC.pdf    : the full build preferences, the power-on test with expected values, and
+                         what we would like back with the boards.
 
-CONFORMAL COATING (I-105) - done by NORI if offered, otherwise by us after delivery
-Why: 3.2 k in series per leg turns ~10 Mohm of surface leakage into ~4 degC; keep R_leak > ~120 Mohm per node.
-1. Wash the assembled board with isopropyl alcohol (IPA), brush the sensor-input area; no flux residue left.
-2. Dry completely (oven or warm air, then cool).
-3. Mask: connectors J*, pin headers, buttons, relays, the LCD header.
-4. Spray acrylic conformal coating to IPC-CC-830, thin even coats on the top and bottom sides.
-5. Cure as the coating's datasheet says.
-6. Inspect (under UV if the coating has a tracer); remove the masking; re-check the masked parts are clean.
+PCB (preferred)
+- FR4, 1.6 mm, 1 oz copper on all layers, ENIG finish (several fine-pitch and exposed-pad parts).
+- Vias covered by solder mask (tented).
+
+ASSEMBLY (preferred)
+- Stencil and reflow for the SMD parts. The three AD7124-8 (5x5 mm LFCSP) and the LM5164 have an
+  exposed pad underneath that must be soldered; the paste layer in the Gerbers already has the openings.
+- The green screw terminals J601, J701, J702 face outward: the wire entry is toward the board edge,
+  as drawn on the silkscreen (the part fits either way round, so please check this one).
+- Please wash off the flux after soldering. Several inputs are high-impedance, and flux residue there
+  turns into a measurement error.
+- A few parts set the measurement accuracy: AD7124-8, TMP126, BAV199, the 20M and 1% resistors and the
+  C0G capacitors. If one of them is hard to get, we would appreciate a word before an alternative is used.
+
+OPTIONAL - CONFORMAL COATING
+If you offer it, please quote acrylic conformal coating after testing (IPC-CC-830 type, both sides),
+with the connectors, pin headers, buttons, relays and the LCD header masked. If not, we will do it.
+
+In the quotation it would help us to see: PCB price, assembly price, parts price, lead time, and
+any part you could not find or would replace. Thank you.
 """
     with open(os.path.join(out, "ORDER-NOTES.txt"), "w", encoding="utf-8", newline="\n") as f:
         f.write(txt)
@@ -223,7 +251,7 @@ def release(out, name, src_sha):
     acc = os.path.join(HW, "accessories.csv")         # I-116: everything not mounted on the board
     if not os.path.exists(acc):
         raise SystemExit("hardware/24ch/accessories.csv missing (I-116)")
-    shutil.copy(acc, os.path.join(out, "ACCESSORIES.csv"))
+    supplier_accessories(acc, os.path.join(out, "ACCESSORIES.csv"))
     write_order_notes(out, pcb, name)
     write_manifest(out, snap, src_sha, counts, bom)
 

@@ -17,8 +17,9 @@ def isolator(ref, a_in, f_out, a_out, f_in, cap1, cap2):
     for i, ch in enumerate("ABCDE"):
         nets["IN" + ch] = a_in[i]
         nets["OUT" + ch] = a_out[i]
-    return [Part(ref, "Isolator:ISO7761DW", "ISO7761DWR", nets,
-                 "Package_SO:SOIC-16W_7.5x10.3mm_P1.27mm", "ISO7761DWR", "C2871529", "TI"),
+    return [Part(ref, "Isolator:ISO7761DW", "CA-IS3761HW", nets,
+                 "Package_SO:SOIC-16W_7.5x10.3mm_P1.27mm", "CA-IS3761HW", "C528656", "Chipanalog",
+                 "ISO7761 pinout, 5 forward / 1 reverse, default output high (0036)"),
             c100(cap1, "+5V", "GND", "side 1"), c100(cap2, ISO, GND_I, "side 2")]
 
 
@@ -43,7 +44,7 @@ def isolation():
         TP("TP401", ISO), TP("TP402", GND_I), TP("TP407", "+5V_ISO_RAW"),
     ])
     cs_c = ["CS_ADC1", "CS_ADC2", "CS_ADC3"] + [f"CS_CJ{i}" for i in range(1, 7)]
-    s.block("Digital isolators: SPI to the three AD7124 and six ADT7310", (
+    s.block("Digital isolators: SPI to the three AD7124 and six TMP126", (
         isolator("U403", ["SCK", "MOSI", "CS_ADC1", "CS_ADC2", "CS_ADC3"], "MISO_ISO",
                  ["SCLK_ISO_RAW", "DIN_ISO_RAW", "CS_ADC1_ISO", "CS_ADC2_ISO", "CS_ADC3_ISO"],
                  "DOUT_ISO_RAW", "C407", "C408")
@@ -56,7 +57,9 @@ def isolation():
         R("R403", "33R", "DIN_ISO_RAW", "DIN_ISO", "0805W8F330JT5E", "C17634"),
         R("R404", "33R", "DOUT_ISO", "DOUT_ISO_RAW", "0805W8F330JT5E", "C17634"),
         R("R405", "2k2", "MISO_ISO", "MISO", "0805W8F2201T5E", "C17520", desc="ISP contention"),
-        R("R415", "100k", "DOUT_ISO", ISO, "0805W8F1003T5E", "C149504", desc="defined DOUT with all devices deselected"),
+        R("R443", "22k", "DIN_ISO", "DOUT_ISO", "0805W8F2202T5E", "C17560",
+          desc="TMP126 3-wire SPI: MOSI reaches each SIO through 22k, SIO drives DOUT; 22k not 10k keeps the "
+               "AD7124 DOUT load ~0.15 mA (spec at 0.1 mA); also defines DOUT when all are deselected (0036)"),
     ] + [R(f"R{430+i}", "10k", c, "+5V", *C10K, desc="control CS pull-up during MCU reset")
          for i, c in enumerate(cs_c)])
     s.block("External 3.0 V reference (cross-check of the AD7124 internal reference)", [

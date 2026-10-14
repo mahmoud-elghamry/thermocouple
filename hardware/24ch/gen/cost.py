@@ -39,7 +39,7 @@ def main():
     groups = defaultdict(list)
     for comp in ET.parse(os.path.join(HW, "thermo24.xml")).getroot().iter("comp"):
         ref = comp.get("ref")
-        if ref.startswith(("#", "H", "TP")):
+        if ref.startswith(("#", "H", "TP")) or any(p.get("name") == "dnp" for p in comp.iter("property")):
             continue
         f = {x.get("name"): x.text or "" for x in comp.iter("field")}
         groups[(f.get("LCSC", ""), comp.findtext("value"))].append(ref)

@@ -60,19 +60,19 @@ def ad7124():
                    "8/16-channel 24-bit sigma-delta ADC, PGA, internal reference (CP-32-12, EP to AVSS)")
 
 
-def adt7310():
-    left = [("input", "SCLK", 1), ("input", "DIN", 3), ("input", "~{CS}", 4)]
-    right = [("tri_state", "DOUT", 2), ("open_collector", "~{INT}", 5), ("open_collector", "~{CT}", 6)]
-    return _symbol("ADT7310", 7.62, 5.08, left, right, [("power_in", "VDD", 8)],
-                   [("power_in", "GND", 7)], "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
-                   "https://www.analog.com/media/en/technical-documentation/data-sheets/ADT7310.pdf",
-                   "+/-0.5 degC 16-bit SPI digital temperature sensor")
+def tmp126():
+    left = [("input", "SCLK", 4), ("input", "~{CS}", 1)]
+    right = [("bidirectional", "SIO", 3), ("passive", "ALERT", 5)]
+    return _symbol("TMP126", 7.62, 5.08, left, right, [("power_in", "VDD", 6)],
+                   [("power_in", "GND", 2)], "Package_TO_SOT_SMD:SOT-363_SC-70-6",
+                   "https://www.ti.com/lit/ds/symlink/tmp126.pdf",
+                   "+/-0.25 degC 14-bit 3-wire SPI temperature sensor (single SIO data pin), CRC option")
 
 
 def write(path):
     lib = [Sym("kicad_symbol_lib"), [Sym("version"), 20251024],
            [Sym("generator"), "thermo24_gen"], [Sym("generator_version"), "1.0"],
-           ad7124(), adt7310()]
+           ad7124(), tmp126()]
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8", newline="\n") as f:
         f.write(dump(lib) + "\n")

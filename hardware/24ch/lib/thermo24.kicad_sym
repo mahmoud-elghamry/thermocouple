@@ -662,7 +662,7 @@
 			)
 		)
 	)
-	(symbol "ADT7310"
+	(symbol "TMP126"
 		(pin_names
 			(offset 1.016)
 		)
@@ -677,7 +677,7 @@
 				)
 			)
 		)
-		(property "Value" "ADT7310"
+		(property "Value" "TMP126"
 			(at 0 -12.7 0)
 			(effects
 				(font
@@ -685,7 +685,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm"
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-363_SC-70-6"
 			(at 0 0 0)
 			(effects
 				(font
@@ -694,7 +694,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://www.analog.com/media/en/technical-documentation/data-sheets/ADT7310.pdf"
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/tmp126.pdf"
 			(at 0 0 0)
 			(effects
 				(font
@@ -703,7 +703,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "+/-0.5 degC 16-bit SPI digital temperature sensor"
+		(property "Description" "+/-0.25 degC 14-bit 3-wire SPI temperature sensor (single SIO data pin), CRC option"
 			(at 0 0 0)
 			(effects
 				(font
@@ -712,7 +712,7 @@
 				(hide yes)
 			)
 		)
-		(symbol "ADT7310_0_1"
+		(symbol "TMP126_0_1"
 			(rectangle
 				(start -7.62 5.08)
 				(end 7.62 -5.08)
@@ -725,47 +725,11 @@
 				)
 			)
 		)
-		(symbol "ADT7310_1_1"
+		(symbol "TMP126_1_1"
 			(pin input line
 				(at -12.7 2.54 0)
 				(length 5.08)
 				(name "SCLK"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-				(number "1"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-			)
-			(pin input line
-				(at -12.7 0 0)
-				(length 5.08)
-				(name "DIN"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-				(number "3"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-			)
-			(pin input line
-				(at -12.7 -2.54 0)
-				(length 5.08)
-				(name "~{CS}"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -780,17 +744,17 @@
 					)
 				)
 			)
-			(pin tri_state line
-				(at 12.7 2.54 180)
+			(pin input line
+				(at -12.7 0 0)
 				(length 5.08)
-				(name "DOUT"
+				(name "~{CS}"
 					(effects
 						(font
 							(size 1.27 1.27)
 						)
 					)
 				)
-				(number "2"
+				(number "1"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -798,10 +762,28 @@
 					)
 				)
 			)
-			(pin open_collector line
+			(pin bidirectional line
+				(at 12.7 2.54 180)
+				(length 5.08)
+				(name "SIO"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin passive line
 				(at 12.7 0 180)
 				(length 5.08)
-				(name "~{INT}"
+				(name "ALERT"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -809,24 +791,6 @@
 					)
 				)
 				(number "5"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-			)
-			(pin open_collector line
-				(at 12.7 -2.54 180)
-				(length 5.08)
-				(name "~{CT}"
-					(effects
-						(font
-							(size 1.27 1.27)
-						)
-					)
-				)
-				(number "6"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -844,7 +808,7 @@
 						)
 					)
 				)
-				(number "8"
+				(number "6"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -862,7 +826,7 @@
 						)
 					)
 				)
-				(number "7"
+				(number "2"
 					(effects
 						(font
 							(size 1.27 1.27)

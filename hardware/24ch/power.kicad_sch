@@ -1840,15 +1840,26 @@
 		)
 		(uuid "dd51bbb3-65b8-5ad0-b637-fad282602e1e")
 	)
-	(label "+24V_RAW"
+	(global_label "CHASSIS"
+		(shape bidirectional)
 		(at 25.4 27.94 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right bottom)
+			(justify right)
 		)
 		(uuid "4f2f15a1-1fd6-58ee-8a94-92659f3bc175")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 25.4 27.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 	)
 	(wire
 		(pts
@@ -1893,26 +1904,15 @@
 		)
 		(uuid "4e100788-c165-5103-849d-84704b962403")
 	)
-	(global_label "CHASSIS"
-		(shape bidirectional)
+	(label "+24V_RAW"
 		(at 25.4 33.02 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right)
+			(justify right bottom)
 		)
 		(uuid "82853969-0b90-5781-9db9-dcf7ede7d71d")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 25.4 33.02 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
 	)
 	(symbol
 		(lib_id "Device:Polyfuse")
@@ -3800,7 +3800,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "CL32B226KAJNNNE"
+		(property "MPN" "CS3225X7R226K250NRL"
 			(at 96.52 83.82 0)
 			(effects
 				(font
@@ -3809,7 +3809,16 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C309062"
+		(property "Manufacturer" "SAMWHA"
+			(at 96.52 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C2918511"
 			(at 96.52 83.82 0)
 			(effects
 				(font
@@ -3951,7 +3960,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "CL32B226KAJNNNE"
+		(property "MPN" "CS3225X7R226K250NRL"
 			(at 114.3 83.82 0)
 			(effects
 				(font
@@ -3960,7 +3969,16 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C309062"
+		(property "Manufacturer" "SAMWHA"
+			(at 114.3 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C2918511"
 			(at 114.3 83.82 0)
 			(effects
 				(font
