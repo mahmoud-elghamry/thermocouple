@@ -114,7 +114,8 @@ def bom_cpl(out, pcb, sch):
                         "Top" if row["Side"] == "top" else "Bottom", row["Rot"]])
     missing = [refs for (v, fp, l, m), refs in lines.items() if not l]
     with open(os.path.join(out, "DNP.txt"), "w", encoding="utf-8") as fh:
-        fh.write("Footprints that stay empty on this order (please do not fit):\n" + " ".join(sorted(dnp)) + "\n")
+        fh.write("Footprints that stay empty on this order (please do not fit):\n"
+                 + (" ".join(sorted(dnp)) if dnp else "none - every footprint is fitted") + "\n")
     print(f"BOM: {len(lines)} lines; without LCSC code: {missing}; DNP: {len(dnp)}")
     return len(lines), missing
 
@@ -133,8 +134,8 @@ def board_size(pcb):
 
 
 def supplier_accessories(src, dst):
-    """The supplier's copy of accessories.csv: only what they could supply (an LCSC reference or the
-    board standoffs), no internal status notes, no RS-485 items while that block is DNP (0036)."""
+    """The supplier's copy of accessories.csv: only what they could supply (an LCSC reference, the
+    board standoffs or the RS-485 jumper shunts), no internal status notes (0036 D8)."""
     with open(src, encoding="utf-8") as fi:
         rows = list(csv.DictReader(fi))
     with open(dst, "w", newline="", encoding="utf-8") as fo:
@@ -142,7 +143,7 @@ def supplier_accessories(src, dst):
         w.writerow(["Item", "Qty per board", "Reference part (LCSC)", "MPN", "Maker"])
         for r in rows:
             item = r["Item"]
-            if "JP731" in item or not (r["LCSC"] or item.lower().startswith("board standoffs")):
+            if not (r["LCSC"] or item.lower().startswith(("board standoffs", "jumper shunts"))):
                 continue
             w.writerow([item, r["Qty per board"], r["LCSC"], r["MPN"], r["Maker"]])
 
@@ -173,7 +174,7 @@ PCB (preferred)
 ASSEMBLY (preferred)
 - Stencil and reflow for the SMD parts. The three AD7124-8 (5x5 mm LFCSP) and the LM5164 have an
   exposed pad underneath that must be soldered; the paste layer in the Gerbers already has the openings.
-- The green screw terminals J601, J701, J702 face outward: the wire entry is toward the board edge,
+- The green screw terminals J601, J701, J702, J703 face outward: the wire entry is toward the board edge,
   as drawn on the silkscreen (the part fits either way round, so please check this one).
 - Please wash off the flux after soldering. Several inputs are high-impedance, and flux residue there
   turns into a measurement error.

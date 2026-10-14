@@ -40,14 +40,24 @@ ORIENT = [
     ("C601", "22 uF 100 V electrolytic, THT", "minus stripe to the marked side"),
     ("D601, D602, D603, D701, D711", "SS310, SMBJ60A, SMBJ5.0A, 1N4148W", "cathode band"),
     ("D702 (green RUN), D712 (red ALARM)", "3 mm LEDs, THT", "flat side / short lead to the marked side"),
-    ("J601, J701, J702", "5.00 mm screw terminals", "wire entry toward the board edge (fits both ways)"),
+    ("U703", "ADM2587E, SOIC-20W", "pin-1 mark (straddles the RS-485 isolation slot)"),
+    ("J601, J701, J702, J703", "5.00 mm screw terminals", "wire entry toward the board edge (fits both ways)"),
     ("J101-J302, J401", "3.81 mm pluggable headers", "plug opening toward the board edge"),
 ]
 # label offset from the point, mm, where the default would overlap a neighbour or the page edge
 LABEL_AT = {"TP401": (3.6, 3.0), "TP601": (-9.5, 6.0), "TP602": (2.0, 6.0), "TP405": (-9.5, 6.0),
             "TP406": (2.0, 6.0)}
-THT = ("C601, D702, D712, J101, J102, J201, J202, J301, J302, J401, J501, J502, J503, J601, J701, J702, "
-       "RV501, SW501-SW505, U401 (23 parts)")
+THT_FP = ("CP_Radial", "LED_D3.0mm", "PhoenixContact_MC", "PinHeader", "JST_XH", "TerminalBlock",
+          "Potentiometer", "SW_PUSH", "_THT")     # footprint names of through-hole parts
+
+
+def counts(rel):
+    """BOM lines, parts, and the through-hole references, read from the release's BOM.csv."""
+    rows = list(csv.DictReader(open(os.path.join(rel, "BOM.csv"), encoding="utf-8")))
+    tht = sorted((r for row in rows if any(k in row["Footprint"] for k in THT_FP)
+                  for r in row["Designator"].split(",")), key=lambda r: (r.rstrip("0123456789"), int(r[len(r.rstrip("0123456789")):])))
+    parts = sum(int(row["Qty"]) for row in rows)
+    return {"lines": len(rows), "parts": parts, "smd": parts - len(tht), "tht": ", ".join(tht), "n_tht": len(tht)}
 
 
 def tp_map(rel, out_png):
@@ -76,7 +86,7 @@ def table(head, rows):
     return f"<table><tr>{h}</tr>{b}</table>"
 
 
-def html(rel, dnp):
+def html(rel, dnp, c):
     name = os.path.basename(rel.rstrip("/\\"))
     tests = [(f"{tp} ({lab})", f"{ref} ({REF_TP[ref]})", exp, src) for tp, lab, ref, exp, src in TESTS]
     return f"""
@@ -89,9 +99,9 @@ differently or see a better or cheaper way, please tell us and we will discuss i
 <h2>1. Files in this package</h2>
 {table(["File", "Content"], [
     ["thermo24-gerbers.zip", "Gerbers, drill, 4 copper layers, paste layer with the exposed-pad openings"],
-    ["BOM.csv", "86 lines, 426 parts. The LCSC column is a reference number only; equivalents welcome"],
-    ["CPL.csv", "placement of all 426 parts (top side)"],
-    ["DNP.txt", "16 footprints that stay empty (listed in section 6)"],
+    ["BOM.csv", f"{c['lines']} lines, {c['parts']} parts. The LCSC column is a reference number only; equivalents welcome"],
+    ["CPL.csv", f"placement of all {c['parts']} parts (top side)"],
+    ["DNP.txt", "footprints that stay empty (section 6)" if dnp else "every footprint is fitted"],
     ["ACCESSORIES.csv", "loose items: mating plugs, cable housing, LCD socket, standoffs"],
     ["ORDER-NOTES.txt", "short version of this file"],
     ["ASSEMBLY-SPEC.pdf", "this file"]])}
@@ -109,22 +119,23 @@ before the rest, please tell us what that changes in price and time.</p>
 
 <h2>4. Assembly (preferred)</h2>
 {table(["Item", "Preference"], [
-    ["SMD parts", "403 parts, machine placement and reflow"],
+    ["SMD parts", f"{c['smd']} parts, machine placement and reflow"],
     ["Stencil", "laser-cut steel, about 0.12 mm (0.5 mm pitch parts); the paste layer already has the windows"],
     ["Solder paste", "your standard paste (lead-free or leaded both fine; please tell us which)"],
     ["Exposed pads", "AD7124-8 x3 (U101, U201, U301) and LM5164 (U601) have a pad underneath that must be soldered. "
                      "X-ray check if you have it; otherwise the power-on test in section 8 proves U601"],
     ["Moisture-sensitive ICs", "handled or baked per their MSL rating"],
-    ["Through-hole parts", THT + ": hand or selective soldering, seated flat"],
+    ["Through-hole parts", f"{c['tht']} ({c['n_tht']} parts): hand or selective soldering, seated flat"],
     ["Cleaning", "<b>please wash off the flux</b> (IPA or aqueous) and dry. The thermocouple inputs are "
                  "high-impedance; flux residue in the area marked ISOLATED SENSOR SIDE becomes a measurement error"]])}
 
 <h2>5. Orientation checklist</h2>
 {table(["Reference", "Part", "Check"], ORIENT)}
 
-<h2>6. Please leave empty (DNP)</h2>
-<p>{dnp} (the RS-485 block; kept for a later fit, not in the BOM or CPL). Also please do <b>not</b> fit
-the LCD module and do <b>not</b> program the microcontroller: we do both.</p>
+<h2>6. Not fitted by you</h2>
+<p>{("Please leave these footprints empty (not in the BOM or CPL): " + dnp + ". ") if dnp else
+   "Every footprint on the board is fitted, including the RS-485 block (U703, J703) and the headers JP731-JP733 (no jumper shunts: they are set at the site). "}
+Please do <b>not</b> fit the LCD module and do <b>not</b> program the microcontroller: we do both.</p>
 
 <h2>7. Accuracy parts</h2>
 <p>AD7124-8, TMP126, BAV199, the 20M and 1 % resistors and the C0G capacitors set the measurement
@@ -185,7 +196,8 @@ def main(rel):
     os.makedirs(work, exist_ok=True)
     tp_map(rel, os.path.join(work, "tp_map.png"))
     dnp = open(os.path.join(rel, "DNP.txt"), encoding="utf-8").read().splitlines()[1].strip()
-    story = fitz.Story(html=html(rel, dnp), user_css=CSS)
+    dnp = "" if dnp.startswith("none") else dnp
+    story = fitz.Story(html=html(rel, dnp, counts(rel)), user_css=CSS)
     out = os.path.join(rel, "ASSEMBLY-SPEC.pdf")
     writer = fitz.DocumentWriter(out)
     more = True

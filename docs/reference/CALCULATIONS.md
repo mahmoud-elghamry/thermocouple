@@ -885,6 +885,7 @@ listings read 2026-10-12 (`production/review-20261012-cheaper/*.md`).
 At the real order quantity (10 boards buy 30-510 pieces of a line; `frontend-alternatives.md`):
 AD7124-8 $8.79 at 30 (-3.6), BAV199 $0.0293 at 300 (-2.5), TMP126 $1.99 at 30 (-1.5): **~$64.6**.
 Verdict: about 38 % off the parts. Bare PCB, assembly, accessories and freight are not in this figure.
+**2026-10-14, `0036` D9: RS-485 fitted again (+8.64): ~$80.8 at 10-piece prices, ~$73 at order quantity.**
 
 ### 8.2 Supply budget effect
 

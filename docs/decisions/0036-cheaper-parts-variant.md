@@ -30,7 +30,7 @@ removed: R443 now defines DOUT with all devices deselected. ALERT unused, tied t
   stay in their banks, moved <= 8 mm to the nearest clear spot beside their 100 nF
   (`capnear.py`). I-114 stays a bench measurement.
 
-**D2 - RS-485 block: footprints stay, parts not fitted (DNP).** Not in the requirements; the
+**D2 - RS-485 block: footprints stay, parts not fitted (DNP). Reversed by D9.** Not in the requirements; the
 owner wants the place kept so a site can have it soldered later. 16 parts DNP (U703, D731,
 C731-C736, R733-R736, JP731-JP733, J703), ~$8.6/board. R737 (DE pull-down) and R738 (RxD
 pull-up) stay fitted so the MCU pins are defined. `fab.py` drops DNP parts from BOM and CPL and
@@ -69,6 +69,13 @@ carries only what they could supply, without internal notes. Design sources (KiC
 PDF) are not sent unless asked. NORI asked for the assembly specification in one file (2026-10-14):
 `ASSEMBLY-SPEC.pdf` (`gen/assembly_spec.py`) adds the power-on test - 24 V, current-limited, expected
 voltages at the 11 test points, GND-GNDI open - and what we ask back with the boards.
+
+**D9 - RS-485 fitted after all (owner, 2026-10-14), reverses D2.** The owner: the cost difference is
+small and the option should be on every board. All 16 parts fitted again (DNP flags cleared by `delta.py`,
+no copper changed); JP731-JP733 headers fitted, their jumper shunts are a site accessory (termination
+and bias only at a bus end). ~$8.6/board back (CALCULATIONS 8.1). The ADM2587E's isolated converter
+runs whenever +5 V is present, whatever DE is; its noise near the uV front end is a bench check (I-094).
+Modbus protocol is still firmware work (I-086).
 
 ## Consequences
 
