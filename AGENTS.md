@@ -57,8 +57,8 @@ _old/                     superseded files, reference only - never build or orde
 docs/                     see the table above
 ```
 
-Products are folders, not branches (`0037` D3): `main` is the official line; a chat works in its own
-branch and the owner merges. Sources are tracked; anything a script regenerates is not. Gerbers, drill and
+Products are folders, not branches (`0037` D3, D5): hardware work is on `main` (one chat); firmware and
+simulation in branch `firmware` (one chat), which the owner merges; a new branch only for parallel work. Sources are tracked; anything a script regenerates is not. Gerbers, drill and
 placement files, renders and netlists belong in `production/` or are ignored.
 
 ## Rules

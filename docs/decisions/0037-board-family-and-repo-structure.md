@@ -46,6 +46,14 @@ rows without a tag are 24-ch.
 * A chat updates its product's `STATE.md`, adds the index line in `docs/STATE.md` only when the
   product's headline changes - so parallel chats rarely touch the same lines.
 * `GOAL.md` names the family. RS-485 is fitted again (owner, 2026-10-14): the 24-ch release change
-  (DNP flags, BOM/CPL, ASSEMBLY-SPEC) is done in branch `24ch-order`.
-* Branches from `main` (2026-10-14): `24ch-order`, `firmware` (the simulation demo too, it needs the
-  firmware), `8ch`, `36ch`. The management report needs no branch (it reads, it does not change sources).
+  (DNP flags, BOM/CPL, ASSEMBLY-SPEC) was done in branch `24ch-order` and is on `main` (2694c59).
+* ~~Branches from `main` (2026-10-14): `24ch-order`, `firmware`, `8ch`, `36ch`.~~ Replaced by D5.
+
+**D5 - Two lines of work, not one branch per product (owner, 2026-10-14, same day).** Five branches
+for one owner were more bookkeeping than help: the order waits for NORI and the 8-ch and 36-ch boards
+run one after the other. **Hardware** (24-ch order follow-up, then the new 8-ch, then the 36-ch) works
+on `main` directly, one chat. **Firmware + simulation** works in branch `firmware`
+(worktree `D:\tasks\thermo-branches\firmware`), one chat; the owner merges it into `main` when a stage
+passes its tests. The management report comes last, in its own short chat, and changes no sources.
+A new branch is opened only when a second chat must change the same area at the same time.
+Branches `24ch-order`, `8ch`, `36ch` removed (they had no commits beyond `main`).

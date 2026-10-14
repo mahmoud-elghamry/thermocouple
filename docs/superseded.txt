@@ -20,3 +20,4 @@ finish23-silk | the board is hardware/24ch/thermo24.kicad_pcb (one file, no outp
 ADT7310 | 0036 D1: TMP126 cold-junction sensors
 current board has 8 channels | 0037: one board family (8/24/36 ch)
 same board partly fitted | 0037 D1: the 8-ch option is a board derived from the 24-ch one
+a chat works in its own branch | 0037 D5: hardware on main, firmware in branch firmware
