@@ -181,12 +181,22 @@ def main():
 
     # power, contacts, bus: function of every terminal, and a title
     # I-113: J601 pin 3 is CHASSIS (shield bar), not a cable shield pin; the run permit is C-NO
-    for ref, names, title in (("J601", ("+24V", "0V", "CHAS"), "SUPPLY"),
-                              ("J701", ("C", "NO", "NC"), "RUN PERMIT C-NO"),
-                              ("J702", ("C", "NO", "NC"), "ALARM")):
+    # Each label comes from the net of the pad under it (REV A4 review C-1: the terminals were turned
+    # 180 deg in 0036 D7, and labels paired with pin numbers came out mirrored on J601/J701/J702)
+    def term_label(ref, num):
+        net = [p.GetNetname() for p in b.FindFootprintByReference(ref).Pads() if p.GetNumber() == num][0]
+        net = net.rsplit("/", 1)[-1]
+        for suffix, s_ in (("+24V_RAW", "+24V"), ("CHASSIS", "CHAS"), ("_COM", "C"), ("_NO", "NO"),
+                           ("_NC", "NC")):
+            if net.endswith(suffix):
+                return s_
+        if net == "GND":
+            return "0V"
+        raise SystemExit(f"silk: no terminal label for {ref} pin {num} net {net}")
+    for ref, title in (("J601", "SUPPLY"), ("J701", "RUN PERMIT C-NO"), ("J702", "ALARM")):
         ps = pins(b, ref)
-        for (num, x, y), s_ in zip(ps, names):
-            P.text(s_, x, 12.3, 1.0, bold=True, prefer=(0, 1), reach=1.8)
+        for num, x, y in ps:
+            P.text(term_label(ref, num), x, 12.3, 1.0, bold=True, prefer=(0, 1), reach=1.8)
         # title in the free space under the block (the relays sit right below C/NO/NC)
         size = (0.7, 0.9) if len(title) > 8 else 1.0
         P.text(title, ps[2][1], 15.5, size, bold=True, prefer=(1, 1), reach=10)
