@@ -180,7 +180,7 @@ def main():
     P.text("K-TYPE TC: n+ / n-", 30.0, 131.0, 0.9, reach=6, must=False)
 
     # power, contacts, bus: function of every terminal, and a title
-    # I-113: J601 pin 3 is CHASSIS (shield bar), not a cable shield pin; the run permit is C-NO
+    # I-113: J601 CHASSIS is the shield bar (pin 1 after the 0036 D7 turn), not a cable shield pin; the run permit is C-NO
     # Each label comes from the net of the pad under it (REV A4 review C-1: the terminals were turned
     # 180 deg in 0036 D7, and labels paired with pin numbers came out mirrored on J601/J701/J702)
     def term_label(ref, num):

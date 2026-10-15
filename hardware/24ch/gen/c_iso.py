@@ -26,7 +26,8 @@ def isolator(ref, a_in, f_out, a_out, f_in, cap1, cap2):
 def sio_driver():
     """TMP126 3-wire SPI with a driven command phase (REV A4, I-124; same circuit as hardware/family, 0039 P2):
     SIO edges < 100 ns (TMP126 7.6) and no load on AD7124 DOUT; replaces R443 22k DIN-DOUT.
-    Firmware: SIO_WR_N (PD5, was the ESC button) low for the 16 command clocks, high before the 16th falling edge."""
+    Firmware: SIO_WR_N (PD5, was the ESC button) low for the 16 command clocks of a read, high before the 16th
+    falling edge; for a write it stays low through command, data and CRC (decisions/0041)."""
     return [
         Part("U411", "74xGxx:74LVC1G125", "74LVC1G125", {"1": "SIO_WR_N_ISO", "2": "DIN_ISO", "3": GND_I,
              "4": "SIO_DRV", "5": ISO}, "Package_TO_SOT_SMD:SOT-23-5", "SN74LVC1G125DBVR", "C23654", "TI",

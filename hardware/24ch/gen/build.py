@@ -113,7 +113,7 @@ def main():
     for f in os.listdir(OUT):       # pages from an earlier split that no longer exist
         if f.endswith(".kicad_sch") and f != f"{PROJECT}.kicad_sch" and f not in {sh.file for sh in all_sheets}:
             os.remove(os.path.join(OUT, f))
-    root = Sheet("ROOT", f"{PROJECT}.kicad_sch", "Thermo 24-channel protection unit - REV A3", "A3")
+    root = Sheet("ROOT", f"{PROJECT}.kicad_sch", "Thermo 24-channel protection unit - REV A4", "A3")
     root.block("Mounting holes: island NPTH + insulating spacers, control plated to CHASSIS, LCD standoffs",
                root_parts())
     model_parts = {}
