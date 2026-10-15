@@ -19,8 +19,8 @@
   pad 15 by 0.075 mm, no clear spot within 1.2 mm). Order with ENIG and 1 oz inner copper selected.
 * Pre-order review 2026-10-15 (4 Claude reviewers + Astra, `production/review-20261015-a4/`, local): power, measurement chain,
   MCU/trip/alarm, BOM-vs-footprint all OK part by part. Found and fixed: terminal labels on J601/J701/J702
-  mirrored by the A4 silk pass (`silk.py` now labels from the pad net). Open, not blocking: J503 panel-button
-  plug sits under the LCD (mounting choice, owner); CPL rotations are raw KiCad - tick "confirm parts
+  mirrored by the A4 silk pass (`silk.py` now labels from the pad net). J503 under the LCD: closed by `0042`
+  (LCD + buttons on the door, 16-wire cable; accessories from Egypt in `accessories.csv`). Open, not blocking: CPL rotations are raw KiCad - tick "confirm parts
   placement" and check the preview; firmware rules (AD7124 SPI <= 2 MHz, REF_EN, no REFIN2) for I-104/I-119.
 * **Do not order REV A3** (`4b1601`): its quotes (JLCPCB $897.20/10, CALCULATIONS 8.4) are for A3; A4
   needs a new quote (+1 line C23654). NORI has the A3 package: send them A4 instead.
