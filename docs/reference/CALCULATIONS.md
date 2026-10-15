@@ -925,3 +925,25 @@ All 86 BOM lines matched to the given LCSC codes (72 unique), no shortfall, LM51
 Bare boards only (no rails, 0.55 kg / 0.98 kg): leaded HASL 40.30 / 55.40, lead-free HASL 45.90 /
 61.60, ENIG 59.70 / 77.70; UPS to Egypt ~$47. Import duties/VAT in Egypt are not included (the
 calculator does not mark Egypt DDP): UNVERIFIED. Build: PCB 3 days + assembly 5-6 days + transit.
+
+### 8.5 REV A4 gated TMP126 SIO driver (decisions/0041), 2026-10-15 - supersedes 8.3
+
+TMP126 SNIS209C 7.6 (read 2026-10-14): tRISE/tFALL SIO, SCLK, CS **100 ns max**, 30-70 % thresholds;
+CIN 20 pF; SIO VOL/VOH at 3 mA. DOUT_ISO bus estimate (main `CALCULATIONS` 9.5): 62-72 pF, ceiling 85 pF.
+
+    A3, R443 22k:      tau = 22k x 62..85 pF = 1.36..1.87 us;  t30-70 = 0.847 tau = 1.15..1.58 us  -> FAILS 100 ns
+    A4, U411 + R446:   R = 220 + ~40 (74LVC1G125 at 3.3 V: VOH >= 2.4 V at 24 mA -> ~40 ohm) = ~260 ohm
+                       tau = 260 x 85 pF = 22 ns;  t30-70 = 19 ns                          -> OK (5x margin)
+    DOUT DC load:      A3 R443 3.3/22k = 150 uA (AD7124 VOH tested at 100 uA) -> marginal
+                       A4 R447 3.3/100k = 33 uA                                            -> OK
+    Contention if firmware drives SIO_WR_N low while a device drives SIO/DOUT:
+                       3.3 V / 260 ohm = ~13 mA, limited by R446; a firmware fault, not a design state.
+
+ESC through D501/D502 (1N4148W) to BTN_UP/BTN_DOWN, ATmega1284P internal pull-up 20-50k at 5 V:
+
+    I = (5 - ~0.6) / 20k..50k = 0.09..0.22 mA;  1N4148W Vf at 0.1-0.2 mA ~0.5-0.6 V (datasheet curve)
+    pin reads ~0.6 V  vs  VIL max 0.3 x 5 = 1.5 V                                          -> OK, ~0.9 V margin
+    UP pressed alone: D501 reverse-biased (cathode held high through D502 by DOWN's pull-up) -> DOWN stays high
+
+Unverified: real bus capacitance after layout extraction; CA-IS3761 channel delay (firmware has ~8 us
+per half SCLK period at 62.5 kHz, so ns-level delays do not matter).

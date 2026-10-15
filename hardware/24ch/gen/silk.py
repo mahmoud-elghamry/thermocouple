@@ -125,7 +125,9 @@ REFS_IF_ROOM = ("J", "U", "K", "Y", "L6")
 
 def main():
     import subprocess, sys
-    subprocess.run([sys.executable, os.path.abspath(__file__), "--strip"], check=True)
+    # the child runs under this process's writer claim (like finish.py _without)
+    subprocess.run([sys.executable, os.path.abspath(__file__), "--strip"], check=True,
+                   env=dict(os.environ, THERMO24_SILK_CHILD="1"))
     b = pcbnew.LoadBoard(BOARD)
     for fp in b.GetFootprints():
         fp.Reference().SetVisible(False)
@@ -247,7 +249,10 @@ def strip():
 
 
 if __name__ == "__main__":
-    import guard      # I-115: refuse while KiCad or another tool holds the board
-    with guard.claim(str(BOARD), "silk.py"):
-        import sys
-        strip() if "--strip" in sys.argv else main()
+    import sys
+    if "--strip" in sys.argv and os.environ.get("THERMO24_SILK_CHILD"):
+        strip()       # child of main(): the parent holds the writer claim
+    else:
+        import guard      # I-115: refuse while KiCad or another tool holds the board
+        with guard.claim(str(BOARD), "silk.py"):
+            strip() if "--strip" in sys.argv else main()
