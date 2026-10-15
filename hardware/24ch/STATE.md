@@ -9,11 +9,14 @@
   SIO_WR_N -> U405 ch C -> U411 74LVC1G125 -> R446 220R -> DOUT; R445 10k, R447 100k, C421, R439 10k;
   R443 removed. ESC kept: D501/D502 1N4148W pull UP and DOWN together (firmware: UP+DOWN = ESC).
   Otherwise the `0036` cost-down board: TMP126 x6, CA-IS3761HW x3, RS-485 fitted (`0036` D9).
-* Release: **`production/24ch-reva4-20261015-195548-b4c4e2`** (in the worktree; DRC errors/unconnected/
+* Release: **`production/24ch-reva4-20261015-231449-c7a3f0`** (in the worktree; DRC errors/unconnected/
   parity 0/0/0, refilled; pincaps 0 over incl. U411; BOM 96 lines, all with LCSC codes, DNP none).
   Schematic: ERC 0 errors 0 warnings, netlist 0 mismatches. Silk: one label placed though not free
   ("ENGINE REF: 1 FEED 2 SENSE", J401 - not touched by A4; check on the render).
   ASSEMBLY-SPEC.pdf generated (`assembly_spec.py <release>`); schematic title REV A4, RS-485 "fitted".
+  Full DRC incl. warnings: no hole-to-hole; only the 15 dangling-stub warnings A3 already had. Astra review 3:
+  3 overlapping vias (A4) removed; 7 vias in/at pads (from A3) moved clear; 1 left (CS_CJ6 via grazes U405
+  pad 15 by 0.075 mm, no clear spot within 1.2 mm). Order with ENIG and 1 oz inner copper selected.
 * Pre-order review 2026-10-15 (4 Claude reviewers + Astra, `production/review-20261015-a4/`, local): power, measurement chain,
   MCU/trip/alarm, BOM-vs-footprint all OK part by part. Found and fixed: terminal labels on J601/J701/J702
   mirrored by the A4 silk pass (`silk.py` now labels from the pad net). Open, not blocking: J503 panel-button

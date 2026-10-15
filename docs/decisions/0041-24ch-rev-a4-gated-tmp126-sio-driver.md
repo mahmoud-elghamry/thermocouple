@@ -73,5 +73,5 @@ only the cross-check reference); crystal load 22 pF vs CL 20 pF (oscillates, sma
 ## Consequences
 
 * A3 release `4b1601` and its quotes are superseded for ordering; REV A4 release
-  `production/24ch-reva4-20261015-195548-b4c4e2`: DRC (errors, refilled, schematic parity) 0/0/0.
+  `production/24ch-reva4-20261015-231449-c7a3f0`: DRC (errors, refilled, schematic parity) 0/0/0.
 * Needs a new JLCPCB/NORI quote. On merge: sweep the I-124 row, README, STATE index.
