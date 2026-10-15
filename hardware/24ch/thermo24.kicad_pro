@@ -1185,6 +1185,10 @@
         "pattern": "/ISOLATION_2/REF_THR"
       },
       {
+        "netclass": "Island",
+        "pattern": "/ISOLATION_2/SIO_DRV"
+      },
+      {
         "netclass": "RS485",
         "pattern": "/OUTPUTS/+3V3_RS485"
       },
@@ -1319,6 +1323,10 @@
       {
         "netclass": "Island",
         "pattern": "SCLK_ISO"
+      },
+      {
+        "netclass": "Island",
+        "pattern": "SIO_WR_N_ISO"
       },
       {
         "netclass": "Island",

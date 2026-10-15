@@ -218,7 +218,7 @@ def main():
             continue
         P.text(s, x, top - 0.7, 0.8 if ref.startswith("TP") else 1.0, prefer=(0, -1), reach=4.5)
 
-    P.text("THERMO 24-CH  REV A3", 106.0, 84.0, 1.5, bold=True, reach=6)
+    P.text("THERMO 24-CH  REV A4", 106.0, 84.0, 1.5, bold=True, reach=6)
     P.text("ISOLATED SENSOR SIDE", 20.0, 104.5, 1.0, reach=5)
 
     # references only where they fit near their part

@@ -8646,7 +8646,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "cold junction at header J201; SIO on DOUT, written through R443; ALERT unused, grounded (datasheet allows) (0036)"
+		(property "Description" "cold junction at header J201; SIO on DOUT, written through the gated driver U411 (REV A4, I-124); ALERT unused, grounded (datasheet allows) (0036)"
 			(at 254 185.42 0)
 			(effects
 				(font
@@ -9097,7 +9097,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "cold junction at header J202; SIO on DOUT, written through R443; ALERT unused, grounded (datasheet allows) (0036)"
+		(property "Description" "cold junction at header J202; SIO on DOUT, written through the gated driver U411 (REV A4, I-124); ALERT unused, grounded (datasheet allows) (0036)"
 			(at 322.58 185.42 0)
 			(effects
 				(font

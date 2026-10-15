@@ -3,7 +3,7 @@
 	(generator "eeschema")
 	(generator_version "10.0")
 	(uuid "8bed0074-a9d1-53be-8f37-7108fb0b0925")
-	(paper "A4")
+	(paper "A3")
 	(title_block
 		(title "Isolation, island supply and references - page 2/2")
 		(company "Thermo 24-ch protection unit")
@@ -1697,6 +1697,198 @@
 				)
 			)
 		)
+		(symbol "74xGxx:74LVC1G125"
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "U"
+				(at -10.16 7.62 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "74LVC1G125"
+				(at 2.54 -7.62 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" "https://www.ti.com/lit/ds/symlink/sn74lvc1g125.pdf"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Single Buffer Gate Tri-State, Low-Voltage CMOS"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "Single Gate Buff Tri-State LVC CMOS"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "SOT?23* Texas?R-PDSO-G5?DCK* Texas?R-PDSO-N5?DRL* Texas?X2SON*0.8x0.8mm*P0.48mm*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "74LVC1G125_0_1"
+				(polyline
+					(pts
+						(xy -7.62 6.35)
+						(xy -7.62 -6.35)
+						(xy 5.08 0)
+						(xy -7.62 6.35)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+			)
+			(symbol "74LVC1G125_1_1"
+				(pin input inverted
+					(at 0 10.16 270)
+					(length 7.62)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -15.24 0 0)
+					(length 7.62)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at -5.08 -10.16 90)
+					(length 5.08)
+					(name "GND"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin tri_state line
+					(at 12.7 0 180)
+					(length 7.62)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at -5.08 10.16 270)
+					(length 5.08)
+					(name "VCC"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 	)
 	(text "AVDD shunt clamp at ~3.5 V (clamp-current sink beyond the preload, review M1)"
 		(exclude_from_sim no)
@@ -1719,6 +1911,17 @@
 			(justify left bottom)
 		)
 		(uuid "3820cf5d-ce27-5f8f-a68f-7c3a8fe78c7d")
+	)
+	(text "TMP126 command driver (REV A4, I-124): DIN drives SIO only while SIO_WR_N is low"
+		(exclude_from_sim no)
+		(at 15 126.682 0)
+		(effects
+			(font
+				(size 2 2)
+			)
+			(justify left bottom)
+		)
+		(uuid "14037f22-067e-59cb-bbb5-86d7f34f69e3")
 	)
 	(symbol
 		(lib_id "Reference_Voltage:TL431DBZ")
@@ -4335,7 +4538,7 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 17.78 137.16 0)
+		(at 279.4 88.9 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -4343,7 +4546,7 @@
 		(dnp no)
 		(uuid "7f5902d4-e561-5a92-b74b-1e13f2c3955a")
 		(property "Reference" "C419"
-			(at 20.612 136.16 0)
+			(at 282.232 87.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4352,7 +4555,7 @@
 			)
 		)
 		(property "Value" "100n"
-			(at 20.612 138.76 0)
+			(at 282.232 90.5 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4361,7 +4564,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
-			(at 17.78 137.16 0)
+			(at 279.4 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4370,7 +4573,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 17.78 137.16 0)
+			(at 279.4 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4379,7 +4582,7 @@
 			)
 		)
 		(property "Description" "sense filter, 0.1 s"
-			(at 17.78 137.16 0)
+			(at 279.4 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4388,7 +4591,7 @@
 			)
 		)
 		(property "MPN" "CC0805KRX7R9BB104"
-			(at 17.78 137.16 0)
+			(at 279.4 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4397,7 +4600,7 @@
 			)
 		)
 		(property "LCSC" "C49678"
-			(at 17.78 137.16 0)
+			(at 279.4 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4422,8 +4625,8 @@
 	)
 	(wire
 		(pts
-			(xy 17.78 133.35)
-			(xy 17.78 130.81)
+			(xy 279.4 85.09)
+			(xy 279.4 82.55)
 		)
 		(stroke
 			(width 0)
@@ -4432,7 +4635,7 @@
 		(uuid "970395be-874c-5a86-99cf-94878b214562")
 	)
 	(label "REF_SENSE"
-		(at 17.78 130.81 90)
+		(at 279.4 82.55 90)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4443,8 +4646,8 @@
 	)
 	(wire
 		(pts
-			(xy 17.78 140.97)
-			(xy 17.78 143.51)
+			(xy 279.4 92.71)
+			(xy 279.4 95.25)
 		)
 		(stroke
 			(width 0)
@@ -4454,7 +4657,7 @@
 	)
 	(global_label "GND_ISO"
 		(shape bidirectional)
-		(at 17.78 143.51 270)
+		(at 279.4 95.25 270)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4464,7 +4667,7 @@
 		)
 		(uuid "efb61de8-40ce-5a02-913e-e729e60f2b8d")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 17.78 143.51 0)
+			(at 279.4 95.25 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4475,7 +4678,7 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 33.02 139.7 0)
+		(at 292.1 91.44 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -4483,7 +4686,7 @@
 		(dnp no)
 		(uuid "857229bd-18cd-55cd-8621-9e9fa28a8665")
 		(property "Reference" "C417"
-			(at 35.852 138.7 0)
+			(at 294.932 90.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4492,7 +4695,7 @@
 			)
 		)
 		(property "Value" "100n"
-			(at 35.852 141.3 0)
+			(at 294.932 93.04 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4501,7 +4704,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
-			(at 33.02 139.7 0)
+			(at 292.1 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4510,7 +4713,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 33.02 139.7 0)
+			(at 292.1 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4519,7 +4722,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 33.02 139.7 0)
+			(at 292.1 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4528,7 +4731,7 @@
 			)
 		)
 		(property "MPN" "CC0805KRX7R9BB104"
-			(at 33.02 139.7 0)
+			(at 292.1 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4537,7 +4740,7 @@
 			)
 		)
 		(property "LCSC" "C49678"
-			(at 33.02 139.7 0)
+			(at 292.1 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4562,8 +4765,8 @@
 	)
 	(wire
 		(pts
-			(xy 33.02 135.89)
-			(xy 33.02 133.35)
+			(xy 292.1 87.63)
+			(xy 292.1 85.09)
 		)
 		(stroke
 			(width 0)
@@ -4573,7 +4776,7 @@
 	)
 	(global_label "+3V3_ISO"
 		(shape bidirectional)
-		(at 33.02 133.35 90)
+		(at 292.1 85.09 90)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4583,7 +4786,7 @@
 		)
 		(uuid "4a846d1c-51dc-5a29-b529-317d304e4af1")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 33.02 133.35 0)
+			(at 292.1 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4594,8 +4797,8 @@
 	)
 	(wire
 		(pts
-			(xy 33.02 143.51)
-			(xy 33.02 146.05)
+			(xy 292.1 95.25)
+			(xy 292.1 97.79)
 		)
 		(stroke
 			(width 0)
@@ -4605,7 +4808,7 @@
 	)
 	(global_label "GND_ISO"
 		(shape bidirectional)
-		(at 33.02 146.05 270)
+		(at 292.1 97.79 270)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4615,7 +4818,7 @@
 		)
 		(uuid "a8076b89-cc5d-514f-aede-bf00997792d4")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 33.02 146.05 0)
+			(at 292.1 97.79 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4626,7 +4829,7 @@
 	)
 	(symbol
 		(lib_id "Transistor_FET:2N7002")
-		(at 63.5 139.7 0)
+		(at 325.12 91.44 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -4634,7 +4837,7 @@
 		(dnp no)
 		(uuid "ecfb16ed-9703-5895-98e0-c0bc9afe97df")
 		(property "Reference" "Q401"
-			(at 68.745 138.7 0)
+			(at 330.365 90.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4643,7 +4846,7 @@
 			)
 		)
 		(property "Value" "2N7002"
-			(at 68.745 141.3 0)
+			(at 330.365 93.04 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4652,7 +4855,7 @@
 			)
 		)
 		(property "Footprint" "Package_TO_SOT_SMD:SOT-23"
-			(at 63.5 139.7 0)
+			(at 325.12 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4661,7 +4864,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 63.5 139.7 0)
+			(at 325.12 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4670,7 +4873,7 @@
 			)
 		)
 		(property "Description" "self-test: pulls sense low"
-			(at 63.5 139.7 0)
+			(at 325.12 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4679,7 +4882,7 @@
 			)
 		)
 		(property "MPN" "2N7002"
-			(at 63.5 139.7 0)
+			(at 325.12 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4688,7 +4891,7 @@
 			)
 		)
 		(property "Manufacturer" "CJ"
-			(at 63.5 139.7 0)
+			(at 325.12 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4697,7 +4900,7 @@
 			)
 		)
 		(property "LCSC" "C8545"
-			(at 63.5 139.7 0)
+			(at 325.12 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4725,8 +4928,8 @@
 	)
 	(wire
 		(pts
-			(xy 58.42 139.7)
-			(xy 55.88 139.7)
+			(xy 320.04 91.44)
+			(xy 317.5 91.44)
 		)
 		(stroke
 			(width 0)
@@ -4736,7 +4939,7 @@
 	)
 	(global_label "REFTEST_ISO"
 		(shape bidirectional)
-		(at 55.88 139.7 180)
+		(at 317.5 91.44 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4746,7 +4949,7 @@
 		)
 		(uuid "7a2f289f-22f6-5543-ac1a-4aa2b068de49")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 55.88 139.7 0)
+			(at 317.5 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4757,8 +4960,8 @@
 	)
 	(wire
 		(pts
-			(xy 66.04 144.78)
-			(xy 66.04 147.32)
+			(xy 327.66 96.52)
+			(xy 327.66 99.06)
 		)
 		(stroke
 			(width 0)
@@ -4768,7 +4971,7 @@
 	)
 	(global_label "GND_ISO"
 		(shape bidirectional)
-		(at 66.04 147.32 270)
+		(at 327.66 99.06 270)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4778,7 +4981,7 @@
 		)
 		(uuid "8dad8ff1-926c-59ec-9dd9-f36123a42ed9")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 66.04 147.32 0)
+			(at 327.66 99.06 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4789,8 +4992,8 @@
 	)
 	(wire
 		(pts
-			(xy 66.04 134.62)
-			(xy 66.04 132.08)
+			(xy 327.66 86.36)
+			(xy 327.66 83.82)
 		)
 		(stroke
 			(width 0)
@@ -4799,7 +5002,7 @@
 		(uuid "9db92a64-553a-5791-ae3f-619f8bb9678f")
 	)
 	(label "REF_TEST_D"
-		(at 66.04 132.08 90)
+		(at 327.66 83.82 90)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4810,7 +5013,7 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 81.28 137.16 0)
+		(at 340.36 88.9 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -4818,7 +5021,7 @@
 		(dnp no)
 		(uuid "7d02fac0-b157-52db-9cbe-ad09136c78eb")
 		(property "Reference" "R425"
-			(at 83.096 136.16 0)
+			(at 342.176 87.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4827,7 +5030,7 @@
 			)
 		)
 		(property "Value" "1k"
-			(at 83.096 138.76 0)
+			(at 342.176 90.5 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4836,7 +5039,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
-			(at 81.28 137.16 0)
+			(at 340.36 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4845,7 +5048,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 81.28 137.16 0)
+			(at 340.36 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4854,7 +5057,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 81.28 137.16 0)
+			(at 340.36 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4863,7 +5066,7 @@
 			)
 		)
 		(property "MPN" "0805W8F1001T5E"
-			(at 81.28 137.16 0)
+			(at 340.36 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4872,7 +5075,7 @@
 			)
 		)
 		(property "LCSC" "C17513"
-			(at 81.28 137.16 0)
+			(at 340.36 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4897,8 +5100,8 @@
 	)
 	(wire
 		(pts
-			(xy 81.28 133.35)
-			(xy 81.28 130.81)
+			(xy 340.36 85.09)
+			(xy 340.36 82.55)
 		)
 		(stroke
 			(width 0)
@@ -4907,7 +5110,7 @@
 		(uuid "d2bf6567-6883-51df-9db9-45afc45be08a")
 	)
 	(label "REF_TEST_D"
-		(at 81.28 130.81 90)
+		(at 340.36 82.55 90)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4918,8 +5121,8 @@
 	)
 	(wire
 		(pts
-			(xy 81.28 140.97)
-			(xy 81.28 143.51)
+			(xy 340.36 92.71)
+			(xy 340.36 95.25)
 		)
 		(stroke
 			(width 0)
@@ -4928,7 +5131,7 @@
 		(uuid "088f4fd7-45ca-56d4-a364-78591df882d5")
 	)
 	(label "REF_SENSE"
-		(at 81.28 143.51 270)
+		(at 340.36 95.25 270)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -4936,6 +5139,853 @@
 			(justify right bottom)
 		)
 		(uuid "cb41b8dd-0171-575e-85cb-e125790ad285")
+	)
+	(symbol
+		(lib_id "74xGxx:74LVC1G125")
+		(at 43.18 162.56 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "7c25bb4a-c2b6-5c07-afdf-e5519822d4b8")
+		(property "Reference" "U411"
+			(at 56.88 149.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "74LVC1G125"
+			(at 56.88 151.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-5"
+			(at 43.18 162.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 43.18 162.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "OE active low; isolator default-high and R445 keep it off"
+			(at 43.18 162.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "SN74LVC1G125DBVR"
+			(at 43.18 162.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "TI"
+			(at 43.18 162.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C23654"
+			(at 43.18 162.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "29537256-4390-58aa-a5bc-f9b71b7d5f17")
+		)
+		(pin "2"
+			(uuid "5e503a21-b5f2-5765-952e-65067fbd6d99")
+		)
+		(pin "3"
+			(uuid "56903533-abb1-58dc-8adb-bb328860f169")
+		)
+		(pin "4"
+			(uuid "bfb0fb91-3408-5a8a-8c1f-fb1c51c7f78c")
+		)
+		(pin "5"
+			(uuid "20e5efeb-42f9-51fc-9bc6-fab232b16dd3")
+		)
+		(instances
+			(project "thermo24"
+				(path "/396a983b-08a5-57c9-b07a-3d6ae939cc55/1dec4ff2-1af0-535e-8d44-7ed0235742d8"
+					(reference "U411")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 43.18 152.4)
+			(xy 43.18 149.86)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "96e544c5-aebc-5e44-a9e2-775b6a24b67f")
+	)
+	(global_label "SIO_WR_N_ISO"
+		(shape bidirectional)
+		(at 43.18 149.86 90)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "9c56df5a-69df-5215-83ad-0f01a9f95c2d")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 43.18 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 27.94 162.56)
+			(xy 25.4 162.56)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "53f448b3-51af-5cb3-b4e2-25a24aef1c25")
+	)
+	(global_label "DIN_ISO"
+		(shape bidirectional)
+		(at 25.4 162.56 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "adcbebc8-c446-5b89-961d-7296bb2d0f95")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 25.4 162.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 38.1 172.72)
+			(xy 38.1 175.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "06e6ee40-c999-5b2d-a181-f6cb28e21063")
+	)
+	(global_label "GND_ISO"
+		(shape bidirectional)
+		(at 38.1 175.26 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "8ad3edbd-227d-522e-9f80-edab21e22fb1")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 38.1 175.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 55.88 162.56)
+			(xy 58.42 162.56)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b8950377-a0b1-52e0-ac71-d17aa9794ff6")
+	)
+	(label "SIO_DRV"
+		(at 58.42 162.56 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "4f6ad8a0-107b-59bd-b58c-7dd1a5328c7b")
+	)
+	(wire
+		(pts
+			(xy 38.1 152.4)
+			(xy 38.1 149.86)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "de874336-42df-5008-8543-90a5c2fda3fc")
+	)
+	(global_label "+3V3_ISO"
+		(shape bidirectional)
+		(at 38.1 149.86 90)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "5c5d010a-41af-53a0-898a-62982332f54d")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 38.1 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 71.12 149.86 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "bd13d305-f3ec-5580-a373-7d770f0a451f")
+		(property "Reference" "C421"
+			(at 73.952 148.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100n"
+			(at 73.952 151.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 71.12 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 71.12 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "U411 VCC"
+			(at 71.12 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "CC0805KRX7R9BB104"
+			(at 71.12 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C49678"
+			(at 71.12 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "21ee9d67-6dee-5356-bd9c-bc5d53d8b0b6")
+		)
+		(pin "2"
+			(uuid "8f00060a-a624-5167-81df-6846c31bef8e")
+		)
+		(instances
+			(project "thermo24"
+				(path "/396a983b-08a5-57c9-b07a-3d6ae939cc55/1dec4ff2-1af0-535e-8d44-7ed0235742d8"
+					(reference "C421")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 71.12 146.05)
+			(xy 71.12 143.51)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ce789ce8-0060-5921-b9ae-9ab79cf46545")
+	)
+	(global_label "+3V3_ISO"
+		(shape bidirectional)
+		(at 71.12 143.51 90)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "95328f0b-6b9d-5673-8996-09b3b65978b6")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 71.12 143.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 71.12 153.67)
+			(xy 71.12 156.21)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "18c5b419-01bc-5fcf-844c-019ba042eff4")
+	)
+	(global_label "GND_ISO"
+		(shape bidirectional)
+		(at 71.12 156.21 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "ce7205ff-a91f-5e12-92be-3e6561acbfc1")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 71.12 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 83.82 152.4 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "bedc72f9-9131-556d-a020-60f4bf02e3e9")
+		(property "Reference" "R445"
+			(at 85.636 151.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "10k"
+			(at 85.636 154 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 83.82 152.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 83.82 152.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "driver off while the isolator powers up"
+			(at 83.82 152.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "0805W8F1002T5E"
+			(at 83.82 152.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C17414"
+			(at 83.82 152.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "e2406f80-0c20-54b9-a133-3c1382827945")
+		)
+		(pin "2"
+			(uuid "c181262d-9435-555b-984e-6731555335d7")
+		)
+		(instances
+			(project "thermo24"
+				(path "/396a983b-08a5-57c9-b07a-3d6ae939cc55/1dec4ff2-1af0-535e-8d44-7ed0235742d8"
+					(reference "R445")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 83.82 148.59)
+			(xy 83.82 146.05)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3aff61e8-7509-5737-a414-33f39e5c4093")
+	)
+	(global_label "SIO_WR_N_ISO"
+		(shape bidirectional)
+		(at 83.82 146.05 90)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "c78d6a84-1fbe-5123-8f6b-5800685c4b03")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 83.82 146.05 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 83.82 156.21)
+			(xy 83.82 158.75)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "60dcd2f2-355a-53de-9e7c-79ae2a6c7f82")
+	)
+	(global_label "+3V3_ISO"
+		(shape bidirectional)
+		(at 83.82 158.75 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "68dba1ba-4d76-56ea-a995-fe7317873e77")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 83.82 158.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 96.52 147.32 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "a8d3534a-f696-525c-8389-6c76ea0e085b")
+		(property "Reference" "R446"
+			(at 98.336 146.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "220R"
+			(at 98.336 148.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 96.52 147.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 96.52 147.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "edge ~30 ns into ~85 pF; limits current if a device drives back"
+			(at 96.52 147.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "0805W8F2200T5E"
+			(at 96.52 147.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C17557"
+			(at 96.52 147.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "fb83d9a7-7167-5799-8e31-9efde60eda39")
+		)
+		(pin "2"
+			(uuid "63d16cbc-c0d3-54e8-bd21-4546943c16b6")
+		)
+		(instances
+			(project "thermo24"
+				(path "/396a983b-08a5-57c9-b07a-3d6ae939cc55/1dec4ff2-1af0-535e-8d44-7ed0235742d8"
+					(reference "R446")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 96.52 143.51)
+			(xy 96.52 140.97)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fcf3977e-4d08-560e-85f8-12fce9446669")
+	)
+	(label "SIO_DRV"
+		(at 96.52 140.97 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "cec7644b-c4e7-5868-ba70-1ece0c22858d")
+	)
+	(wire
+		(pts
+			(xy 96.52 151.13)
+			(xy 96.52 153.67)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "72686526-3892-5bc5-bbb3-43b3a80a0ee4")
+	)
+	(global_label "DOUT_ISO"
+		(shape bidirectional)
+		(at 96.52 153.67 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "7c73d4ee-32e1-5af4-bf4d-1c6c0d816a72")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 96.52 153.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 106.68 149.86 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "fbc425b1-f309-5c9f-b92e-5dc6c31a710c")
+		(property "Reference" "R447"
+			(at 108.496 148.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100k"
+			(at 108.496 151.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 106.68 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 106.68 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "weak bias so the isolator input does not float when every device is deselected; idle data is not defined - firmware never reads it"
+			(at 106.68 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "0805W8F1003T5E"
+			(at 106.68 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C149504"
+			(at 106.68 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "751a049a-34e5-52b5-aadc-a47a281c5fc0")
+		)
+		(pin "2"
+			(uuid "cecf1a11-ee68-5e7c-ac0a-f5cd58566715")
+		)
+		(instances
+			(project "thermo24"
+				(path "/396a983b-08a5-57c9-b07a-3d6ae939cc55/1dec4ff2-1af0-535e-8d44-7ed0235742d8"
+					(reference "R447")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 106.68 146.05)
+			(xy 106.68 143.51)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "63c3105e-8c12-5398-9a99-81d02607e039")
+	)
+	(global_label "DOUT_ISO"
+		(shape bidirectional)
+		(at 106.68 143.51 90)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "5483cccb-3f7d-51b5-98eb-089dde0f9696")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 106.68 143.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 106.68 153.67)
+			(xy 106.68 156.21)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "394cf3e7-0f49-5d75-bbb9-3b1f1a562b5f")
+	)
+	(global_label "+3V3_ISO"
+		(shape bidirectional)
+		(at 106.68 156.21 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "6484a980-267a-5a78-a0c2-6af3b4b7c8c2")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 106.68 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 	)
 	(embedded_fonts no)
 )

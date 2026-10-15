@@ -17,6 +17,18 @@
 * Board edited incrementally (`gen/delta.py`, `capnear.py`, hand routes); analog TC nets are identical to
   `output/bak/thermo24-pre-0036.kicad_pcb`. Terminals face the board edge (`0036` D7).
 
+## REV A4 in progress (branch `24ch-rev-a4`, worktree `.claude/worktrees/24ch-rev-a4`, 2026-10-15)
+
+Owner's pick for the TMP126 SIO edge issue (row on `main`, not in this branch yet; hold the A3 order):
+gated SIO driver, the same circuit as `hardware/family` on `main`.
+PD5 (was ESC) = SIO_WR_N -> U405 ch C -> U411 74LVC1G125 -> R446 220R -> DOUT; R445 10k, R447 100k,
+C421, R439 10k pull-up; R443 removed (R446 reuses its footprint). ESC kept: D501/D502 1N4148W pull UP and
+DOWN together, firmware reads UP+DOWN as ESC (same five buttons as the family). Done: generator, ERC 0/0,
+netlist 0 mismatches, `delta.py`, parts placed, nets routed (maze, In2 used for SIO_DRV/SIO_WR_N_ISO),
+dead R443 DIN branch removed; `finish.py dangling` DRC (errors only, refilled): 0 violations, 0 unconnected.
+**Left:** full DRC with warnings (`fab.py`), `pincaps.py`, `padcheck.py`, render check, silk labels, `fab.py` release,
+BOM/quote (new line C23654), decision file + the ISSUES row + CALCULATIONS + README sweep, firmware note.
+
 ## Next
 
 0. **Send NORI the 4b1601 set** (RS-485 fitted, `0036` D9): it replaces the 2026-10-12 files.

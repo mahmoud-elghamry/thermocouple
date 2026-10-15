@@ -91,7 +91,7 @@ def html(rel, dnp, c):
     tests = [(f"{tp} ({lab})", f"{ref} ({REF_TP[ref]})", exp, src) for tp, lab, ref, exp, src in TESTS]
     return f"""
 <h1>Thermo 24-channel board - assembly specification</h1>
-<p class="sub">Release {name} &middot; REV A3 &middot; 170 x 145 mm, 4 layers, all parts on the top side</p>
+<p class="sub">Release {name} &middot; REV A4 &middot; 170 x 145 mm, 4 layers, all parts on the top side</p>
 <p>Thank you for quoting this board. This file collects how we would like it built, what we would like
 back with it, and the simple power-on test we use. Everything here is a preference: if you work
 differently or see a better or cheaper way, please tell us and we will discuss it.</p>

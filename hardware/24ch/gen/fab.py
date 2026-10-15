@@ -1,5 +1,5 @@
 """Fabrication outputs for the 24-ch board into a NEW folder
-production/24ch-reva3-<YYYYMMDD-HHMMSS>-<sha256 of the board, 6 hex>/ (never reused).
+production/24ch-reva4-<YYYYMMDD-HHMMSS>-<sha256 of the board, 6 hex>/ (never reused).
 
 The source board is only read. A snapshot (board, .kicad_pro, .kicad_dru, schematic set)
 is copied into <release>/source-snapshot/; DRC (--schematic-parity --refill-zones
@@ -260,7 +260,7 @@ def release(out, name, src_sha):
 def main():
     guard.check(PCB)
     src_sha = guard.sha256(PCB)
-    name = f"24ch-reva3-{datetime.datetime.now():%Y%m%d-%H%M%S}-{src_sha[:6]}"
+    name = f"24ch-reva4-{datetime.datetime.now():%Y%m%d-%H%M%S}-{src_sha[:6]}"
     out = os.path.join(OUT_ROOT, name)
     if os.path.exists(out):
         raise SystemExit(f"release folder exists, refusing to reuse it: {out}")
