@@ -60,5 +60,5 @@ TC traces untouched. New island nets added to class Island in `thermo24.kicad_pr
 ## Consequences
 
 * A3 release `4b1601` and its quotes are superseded for ordering; REV A4 release
-  `production/24ch-reva4-20261015-055057-fc0aac`: DRC (errors, refilled, schematic parity) 0/0/0.
+  `production/24ch-reva4-20261015-194355-b4c4e2`: DRC (errors, refilled, schematic parity) 0/0/0.
 * Needs a new JLCPCB/NORI quote. On merge: sweep the I-124 row, README, STATE index.

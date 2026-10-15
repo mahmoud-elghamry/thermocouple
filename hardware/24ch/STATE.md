@@ -9,10 +9,15 @@
   SIO_WR_N -> U405 ch C -> U411 74LVC1G125 -> R446 220R -> DOUT; R445 10k, R447 100k, C421, R439 10k;
   R443 removed. ESC kept: D501/D502 1N4148W pull UP and DOWN together (firmware: UP+DOWN = ESC).
   Otherwise the `0036` cost-down board: TMP126 x6, CA-IS3761HW x3, RS-485 fitted (`0036` D9).
-* Release: **`production/24ch-reva4-20261015-055057-fc0aac`** (in the worktree; DRC errors/unconnected/
+* Release: **`production/24ch-reva4-20261015-194355-b4c4e2`** (in the worktree; DRC errors/unconnected/
   parity 0/0/0, refilled; pincaps 0 over incl. U411; BOM 96 lines, all with LCSC codes, DNP none).
   Schematic: ERC 0 errors 0 warnings, netlist 0 mismatches. Silk: one label placed though not free
   ("ENGINE REF: 1 FEED 2 SENSE", J401 - not touched by A4; check on the render).
+* Pre-order review 2026-10-15 (4 reviewers, reports local in the session scratchpad): power, measurement chain,
+  MCU/trip/alarm, BOM-vs-footprint all OK part by part. Found and fixed: terminal labels on J601/J701/J702
+  mirrored by the A4 silk pass (`silk.py` now labels from the pad net). Open, not blocking: J503 panel-button
+  plug sits under the LCD (mounting choice, owner); CPL rotations are raw KiCad - tick "confirm parts
+  placement" and check the preview; firmware rules (AD7124 SPI <= 2 MHz, REF_EN, no REFIN2) for I-104/I-119.
 * **Do not order REV A3** (`4b1601`): its quotes (JLCPCB $897.20/10, CALCULATIONS 8.4) are for A3; A4
   needs a new quote (+1 line C23654). NORI has the A3 package: send them A4 instead.
 * Board edited incrementally (`delta.py`, `capnear.py`, `maze.py` with In2 for 4.5 mm of SIO_WR_N_ISO);
