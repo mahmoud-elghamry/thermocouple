@@ -945,5 +945,12 @@ ESC through D501/D502 (1N4148W) to BTN_UP/BTN_DOWN, ATmega1284P internal pull-up
     pin reads ~0.6 V  vs  VIL max 0.3 x 5 = 1.5 V                                          -> OK, ~0.9 V margin
     UP pressed alone: D501 reverse-biased (cathode held high through D502 by DOWN's pull-up) -> DOWN stays high
 
+Correction (Astra review 2, 2026-10-15): the 85 pF ceiling is too low - six TMP126 inputs alone are 120 pF
+(20 pF each). At ~180 pF: tau = 260 x 180 pF = 47 ns, t30-70 = ~40 ns -> still OK (2.5x margin).
+
+Charge pump (RUN_PERMIT, R701 100R, C704/C705 100n, R702 100k; Astra review 2, simplified 5 V, 50 % duty):
+gate ~1.4-2.9 V at 100 Hz (not enough), 3.8-4.1 V at 1 kHz, 4.1-4.2 V at 2 kHz -> firmware PWM >= 1 kHz, from
+completed scans only (I-118); decay to 1 V ~15-30 ms after the drive stops. Measure the gate at the bench.
+
 Unverified: real bus capacitance after layout extraction; CA-IS3761 channel delay (firmware has ~8 us
 per half SCLK period at 62.5 kHz, so ns-level delays do not matter).

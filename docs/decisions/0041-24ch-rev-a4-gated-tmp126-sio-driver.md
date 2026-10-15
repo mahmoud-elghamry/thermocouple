@@ -58,6 +58,17 @@ TC traces untouched. New island nets added to class Island in `thermo24.kicad_pr
   high). Never low while any AD7124 CS is low. (Astra review 2026-10-15, TMP126 8.5.2.)
 * Read every TMP126 with CRC enabled; a failed CRC -> re-read; trip only on repeated failure.
 * Buttons: UP and DOWN low together = ESC (all boards).
+* RUN_PERMIT charge pump: PWM >= 1 kHz (100 Hz does not hold the 2N7002 on), toggled only by completed scans
+  (I-118); AD7124 SPI <= 2 MHz through the isolators; REF_EN = 1, no REFIN2 (AIN14/15 are TC inputs).
+  (Reviews 2026-10-15, `CALCULATIONS` 8.5.)
+
+## Review 2026-10-15 (4 Claude reviewers + Astra twice, `production/review-20261015-a4/`)
+
+No pinout, net, package, missing-part or value error that blocks the order. Fixed: mirrored terminal labels,
+stale REV/DNP text, missing ASSEMBLY-SPEC.pdf, J601 pin wording in I-085. Left as accepted, optional (owner's
+no-over-engineering rule): ADM2587E pins 2/1 and 19/20 have 10 nF where ADI pairs 10 nF + 100 nF (rails have
+100 nF elsewhere; RS-485 is not in the trip path); REF3030 C413 100 nF (TI text says 0.1 or > 0.47 uF; it is
+only the cross-check reference); crystal load 22 pF vs CL 20 pF (oscillates, small frequency offset).
 
 ## Consequences
 
