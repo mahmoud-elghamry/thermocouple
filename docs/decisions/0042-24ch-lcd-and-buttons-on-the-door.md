@@ -18,7 +18,7 @@ LCD and buttons go on the panel door; no board change.
   2.54 mm cable 30-40 cm to J502 (already a male header in the BOM). M3 standoffs to the door behind a window.
 * Buttons: 5 x LA38 22 mm momentary NO (ACK red) on the door, wired to J503 by an XH 6-pin pigtail.
 * Enclosure: the existing generator panel, or a local steel wall box ~300x300x150 with a gland plate.
-* TC wiring: the probes in hand (owner photos 2026-10-16) have a long fibreglass cable with a stainless overbraid
+* TC wiring: the probes in hand (owner photos 2026-10-16, `docs/reference/photos/probes-20261016/`) have a long fibreglass cable with a stainless overbraid
   and pin ferrules - they go straight into the pluggable terminals, no connector. Overbraid to the chassis bar at
   the panel entry (`0031` D8), never to the board. KX screened extension only where a probe cable does not
   reach; then join with a K-type connector, not copper. Check polarity per probe (warm the tip, + reads
