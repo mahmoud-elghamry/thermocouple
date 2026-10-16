@@ -13,4 +13,4 @@ Panel fuse 1 A time-delay >= 80 VDC >= 10 kA + holder,1,,,,local,"spec CALCULATI
 Conformal coating acrylic IPC-CC-830,1 can per ~10 boards,,MG Chemicals 419D or equal,,local,"not on LCSC; procedure in ORDER-NOTES (I-105)"
 XH 6-pin pre-crimped cable 30 cm (cut in half = button pigtail),1,,,,local (Makers Electronics ~12 EGP),"replaces loose XHP-6 housing + contacts if those are not at hand"
 Enclosure,1,,steel wall box ~300x300x150 with gland plate,,local (Cairo panel suppliers),"0042: or inside the existing generator panel; 24 TC cables need ~26 glands"
-KX extension cable shielded 2-core,~50 m per channel,,IEC 60584 KX screened,,local instrumentation shop,"ask for KX with certificate; hobby K wire is not acceptable"
+KX extension cable shielded 2-core,only if a probe cable is too short,,IEC 60584 KX screened,,local instrumentation shop,"probes in hand plug straight in (0042); join with a K connector; hobby K wire is not acceptable"
