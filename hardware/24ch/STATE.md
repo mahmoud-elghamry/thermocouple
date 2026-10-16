@@ -14,6 +14,11 @@
   Schematic: ERC 0 errors 0 warnings, netlist 0 mismatches. Silk: one label placed though not free
   ("ENGINE REF: 1 FEED 2 SENSE", J401 - not touched by A4; check on the render).
   ASSEMBLY-SPEC.pdf generated (`assembly_spec.py <release>`); schematic title REV A4, RS-485 "fitted".
+  Also in the release (2026-10-16, fork sessions): PURCHASING-24ch-reva4.zip, FOR-REVIEWER-24ch-reva4.zip,
+  POWER-ON-TEST.pdf/.zip and WHICH-FILE-WHERE.txt - both now written by `assembly_spec.py` (which file reaches
+  which party; JLC website gets only gerber/BOM/CPL + the test zip + the remark text in that file).
+  JLC cart 2026-10-16: `thermo24-gerbers_Y4` = this release, Standard PCBA x5, $650.09 + photo $8.27; function
+  test and remark (X-ray, power-on values) "quote after review". Not ordered yet (purchasing).
   Full DRC incl. warnings: no hole-to-hole; only the 15 dangling-stub warnings A3 already had. Astra review 3:
   3 overlapping vias (A4) removed; 7 vias in/at pads (from A3) moved clear; 1 left (CS_CJ6 via grazes U405
   pad 15 by 0.075 mm, no clear spot within 1.2 mm). Order with ENIG and 1 oz inner copper selected.

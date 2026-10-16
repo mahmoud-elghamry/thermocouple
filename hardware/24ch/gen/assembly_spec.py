@@ -8,6 +8,7 @@ import csv
 import os
 import subprocess
 import sys
+import zipfile
 
 import fitz
 
@@ -192,10 +193,96 @@ th {font-weight: bold;}
 """
 
 
+def map_page(doc, png, title):
+    """The test-point map on its own landscape page, full width."""
+    page = doc.new_page(width=842, height=595)
+    page.insert_text((40, 45), title, fontsize=12, fontname="hebo")
+    page.insert_text((40, 62), "Silkscreen labels: 24V, GND, 5V, RST (power side); 5VI, GNDI, 3V3I, VREF, VMID, "
+                     "VBIAS, REFOK (isolated side)", fontsize=9)
+    page.insert_image(fitz.Rect(40, 72, 802, 575), filename=png)
+
+
+def power_on_test(rel, png):
+    """POWER-ON-TEST.pdf (+ .zip, the JLC 'Function test' box takes zip/rar only): the test alone, 2 pages,
+    readable without any other file - for an assembler that gets only gerber/BOM/CPL."""
+    doc = fitz.open()
+    p = doc.new_page(width=595, height=842)
+    y = [50]
+
+    def line(t, size=10, bold=False, x=50):
+        p.insert_text((x, y[0]), t, fontsize=size, fontname="hebo" if bold else "helv")
+        y[0] += size + 5
+
+    name = os.path.basename(rel.rstrip("/\\"))
+    line(f"Thermo 24-ch board REV A4 - power-on test ({name})", 12, True)
+    y[0] += 8
+    line("No firmware is needed. Equipment: bench supply with current limit, multimeter.")
+    line("Test-point locations: page 2 (red circles, silkscreen names).")
+    y[0] += 10
+    line("Steps", 11, True)
+    for s in ["1. Nothing connected except the supply. Set 24.0 V, current limit 150 mA.",
+              "2. Connect the supply to J601: +24V and 0V (as printed on the silkscreen).",
+              "3. Power on. Read the input current on the supply (expected below 100 mA).",
+              "4. Measure each point below with the multimeter against the ground shown.",
+              "5. Power off. Resistance GND (TP601) to GNDI (TP402): must be open, above 10 Mohm.",
+              "6. If any value is out of range: stop and tell us before shipping."]:
+        line(s)
+    y[0] += 10
+    line("Expected values", 11, True)
+    rows = [("Test point", "Measure against", "Expected")]
+    short = {"TP603": "23.3 - 24.0 V", "TP406": "J401 open: above 3.0 V"}     # TESTS text is too long here
+    rows += [(f"{tp} ({lab})", f"{ref} ({REF_TP[ref]})", short.get(tp, exp.split(" (")[0]))
+             for tp, lab, ref, exp, _ in TESTS]
+    rows += [("Input current", "supply display", "below 100 mA"), ("GND - GNDI (off)", "ohmmeter", "open, above 10 Mohm")]
+    for i, r in enumerate(rows):
+        for x, t in zip((50, 190, 330), r):
+            p.insert_text((x, y[0]), t, fontsize=10, fontname="hebo" if i == 0 else "helv")
+        p.draw_line((50, y[0] + 4), (545, y[0] + 4), width=0.3)
+        y[0] += 17
+    y[0] += 15
+    line("Please send back: one row of readings per board (board numbers 01-05); a photo of a filled table is fine.")
+    line("Also the X-ray images of U101, U201, U301 (AD7124-8) and U601 (LM5164) exposed pads.")
+    map_page(doc, png, "Test-point map - red circles, drawn from the board file")
+    out = os.path.join(rel, "POWER-ON-TEST.pdf")
+    doc.save(out)
+    with zipfile.ZipFile(out[:-4] + ".zip", "w", zipfile.ZIP_DEFLATED) as z:
+        z.write(out, "POWER-ON-TEST.pdf")
+
+
+# who gets which file: every text for an outside party must stand alone (memory: external text self-contained)
+WHICH = """WHICH FILE GOES WHERE - {name}
+
+JLCPCB website order (only these reach JLC):
+  thermo24-gerbers.zip   upload as the gerber
+  BOM.csv, CPL.csv       upload on the assembly step
+  POWER-ON-TEST.zip      PCBA option "Function test" -> Attach (box accepts zip/rar only)
+  Assembly remark        paste the text below (the website has no other file of ours)
+
+E-mail quotation / support / another assembler (NORI etc.):
+  PURCHASING zip = gerbers + BOM + CPL + ASSEMBLY-SPEC.pdf + ORDER-NOTES.txt + schematic + ACCESSORIES + DNP
+
+Outside reviewer (expert): FOR-REVIEWER zip = schematic PDF, BOM, gerbers, ASSEMBLY-SPEC.pdf, KiCad project.
+
+Our own bench: POWER-ON-TEST.pdf, ASSEMBLY-SPEC.pdf section 10.
+
+Assembly remark (max 500 characters, self-contained):
+{remark}
+"""
+REMARK = ("1) X-ray U101,U201,U301,U601 exposed pads, send images. 2) Power-on test, no firmware: 24.0V on J601 "
+          "(+24V,0V), limit 150mA. Expect vs GND TP601: TP603 23.3-24.0V, TP602 5V 4.85-5.15V. Vs GNDI TP402: "
+          "TP401 3V3I 3.23-3.37V, TP404 VREF 2.99-3.01V, TP403 VMID 1.60-1.70V. Input current <100mA. Power off: "
+          "GND to GNDI open >10Mohm. Send readings per board, stop if out of range. 3) Photos of each board. "
+          "4) Wash flux.")
+
+
 def main(rel):
     work = os.path.join(rel, "_spec_tmp")
     os.makedirs(work, exist_ok=True)
     tp_map(rel, os.path.join(work, "tp_map.png"))
+    power_on_test(rel, os.path.join(work, "tp_map.png"))
+    assert len(REMARK) <= 500
+    open(os.path.join(rel, "WHICH-FILE-WHERE.txt"), "w", encoding="utf-8").write(
+        WHICH.format(name=os.path.basename(rel.rstrip("/\\")), remark=REMARK))
     dnp = open(os.path.join(rel, "DNP.txt"), encoding="utf-8").read().splitlines()[1].strip()
     dnp = "" if dnp.startswith("none") else dnp
     story = fitz.Story(html=html(rel, dnp, counts(rel)), user_css=CSS)
@@ -208,13 +295,8 @@ def main(rel):
         story.draw(dev)
         writer.end_page()
     writer.close()
-    doc = fitz.open(out)              # the map on its own landscape page, full width
-    page = doc.new_page(width=842, height=595)
-    page.insert_text((40, 45), "Test-point map (section 8) - red circles, drawn from the board file", fontsize=12,
-                     fontname="hebo")
-    page.insert_text((40, 62), "Silkscreen labels: 24V, GND, 5V, RST (power side); 5VI, GNDI, 3V3I, VREF, VMID, "
-                     "VBIAS, REFOK (isolated side)", fontsize=9)
-    page.insert_image(fitz.Rect(40, 72, 802, 575), filename=os.path.join(work, "tp_map.png"))
+    doc = fitz.open(out)
+    map_page(doc, os.path.join(work, "tp_map.png"), "Test-point map (section 8) - red circles, drawn from the board file")
     doc.saveIncr()
     for f in os.listdir(work):
         os.remove(os.path.join(work, f))
