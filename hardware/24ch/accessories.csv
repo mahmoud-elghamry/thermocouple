@@ -1,6 +1,6 @@
 Item,Qty per board,LCSC,MPN,Maker,Source,Status (lookup 2026-10-11: hardware/24ch/output/accessories-lookup-20261011.md)
-TC plug 8 pin 3.81 mm for J101-J302,6,C14234,WJ15EDGK-3.81-08P-14-00A,KANGNEX,LCSC,"12,333 in stock; no alternate found"
-ENGINE REF plug 2 pin 3.81 mm for J401,1,C8466,WJ15EDGK-3.81-02P-14-00A,KANGNEX,LCSC,"88,555 in stock; alt C62113"
+TC plug 8 pin 3.81 mm for J101-J302,6,C14234,WJ15EDGK-3.81-08P-14-00A,KANGNEX,LCSC,"12,333 in stock; no alternate found; Makers Electronics Egypt 8P 3.81 sold out 2026-10-16 - order from LCSC with the JLC order"
+ENGINE REF plug 2 pin 3.81 mm for J401,1,C8466,WJ15EDGK-3.81-02P-14-00A,KANGNEX,LCSC,"88,555 in stock; alt C62113; Makers Electronics Egypt 2P 3.81 in stock 2026-10-16"
 Panel-button cable housing XH 6 pin for J503,1,C144405,XHP-6,JST,LCSC,"21,420 in stock; alt C493080"
 XH crimp contacts,6,C140573,SXH-001T-P0.6,JST,LCSC,"996,800 in stock; alt C385122"
 Panel push buttons (UP DOWN SET ESC ACK),5,,LA38 22 mm momentary NO,,local (Makers Electronics ~60 EGP),"on the door (0042); ACK red; wired to an XH 6-pin pigtail"
