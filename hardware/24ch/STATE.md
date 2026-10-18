@@ -17,8 +17,7 @@
   Also in the release (2026-10-16, fork sessions): PURCHASING-24ch-reva4.zip, FOR-REVIEWER-24ch-reva4.zip,
   POWER-ON-TEST.pdf/.zip and WHICH-FILE-WHERE.txt - both now written by `assembly_spec.py` (which file reaches
   which party; JLC website gets only gerber/BOM/CPL + the test zip + the remark text in that file).
-  JLC cart 2026-10-16: `thermo24-gerbers_Y4` = this release, Standard PCBA x5, $650.09 + photo $8.27; function
-  test and remark (X-ray, power-on values) "quote after review". Not ordered yet (purchasing).
+  JLC cart 2026-10-16: `thermo24-gerbers_Y4` = this release, PCBA x5, $650.09 + photo $8.27; not ordered yet.
   Full DRC incl. warnings: no hole-to-hole; only the 15 dangling-stub warnings A3 already had. Astra review 3:
   3 overlapping vias (A4) removed; 7 vias in/at pads (from A3) moved clear; 1 left (CS_CJ6 via grazes U405
   pad 15 by 0.075 mm, no clear spot within 1.2 mm). Order with ENIG and 1 oz inner copper selected.
@@ -27,6 +26,9 @@
   mirrored by the A4 silk pass (`silk.py` now labels from the pad net). J503 under the LCD: closed by `0042`
   (LCD + buttons on the door, 16-wire cable; accessories from Egypt in `accessories.csv`). Open, not blocking: CPL rotations are raw KiCad - tick "confirm parts
   placement" and check the preview; firmware rules (AD7124 SPI <= 2 MHz, REF_EN, no REFIN2) for I-104/I-119.
+* Main's island-holes and relay-clearance rows, checked on A4 2026-10-19: holes real (H1 H2 H3 H10 in GND_ISO) -
+  nylon standoffs there in `accessories.csv`; relay rule real but small (30 VDC) - zones out of `relay_area`
+  refill to DRC 0/0 on a scratch copy; one dru line + refill + new release, owner decides.
 * **Do not order REV A3** (`4b1601`): its quotes (JLCPCB $897.20/10, CALCULATIONS 8.4) are for A3; A4
   needs a new quote (+1 line C23654). NORI has the A3 package: send them A4 instead.
 * Board edited incrementally (`delta.py`, `capnear.py`, `maze.py` with In2 for 4.5 mm of SIO_WR_N_ISO);
