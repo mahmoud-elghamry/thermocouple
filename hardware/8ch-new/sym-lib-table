@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "thermo8")(type "KiCad")(uri "${KIPRJMOD}/lib/thermo8.kicad_sym")(options "")(descr "project parts"))
+)

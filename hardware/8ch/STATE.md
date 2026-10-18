@@ -14,8 +14,11 @@
 
 ## Next (for the 8-ch work)
 
-1. Decide what the 8-ch option must keep from the 24-ch board (relays, LCD, RS-485 footprints) and
-   the board size - owner input.
+1. Owner answers 2026-10-14: derive from the 24-ch (1 bank, AD7124-8; MAX31856 not kept); keep trip +
+   alarm relays, RS-485, the five buttons + panel header, LCD header with standoffs (or a cable to the
+   door) as on the 24-ch; **4 layers first**; a 2-layer version that a fab in Egypt can make is studied
+   after (the old `_old/8ch-2layer` failed with 8 MAX31856: 14 unrouted +3V3_SENS, no plane, `0028`).
+   Board size from a to-scale floor plan (`0031` D10), shown to the owner before any board write.
 2. Plan where the new board lives (new folder; REV A2 moved to `_old/` only together with the scripts
    and CI that use it: `run_all.ps1`, `validate.ps1`, `board_provenance.py`).
 
