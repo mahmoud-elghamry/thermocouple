@@ -48,5 +48,10 @@ def mcu(config):
     ] + [Part(f"SW{501+i}", "Switch:SW_Push", n, {"1": f"BTN_{n}", "2": "GND"},
               "Button_Switch_THT:SW_PUSH_6mm", "ZX-QC66-9.5CJ", "C7470135", "Megastar",
               "6x6 THT, 9.5 mm: bench use; the panel buttons go on J503 (0034 D2)")
-         for i, n in enumerate(["UP", "DOWN", "SET", "ESC", "ACK"])])
+         for i, n in enumerate(["UP", "DOWN", "SET", "ESC", "ACK"])] + (
+        [Part(f"D{501+i}", "Device:D", "1N4148W", {"1": "BTN_ESC", "2": f"BTN_{n}"},
+              "Diode_SMD:D_SOD-123", "1N4148W-7-F", "C83528", "Diodes Inc",
+              "ESC has no MCU pin (PD5 is SIO_WR_N, REV A4): ESC pulls UP and DOWN low together, "
+              "firmware reads UP+DOWN as ESC")
+         for i, n in enumerate(["UP", "DOWN"])] if config.esc_diodes else []))
     return s

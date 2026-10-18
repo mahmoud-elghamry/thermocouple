@@ -1,6 +1,6 @@
 # Shared family circuit library - state
 
-**Last updated:** 2026-10-14 (Claude). Plan: `docs/decisions/0039`. **Hard limit: 60 lines.**
+**Last updated:** 2026-10-19 (Codex). Plan: `docs/decisions/0039`. **Hard limit: 60 lines.**
 
 ## What is here
 
@@ -28,9 +28,17 @@
 * Cost: `gen/cost.py` has no offline price cache; parts cost not yet computed for 8 / 40.
 * Generated output (`out/`) is ignored; the boards' own folders take a copy when their layout starts.
 
-## After the 24-ch REV A4 merge (2026-10-19)
+## REV A4 family regression sync (2026-10-19, plain Python only)
 
-* `gen/test_family.py::test_24_model_identical_to_original` and `tools/test_profiles.py::test_profile24_source_constants`
-  fail: the family config/profile "24" still describes REV A3, the 24-ch generator is now REV A4 (`0041` gated
-  SIO driver U411, `0042` door LCD). Bring config 24 / profile 24 up to REV A4 (or re-point the tests) before the
-  family tools are used on the 24-ch again. I-129 and I-130 still apply to REV A4 (checked after the merge).
+* Config 24 matches the read-only 24-ch REV A4 model exactly, including every part field/description (`0041`):
+  gated U411, PD5 -> U405 channel C, R439 pull-up, D501/D502 ESC diodes. New `sio_a4` / `esc_diodes` options
+  are enabled only for B24; B8/B40 explicitly disable both. Revision/title now A4.
+* Profile 24: U411 supply-pin check matches the source; driver ref, revision, release prefix and silk updated.
+  Updated A3-specific subset/count expectations and the HTML golden check's revision only; donor comparison retained.
+* Gates: `python -m unittest test_family`: **8 tests OK** (24: 470 components, 96 BOM lines, 449 fitted);
+  `python -m unittest test_profiles test_docs_new`: **13 tests OK**. Python 3.11.15 used because `py -3`
+  reports no installed Python. No KiCad/kicad-cli/pcbnew execution; no ERC/DRC or release-generation claim.
+* Before/after dumps: `out/a4-proof/{before,after}/`, reproducible via `out/a4-proof/snapshot.py`;
+  models B8/B40, full sheets (including RTD), root parts and profiles 8/8l/40 are **byte-identical (9/9)**.
+  Identity hashes/report: `out/a4-proof/identity.txt`. Board folders and docs unchanged. No commit.
+* I-129 and I-130 still apply to REV A4; this sync implements the existing decision, not a board revision.

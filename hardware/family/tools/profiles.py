@@ -55,8 +55,9 @@ P24.update(
     keep_nets={'CHASSIS', 'V_BIAS', 'VREF_EXT'}, keep_prefix=('REGCAP', 'REFOUT_', 'SYNC_'),
     classes=('kicad_default', 'Island', 'IslandPower', 'CtrlPower', 'Power24V', 'RS485', 'Chassis', 'Contact'),
     pair_rules=(('Contact', ('Contact',), 2.0), ('Chassis', ('Chassis', 'Contact'), 1.5)),
-    revision='REV A3', bias_net='V_BIAS', island_prefix='ISLAND_', bias_prefix='VBIAS_GUARD',
-    bank_channels=(8, 8, 8), board_only=('FID',), buck_ref='U601', release_prefix='24ch-reva3',
+    revision='REV A4', bias_net='V_BIAS', island_prefix='ISLAND_', bias_prefix='VBIAS_GUARD',
+    bank_channels=(8, 8, 8), board_only=('FID',), buck_ref='U601', release_prefix='24ch-reva4',
+    sio_driver_ref='U411',
     exposed_pad_text='The three AD7124-8 (5x5 mm LFCSP) and the LM5164', bootstrap_nets=('BST_5V', 'SW_5V'),
 )
 P24['pin_checks'] = [('U601', '2', 3.0, 'LM5164 VIN ceramic input cap'),
@@ -65,6 +66,8 @@ P24['pin_checks'] = [('U601', '2', 3.0, 'LM5164 VIN ceramic input cap'),
     ('U601', '5', 5.0, 'LM5164 FB divider (R or C)'),
 ] + [(u, pin, 3.0, what) for u in ('U403', 'U404', 'U405')
      for pin, what in (('1', 'ISO7761 VCC1'), ('16', 'ISO7761 VCC2'))] + [
+    ('U411', '5', 3.0, '74LVC1G125 VCC (REV A4 SIO driver)')
+] + [
     (u, pin, lim, what) for u in P24['adc_refs'] for pin, lim, what in (
         ('26', 'plane', 'AD7124 AVDD'), ('2', 'plane', 'AD7124 IOVDD'),
         ('24', 5.0, 'AD7124 REGCAPA'), ('1', 5.0, 'AD7124 REGCAPD'),
@@ -89,7 +92,7 @@ P24['silk'] = dict(
            ('2 WIRES, JOINED ONLY AT THE ENGINE', 7.8, 96.2, (0.6, 0.8), {'reach': 3.0, 'must': False}),
            ('K-TYPE TC: n+ / n-', 30.0, 131.0, 0.9, {'reach': 6, 'must': False}),
            ('CONTACTS: LOW-VOLTAGE SIGNAL LOAD ONLY, 30 VDC / 1 A MAX', 103.0, 40.0, 1.0, {'bold': True, 'reach': 4}),
-           ('THERMO 24-CH  REV A3', 106.0, 84.0, 1.5, {'bold': True, 'reach': 6}),
+           ('THERMO 24-CH  REV A4', 106.0, 84.0, 1.5, {'bold': True, 'reach': 6}),
            ('ISOLATED SENSOR SIDE', 20.0, 104.5, 1.0, {'reach': 5})),
 )
 P24["assembly"] = {'TESTS': [
@@ -248,7 +251,6 @@ In the quotation it would help us to see: PCB price, assembly price, parts price
 any part you could not find or would replace. Thank you.
 """
 P24["order_notes"] = order24_notes
-
 
 def select():
     key, pcb = os.environ.get('THERMO_BOARD', '24'), None

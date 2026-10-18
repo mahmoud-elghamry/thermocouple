@@ -23,7 +23,7 @@ def isolator(ref, a_in, f_out, a_out, f_in, cap1, cap2):
             c100(cap1, "+5V", "GND", "side 1"), c100(cap2, ISO, GND_I, "side 2")]
 
 
-def sio_driver():
+def sio_driver(config):
     """TMP126 3-wire SPI with a driven command phase: SIO edges < 100 ns (TMP126 7.6), no load on AD7124 DOUT.
     Firmware bit-bangs TMP126 frames: SIO_WR_N low for the 16 command clocks, high before the 16th falling edge."""
     return [
@@ -33,9 +33,12 @@ def sio_driver():
         c100("C421", ISO, GND_I, "U411 VCC"),
         R("R445", "10k", "SIO_WR_N_ISO", ISO, *C10K, desc="driver off while the isolator powers up"),
         R("R446", "220R", "SIO_DRV", "DOUT_ISO", "0805W8F2200T5E", "C17557",
-          desc="edge ~60 ns into 300 pF; limits current if a device drives back"),
+          desc=("edge ~30 ns into ~85 pF; limits current if a device drives back" if config.sio_a4 else
+                "edge ~60 ns into 300 pF; limits current if a device drives back")),
         R("R447", "100k", "DOUT_ISO", ISO, "0805W8F1003T5E", "C149504",
-          desc="weak bias so the isolator input does not float when every device is deselected; idle data is not defined (isolator leakage up to 20 uA, Astra) - firmware never reads it"),
+          desc="weak bias so the isolator input does not float when every device is deselected; idle data is "
+               + ("not defined - firmware never reads it" if config.sio_a4 else
+                  "not defined (isolator leakage up to 20 uA, Astra) - firmware never reads it")),
     ]
 
 
@@ -89,7 +92,7 @@ def isolation(config):
     ]) + [R(ref, "10k", c, "+5V", *C10K, desc="control CS pull-up during MCU reset")
          for ref, c in config.cs_pullups])
     if config.sio_driver:
-        s.block("TMP126 command driver (0039, I-124): DIN drives SIO only while SIO_WR_N is low", sio_driver())
+        s.block("TMP126 command driver (0039, I-124): DIN drives SIO only while SIO_WR_N is low", sio_driver(config))
     if config.decoder:
         s.block("Chip-select decoder (0039 D3): EN high = every device deselected", decoder())
     s.block("External 3.0 V reference (cross-check of the AD7124 internal reference)", [

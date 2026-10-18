@@ -42,12 +42,13 @@ def strings(value):
 
 
 class DocsTests(unittest.TestCase):
-    def test_original24_byte_identical(self):
+    def test_original24_text_preserved_except_revision(self):
         golden = json.loads(GOLDEN.read_text(encoding='utf-8'))
         p = profile_defs()['P24']
+        self.assertEqual(p['revision'], 'REV A4')
         for dnp, key in (('', 'html'), ('U703, J703', 'html_dnp')):
             self.assertEqual(p['assembly_html']('release-golden', dnp, golden['counts'], table).encode(),
-                             golden[key].encode())
+                             golden[key].replace('REV A3 &middot;', 'REV A4 &middot;').encode())
         self.assertEqual(p['order_notes'](None, 'release-golden', lambda _: '170 x 145 mm').encode(),
                          golden['notes'].encode())
 

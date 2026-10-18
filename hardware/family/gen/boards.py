@@ -48,6 +48,8 @@ class Board:
     decoder: bool = False                 # 0039 D3: 74HC154 chip-select decoder on the island
     rtd: bool = False                     # 0039 D5: RTD bank (four 3-wire PT100)
     sync_tied: bool = False               # 0039 P8: AD7124 SYNC tied to +3V3_ISO, no 10k pull-up
+    sio_a4: bool = False                  # 0041: 24-ch SIO driver descriptions (different bus loading)
+    esc_diodes: bool = False              # 0041: ESC pulls UP/DOWN low; PD5 is available for SIO_WR_N
 
     @property
     def channel_count(self):
@@ -59,17 +61,19 @@ HOLES = tuple((i, "island") for i in (1, 2, 3, 10)) + ((4, "chassis"), (5, "chas
 HOLES += tuple((i, "lcd") for i in range(6, 10))
 OUT = Path(__file__).resolve().parents[1] / "out"
 B24 = Board(
-    "24", "thermo24", "Thermo 24-channel protection unit - REV A3", "thermo24",
-    3, tuple("ABC"), MCU24, CS24, tuple((f"R{430+i}", n) for i, n in enumerate(CS24)),
+    "24", "thermo24", "Thermo 24-channel protection unit - REV A4", "thermo24",
+    3, tuple("ABC"), dict(MCU24, PD5="SIO_WR_N"), CS24,
+    tuple((f"R{430+i}", n) for i, n in enumerate(CS24 + ("SIO_WR_N",))),
     (
         Isolator("U403", ("SCK", "MOSI", "CS_ADC1", "CS_ADC2", "CS_ADC3"), "MISO_ISO",
                  ("SCLK_ISO_RAW", "DIN_ISO_RAW", "CS_ADC1_ISO", "CS_ADC2_ISO", "CS_ADC3_ISO"),
                  "DOUT_ISO_RAW", ("C407", "C408")),
         Isolator("U404", tuple(f"CS_CJ{i}" for i in range(1, 6)), "REFOK",
                  tuple(f"CS_CJ{i}_ISO" for i in range(1, 6)), "REFOK_ISO", ("C409", "C410")),
-        Isolator("U405", ("CS_CJ6", "REFTEST", "GND", "GND", "GND"), NC,
-                 ("CS_CJ6_ISO", "REFTEST_ISO", NC, NC, NC), "GND_ISO", ("C411", "C412")),
-    ), HOLES, OUT / "24", "A3", "Digital isolators: SPI to the three AD7124 and six TMP126",
+        Isolator("U405", ("CS_CJ6", "REFTEST", "SIO_WR_N", "GND", "GND"), NC,
+                 ("CS_CJ6_ISO", "REFTEST_ISO", "SIO_WR_N_ISO", NC, NC), "GND_ISO", ("C411", "C412")),
+    ), HOLES, OUT / "24", "A4", "Digital isolators: SPI to the three AD7124 and six TMP126",
+    sio_driver=True, sio_a4=True, esc_diodes=True,
 )
 CS8 = ("CS_ADC1", "CS_CJ1", "CS_CJ2")
 B8 = replace(
@@ -86,7 +90,7 @@ B8 = replace(
         Isolator("U404", ("REFTEST", "SIO_WR_N", "GND", "GND", "GND"), "REFOK",
                  ("REFTEST_ISO", "SIO_WR_N_ISO", NC, NC, NC), "REFOK_ISO", ("C409", "C410")),
     ), output_folder=OUT / "8", isolator_title="Digital isolators: SPI to one AD7124 and two TMP126",
-    sio_driver=True, sync_tied=True,
+    sio_driver=True, sync_tied=True, sio_a4=False, esc_diodes=False,
     # H4 plain NPTH: on the 8-ch a CHASSIS track to it crossed the relay contacts; H5 + J601 bond CHASSIS
     mounting_holes=tuple((i, "plain") if i == 4 else (i, k) for i, k in HOLES),
 )
@@ -106,6 +110,6 @@ B40 = replace(
                  ("CSA3_ISO", "CS_EN_ISO", "REFTEST_ISO", "SIO_WR_N_ISO", NC), "REFOK_ISO", ("C409", "C410")),
     ), output_folder=OUT / "40",
     isolator_title="Digital isolators: SPI, chip-select address and enable for six AD7124 and ten TMP126",
-    sio_driver=True, decoder=True, rtd=True, sync_tied=True,
+    sio_driver=True, decoder=True, rtd=True, sync_tied=True, sio_a4=False, esc_diodes=False,
 )
 BOARDS = {b.key: b for b in (B24, B8, B40)}

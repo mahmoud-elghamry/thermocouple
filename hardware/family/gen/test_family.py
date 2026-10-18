@@ -10,7 +10,7 @@ import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from boards import B24, B8, CS24, CS8
+from boards import B24, B8, B40, CS24, CS8
 from bom import grouped_bom
 from c_bank import bank
 from c_iso import isolation
@@ -57,10 +57,10 @@ print(json.dumps({p.ref: vars(p) for s in sheets for p in s.parts()}, sort_keys=
         a, b = model(B24), model(B8)
         removed = {r for r in a if len(r.lstrip("ABCDEFGHIJKLMNOPQRSTUVWXYZ")) == 3
                    and r.lstrip("ABCDEFGHIJKLMNOPQRSTUVWXYZ")[0] in "23"}
-        removed |= {"U405", "C411", "C412", "R431", "R432", "R435", "R436", "R437", "R438", "R443",
+        removed |= {"U405", "C411", "C412", "R431", "R432", "R435", "R436", "R437", "R438", "D501", "D502",
                     "R191"}                                              # SYNC tied high (0039 P8)
         self.assertEqual(set(a) - set(b), removed)
-        added = {"U411", "C421", "R445", "R446", "R447", "R439"}     # gated SIO driver (0039, I-124)
+        added = set()                         # REV A4 now also has the gated driver and R439
         self.assertEqual(set(b) - set(a), added)
         for ref in set(b) - added:
             actual, expected = copy.deepcopy(b[ref]), copy.deepcopy(a[ref])
@@ -73,7 +73,14 @@ print(json.dumps({p.ref: vars(p) for s in sheets for p in s.parts()}, sort_keys=
             elif ref == "U101":
                 expected["_nets"] = dict(expected["_nets"], SYNC="+3V3_ISO")
             elif ref in ("U102", "U103"):
-                expected["desc"] = expected["desc"].replace("R443", "the gated SIO driver U411 (0039)")
+                expected["desc"] = expected["desc"].replace(
+                    "the gated driver U411 (REV A4, I-124)", "the gated SIO driver U411 (0039)")
+            elif ref == "R446":
+                expected["desc"] = "edge ~60 ns into 300 pF; limits current if a device drives back"
+            elif ref == "R447":
+                expected["desc"] = ("weak bias so the isolator input does not float when every device is "
+                                    "deselected; idle data is not defined (isolator leakage up to 20 uA, Astra) "
+                                    "- firmware never reads it")
             elif ref == "R427":
                 expected["desc"] = expected["desc"].replace("24 R_b", "8 R_b")
             self.assertEqual(actual, expected, ref)
@@ -96,6 +103,26 @@ print(json.dumps({p.ref: vars(p) for s in sheets for p in s.parts()}, sort_keys=
             want.update({"IN"+c: n for c, n in zip("ABCDE", ins)})
             want.update({"OUT"+c: n for c, n in zip("ABCDE", outs)})
             self.assertEqual(nets, want)
+
+    def test_a4_sio_and_esc_variants(self):
+        self.assertEqual(B24.revision, "A4")
+        for config in (B24, B8, B40):
+            parts = model(config)
+            a4 = config is B24
+            self.assertTrue(config.sio_driver)
+            self.assertEqual((config.sio_a4, config.esc_diodes), (a4, a4))
+            self.assertNotIn("R443", parts)
+            self.assertEqual(parts["U411"]["_nets"]["1"], "SIO_WR_N_ISO")
+            self.assertEqual(parts["R439"]["_nets"], {"1": "SIO_WR_N", "2": "+5V"})
+            self.assertEqual(parts["U501"]["_nets"]["PD5"], "SIO_WR_N" if a4 else "BTN_ESC")
+            if a4:
+                self.assertEqual(parts["U405"]["_nets"]["INC"], "SIO_WR_N")
+                self.assertEqual(parts["U405"]["_nets"]["OUTC"], "SIO_WR_N_ISO")
+                for ref, net in (("D501", "BTN_UP"), ("D502", "BTN_DOWN")):
+                    self.assertEqual(parts[ref]["_nets"], {"1": "BTN_ESC", "2": net})
+            else:
+                self.assertEqual(parts["U501"]["_nets"]["PC1"], "SIO_WR_N")
+                self.assertFalse({"D501", "D502"} & parts.keys())
 
     def test_comparator_faults_and_flags(self):
         text = '<export><design><sheet name="/BANK_A/"/></design><components><comp ref="R1"><value>10k</value><footprint>R:R</footprint>'
@@ -149,7 +176,7 @@ print(json.dumps({p.ref: vars(p) for s in sheets for p in s.parts()}, sort_keys=
     def test_model_counts(self):
         from build import root_parts
         import build
-        for config, count, bom_lines, fitted in ((B24, 463, 95, 442), (B8, 264, 92, 243)):
+        for config, count, bom_lines, fitted in ((B24, 470, 96, 449), (B8, 264, 92, 243)):
             build.CONFIG = config
             parts = model(config)
             parts.update({p.ref: vars(p) for p in root_parts()})
