@@ -27,3 +27,10 @@
 
 * Cost: `gen/cost.py` has no offline price cache; parts cost not yet computed for 8 / 40.
 * Generated output (`out/`) is ignored; the boards' own folders take a copy when their layout starts.
+
+## After the 24-ch REV A4 merge (2026-10-19)
+
+* `gen/test_family.py::test_24_model_identical_to_original` and `tools/test_profiles.py::test_profile24_source_constants`
+  fail: the family config/profile "24" still describes REV A3, the 24-ch generator is now REV A4 (`0041` gated
+  SIO driver U411, `0042` door LCD). Bring config 24 / profile 24 up to REV A4 (or re-point the tests) before the
+  family tools are used on the 24-ch again. I-129 and I-130 still apply to REV A4 (checked after the merge).
