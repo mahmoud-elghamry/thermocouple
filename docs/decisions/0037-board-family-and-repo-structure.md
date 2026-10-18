@@ -1,5 +1,8 @@
 # 0037 - One board family (8 / 24 / 36 channels), one firmware, products as folders
 
+> 2026-10-14: the 36-ch board became **40 TC fitted + 4 PT100** in `hardware/40ch/`, and the new 8-ch is
+> `hardware/8ch-new/` (`0039`). The text below keeps the original wording.
+
 * Status: accepted (owner, 2026-10-14) for the direction; each product's details are decided in its own work
 * Date: 2026-10-14
 * Builds on: `0031` (one 24-ch board), `0036` (cost-down variant, merged into `main` by the owner, 1904891)

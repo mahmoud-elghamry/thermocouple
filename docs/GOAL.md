@@ -10,10 +10,11 @@ alone. Changes go through `docs/decisions/`. Status column synced to `0031`-`003
 
 ## The goal
 
-A system that reads **24 K-type thermocouples** on **one 24-channel board**
+A system that reads **24 thermocouples, type K or J chosen per channel** (`0038`), on **one 24-channel board**
 (owner, 2026-10-08, `decisions/0031`; replaces three modules, `0024`). Any channel
 trip opens the potential-free shutdown contact. The owner added (2026-10-14, `0037`) an
-8-channel option and a 36-channel board in the same family: same architecture, 1 or 5 banks.
+8-channel option and a 40-channel board in the same family: same architecture, 1 or 5 banks; the 40-ch also
+reads 3 three-wire PT100 points on a bank of their own, with a check resistor (`0039` P5).
 
 It is going onto real equipment. It is not a demonstration.
 
@@ -26,8 +27,8 @@ old one-engine/one-probe-per-cylinder mapping to all 24 channels.
 | | |
 |---|---|
 | The machine | Earlier basis: one eight-cylinder engine, no VFD. Common series shutdown for all 24 confirmed; physical sensor/engine mapping remains unconfirmed |
-| The sensors | K-type; probably grounded-junction (owner, 2026-10-07), not verified. Earlier basis: cylinder bodies; exact model and 24-channel mapping unconfirmed |
-| The unit | Same panel or nearby; K-type shielded twisted extension cable, roughly 50 m basis accepted (`0029`); exact cable/termination to be specified |
+| The sensors | K-type today, J also accepted per channel (`0038`); probably grounded-junction (owner, 2026-10-07), not verified. Earlier basis: cylinder bodies; exact model and 24-channel mapping unconfirmed |
+| The unit | Same panel or nearby; shielded twisted extension cable of the probe's type (KX for K, JX for J, `0038` D3), roughly 50 m basis accepted (`0029`); exact cable/termination to be specified |
 | Vibration and heat | Existing basis is a separate panel; moving acquisition onto/near the engine requires a fresh environmental assessment |
 | The 24 V supply | Engine battery per accepted decision `0016`; surge qualification remains open (I-028/I-077) |
 
@@ -39,7 +40,7 @@ That rationale must be rechecked if channel assignment spans different machines.
 
 | # | Requirement | Status |
 |---|---|---|
-| R-1 | Read 24 K-type thermocouples, grounded, insulated or mixed | One board REV A3, 3x AD7124-8 (`0031`, `0032`): schematic and routed board exist, layout repairs open (`docs/ISSUES.md` P0); not built or tested |
+| R-1 | Read 24 thermocouples, type K or J per channel, grounded, insulated or mixed | J is firmware only (`0038`). One board REV A3, 3x AD7124-8 (`0031`, `0032`): schematic and routed board exist, layout repairs open (`docs/ISSUES.md` P0); not built or tested |
 | R-2 | Open the common potential-free dry-contact circuit when any channel exceeds its own setpoint | Trip relay G6K-2F-Y, both NO poles in series (`0032` rev 3); signal loads only, 30 VDC / 1 A (I-092); per-channel limits are 24-ch firmware (I-100); I-081 accepted limit |
 | R-3 | Energised to run — power loss, reset or fault must stop the machine | Relay held only by a heartbeat from completed scans (I-118); single-fault limits in I-081 |
 | R-4 | Show readings, channel limits and state locally | 20x4 LCD on standoffs on the board, five buttons plus a header for panel buttons (`0031` D4, `0034` D2); per-channel editing is firmware (I-100) |

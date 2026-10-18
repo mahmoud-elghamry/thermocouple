@@ -1,4 +1,4 @@
-# Thermo — thermocouple protection boards: one family of 8, 24 and 36 channels
+# Thermo — thermocouple protection boards: one family of 8, 24 and 40 channels
 
 Read this file first. It is the entry point for every agent and every new
 session. Follow the AGENTS.md open standard, so Codex, Cursor, Copilot and
@@ -11,11 +11,11 @@ others read it directly; `CLAUDE.md` imports it for Claude Code.
 
 ## What this project is
 
-A protection system for **K-type thermocouples** on engines. **`0037` (2026-10-14): one board
-family on the 24-ch architecture** - banks of one AD7124-8 each: 8 ch = 1 bank, 24 ch = 3, 36 ch = 5 -
+A protection system for **K- and J-type thermocouples** (per channel, `0038`) on engines. **`0037` (2026-10-14): one board
+family on the 24-ch architecture** - banks of one AD7124-8 each: 8 ch = 1 bank, 24 ch = 3, 40 ch = 5 + a PT100 bank (`0039`) -
 and **one firmware** for all of them. **`hardware/24ch/` (REV A3, cost-down variant `0036`) is the
 board being ordered**; `0031` holds its architecture (grounded, insulated or mixed probes).
-`hardware/8ch/` (REV A2, MAX31856) is reference; a new 8-ch and a 36-ch board derive from the 24-ch one.
+`hardware/8ch/` (REV A2, MAX31856) is reference; the new 8-ch (`hardware/8ch-new/`) and 40-ch (`hardware/40ch/`) derive from it via `hardware/family/` (`0039`).
 Any channel trips the common run-permit contact.
 Earlier eight-channel basis: cylinder-body probes, roughly 50 m cables, no VFD.
 Per-channel persistent setpoints and manual ACK are required (`0029`); the 24-ch firmware is not written yet (I-100).
@@ -39,7 +39,7 @@ contact opens and the machine cannot start.
 | `docs/reference/` | long background documents | reference only |
 
 Do not add a new file to `docs/` for your own notes. Findings go into
-`docs/ISSUES.md` (new rows tagged [24ch]/[8ch]/[36ch]/[fw]/[all]), decisions into `docs/decisions/`,
+`docs/ISSUES.md` (new rows tagged [24ch]/[8ch]/[40ch]/[fw]/[all]), decisions into `docs/decisions/`,
 progress into the product's `STATE.md`. A review that lives in its own file gets read once and then
 rots — that has already happened here once.
 
@@ -48,7 +48,7 @@ rots — that has already happened here once.
 ```
 hardware/24ch/            the 24-channel board REV A3 - being ordered (README, STATE.md there)
 hardware/8ch/             the 8-channel board REV A2 - reference; the new 8-ch derives from 24ch
-hardware/36ch/            the 36-channel board - not created yet (0037)
+hardware/8ch-new/, 40ch/  new 8-ch REV B0 (8ch-2l: 2 layers, 0040) and 40-ch (40 TC + 3 PT100); family/ = shared lib (0039)
 hardware/single-channel/  superseded board, kept for reference - DO NOT MODIFY
 firmware/                 AVR C, host unit tests; 8-ch REV A2 images so far; one family firmware next
 simulation/               Proteus simulation project

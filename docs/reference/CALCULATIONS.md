@@ -925,3 +925,1080 @@ All 86 BOM lines matched to the given LCSC codes (72 unique), no shortfall, LM51
 Bare boards only (no rails, 0.55 kg / 0.98 kg): leaded HASL 40.30 / 55.40, lead-free HASL 45.90 /
 61.60, ENIG 59.70 / 77.70; UPS to Egypt ~$47. Import duties/VAT in Egypt are not included (the
 calculator does not mark Egypt DDP): UNVERIFIED. Build: PCB 3 days + assembly 5-6 days + transit.
+
+## 9. New 8-channel board (0039)
+
+> Sections 9.1-10.9 and the findings: Codex gpt-6.1-sol, read-only, 2026-10-14, reviewed by Claude. Taken into
+> `0039`: 9.5/10.5 -> gated SIO driver (P2, I-124); 10.2 RTD compliance -> new values in 10.10 (P4); 10.7 RTD
+> coverage -> P5. TL431 clamp tolerance (9.2) and EEPROM record size (10.8) stay open for the schematic review.
+
+Context: proposed `0039` rev 2, read 2026-10-14. One AD7124-8, two TMP126, two CA-IS3761HW; power chain, MCU, LCD, relays and fitted RS-485 retained.
+
+These are feasibility calculations, **not qualification**. “Worst” means the stated screening envelope, including assumptions; it is not a guaranteed sum of manufacturer maxima. **UNVERIFIED** identifies assumed values or operating conditions. No files were changed.
+
+### 9.1 Island 3.3 V load
+
+Inputs:
+
+* Mid-power ADC operation, gain 32, input buffers enabled, internal reference and diagnostics enabled, internal VBIAS disabled.
+* ADC current: typ `(330 + 25 + 50 + 4) = 409 µA`; maximum `(430 + 40 + 70 + 5) = 545 µA`. Reference buffers are unnecessary for internal-reference measurements. [AD7124-8, Table 3](https://www.analog.com/media/en/technical-documentation/data-sheets/ad7124-8.pdf).
+* CA-IS3761 side B: 5.1 mA typ at 500 kHz, all channels switching; 8.9 mA maximum of the applicable AC/DC rows. Side A: 6.3 mA typ, 15.3 mA maximum. **UNVERIFIED:** applying separate 5 V and 3.3 V tables to mixed supplies and actual channel activity. [Chipanalog CA-IS376x, §§7.8–7.9](https://e.chipanalog.com/Public/Uploads/uploadfile/files/datasheet/CA-IS376x_datasheet_Version1.05.pdf).
+* TMP126: 77 µA typ during conversion; 135 µA maximum through 150 °C. Continuous active-conversion current is deliberately budgeted without duty-cycle savings. [TMP126, §7.5](https://www.ti.com/lit/ds/symlink/tmp126.pdf).
+* Auxiliary allocations include REF3030, MCP6001, comparator, divider currents, clamp-divider current and engine-reference current.
+* Rail envelope: 3.3 V ±5%; R401 = 150 Ω ±1%.
+
+| Island load | Typ, mA | Worst, mA | Basis |
+|---|---:|---:|---|
+| One AD7124-8 | 0.409 | 0.545 | Mid-power calculation above |
+| Two CA-IS3761 secondary sides | 10.200 | 17.800 | `2 × 5.1 / 8.9` |
+| Two TMP126 | 0.154 | 0.270 | `2 × 0.077 / 0.135` |
+| Reference, buffer, comparator and passive networks | 0.600 | 1.000 | **UNVERIFIED allocation** |
+| R443 contention current | 0.150 | 0.160 | No duty-cycle credit |
+| Additional switching/burnout allowance | 0.100 | 0.300 | **UNVERIFIED allocation** |
+| **Functional load, excluding preload** | **11.613** | **20.075** | Sum |
+| R401 preload | 22.000 | 23.333 | `3.3/150`; `3.465/148.5` |
+| **LDO output load** | **33.613** | **43.408** | Sum |
+| LDO ground/enable allowance | 0.350 | 1.000 | Retained §7.1 screening allowance |
+| **Module output current** | **33.963** | **44.408** | LDO input current |
+
+**Verdict: OK for capacity; preload required.** The maximum functional-load figure cannot establish a minimum load. Typical functional load is only 11.6 mA, below the module’s 20 mA minimum, and reset/idle can draw less.
+
+The table uses mid-power operation. Accidental full-power operation adds approximately 0.575 mA typ / 0.810 mA maximum per TC ADC; it does not threaten supply capacity.
+
+### 9.2 Isolated module, preload, LDO and startup
+
+The fitted manufacturer is **YLPTEC**, not the MORNSUN calculation proxy used in §7.1. Its B0505S-1WR2 sheet specifies 200 mA maximum, **20 mA minimum**, nominal 5 V output and 1 W. Output regulation is specified over 10–100% load. [YLPTEC B_S-1WR2](https://atta.szlcsc.com/upload/public/pdf/source/20240729/EA84979D67E82D095ACC25BE5C806E4D.pdf).
+
+    Module loading = I_module / 200 mA
+                   = 17.0% typ / 22.2% worst
+
+    Module output power:
+      typ, assumed 5.5 V = 5.5 × 33.963 mA = 0.187 W
+      worst, assumed 6 V = 6 × 44.408 mA = 0.266 W
+
+The 5.5/6 V operating points and efficiencies below are **UNVERIFIED**, retained from the section 7 screening method.
+
+**R401 minimum-loading check**
+
+    Minimum preload = 3.135 V / 151.5 Ω = 20.69 mA
+    Nominal power   = 3.3² / 150       = 72.6 mW
+    Maximum power   = 3.465² / 148.5   = 80.9 mW
+
+The preload alone exceeds 20 mA once the island rail is regulated. It also provides a load for positive clamp injection. Retain **150 Ω, 1206**.
+
+**LDO check**
+
+LP2985 screening limits retained from §7.1: 150 mA rated output; legacy dropout maximum 225 mV at 50 mA over temperature; θJA = 205.4 °C/W. Both calculated loads are below 50 mA. [LP2985-N, §§5.4–5.5](https://www.ti.com/lit/ds/symlink/lp2985-n.pdf).
+
+    Required raw voltage = 3.465 + 0.225 = 3.690 V
+    At assumed raw minimum 4.5 V:
+      dropout margin = 4.5 − 3.690 = 0.810 V
+
+    P_LDO = (Vraw − 3.3) × I_load + Vraw × I_ground
+
+    Typ   = 2.2 × 33.613 mA + 5.5 × 0.350 mA = 75.9 mW
+    Worst = 2.7 × 43.408 mA + 6 × 1.000 mA   = 123.2 mW
+
+    Junction rise = 0.1232 × 205.4 = 25.3 °C
+    At 85 °C ambient: Tj ≈ 110.3 °C
+
+**Verdict: OK**, conditional on raw-voltage and thermal assumptions. Actual module sag/ripple and legacy-LDO capacitor/ESR stability remain **UNVERIFIED**.
+
+**Startup**
+
+Use the §7.4 conservative capacitance inventory:
+
+| Rail | Assumed upper capacitance |
+|---|---:|
+| Control 5 V | 120 µF |
+| Raw isolated output | 13.2 µF |
+| Island 3.3 V | 12 µF |
+
+    Island-side charging quantity ≈ 13.2 µF × 6 V + 12 µF × 3.465 V
+                                  = 120.8 µC
+
+    Illustrative charging time with 100 mA surplus = 120.8 µC / 100 mA
+                                                = 1.21 ms
+
+This demonstrates modest stored charge, **not a guaranteed startup time**. The LDO can demand more than the module’s rated current while charging capacitors; the module’s startup/current-limit behaviour is not bounded by the steady-load table. Before the 3.3 V rail reaches approximately 3.03 V, R401 itself draws less than 20 mA.
+
+**Startup verdict: MARGINAL / UNVERIFIED.** Check ramp, overshoot, hiccup and brownout at minimum/maximum 5 V and temperature. Do not remove R401 on the basis of RUN current.
+
+**TL431 clamp**
+
+From `c_iso.py`, R428/R429 = 4.02 kΩ/10 kΩ:
+
+    Vclamp ≈ Vref × (1 + R428/R429) + Iref × R428
+           ≈ 2.495 × 1.402 + 2 µA × 4.02 kΩ
+           ≈ 3.506 V
+
+    Approximate collector-current ceiling:
+      (3.5 − 0.2) / 22 Ω = 150 mA
+
+    R441 at that ceiling = 0.150² × 22 = 0.495 W
+
+The normal startup load does not include 150 mA of clamp current: the clamp should remain off below its threshold. It clamps **3.3 V AVDD**, not the module’s raw 5 V output.
+
+A conservative tolerance stack for the fitted TL431BI, using maximum initial reference, full-temperature deviation, reference-input current and 1% divider corners, gives:
+
+    Vclamp_high ≈ (2.507 + 0.034)
+                  × [1 + (4020 × 1.01)/(10000 × 0.99)]
+                  + 6.5 µA × 4020 × 1.01
+                ≈ 3.610 V
+
+These inputs come from [TL431BI, §6.12](https://www.ti.com/lit/ds/symlink/tl431.pdf). This is a conservative bound rather than a predicted operating voltage, but it leaves no guaranteed margin below the ADC’s 3.6 V operating ceiling, before transient overshoot.
+
+**Clamp verdict: MARGINAL.** Capacity is adequate as a screening estimate; threshold tolerance and transient regulation require resolution for both new boards. Simply lowering R428 can make the clamp conduct against a high-tolerance LDO output.
+
+### 9.3 5 V budget and battery current
+
+Inputs:
+
+* RS-485 fitted and continuously transmitting into the section 7 double-termination screening case.
+* ADM2587E: 98 mA typ; 150 mA worst is an **UNVERIFIED allowance**, not a specified maximum.
+* LCD logic: 1.5/3 mA; backlight Vf = 3.5/3.2 V, **UNVERIFIED**.
+* R502 = 22 Ω ±5%.
+* Both DC5 relays energized. Nominal coil resistance 237.5 Ω, ±10% at 23 °C; cold-coil behaviour is a separate assumption.
+* MCU, LEDs and auxiliary allocations retained from §7.2.
+
+    LCD typ   = (5 − 3.5)/22 + 1.5 mA        = 69.68 mA
+    LCD worst = (5.25 − 3.2)/(22 × 0.95) + 3 = 101.09 mA
+
+    Two relay coils typ   = 2 × 5/237.5           = 42.11 mA
+    Two relay coils worst = 2 × 5.25/(237.5 × 0.9) = 49.12 mA
+
+    Module input = Vraw × I_module / (V5 × efficiency)
+
+    Typ   = 5.5 × 33.963 / (5 × 0.72)    = 51.89 mA
+    Worst = 6 × 44.408 / (4.75 × 0.62)   = 90.48 mA
+
+Effective efficiency includes converter losses; do not add no-load current again.
+
+| 5 V load | Typ, mA | Worst, mA |
+|---|---:|---:|
+| MCU | 8.00 | 20.00 |
+| LCD | 69.68 | 101.09 |
+| ADM2587E | 98.00 | 150.00 |
+| Two isolator primary sides | 12.60 | 30.60 |
+| Island module input | 51.89 | 90.48 |
+| Two relay coils | 42.11 | 49.12 |
+| LEDs | 4.00 | 5.00 |
+| Pull-ups, contrast and auxiliaries | 2.00 | 5.00 |
+| **Total** | **288.27** | **451.28** |
+
+Use **0.50 A** as the 5 V design envelope. An illustrative copper-resistance correction from 23 °C to −40 °C raises the two-coil allowance to approximately 65.3 mA, giving about **467.5 mA** total; this cold-coil model is **UNVERIFIED**.
+
+Battery calculation includes D601 = 0.5 V drop, PTC resistance 0.09 Ω typ / 0.5 Ω worst, buck efficiency 90/85%, and battery-side auxiliaries 1/2 mA:
+
+    Ibat = V5 × I5 / [ηbuck × (Vbat − 0.5 − RPTC × Ibat)] + Iaux
+
+| Battery voltage | Typ current | Screening worst |
+|---|---:|---:|
+| 18 V | 92.6 mA | 162.0 mA |
+| 24 V | 69.2 mA | 120.9 mA |
+| 32 V | 51.8 mA | 90.6 mA |
+
+**Verdict: OK within the requested 18–32 V range.** Exact LCD loading, RS-485 loading and efficiencies remain unverified. These figures do not qualify lower cranking voltages.
+
+### 9.4 Buck, PTC, panel fuse and inrush
+
+Retain LM5164, 33 µH L601 and F601. Use the section 7 screening bounds: Lmin = 26.4 µH, fmin = 270 kHz.
+
+    ΔIL = Vout/(f × L) × (1 − Vout/Vin)
+    Ipeak = Iout + ΔIL/2
+    Irms  = sqrt(Iout² + ΔIL²/12)
+
+At the **0.50 A design envelope**, Vout = 5.25 V:
+
+| Protected buck input | Ripple | Peak | RMS |
+|---|---:|---:|---:|
+| 18 V | 0.522 A | 0.761 A | 0.522 A |
+| 24 V | 0.575 A | 0.788 A | 0.527 A |
+| 32 V | 0.616 A | 0.808 A | 0.531 A |
+| 58 V, retained transient screen | 0.670 A | 0.835 A | 0.536 A |
+
+LM5164 has 1 A output capability and a 1.25–1.75 A peak-current-limit range. [LM5164, §6.5](https://www.ti.com/lit/ds/symlink/lm5164.pdf).
+
+    Output capacity/design envelope = 1/0.50 = 2.0×
+    Minimum peak-limit margin at 32 V = 1.25 − 0.808 = 0.442 A
+
+Retain L601; its saturation requirement still follows the maximum converter limit, not only normal-load peak current.
+
+Using the §7.3 PTC hold values, even the 0.50 A rail envelope draws approximately 0.180 A from an 18 V battery:
+
+    Hold-current margin at 70 °C = 0.45/0.180 = 2.50×
+    Hold-current margin at 85 °C = 0.35/0.180 = 1.94×
+
+**Buck/PTC verdict: OK for 18–32 V.**
+
+Input capacitance and resistance are unchanged:
+
+    Cin_upper = (22 + 4.7 + 4.7) × 1.2 = 37.68 µF
+
+    I²t_input = Vbat² × Cin_upper / (2 × 0.090 Ω)
+              = 0.214 A²s at 32 V
+
+Retain §7.4’s **UNVERIFIED** successful-startup assumption: one startup within 20 ms, no repeated hiccup, conservative panel-current ceiling 1.77 A.
+
+    I²t_start ≤ 1.77² × 0.020 = 0.0627 A²s
+
+    Combined overlap bound
+      ≤ [sqrt(0.214) + sqrt(0.0627)]²
+      = 0.509 A²s
+
+    Fuse screening margin = 1/0.509 = 1.96×
+    Steady-current margin at 18 V, design envelope = 1/0.180 = 5.56×
+
+**Fuse verdict: OK conditionally; retain 0020:** 1 A time-delay, ≥80 V DC, ≥10 kA DC interruption, verified pre-arc I²t ≥1 A²s. No case for changing its rating from these calculations. Exact fuse/holder and measured startup pulse remain required.
+
+### 9.5 Shared DOUT bus and TMP126 write path
+
+Inputs:
+
+| Contribution | Capacitance |
+|---|---:|
+| One ADC floating DOUT | 10 pF |
+| Two TMP126 SIO pins | 40 pF |
+| Reverse isolator input | 2 pF |
+| Estimated trace, vias and pads | 10–20 pF |
+| **Estimated total** | **62–72 pF** |
+| **Screening ceiling** | **85 pF** |
+
+Trace estimate: approximately 100–150 mm aggregate routed length, at an assumed 0.7–1.2 pF/cm plus pad/via allowance. **UNVERIFIED until layout extraction.**
+
+The ADC output-capacitance figure is from its logic-output table; TMP126 specifies 20 pF input capacitance and isolator CI is 2 pF.
+
+For R443 = 22 kΩ:
+
+    τ = R × C = 1.36–1.58 µs estimated; 1.87 µs at 85 pF
+
+    Conservative write clock:
+      f ≤ 1 / [2 × (3τ + 10 ns)]
+        ≈ 89 kHz at 85 pF
+
+An 8 MHz AVR’s **62.5 kHz** hardware-SPI setting satisfies this conservative settling calculation. This applies to the command portion of every TMP126 read as well as register writes.
+
+**RC-settling verdict: OK at 62.5 kHz, conditional on Cbus ≤85 pF.**
+
+Two separate limits remain:
+
+1. **ADC DC loading**
+
+    R443 nominal load when DIN and DOUT oppose:
+      3.3/22k = 150 µA
+
+    High-rail/low-resistance corner:
+      3.465/(22k × 0.99) = 159 µA
+
+ADC DOUT voltage is specified at **100 µA**, not at 150–159 µA. Deselected-device and isolator-input leakage can add further load. The CA-IS3761 input table permits up to 20 µA leakage.
+
+**Verdict: MARGINAL / UNVERIFIED logic levels.** This is outside the specified output-voltage test condition, rather than proof of an absolute-current violation.
+
+2. **TMP126 input edge time**
+
+TMP126 specifies 100 ns maximum SIO rise/fall time; its timing diagram uses 30–70% thresholds. [TMP126, §7.6](https://www.ti.com/lit/ds/symlink/tmp126.pdf).
+
+    t30–70 = ln(0.7/0.3) × τ = 0.8473τ
+            ≈ 1.15–1.34 µs; 1.58 µs at 85 pF
+
+**Verdict: FAILS the published edge-time requirement.** Reducing clock frequency fixes settling before sampling, but does not shorten the edge.
+
+**Recommendation:** use an enabled, low-impedance TMP126 command driver and controlled read turnaround on the new board. The 8-ch allocation uses six of ten forward channels—SCLK, DIN, three CS and REFTEST—so **four forward channels remain spare**. A push-pull isolator output must not drive SIO during sensor reads.
+
+### 9.6 Engine-reference FEED/SENSE detection
+
+Circuit inputs from `c_iso.py`:
+
+| Element | Value |
+|---|---:|
+| Buffered midpoint | 1.65 V nominal |
+| R418 | 100 Ω |
+| R419 + R420 | 9.98 kΩ |
+| R427, midpoint to bias bus | 10 kΩ |
+| Each TC− bias | 20 MΩ |
+| R421, sense protection | 10 kΩ |
+| R422, sense pull-down | 1 MΩ |
+| REF_THR divider | 15 kΩ/10 kΩ |
+| R442 hysteresis | 1 MΩ |
+| C419 sense filter | 100 nF |
+
+Worst masking case: **all eight probes grounded**, so all eight bias resistors can feed the engine node after FEED breaks. Insulated probes do not provide those parallel DC paths. RTD paths are absent.
+
+Define:
+
+    Rbias(N) = R427 + 20 MΩ/N
+    Rfeed_connected = 9.98 kΩ || Rbias(N)
+
+    Vsense_connected =
+      1.65 × 1 MΩ /
+      [1 MΩ + R421 + Rfeed_connected + R418]
+
+    Vsense_broken =
+      1.65 × 1 MΩ /
+      [1 MΩ + R421 + Rbias(N) + R418]
+
+For N = 8:
+
+    Rbias = 10k + 20M/8 = 2.510 MΩ
+
+    Wire connected: Vsense = 1.6176 V
+    FEED broken:    Vsense = 0.4687 V
+
+    Connected margin above 1.32 V = 0.2976 V
+    Broken margin below 1.32 V    = 0.8513 V
+
+The approximately 1.63 V source comment omits some series resistance; including R421 gives approximately **1.618 V**.
+
+R442 shifts the nominal threshold:
+
+    REFOK low:  REF_THR ≈ 1.3121 V
+    REFOK high: REF_THR ≈ 1.3318 V
+
+With grounded probes:
+
+    V_BIAS connected ≈ 1.6498 V
+    V_BIAS broken    ≈ 1.6453 V
+
+The broken-wire current is only approximately 0.469 µA total. V_MID buffering therefore prevents the bias network from materially depressing the source.
+
+Assuming all relevant resistors ±1%, the midpoint at its high corner and bias resistance at its low corner:
+
+    Broken sense upper corner ≈ 0.4802 V at a 3.3 V rail
+    Connected sense lower corner ≈ 1.6007 V
+
+Allowing comparator ±8 mV offset and 8.5 mV internal half-hysteresis gives an approximately 1.280 V low threshold corner. [TLV7031, §5.7](https://www.ti.com/lit/ds/symlink/tlv7031.pdf).
+
+    Broken-case remaining corner margin ≈ 1.280 − 0.480 = 0.800 V
+
+C419 gives approximately 71.6 ms time constant after FEED breaks, but the nominal threshold is crossed in approximately **22 ms** because the initial voltage is already near the threshold.
+
+**Verdict: OK for the resistor-network calculation.** Hot protection leakage, cable coupling and actual grounded-probe paths remain **UNVERIFIED**. REFTEST verifies the sense/comparator response; it does not replace a physical cut-FEED test.
+
+### 9.7 Scan latency
+
+The retained 24-ch setting is **mid-power, 25 SPS post-filter**, not a generic 25 SPS sinc filter. `0032` rev 3 and `docs/reference/review-20261009-astra.md` establish this setting.
+
+Use FILTER = `111`, POST_FILTER = `011`; nominal switched-channel settling is 42.331 ms. At a −5% ADC clock:
+
+    Tslot = 42.331/0.95 = 44.559 ms
+
+A proposed complete bank cycle is:
+
+| Operation | Slots |
+|---|---:|
+| Eight TC readings | 8 |
+| One rotating burnout check | 1 |
+| Internal-reference/REF3030 comparison | 1 |
+| Zero check | 1 |
+| Nonzero check | 1 |
+| Rotating common-mode check | 1 |
+| AVDD/6 | 1 |
+| Additional gain-ratio reading | 1 |
+| **Total** | **15** |
+
+    Conversion schedule = 15 × 44.559 = 668.4 ms
+
+SPI assumption: **500 kHz**, the §7.1 budget assumption; no implemented 24-ch firmware clock is established.
+
+Allow 64 SPI bits per ADC operation, 15 result transactions plus six extra configuration/status transactions:
+
+    ADC bus time ≤ 21 × 64/500k = 2.69 ms
+
+For two CJ reads, conservatively clock complete CRC frames at 62.5 kHz:
+
+    CJ time = 2 × 48/62.5k = 1.54 ms
+
+Add 7.5 ms CJ conversion availability and a **UNVERIFIED 20 ms** bounded software/configuration allowance:
+
+    Cycle screen ≈ 668.4 + 2.69 + 1.54 + 7.5 + 20
+                 ≈ 700 ms
+
+With prompt per-result trip evaluation and 30 ms allowed for pump/relay release:
+
+    Including an extra filter interval:
+      response screen ≈ 700 + 44.6 + 30 = 775 ms
+
+**Verdict: OK as a proposed schedule; UNVERIFIED in firmware and hardware.** Temperature samples must not wait for the next complete-scan processing pass.
+
+One rotating burnout check revisits each channel in approximately **5.6 s**; common-mode checks revisit each of 16 inputs in approximately **11.2 s**. These are diagnostic intervals, not one-second open-wire coverage. If every channel requires a burnout test every second, this schedule must change.
+
+### 9.8 Firmware resources
+
+ATmega1284P provides 128 KiB flash, 16 KiB SRAM and 4 KiB EEPROM. [Microchip ATmega1284P](https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-42719-ATmega1284P_Datasheet.pdf).
+
+`0029`/`0038` specify record content and validation behaviour, but do **not** define a byte layout. Proposed explicit serialization:
+
+| Record field | Bytes |
+|---|---:|
+| Magic | 2 |
+| Format version | 1 |
+| Channel identity | 1 |
+| Generation/sequence | 4 |
+| Setpoint, signed fixed-point | 4 |
+| Hysteresis | 2 |
+| Sensor type | 1 |
+| Mode/flags | 1 |
+| CRC | 2 |
+| Commit marker | 1 |
+| Reserved | 5 |
+| **One record** | **24** |
+
+    Eight channels, A/B records = 8 × 2 × 24 = 384 B
+
+With 128 B global A/B settings, 32 B bank calibration and 1024 B event allocation:
+
+    EEPROM total = 384 + 128 + 32 + 1024 = 1568 B
+    Free EEPROM  = 4096 − 1568 = 2528 B
+
+Proposed RAM allocation is **40 B/channel**, including raw value, temperature, previous value, filter accumulator, timestamp, burnout baseline, setpoint, hysteresis, type/mode, fault/state and counters.
+
+    Channel RAM = 8 × 40 = 320 B
+
+A conservative total including 512 B communications buffers, 128 B ADC state, 32 B CJ state, 224 B optional Modbus shadow map, 128 B LCD storage, 512 B miscellaneous state and 2048 B stack reserve is:
+
+    SRAM budget = 4004 B ≈ 24% of 16 KiB
+
+K/J tables use approximately 2.5 KiB per `0038`, stored in program memory. A 64 KiB code allocation plus tables, 1 KiB metadata/map allocation and 4 KiB boot reserve is approximately 71.5 KiB.
+
+**Verdict: fits comfortably.** These are allocations, not measured firmware size. A/B serialization, corrupted-type handling and setpoint reconfirmation follow `0038`; do not write native C structures directly to EEPROM.
+
+### 9.9 Board size
+
+Read-only `kicad-tool` queries of `hardware/24ch/thermo24.kicad_pcb` establish:
+
+* Outline: **170 × 145 mm = 24,650 mm²**.
+* Footprints: **466**.
+* Each TC bank: **97 footprints**.
+* Release `4b1601`: **442 BOM parts**; the other 24 footprints are mounting holes, fiducials and test points.
+
+Estimated one-bank reduction:
+
+    BOM parts ≈ 442 − 2 × 97 − 3 isolator/cap parts − 6 CS pull-ups
+              = 239
+
+    Footprints ≈ 466 − 194 − 3 − 6 = 263
+
+At the same area per BOM part:
+
+    Area estimate = 24,650 × 239/442 = 13,329 mm²
+
+| Candidate outline | Area | Component density versus 24-ch |
+|---|---:|---:|
+| 110 × 100 mm | 11,000 mm² | 21% higher |
+| 120 × 100 mm | 12,000 mm² | 11% higher |
+| 120 × 110 mm | 13,200 mm² | Approximately equal |
+
+**Verdict: MARGINAL for 110–120 × 100 mm; 120 × 110 mm is a reasonable first floor-plan envelope.** The approximately 98 × 60 mm LCD, terminal entry, controls and retained power blocks prevent scaling by channel count alone. This is an area estimate, not a placement result.
+
+## 10. 40-channel board (0039)
+
+Context: five TC banks, ten TMP126, one additional AD7124-8 for four RTDs, one 74HC154 and two CA-IS3761HW. All ADCs convert concurrently. RTDs are assumed insulated from engine/frame.
+
+Common screening assumptions and source limits are those in section 9.
+
+### 10.1 Island 3.3 V load
+
+The RTD allowance includes ADC operation, reference buffers and continuously enabled **two 250 µA sources**, or one 500 µA source. Only the selected RTD is excited; this is not four simultaneous 500 µA loads.
+
+    RTD ADC typ allowance:
+      0.409 mA ADC + 0.040 mA reference buffers
+      + 0.500 mA excitation + 0.100 mA reserve
+      = 1.049 mA
+
+    RTD maximum screening allocation = 1.200 mA
+
+The RTD allowance is conservative and **UNVERIFIED for its final gain/reference configuration**.
+
+74HC154 operates at 3.3 V. Its static maximum supply current is 160 µA over −40 to 125 °C at the datasheet test condition; slow addressing adds little average dynamic load. Use 10 µA typ / 160 µA worst. [Nexperia 74HC154](https://assets.nexperia.com/documents/data-sheet/74HC_HCT154.pdf).
+
+| Island load | Typ, mA | Worst, mA |
+|---|---:|---:|
+| Five TC ADCs | 2.045 | 2.725 |
+| RTD ADC, buffers and excitation | 1.049 | 1.200 |
+| Two isolator secondary sides | 10.200 | 17.800 |
+| Ten TMP126 | 0.770 | 1.350 |
+| 74HC154 | 0.010 | 0.160 |
+| References, buffer, comparator and passive networks | 0.600 | 1.000 |
+| R443 contention allowance | 0.150 | 0.160 |
+| Extra switching, decoder pull-up and burnout allowance | 0.500 | 1.000 |
+| **Functional load, excluding preload** | **15.324** | **25.395** |
+| R401 preload | 22.000 | 23.333 |
+| **LDO output load** | **37.324** | **48.728** |
+| LDO ground/enable allowance | 0.350 | 1.000 |
+| **Module output current** | **37.674** | **49.728** |
+
+The extra switching allowance covers the larger SCLK/DIN loads and proposed interface logic; recalculate after selecting the actual buffer/multiplexer.
+
+**Verdict: OK for capacity.** Channel count increases the ADC/CJ load modestly; the two isolators and preload dominate.
+
+### 10.2 Module, LDO, preload, startup and RTD excitation
+
+    Module loading = 37.674/200 = 18.8% typ
+                     49.728/200 = 24.9% worst
+
+    Module power = 5.5 × 37.674 mA = 0.207 W typ
+                   6 × 49.728 mA   = 0.298 W worst
+
+**The existing 1 W module fits.** No higher-power converter is required by the calculated steady load.
+
+**Preload**
+
+Without R401, typical module current is approximately:
+
+    15.324 + 0.350 = 15.674 mA < 20 mA
+
+ADC standby, disabled excitation and CJ idle further reduce it. A worst-case load exceeding 20 mA cannot justify removing the preload.
+
+**Verdict: retain R401 = 150 Ω.** Its minimum regulated-rail current remains 20.69 mA. Forty channels do not establish a guaranteed 20 mA minimum across operating states.
+
+**LDO**
+
+    Ptyp = 2.2 × 37.324 mA + 5.5 × 0.350 mA = 84.0 mW
+    Pworst = 2.7 × 48.728 mA + 6 × 1.000 mA = 137.6 mW
+
+    Junction rise ≈ 0.1376 × 205.4 = 28.3 °C
+    At 85 °C ambient: Tj ≈ 113.3 °C
+
+    Dropout requirement, calculated load <50 mA:
+      Vraw ≥ 3.465 + 0.225 = 3.690 V
+
+**Verdict: OK under the stated envelope.** The 48.7 mA result is close to the 50 mA datasheet row; if final interface loading or full-power firmware pushes it above 50 mA, use the higher-current dropout/ground-current bounds. Even the legacy 575 mV dropout bound requires only 4.04 V raw input, but must be checked against measured module sag.
+
+For startup, allow 30 µF upper island capacitance and retain 13.2 µF raw capacitance:
+
+    Charging quantity ≈ 13.2 µF × 6 + 30 µF × 3.465
+                      = 183.2 µC
+
+    Illustrative time at 100 mA surplus = 1.83 ms
+
+**Startup verdict: MARGINAL / UNVERIFIED**, for the same reasons as §9.2. Stored charge fits comfortably within the module’s capacitive-load envelope, but does not prove startup without hiccup. The TL431 threshold-tolerance finding in §9.2 applies unchanged.
+
+**RTD excitation compliance**
+
+The supplied `0039` example is a real failure if excitation flows through 3.2 kΩ protection:
+
+    At nominal excitation:
+      Vrequired ≥ 2 × 250 µA × 5.11 kΩ
+                  + 250 µA × 3.2 kΩ
+                = 3.355 V
+
+    Available compliance = 3.3 − 0.37 = 2.930 V
+
+**Verdict: FAILS**, before RTD and lead drops.
+
+A provisional alternative retaining two 250 µA sources is **Rref ≈3.00 kΩ**, precision/low drift, or a substantially lower-resistance excitation branch. Sense protection can remain separate.
+
+For Rref = 3.00 kΩ, 0.1%; protection = 3.2 kΩ, 1%; PT100 resistance up to approximately 391 Ω; excitation upper allowance +4.5%:
+
+    Vrequired ≈ 522.5 µA × 3003 Ω
+                + 261.25 µA × 3232 Ω
+                + 261.25 µA × 391 Ω
+              ≈ 2.516 V
+
+    At 3.135 V island minimum:
+      compliance = 3.135 − 0.37 = 2.765 V
+      margin before leads = 2.765 − 2.516 = 0.249 V
+
+    Reference voltage nominal = 500 µA × 3.00 kΩ = 1.500 V
+    PT100 maximum signal ≈ 250 µA × 391 Ω = 97.8 mV
+    Gain 8 full scale = 1.500/8 = 187.5 mV
+
+**Verdict: OK provisionally**, subject to actual excitation topology, lead resistance, range and tolerances. Rref and excitation protection require a new calculation before freeze; 5.11 kΩ cannot be inherited with the stated 3.2 kΩ excitation resistance.
+
+### 10.3 5 V budget and battery current
+
+Only module loading changes significantly from §9.3.
+
+    Module input typ =
+      5.5 × 37.674 / (5 × 0.72) = 57.56 mA
+
+    Module input worst =
+      6 × 49.728 / (4.75 × 0.62) = 101.31 mA
+
+| 5 V load | Typ, mA | Worst, mA |
+|---|---:|---:|
+| MCU | 8.00 | 20.00 |
+| LCD | 69.68 | 101.09 |
+| ADM2587E | 98.00 | 150.00 |
+| Two isolator primary sides | 12.60 | 30.60 |
+| Island module input | 57.56 | 101.31 |
+| Two relay coils | 42.11 | 49.12 |
+| LEDs | 4.00 | 5.00 |
+| Control auxiliaries | 2.00 | 5.00 |
+| **Total** | **293.94** | **462.12** |
+
+Illustrative −40 °C coil correction raises the total to approximately **478.3 mA**. Retain the **0.50 A design envelope**; exact cold-coil resistance remains unverified.
+
+Using the §9.3 battery equation:
+
+| Battery voltage | Typ current | Screening worst |
+|---|---:|---:|
+| 18 V | 94.4 mA | 165.9 mA |
+| 24 V | 70.5 mA | 123.8 mA |
+| 32 V | 52.8 mA | 92.7 mA |
+
+**Verdict: OK for 18–32 V.** The 40-ch board adds approximately 11 mA to the screening-worst 5 V budget compared with the new 8-ch board.
+
+### 10.4 Buck, fuse and inrush
+
+Use the same **0.50 A** design envelope, so the buck ripple, peak/RMS, PTC and panel-fuse calculations in §9.4 apply directly.
+
+    At 32 V:
+      Ipeak = 0.808 A < 1.25 A minimum peak limit
+
+    At 18 V battery:
+      design-envelope current ≈ 0.180 A
+
+    Panel-fuse screening:
+      I²t_total ≤ 0.509 A²s
+      1 A²s requirement / screening = 1.96×
+
+The larger island capacitance changes downstream stored energy, not the direct battery capacitor step. At the assumed upper capacitances:
+
+    Edownstream =
+      0.5 × [120 µF × 5.25²
+             + 13.2 µF × 6²
+             + 30 µF × 3.465²]
+      ≈ 2.07 mJ
+
+The retained 20 ms startup allowance covers this inventory only if startup succeeds without repeated retries.
+
+**Verdict: OK conditionally.** Retain LM5164, 33 µH L601, existing PTC and the 1 A panel fuse specification. No current-driven power-part change is required.
+
+### 10.5 Shared DOUT capacitance, write timing and separate TMP126 path
+
+**74HC154 contributes no DOUT pin capacitance:** it drives chip selects and does not connect to the data net.
+
+| Shared DOUT contribution | Capacitance |
+|---|---:|
+| Six ADC floating DOUT pins | 60 pF |
+| Ten TMP126 SIO pins | 200 pF |
+| Reverse isolator input | 2 pF |
+| Decoder | 0 pF |
+| Estimated trace/vias/pads | 20–40 pF |
+| **Estimated total** | **282–302 pF** |
+| **Screening ceiling** | **330 pF** |
+
+For a roughly 220 × 170 mm board, estimate **250–350 mm aggregate DOUT routing**, not simply the board diagonal. Trace capacitance assumes 0.7–1.2 pF/cm plus pad/via allowance. All routing assumptions are **UNVERIFIED**.
+
+R443 is a resistance; its small parasitic capacitance is included in the layout allowance.
+
+    At 300 pF:
+      τ = 22k × 300 pF = 6.60 µs
+      3τ = 19.80 µs
+
+      fwrite ≤ 1/[2 × (3τ + 10 ns)]
+             = 25.24 kHz
+
+    At 330 pF:
+      τ = 7.26 µs
+      fwrite ≤ 22.95 kHz
+
+**RC verdict: use ≤20 kHz for the retained topology.** The plan’s approximately 25 kHz estimate has little tolerance reserve. The AVR’s slowest standard hardware-SPI clock at 8 MHz is 62.5 kHz, so ≤20 kHz requires software clocking or a different clock-generation arrangement.
+
+The threshold-only calculation is less conservative:
+
+    Time to 0.7 VDD = −ln(0.3) × τ = 1.204τ
+    At 330 pF: threshold-only clock ceiling ≈57 kHz
+
+Even that does not justify 62.5 kHz at the screening capacitance.
+
+**Input edge-time check**
+
+    t30–70 = 0.8473τ
+            = 5.59 µs at 300 pF
+            = 6.15 µs at 330 pF
+
+**Verdict: FAILS TMP126’s 100 ns edge-time requirement.** A 20 kHz clock does not fix this violation.
+
+**ADC DOUT loading**
+
+    Nominal R443 current = 150 µA
+    Rail/resistor corner = 159 µA
+
+With five deselected ADC outputs, ten TMP126 inputs and the isolator input, additional permitted leakage can bring the screening load toward **190 µA**.
+
+**Verdict: MARGINAL / UNVERIFIED.** ADC VOH/VOL is specified at 100 µA. Increasing channel count does not multiply the 150 µA resistor current, but increases capacitance and leakage.
+
+The average full-swing charging demand illustrates why capacitance also matters during directly driven reads:
+
+    Icharge ≈ C × V × f
+             = 300 pF × 3.3 × 500 kHz
+             ≈ 0.495 mA during switching
+
+This is dynamic charging demand, not a DC current to compare directly with the 100 µA voltage specification. Read-edge timing at 500 kHz still requires verification.
+
+**Separate TMP126 line**
+
+The proposed allocation uses **8/10 forward channels**:
+
+    SCLK, DIN, A0–A3, EN, REFTEST = 8
+    Spare forward channels      = 2
+    Reverse channels            = DOUT + REFOK; neither is spare
+
+A separate TMP126 data net would reduce loading approximately to:
+
+| Net | Estimated capacitance |
+|---|---:|
+| ADC DOUT, six ADCs plus return circuitry | 75–100 pF |
+| TMP126 SIO, ten sensors plus command/return circuitry | 220–245 pF |
+
+A separate line **with the same 22 kΩ drive** still gives approximately 4.8–5.4 µs RC time constant and does not satisfy input edge time.
+
+**Recommended topology:**
+
+* Remove the permanent DIN-to-ADC-DOUT resistive connection.
+* Drive TMP126 SIO through an enabled, low-impedance island-side buffer.
+* Disable that driver before TMP126 readback.
+* Select ADC DOUT or TMP126 SIO into the existing reverse data isolator using controlled return routing.
+* Use one spare forward channel for TMP command data if separate from DIN, and the other for direction/control. Alternatively, reuse DIN at the buffer and retain one spare.
+
+One additional forward channel alone does not create a complete bidirectional interface. The return selector and safe driver-disable behaviour must be defined.
+
+For a 245 pF TMP bus:
+
+    To meet 100 ns, 30–70%:
+      Rtotal ≤ 100 ns/(0.8473 × 245 pF)
+             ≈ 482 Ω
+
+An illustrative **220 Ω series resistor**, with ≤100 Ω buffer resistance, gives:
+
+    t30–70 ≤ 0.8473 × 320 Ω × 245 pF = 66 ns
+
+Buffer resistance, current capability and propagation are **UNVERIFIED until a part is selected**. The resistor does not make push-pull contention acceptable: driver disable is mandatory.
+
+**Recommendation: separate and actively control the TMP126 data path.** Two CA-IS3761HW remain sufficient; no third isolator is required by channel count.
+
+### 10.6 Engine-reference detection with 40 bias paths
+
+Use the equations and circuit values in §9.6. Only grounded TC channels contribute the parallel engine-feed path. The RTD bank is insulated and contributes none.
+
+    Rbias(40) = 10k + 20M/40 = 510 kΩ
+
+    Connected Vsense = 1.6178 V
+    FEED-broken Vsense = 1.0855 V
+
+    Margin above 1.32 V when connected = 0.2978 V
+    Margin below 1.32 V when broken    = 0.2345 V
+
+The plan’s “36 channels approximately 1.05 V” follows directly from:
+
+    Vsense_broken(36) =
+      1.65 × 1M / [1M + 10k + 10k + 20M/36 + 100]
+      = 1.0472 V
+
+There is no separate 1.05 V design constant.
+
+| Grounded bias paths | Broken-FEED voltage | Margin below 1.32 V |
+|---|---:|---:|
+| 8 | 0.4687 V | 0.8513 V |
+| 24 | 0.8902 V | 0.4298 V |
+| 36 | 1.0472 V | 0.2728 V |
+| 40 | 1.0855 V | 0.2345 V |
+
+Including external hysteresis:
+
+    Threshold while connected/REFOK low ≈1.3121 V
+    Broken-case margin to that threshold ≈0.2267 V
+
+For 40 grounded paths:
+
+    V_BIAS connected ≈1.6495 V
+    V_BIAS broken    ≈1.6390 V
+
+    Broken-case total current ≈1.0855 µA
+    Current per grounded bias path ≈27.1 nA
+
+The bias bus remains near midpoint; its resistor paths partially power the engine node after FEED breaks, producing the elevated sense voltage.
+
+At resistor corners used in §9.6:
+
+    Broken sense upper corner ≈1.1038 V
+    Low threshold including offset/hysteresis ≈1.2799 V
+
+    Remaining corner margin ≈1.2799 − 1.1038 = 0.1761 V
+
+Positive leakage into the broken sense node can consume that margin. Its approximate Thevenin resistance is:
+
+    Rsense_th ≈1M || 520.1k = 342 kΩ
+
+    Additional current to consume 0.176 V ≈0.176/342k
+                                         ≈0.51 µA
+
+This is a sensitivity estimate, **not an accepted leakage allowance**.
+
+C419 gives approximately 34.2 ms broken-wire time constant and approximately **29 ms nominal threshold-crossing time**.
+
+**Verdict: OK for the nominal and stated resistor-corner calculation; MARGINAL against unbounded hot leakage.** No resistor change is required by 40 channels alone. Validate all-grounded, mixed and all-insulated cases with a cut FEED, separately from a cut SENSE.
+
+### 10.7 Scan latency and diagnostic coverage
+
+TC acquisition uses the same 15-slot schedule as §9.7:
+
+    Each TC ADC cycle = 15 ×44.559 =668.4 ms
+
+    Five concurrent banks:
+      elapsed conversion time =668.4 ms
+      not 5 ×668.4 ms
+
+The RTD ADC requires four measurements with current swapping:
+
+    Four RTDs ×two conversions =eight measurement conversions
+
+Allow four additional internal/diagnostic conversions and **5 ms external settling per excitation configuration**, which is **UNVERIFIED**:
+
+    RTD schedule =
+      12 ×44.559 +8 ×5
+      =574.7 ms
+
+The maximum allowable settling per configuration before this RTD schedule exceeds the TC conversion schedule is:
+
+    [668.4 −12 ×44.559]/8 ≈16.7 ms
+
+Thus the assumed 5 ms fits; actual RTD/reference filters and lead capacitance must establish the bound.
+
+At 500 kHz, allow 64 bits per ADC transaction:
+
+    TC result reads =5 ×15 =75
+    RTD reads =12
+    Configuration/status allowance =30 transactions
+
+    Total ADC traffic =117 ×64/500k
+                      =15.0 ms
+
+For ten CJ CRC frames on the retained 20 kHz resistor topology:
+
+    CJ bus time =10 ×48/20k =24.0 ms
+
+Add maximum 7.5 ms CJ conversion availability and a **UNVERIFIED 30 ms** bounded software allowance:
+
+    Cycle screen =
+      max(668.4,574.7) +15.0 +24.0 +7.5 +30
+      ≈745 ms
+
+    Trip-response screen including one extra filter interval
+      and 30 ms pump/relay release:
+      745 +44.6 +30 ≈820 ms
+
+**Verdict: OK as a concurrent schedule; UNVERIFIED in implementation.** The separate active TMP interface should reduce CJ bus time further.
+
+Required scheduling rules:
+
+* Start and service all six ADCs concurrently.
+* Poll deselected ADCs briefly; do not hold CS low while waiting for RDY.
+* Evaluate each new temperature immediately.
+* Bound retries, LCD work, Modbus handling and EEPROM writes.
+* Store timestamps and fault a channel whose acquisition deadline expires.
+* A ≤0.5 s watchdog cannot be fed only once per approximately 0.745 s scan. Feed it from verified acquisition progress, while maintaining a separate complete-scan deadline; an independent timer interrupt must not prove scan health.
+
+Diagnostic intervals:
+
+    Burnout revisit per TC channel ≈8 ×0.745 =5.96 s
+    Common-mode revisit per AIN ≈16 ×0.745 =11.92 s
+
+These retain the existing rotating-diagnostic concept. They do not satisfy a requirement for every open-wire diagnostic to complete within one second.
+
+**RTD diagnostic gap:** internal zero/nonzero and supply checks fit the timing allocation, but four fully occupied RTD input groups cannot reproduce the TC bank’s independent REF3030 check. Rref drift or some gain errors can remain plausible.
+
+**Verdict: FAILS complete independent RTD reference/gain coverage as currently specified.** Resolve `0039` D5’s independent check before freeze. There is time for an extra precision-resistor measurement if the hardware provides it; timing capacity alone does not provide the check.
+
+### 10.8 Firmware resources: 40 TC + 4 RTD
+
+Use the proposed 24-byte explicit record in §9.8, with type identifiers for K, J and PT100.
+
+    Channel count =40 +4 =44
+
+    EEPROM A/B records =44 ×2 ×24 =2112 B
+
+| EEPROM allocation | Bytes |
+|---|---:|
+| Channel A/B records | 2112 |
+| Global settings A/B | 128 |
+| Six-bank calibration allocation | 192 |
+| Event allocation | 1024 |
+| **Total** | **3456** |
+| **Free** | **640** |
+
+**Verdict: fits; EEPROM is the tightest resource.**
+
+If each record grows to 32 bytes while retaining the same extras:
+
+    44 ×2 ×32 +128 +192 +1024 =4160 B
+
+**Verdict: FAILS that enlarged allocation by 64 B.** Keep the serialized record bounded, or reduce the event allocation. A/B records do not require a full configuration-image duplicate.
+
+RAM budget:
+
+| Allocation | Bytes |
+|---|---:|
+| 44 channels ×40 B | 1760 |
+| Communications buffers | 512 |
+| Six ADC state/cache allocations | 768 |
+| Ten CJ state allocations | 160 |
+| Optional Modbus shadow map | 944 |
+| LCD/UI storage | 128 |
+| Scheduler/global state allowance | 512 |
+| Stack reserve | 2048 |
+| **Total** | **6832** |
+| **Free** | **9552** |
+
+**Verdict: fits comfortably.** A rolling accumulator/IIR allocation is assumed, not an unbounded sample history.
+
+A proposed Modbus map uses ten 16-bit registers per channel, for temperatures, setpoint, hysteresis, type/mode, fault and age/status, plus 32 global registers:
+
+    Map size =44 ×10 +32 =472 registers
+    Full shadow storage =472 ×2 =944 B
+
+Generate responses from authoritative channel state where practical. A full map need not fit in one Modbus response.
+
+Flash allocation:
+
+    Common code budget       =64 KiB
+    K/J tables, per 0038     ≈2.5 KiB
+    PT100 table allocation   ≈1 KiB
+    Map/constants allowance  =1 KiB
+    Boot reserve             =4 KiB
+    Total                   ≈72.5 KiB
+    Remaining               ≈55.5 KiB
+
+An illustrative PT100 table spanning −200 to 850 °C in 5 °C steps has:
+
+    Points =(850 −(−200))/5 +1 =211
+    At 32-bit resistance entries: 211 ×4 =844 B
+
+Interpolation/quantization error is **UNVERIFIED until checked on the actual table**. Tables belong in flash, not startup-copied SRAM.
+
+**Overall verdict: fits; EEPROM tight if record/event scope grows.** No MCU change is justified by memory capacity. Actual flash size, stack high-water mark and conversion execution time require the family firmware build. Channel masks must cover 44 channels—use byte arrays or an explicitly sized wider representation.
+
+### 10.9 Board-size estimate
+
+Baseline: **170 ×145 mm**, 24,650 mm², **442 BOM parts /466 footprints**; three banks of 97 footprints each.
+
+Estimated base before the RTD circuitry:
+
+    442 +2 ×97 −3 isolator/cap parts
+        −9 old CS pull-ups +5 address/enable pull-ups
+      =629 BOM parts
+
+Add:
+
+* Decoder, decoupling and island EN definition: approximately three parts.
+* RTD ADC, reference resistor, connectors, protection/filter networks and decoupling: **30–50 parts, UNVERIFIED**.
+* Controlled TMP command/return interface: approximately **5–10 parts, UNVERIFIED**.
+
+    Estimated BOM parts ≈667–692
+    Estimated footprints ≈691–716
+      if approximately 24 mechanical/test footprints are retained
+
+At baseline area per BOM part:
+
+    Required area ≈24,650 ×(667–692)/442
+                  ≈37,200–38,600 mm²
+
+| Candidate outline | Area | Increase over 24-ch |
+|---|---:|---:|
+| 220 ×170 mm | 37,400 mm² | 51.7% |
+| 220 ×180 mm | 39,600 mm² | 60.6% |
+
+Forty TC channels require 80 terminal positions:
+
+    Terminal pitch length =80 ×3.81 =304.8 mm
+
+That excludes connector end margins, RTD terminals and spacing for CJ thermal regions. Multiple board edges can accommodate it, but the floor plan must demonstrate access and routing.
+
+**Verdict: MARGINAL but plausible at 220 ×170 mm; 220 ×180 mm is a useful reserve envelope.** The proposed 52% area increase matches the estimated component increase closely, leaving little density reserve for the RTD bank and revised data interface. Obtain the preliminary quote using both envelopes, then decide from a to-scale placement.
+
+### 10.10 Findings for the plan (Sol)
+
+* **Retain the 1 W module, LP2985, LM5164, 33 µH inductor and 1 A panel-fuse specification.** Calculated loads fit; both boards still need the 150 Ω preload.
+* **The R443 write path fails TMP126’s published edge-time requirement on both boards.** Slow clocks solve sampling-settling time only. Add controlled low-impedance command drive and read turnaround.
+* **ADC DOUT loading through 22 kΩ exceeds its 100 µA VOH/VOL test condition.** The new interface should remove that permanent load.
+* **Two isolators suffice.** The 40-ch allocation leaves two forward channels spare; separate TMP data also requires direction control and return selection because both reverse channels are occupied.
+* **Retained 40-ch resistor-path writes need approximately 20 kHz**, rather than treating 25 kHz as a robust limit; standard AVR hardware SPI cannot reach that rate at 8 MHz.
+* **5.11 kΩ Rref with 3.2 kΩ excitation protection fails compliance.** Approximately 3.00 kΩ Rref passes the stated screen, or redesign the excitation protection branch.
+* **Four RTD points currently lack an independent Rref/gain check.** Resolve D5 before schematic freeze; available scan time does not close this coverage gap.
+* **The inherited TL431 clamp is marginal at tolerance corners:** the conservative threshold bound reaches approximately 3.61 V. Resolve divider/reference tolerance and overshoot before relying on it.
+* **Memory fits, but EEPROM needs a bounded record/event allocation.** The proposed 24-byte records fit; 32-byte records plus the stated extras exceed 4 KiB.
+* **Use approximately 120 ×110 mm and 220 ×170–180 mm for initial floor plans.** The smaller proposed 8-ch envelope and the 40-ch 220 ×170 mm envelope need placement proof.
+### 10.11 PT100 bank: values, compliance, errors, fault coverage (Claude, reviewed by Astra twice, 2026-10-14)
+
+Three PT100 inputs + an on-board 150R 0.1 % check resistor in slot 4 (`0039` P5 (b), after Astra's second review).
+
+Circuit `hardware/family/gen/c_rtd.py`; decision `0039` P4/P5. Source: ADI CN-0383 rev D, "multiple 3-wire
+RTDs, reference resistor on the low side" (read 2026-10-14): IOUT0 = IOUT1 = 250 uA with chopping (swap),
+a headroom resistor under R_ref because the reference buffers need >= 0.1 V above AVSS, IOUT compliance
+AVDD - 0.37 V = 2.93 V at 3.3 V (Astra: the table row includes 250 uA), IOUT reaches any of AIN0-AIN15
+(Astra, AD7124-8 table 69), reference detect 0.7-1 V (table 3). CN-0383's own values (5.11k, gain 32) leave
+no room for protection resistors (3.355 V > 2.93 V, sec. 10.2), so R_ref is lowered and the gain halved.
+
+| Input | Value |
+|---|---|
+| I0 = I1 | 250 uA (both in R_ref: 500 uA) |
+| R_ref | 2.49k 0.1 % 25 ppm/K (YAGEO RT0805BRD072K49L, LCSC C375522) |
+| R_head | 330R 1 % |
+| Gain | 16 |
+| Excitation branch | 1k 2512 1 W + BAV199 + 100R |
+| Sense branch | 2.2k 1206 + BAV199 + 1k; 10n differential, 1n per leg to RTD_RET |
+| Return | 1k 2512 1 W per probe into RTD_RET |
+| Leads | 50 m, 4 ohm per wire (0.22 mm2) used as the worst case |
+| PT100 | 0.385 ohm/degC; 175.9 ohm at 200 degC |
+
+* V_ref = 500 uA x 2.49k = **1.245 V**; at IOUT -10 % and R_ref -0.1 %: 1.119 V, above the 1 V top of
+  the reference-detect band. Full scale = 1.245 / 16 = 77.8 mV = 250 uA x **311 ohm** (~ 300 degC).
+* REFIN1- = 500 uA x 330R = **0.165 V**; worst (IOUT -10 %, R -1 %) 0.147 V >= 0.1 V. Both buffers on.
+* Compliance, worst pin (IOUT0) at full scale: 250 uA x (1k + 100R + 4 + 311) + 500 uA x (4 + 1k + 2.49k
+  + 330) = 0.354 + 1.912 = **2.27 V** vs 2.93 V: 0.66 V margin. At 250 ohm 2.25 V (Astra 2.251 V). OK.
+* Signal 96 uV/degC. Lead mismatch 0.1 ohm = 0.26 degC. IOUT mismatch cancelled to first order by the swap.
+  R_ref 0.1 % = 0.26 degC at 100 ohm. Self-heating 250 uA^2 x 176 ohm = 11 uW; the probe's dissipation
+  constant decides the error (UNVERIFIED, small).
+* Leakage (Astra): a 10 Mohm contamination path from a sense node at ~1.4 V through 3.2k gives ~0.5 mV
+  = ~5 degC. The 1n caps go to RTD_RET: their pads see ~0.5-0.6 V (500 uA crosses the 1k return limiter,
+  Astra) instead of ~1.8 V to ground; assembly is washed; hot leakage limit is a bench item (I-120). No
+  overall accuracy figure is claimed before the bench.
+* Settling: R_ref x 100n = 249 us; 0.01 % after 2.29 ms. Firmware waits, then restarts the filter.
+* 24 V on a lead: 20 V across a 1k = 0.4 W -> 2512 1 W; across 2.2k sense = 0.18 W in a 0.25 W 1206;
+  clamp current 20 mA into +3V3_ISO, inside the TL431 clamp's ~150 mA (sec. 7.7).
+
+Fault coverage (firmware; all UNVERIFIED until bench fault injection, I-120):
+
+| Fault | Effect | Caught by |
+|---|---|---|
+| Lead A open / element open | IOUT0 no path, AIN+ floats | out of range / ADC error flag; burnout check |
+| Lead B open | IOUT1 no path | swap readings disagree; out of range |
+| Lead C or its 1k open; R_ref/R_head open | both currents lose their return | reference detect; out of range |
+| A-B or A-C short | ~0 ohm | below -200 degC = fault |
+| B-C short | at the element: harmless; at the connector end the return current shares B and C: ~+6 ohm with 4 ohm leads (Astra) | reads ~16 degC HIGH: safe direction (nuisance trip) |
+| REFIN cap short | V_ref ~ 0 | reference detect |
+| Element or lead of ANY probe to sheath/frame | engine potential pushes current into R_ref: other probes read low (Astra: 6.8 % for one probe via ~10k) | idle test: both currents off, every sense input vs AVSS through the PGA (gain > 1 allows AVSS), must read ~0 V (fault ~0.29 V) |
+| R_ref / R_head / IOUT / gain drift | scale error (R_ref +2 % reads 8.25 degC low at 150 degC, Astra) | **check channel: 150R 0.1 % on board through the same network, read every scan** (`0039` P5 (b)); window ~0.3 % = ~1 degC; plus gain-ratio test |
+
+### 10.12 Preliminary cost of the 8-ch and 40-ch boards, scaled from 8.4 (Claude, 2026-10-14) - ESTIMATE
+
+A real JLCPCB quote needs the owner's sign-in and the final Gerbers (8.4); until then the 24-ch quote of 8.4
+(10 boards, 4L ENIG, turnkey) is scaled. Every figure is UNVERIFIED.
+
+| USD, 10 boards | 24-ch (8.4, quoted) | 8-ch REV B0 (estimate) | 40-ch (estimate) |
+|---|---|---|---|
+| Board size | 170 x 145 | 130 x 125 (floor plan v1, 9.11) | ~215 x 140 (floor plan to come) |
+| PCB: 25 + (80.20 - 25) x area ratio (with 2 x 5 mm rails) | 80.20 | ~62 | ~93 |
+| Setup + stencil + feeders ($3 per extended type) | 127.02 | ~130 | ~150 (about 7 more extended types) |
+| Components (8.4: $64.6/board) | 645.78 | ~350 (2 AD7124, 4 TMP126, 1 isolator, ~200 passives fewer) | ~1,060 (3 more AD7124, 4 TMP126, ~270 more parts) |
+| SMT + THT + packaging | 44.20 | ~30 | ~70 |
+| **Total ex shipping** | **897.20 (89.7/board)** | **~570 (~57/board)** | **~1,370 (~137/board)** |
+
+The component line rests on an AD7124-8 at ~$9-10 each (the largest single item); the fixed setup line makes
+the 8-ch's per-board price fall slowly with quantity. Verdict: the 40-ch layout may proceed (0039 D7); the
+owner gets the real quote from the release files.
+
+### 9.11 8-ch floor plan v1 and v2 (Claude, 2026-10-14)
+
+`hardware/8ch-new/gen/place.py`: 130 x 125 mm (66 % of the 24-ch area). The 20x4 LCD (98 x 60 mm on standoffs
+H6-H9) sets the size: the top edge carries the field terminals and the RS-485 pocket, the LCD shadow holds only
+parts lower than ~7 mm (relays G6K 5.2 mm, inductor 4.8 mm; LCD standoffs >= 11 mm), buttons/LEDs/J503 are in
+the right column, the barrier band is y 79-82, and the island (bank A, supply, references, engine reference) is
+the 43 mm strip below it. 265/265 placed, 0 courtyard overlaps; rules.py: no net in two domains; padcheck 0.
+v1 routed (Freerouting 30 passes, 4 threads, ~50 min) to 61 DRC violations / 17 unconnected, then
+`finish.py stubs/nori/dangling` 16 / 16: the open ones (relay contacts, +24V, buck SW, chassis bridge) all
+had to cross the LCD header row J502 (16 THT pins at 2.54 mm, x 11-51). **v2: 130 x 137 mm**, LCD 13 mm lower,
+terminals/relays/input protection above the J502 row, buck and drivers right of it; 0 overlaps.
+LCD-on-the-door study (scratch): 115 x 100 mm, 0 overlaps, routed to 64 violations / 15 unconnected.

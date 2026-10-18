@@ -499,6 +499,22 @@ named parts and drops only their own-net tracks; then `finish.py dangling`, `fin
 * Paths with backslashes written through a bash heredoc can turn ``/`` into control characters; check
   with `python -m py_compile` and a grep for control characters.
 
+## Family boards (`hardware/family/`, `hardware/8ch-new/`, `hardware/40ch/`) - 2026-10-14
+
+* Schematic: `python hardware/family/gen/build.py 8|40 --out hardware/<board>` (ERC, netlist check, BOM);
+  all gates incl. the 24-ch release compare: `powershell -ExecutionPolicy Bypass -File hardware/family/gen/gate.ps1`
+  (`pwsh` is not installed here). Board tools: `hardware/family/tools/*.py --board 8|40` (KiCad python).
+* Per board `gen/`: `pcb_new.py`, `place.py`, `rules.py [--route-prep]`, `padcheck.py`, `fanout.py`, `route.py`,
+  `view.py out.png [x1 y1 x2 y2]`, `delbox.py NET x1 y1 x2 y2 [--dry]` (delete one net's copper in a box).
+  Sync: `KICAD_CLI`, `KICAD10_FOOTPRINT_DIR` set and KiCad's `bin` on PATH, then
+  `~/.local/bin/kicad-tool.exe pcb sync <board> <sch>`; footprints the schematic dropped stay on the board
+  (`extra_on_board`): delete them one per process (SWIG degrades after the first `Remove()`).
+* Order: place (0 overlaps) -> rules --route-prep -> padcheck -> fanout -> **pincaps 0** -> route -> rules (pours)
+  -> `finish.py stubs/nori/dangling` -> `maze.py` -> hand routes (`finish.py add`) -> `kicad-cli pcb drc
+  --schematic-parity --refill-zones`. Lessons: a THT pin row (LCD header) between terminals and relays blocks
+  every power/contact path; copy proven neighbourhoods from the finished 24-ch; maze.py makes staircase
+  tracks on 2 mm contact nets - route relay contacts by hand. Codex Sol must not run KiCad in its sandbox.
+
 ## Things that will bite you
 
 - **A gate that reads a file can pass on the wrong file.** Two did on

@@ -1,9 +1,9 @@
-# Thermo — thermocouple protection boards (8 / 24 / 36 channels)
+# Thermo — thermocouple protection boards (8 / 24 / 40 channels)
 
 > Working on this repository with an AI agent? Start at **`AGENTS.md`**,
 > then `docs/STATE.md`.
 
-One board family (`docs/decisions/0037`); the 24-channel board reads **24 K-type thermocouples** on one engine (grounded,
+One board family (`docs/decisions/0037`); the 24-channel board reads **24 thermocouples, K or J per channel** (`0038`) on one engine (grounded,
 insulated or mixed probes, roughly 50 m cables, no VFD) and opens a common
 run-permit contact when any channel passes its own setpoint, the sensor fails
 or the unit itself fails. It is being built to go on real equipment.
@@ -17,7 +17,7 @@ the contact, so the engine cannot start.
 |---|---|
 | **The board being ordered** | `hardware/24ch/` (REV A3, 3x AD7124-8, cost-down variant `0036`) — README and STATE.md there |
 | **8-channel board** | `hardware/8ch/` (REV A2, MAX31856) — reference; the new 8-ch derives from the 24-ch board (`0037`) |
-| **36-channel board** | `hardware/36ch/` — not created yet (`0037`) |
+| **New 8- and 40-channel boards** | `hardware/8ch-new/`, `hardware/40ch/` (40 TC + 3 PT100), shared `hardware/family/` — in work (`0039`) |
 | **Firmware** | `firmware/` — today only the 8-channel images; one firmware for the family is next (I-100, I-104, I-118, I-119) |
 | **What is done and what is next** | `docs/STATE.md` (index), then each product's `STATE.md` |
 | **Open problems** | `docs/ISSUES.md` |

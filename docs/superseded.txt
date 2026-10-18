@@ -21,3 +21,8 @@ ADT7310 | 0036 D1: TMP126 cold-junction sensors
 current board has 8 channels | 0037: one board family (8/24/36 ch)
 same board partly fitted | 0037 D1: the 8-ch option is a board derived from the 24-ch one
 a chat works in its own branch | 0037 D5: hardware on main, firmware in branch firmware
+24 K-type thermocouples | 0038: K or J per channel
+Read 24 K-type | 0038: K or J per channel
+36-channel board | 0039: 40-channel board (40 TC + 4 PT100)
+hardware/36ch | 0039: hardware/40ch
+40 TC + 4 PT100 | 0039 P5: 40 TC + 3 PT100 + an on-board check resistor
