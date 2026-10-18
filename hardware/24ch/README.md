@@ -1,6 +1,6 @@
 # hardware/24ch — the 24-channel board (REV A3)
 
-One board for all 24 K-type thermocouples (`docs/decisions/0031`), front end
+One board for all 24 thermocouples, K or J per channel in firmware (`0038`) (`docs/decisions/0031`), front end
 and parts per `docs/decisions/0032` (read all three revisions at its end).
 `hardware/8ch/` (REV A2) stays as the reference design and is not modified.
 
