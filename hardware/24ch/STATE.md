@@ -9,7 +9,7 @@
   SIO_WR_N -> U405 ch C -> U411 74LVC1G125 -> R446 220R -> DOUT; R445 10k, R447 100k, C421, R439 10k;
   R443 removed. ESC kept: D501/D502 1N4148W pull UP and DOWN together (firmware: UP+DOWN = ESC).
   Otherwise the `0036` cost-down board: TMP126 x6, CA-IS3761HW x3, RS-485 fitted (`0036` D9).
-* Release: **`production/24ch-reva4-20261015-231449-c7a3f0`** (in the worktree; DRC errors/unconnected/
+* Release: **`production/24ch-reva4-20261019-011858-c7a3f0`** (in the worktree; DRC errors/unconnected/
   parity 0/0/0, refilled; pincaps 0 over incl. U411; BOM 96 lines, all with LCSC codes, DNP none).
   Schematic: ERC 0 errors 0 warnings, netlist 0 mismatches. Silk: one label placed though not free
   ("ENGINE REF: 1 FEED 2 SENSE", J401 - not touched by A4; check on the render).
@@ -17,7 +17,7 @@
   Also in the release (2026-10-16, fork sessions): PURCHASING-24ch-reva4.zip, FOR-REVIEWER-24ch-reva4.zip,
   POWER-ON-TEST.pdf/.zip and WHICH-FILE-WHERE.txt - both now written by `assembly_spec.py` (which file reaches
   which party; JLC website gets only gerber/BOM/CPL + the test zip + the remark text in that file).
-  JLC cart 2026-10-16: `thermo24-gerbers_Y4` = this release, PCBA x5, $650.09 + photo $8.27; not ordered yet.
+  JLC cart 2026-10-16 (PCBA x5, $650.09) holds the OLD 231449 gerbers: re-upload this release before paying.
   Full DRC incl. warnings: no hole-to-hole; only the 15 dangling-stub warnings A3 already had. Astra review 3:
   3 overlapping vias (A4) removed; 7 vias in/at pads (from A3) moved clear; 1 left (CS_CJ6 via grazes U405
   pad 15 by 0.075 mm, no clear spot within 1.2 mm). Order with ENIG and 1 oz inner copper selected.
@@ -26,9 +26,9 @@
   mirrored by the A4 silk pass (`silk.py` now labels from the pad net). J503 under the LCD: closed by `0042`
   (LCD + buttons on the door, 16-wire cable; accessories from Egypt in `accessories.csv`). Open, not blocking: CPL rotations are raw KiCad - tick "confirm parts
   placement" and check the preview; firmware rules (AD7124 SPI <= 2 MHz, REF_EN, no REFIN2) for I-104/I-119.
-* Main's island-holes and relay-clearance rows, checked on A4 2026-10-19: holes real (H1 H2 H3 H10 in GND_ISO) -
-  nylon standoffs there in `accessories.csv`; relay rule real but small (30 VDC) - zones out of `relay_area`
-  refill to DRC 0/0 on a scratch copy; one dru line + refill + new release, owner decides.
+* Main's island-holes and relay-clearance rows, A4 2026-10-19: holes real (H1 H2 H3 H10 in GND_ISO) - nylon
+  standoffs there (`accessories.csv`). Relay rule fixed (owner OK): pours out of `relay_area` (`rules.py`, dru);
+  release 011858 = only copper pours changed vs 231449 (drill, mask, silk, BOM, CPL identical), DRC 0/0/0.
 * **Do not order REV A3** (`4b1601`): its quotes (JLCPCB $897.20/10, CALCULATIONS 8.4) are for A3; A4
   needs a new quote (+1 line C23654). NORI has the A3 package: send them A4 instead.
 * Board edited incrementally (`delta.py`, `capnear.py`, `maze.py` with In2 for 4.5 mm of SIO_WR_N_ISO);

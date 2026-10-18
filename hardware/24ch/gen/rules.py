@@ -168,11 +168,12 @@ def write_dru():
              "  (condition \"A.NetName == 'unconnected-(K701-Pad7)' && B.NetClass == 'Contact'\"))", "",
              "# Inside a relay's courtyard its own coil-contact rating is the barrier (contact",
              "# tracks have to leave pins 1.4 mm apart). Only relaxes contact_to_rest: two",
-             "# low-voltage nets there keep their normal class clearance.",
+             "# low-voltage nets there keep their normal class clearance. Pours are excluded:",
+             "# a pour touching the courtyard would otherwise hug the whole contact track (I-129).",
              '(rule "relay_area" (constraint clearance (min 0.5mm))',
              "  (condition \"((A.intersectsCourtyard('K701') && B.intersectsCourtyard('K701')) || "
              "(A.intersectsCourtyard('K702') && B.intersectsCourtyard('K702'))) && "
-             "(A.NetClass == 'Contact' || B.NetClass == 'Contact')\"))", "",
+             "(A.NetClass == 'Contact' || B.NetClass == 'Contact') && A.Type != 'Zone' && B.Type != 'Zone'\"))", "",
              "# Relay pads: the G6K's own coil-contact rating covers its pin spacing.",
              '(rule "relay_own_pins" (constraint clearance (min 0.3mm))',
              "  (condition \"(A.memberOfFootprint('K701') && B.memberOfFootprint('K701')) || "
