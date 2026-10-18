@@ -35,16 +35,23 @@ TMP126 SIO driver (P2).
 * Finishing: `finish.py dangling` (196 stubs), I-129 fix in `gen/rules.py`, outer pours F/B (left out for
   routing; added with `rules.add_zone` only), `vbias_pour.py`, `fiducials.py`, `silk.py` (PT100 labels in the
   terminal body: profile key `terminal_y_at`); DRC 0/0 after each (backups `output/clean, pours, vbias, silk`).
-* **Release candidate `production/40ch-reva0-20261017-000812-3e3a61/`** (`fab.py --board 40` +
-  `assembly_spec.py`): MANIFEST DRC (errors, unconnected, parity) **(0, 0, 0)**, 108 BOM lines, none without
-  LCSC, DNP 0, 4 layers, ASSEMBLY-SPEC 4 pages. **Astra review: send after fixes** - PT100 area poor
-  (RTD2 SP/SN 35 vs 125 mm, R1092 not Kelvin, C1096 loop 5.7 mm), vias in small IC pads (U410.14/21, U501.41,
-  U802.6, U902.6), island holes need nylon hardware (I-130, accessories fixed), PT100 plug codes added.
-  Sol round 10 (PT100 quality re-layout, brief in the session scratchpad: pairs, Kelvin R1092, C1096 loop,
-  vias out of pads) stopped: **Codex usage limit until 2026-10-22**; partial work in `output/sol/` (r10_*).
-  Board unchanged = the reviewed release. Next: that re-layout (Sol after 10-22, or by hand), then re-release.
+* Release `40ch-reva0-20261017-000812-3e3a61` (now `_OLD_DO_NOT_ORDER`): **Astra review: send after fixes** - PT100
+  area poor (RTD2 SP/SN 35 vs 125 mm, R1092 not Kelvin, C1096 loop 5.7 mm), vias in small IC pads
+  (U410.14/21, U501.41, U802.6, U902.6), island holes need nylon hardware (I-130, accessories fixed).
+
+## PT100 re-layout and re-release (2026-10-19)
+
+* Sol round 10 (`output/sol-moves10.txt`, 33 passives moved; `sol-routes10.txt`, then `sol-routes10fix.txt`:
+  stale pad-edge fragments KiCad kept, one shorted C1092; `sol-routes10fix2.txt`: AVDD/IOVDD plane vias 0.9 mm).
+  RTD1-4 SP/SN 9.4-11.9 mm, mismatch <= 1.4 mm, 3 vias each; R1092 Kelvin (REFIN tracks own, shared run 0);
+  terminal leads split at the pads; C1096 loop 1.77 mm; vias in small IC pads 0; digital/sense crossings 0.
+  Then `finish.py dangling` (15 removed), `silk.py`. Backup before the round: `output/pre-r10/`.
+* **Release candidate `production/40ch-reva0-20261019-024508-4774af/`**: MANIFEST DRC (errors, unconnected,
+  parity) **(0, 0, 0)**, pincaps 0 over, 108 BOM lines, none without LCSC, ASSEMBLY-SPEC 4 pages. Warnings
+  left: U1001 pin-1 silk over C1096 pad (fab clips), PT100 3 label, 7 stubs that carry a connection.
+  Next: Astra re-review of the PT100 area, then quotation.
 
 ## Open
 
 * TL431 clamp tolerance corner ~3.61 V (`CALCULATIONS` 9.2) - check AD7124 AVDD absolute maximum.
-* Shared DOUT over ~300 mm of board: measure edges at the bench; Kelvin routing of R1092 (R_ref).
+* Shared DOUT over ~300 mm of board: measure edges at the bench; R1092 Kelvin done 2026-10-19.
