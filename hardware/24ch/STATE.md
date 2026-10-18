@@ -1,29 +1,45 @@
 # 24-channel board - state
 
 **Hard limit: 60 lines.** Index of all products: `docs/STATE.md`. Read `docs/ISSUES.md` in full too.
-**Last updated:** 2026-10-14 (cost-down variant `0036` merged into `main`, commit 1904891).
+**Last updated:** 2026-10-15 (REV A4 on branch `24ch-rev-a4`, worktree `.claude/worktrees/24ch-rev-a4`).
 
 ## Where it stands
 
-* REV A3, cost-down variant `0036` is the official 24-ch board (the original parts: tag `24ch-premium`).
-  TMP126 x6 (+ R443 22k DIN-DOUT), CA-IS3761HW x3, RS-485 block DNP (footprints kept), BOCHEN trimmer,
-  SAMWHA 22u. RS-485 fitted again (owner 2026-10-14, `0036` D9). Parts ~$81/board at 10-piece prices with RS-485 (CALCULATIONS 8.1).
-* Release: **`production/24ch-reva3-20261014-072946-4b1601`** (git 2694c59 clean; RS-485 fitted, `0036` D9;
-  DRC 0/0/0, pincaps 0 over, BOM 95 lines/442 parts, DNP none). To send:
-  `production/NORI-thermo24-4b1601.zip` (fab files + ASSEMBLY-SPEC.pdf) and `NORI-thermo24-pcb-4b1601.zip`
-  (board + project + rules, KiCad 10). The 2026-10-12 set NORI got first is in `_OLD_DO_NOT_ORDER`.
-* Quotes: JLCPCB turnkey 2026-10-14 - 10 boards $897.20, 5 boards $571.69 ex shipping, all 72 part lines
-  matched (CALCULATIONS 8.4). NORI: package sent by the owner 2026-10-14; quote pending (I-078).
-* Board edited incrementally (`gen/delta.py`, `capnear.py`, hand routes); analog TC nets are identical to
-  `output/bak/thermo24-pre-0036.kicad_pcb`. Terminals face the board edge (`0036` D7).
+* **REV A4** (`0041`, owner 2026-10-15): gated TMP126 SIO driver as on the new boards. PD5 (was ESC) =
+  SIO_WR_N -> U405 ch C -> U411 74LVC1G125 -> R446 220R -> DOUT; R445 10k, R447 100k, C421, R439 10k;
+  R443 removed. ESC kept: D501/D502 1N4148W pull UP and DOWN together (firmware: UP+DOWN = ESC).
+  Otherwise the `0036` cost-down board: TMP126 x6, CA-IS3761HW x3, RS-485 fitted (`0036` D9).
+* Release: **`production/24ch-reva4-20261015-231449-c7a3f0`** (in the worktree; DRC errors/unconnected/
+  parity 0/0/0, refilled; pincaps 0 over incl. U411; BOM 96 lines, all with LCSC codes, DNP none).
+  Schematic: ERC 0 errors 0 warnings, netlist 0 mismatches. Silk: one label placed though not free
+  ("ENGINE REF: 1 FEED 2 SENSE", J401 - not touched by A4; check on the render).
+  ASSEMBLY-SPEC.pdf generated (`assembly_spec.py <release>`); schematic title REV A4, RS-485 "fitted".
+  Also in the release (2026-10-16, fork sessions): PURCHASING-24ch-reva4.zip, FOR-REVIEWER-24ch-reva4.zip,
+  POWER-ON-TEST.pdf/.zip and WHICH-FILE-WHERE.txt - both now written by `assembly_spec.py` (which file reaches
+  which party; JLC website gets only gerber/BOM/CPL + the test zip + the remark text in that file).
+  JLC cart 2026-10-16: `thermo24-gerbers_Y4` = this release, Standard PCBA x5, $650.09 + photo $8.27; function
+  test and remark (X-ray, power-on values) "quote after review". Not ordered yet (purchasing).
+  Full DRC incl. warnings: no hole-to-hole; only the 15 dangling-stub warnings A3 already had. Astra review 3:
+  3 overlapping vias (A4) removed; 7 vias in/at pads (from A3) moved clear; 1 left (CS_CJ6 via grazes U405
+  pad 15 by 0.075 mm, no clear spot within 1.2 mm). Order with ENIG and 1 oz inner copper selected.
+* Pre-order review 2026-10-15 (4 Claude reviewers + Astra, `production/review-20261015-a4/`, local): power, measurement chain,
+  MCU/trip/alarm, BOM-vs-footprint all OK part by part. Found and fixed: terminal labels on J601/J701/J702
+  mirrored by the A4 silk pass (`silk.py` now labels from the pad net). J503 under the LCD: closed by `0042`
+  (LCD + buttons on the door, 16-wire cable; accessories from Egypt in `accessories.csv`). Open, not blocking: CPL rotations are raw KiCad - tick "confirm parts
+  placement" and check the preview; firmware rules (AD7124 SPI <= 2 MHz, REF_EN, no REFIN2) for I-104/I-119.
+* **Do not order REV A3** (`4b1601`): its quotes (JLCPCB $897.20/10, CALCULATIONS 8.4) are for A3; A4
+  needs a new quote (+1 line C23654). NORI has the A3 package: send them A4 instead.
+* Board edited incrementally (`delta.py`, `capnear.py`, `maze.py` with In2 for 4.5 mm of SIO_WR_N_ISO);
+  TC traces untouched. Terminals face the board edge (`0036` D7).
 
 ## Next
 
-0. **Send NORI the 4b1601 set** (RS-485 fitted, `0036` D9): it replaces the 2026-10-12 files.
-1. NORI quote, compare with JLCPCB (I-078, I-123); owner decides where to order.
+0. Owner reviews A4 (branch `24ch-rev-a4`) and merges; on merge sweep the TMP126 SIO-edge issue row (on `main`).
+1. New quotes for A4: JLCPCB and NORI (I-078, I-123); owner decides where to order.
 2. When the order is placed: review the assembler's placement preview (pin-1 of every polarised part).
 3. Installation drawing for the technician (I-085), wiring numbering, heat test per channel.
-4. Firmware (`firmware/STATE.md`); bench P2 when boards arrive (I-120, I-101, I-105, I-114, I-004, I-013).
+4. Firmware (`firmware/STATE.md`, `0041` firmware requirements); bench P2 when boards arrive (I-120, I-101,
+   I-105, I-114, I-004, I-013).
 
 ## How the board got here (short)
 

@@ -4183,7 +4183,7 @@
 		)
 		(uuid "827950b8-d588-586d-a0f1-fbcfb7b06a77")
 	)
-	(text "Isolated RS-485 / Modbus RTU (never in the trip path) - DNP: footprints only, fit when a site needs it (0036)"
+	(text "Isolated RS-485 / Modbus RTU (never in the trip path) - fitted (0036 D9)"
 		(exclude_from_sim no)
 		(at 15 119.6124 0)
 		(effects
@@ -4192,7 +4192,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "fd90ac48-36e4-5ba0-9b71-a4ffc1a57a77")
+		(uuid "0b6179c0-13e1-5ca8-a27a-9aaa6c6ff2a4")
 	)
 	(text "Power flags (ERC only)"
 		(exclude_from_sim no)

@@ -26,3 +26,6 @@ Read 24 K-type | 0038: K or J per channel
 36-channel board | 0039: 40-channel board (40 TC + 4 PT100)
 hardware/36ch | 0039: hardware/40ch
 40 TC + 4 PT100 | 0039 P5: 40 TC + 3 PT100 + an on-board check resistor
+R443 (TMP126 SIO) | 0041: gated SIO driver U411 + R446, R443 removed
+R443 22k DIN-DOUT | 0041: gated SIO driver U411 + R446, R443 removed
++ R443 22k DIN-DOUT | 0041: gated SIO driver U411 + R446, R443 removed

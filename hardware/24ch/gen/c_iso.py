@@ -23,6 +23,25 @@ def isolator(ref, a_in, f_out, a_out, f_in, cap1, cap2):
             c100(cap1, "+5V", "GND", "side 1"), c100(cap2, ISO, GND_I, "side 2")]
 
 
+def sio_driver():
+    """TMP126 3-wire SPI with a driven command phase (REV A4, I-124; same circuit as hardware/family, 0039 P2):
+    SIO edges < 100 ns (TMP126 7.6) and no load on AD7124 DOUT; replaces R443 22k DIN-DOUT.
+    Firmware: SIO_WR_N (PD5, was the ESC button) low for the 16 command clocks of a read, high before the 16th
+    falling edge; for a write it stays low through command, data and CRC (decisions/0041)."""
+    return [
+        Part("U411", "74xGxx:74LVC1G125", "74LVC1G125", {"1": "SIO_WR_N_ISO", "2": "DIN_ISO", "3": GND_I,
+             "4": "SIO_DRV", "5": ISO}, "Package_TO_SOT_SMD:SOT-23-5", "SN74LVC1G125DBVR", "C23654", "TI",
+             "OE active low; isolator default-high and R445 keep it off"),
+        c100("C421", ISO, GND_I, "U411 VCC"),
+        R("R445", "10k", "SIO_WR_N_ISO", ISO, *C10K, desc="driver off while the isolator powers up"),
+        R("R446", "220R", "SIO_DRV", "DOUT_ISO", "0805W8F2200T5E", "C17557",
+          desc="edge ~30 ns into ~85 pF; limits current if a device drives back"),
+        R("R447", "100k", "DOUT_ISO", ISO, "0805W8F1003T5E", "C149504",
+          desc="weak bias so the isolator input does not float when every device is deselected; idle data is "
+               "not defined - firmware never reads it"),
+    ]
+
+
 def isolation():
     s = Sheet("ISOLATION", "isolation.kicad_sch", "Isolation, island supply and references", "A3")
     s.block("Island supply: 1 W isolated module, LDO, minimum-load preload", [
@@ -50,18 +69,15 @@ def isolation():
                  "DOUT_ISO_RAW", "C407", "C408")
         + isolator("U404", ["CS_CJ1", "CS_CJ2", "CS_CJ3", "CS_CJ4", "CS_CJ5"], "REFOK",
                    [f"CS_CJ{i}_ISO" for i in range(1, 6)], "REFOK_ISO", "C409", "C410")
-        + isolator("U405", ["CS_CJ6", "REFTEST", "GND", "GND", "GND"], NC,
-                   ["CS_CJ6_ISO", "REFTEST_ISO", NC, NC, NC], GND_I, "C411", "C412")))
+        + isolator("U405", ["CS_CJ6", "REFTEST", "SIO_WR_N", "GND", "GND"], NC,
+                   ["CS_CJ6_ISO", "REFTEST_ISO", "SIO_WR_N_ISO", NC, NC], GND_I, "C411", "C412")))
     s.block("Series damping, MISO contention resistor, pull-ups", [
         R("R402", "33R", "SCLK_ISO_RAW", "SCLK_ISO", "0805W8F330JT5E", "C17634"),
         R("R403", "33R", "DIN_ISO_RAW", "DIN_ISO", "0805W8F330JT5E", "C17634"),
         R("R404", "33R", "DOUT_ISO", "DOUT_ISO_RAW", "0805W8F330JT5E", "C17634"),
         R("R405", "2k2", "MISO_ISO", "MISO", "0805W8F2201T5E", "C17520", desc="ISP contention"),
-        R("R443", "22k", "DIN_ISO", "DOUT_ISO", "0805W8F2202T5E", "C17560",
-          desc="TMP126 3-wire SPI: MOSI reaches each SIO through 22k, SIO drives DOUT; 22k not 10k keeps the "
-               "AD7124 DOUT load ~0.15 mA (spec at 0.1 mA); also defines DOUT when all are deselected (0036)"),
     ] + [R(f"R{430+i}", "10k", c, "+5V", *C10K, desc="control CS pull-up during MCU reset")
-         for i, c in enumerate(cs_c)])
+         for i, c in enumerate(cs_c + ["SIO_WR_N"])])
     s.block("External 3.0 V reference (cross-check of the AD7124 internal reference)", [
         Part("U406", "Reference_Voltage:REF3030", "REF3030AIDBZR",
              {"IN": ISO, "GND": GND_I, "OUT": "VREF_EXT"}, "Package_TO_SOT_SMD:SOT-23",
@@ -125,5 +141,6 @@ def isolation():
              "Package_TO_SOT_SMD:SOT-23", "2N7002", "C8545", "CJ", "self-test: pulls sense low"),
         R("R425", "1k", "REF_TEST_D", "REF_SENSE", "0805W8F1001T5E", "C17513"),
     ])
+    s.block("TMP126 command driver (REV A4, I-124): DIN drives SIO only while SIO_WR_N is low", sio_driver())
     s.flags = []
     return s

@@ -24,6 +24,7 @@ CHECK = [  # (ref, pin, limit mm or "plane", what)
     ("U403", "1", 3.0, "ISO7761 VCC1"), ("U403", "16", 3.0, "ISO7761 VCC2"),
     ("U404", "1", 3.0, "ISO7761 VCC1"), ("U404", "16", 3.0, "ISO7761 VCC2"),
     ("U405", "1", 3.0, "ISO7761 VCC1"), ("U405", "16", 3.0, "ISO7761 VCC2"),
+    ("U411", "5", 3.0, "74LVC1G125 VCC (REV A4 SIO driver)"),
 ] + [(u, pin, lim, what) for u in ("U101", "U201", "U301") for pin, lim, what in (
     # 0035 D6 (owner 2026-10-11): AVDD/IOVDD sit on the +3V3_ISO plane - "plane" = the pin and a
     # cap each have their own via within VIA_MM; REGCAPA/REGCAPD/REFOUT are single traces: 5 mm

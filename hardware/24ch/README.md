@@ -20,7 +20,7 @@ pin in the exported netlist matches the model in `gen/c_*.py`.
 |---|---|
 | `gen/c_power.py` | battery input, PTC, protection, LM5164 5 V buck, 5 V crowbar |
 | `gen/c_mcu.py` | ATmega1284P, crystal, ISP, LCD header, five buttons |
-| `gen/c_iso.py` | B0505S, LP2985, preload, AVDD clamp, 3x CA-IS3761HW (ISO7761 pinout, `0036`), R443 (TMP126 SIO), REF3030, V_MID/V_BIAS, engine-reference feed/sense |
+| `gen/c_iso.py` | B0505S, LP2985, preload, AVDD clamp, 3x CA-IS3761HW (ISO7761 pinout, `0036`), gated TMP126 SIO driver U411/R446 (REV A4, `0041`), REF3030, V_MID/V_BIAS, engine-reference feed/sense |
 | `gen/c_out.py` | trip relay (poles in series), alarm relay, isolated RS-485 (DNP in the `0036` variant: footprints only) |
 | `gen/c_bank.py` | one bank: 2 headers, 8 input networks, AD7124-8, 2 TMP126 (used three times, `0036`) |
 | `gen/model.py`, `emit.py`, `libs.py`, `sexp.py`, `customlib.py` | the generator itself |

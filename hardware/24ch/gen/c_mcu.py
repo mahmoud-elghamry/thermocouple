@@ -9,7 +9,7 @@ MCU_PINS = {
     "PC0": "CS_CJ2", "PC1": "CS_CJ3", "PC2": "RUN_SENSE", "PC3": "CS_CJ4",
     "PC4": "CS_CJ5", "PC5": "CS_CJ6", "PC6": "ALARM_DRIVE", "PC7": "ALARM_SENSE",
     "PD0": "UART_RX", "PD1": "UART_TX", "PD2": "BTN_UP", "PD3": "BTN_DOWN",
-    "PD4": "BTN_SET", "PD5": "BTN_ESC", "PD6": "BTN_ACK", "PD7": "RS485_DE",
+    "PD4": "BTN_SET", "PD5": "SIO_WR_N", "PD6": "BTN_ACK", "PD7": "RS485_DE",
     "PA0": "LCD_RS", "PA1": "LCD_E", "PA2": "REFOK", "PA3": "REFTEST",
     "PA4": "LCD_D4", "PA5": "LCD_D5", "PA6": "LCD_D6", "PA7": "LCD_D7",
     "~{RESET}": "RESET_N", "XTAL1": "XTAL1", "XTAL2": "XTAL2", "AREF": "AREF",
@@ -59,5 +59,10 @@ def mcu():
     ] + [Part(f"SW{501+i}", "Switch:SW_Push", n, {"1": f"BTN_{n}", "2": "GND"},
               "Button_Switch_THT:SW_PUSH_6mm", "ZX-QC66-9.5CJ", "C7470135", "Megastar",
               "6x6 THT, 9.5 mm: bench use; the panel buttons go on J503 (0034 D2)")
-         for i, n in enumerate(["UP", "DOWN", "SET", "ESC", "ACK"])])
+         for i, n in enumerate(["UP", "DOWN", "SET", "ESC", "ACK"])]
+      + [Part(f"D{501+i}", "Device:D", "1N4148W", {"1": "BTN_ESC", "2": f"BTN_{n}"},
+              "Diode_SMD:D_SOD-123", "1N4148W-7-F", "C83528", "Diodes Inc",
+              "ESC has no MCU pin (PD5 is SIO_WR_N, REV A4): ESC pulls UP and DOWN low together, "
+              "firmware reads UP+DOWN as ESC")
+         for i, n in enumerate(["UP", "DOWN"])])
     return s

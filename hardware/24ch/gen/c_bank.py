@@ -88,7 +88,7 @@ def bank(b):
             "SCLK": "SCLK_ISO", "SIO": "DOUT_ISO", "~{CS}": f"CS_CJ{j}_ISO",
             "ALERT": GND, "VDD": ISO, "GND": GND},
             "Package_TO_SOT_SMD:SOT-363_SC-70-6", "TMP126DCKR", "C5219998", "TI",
-            f"cold junction at header J{100*b+1+i}; SIO on DOUT, written through R443; ALERT unused, grounded (datasheet allows) (0036)"))
+            f"cold junction at header J{100*b+1+i}; SIO on DOUT, written through the gated driver U411 (REV A4, I-124); ALERT unused, grounded (datasheet allows) (0036)"))
         cj.append(C(f"C{u+99-9*i}", "100n", ISO, GND, "CC0805KRX7R9BB104", "C49678"))
     s.block("Cold-junction sensors (one per 4-channel header)", cj)
     return s

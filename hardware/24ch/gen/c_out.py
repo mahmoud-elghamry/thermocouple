@@ -61,7 +61,7 @@ def outputs():
             relay(1, "RUN", "RUN_PERMIT", "RUN_SENSE", ("3A4GUD", "C52034646")))
     s.block("Alarm relay (warning, never stops the engine by itself)",
             relay(2, "ALARM", "ALARM_DRIVE", "ALARM_SENSE", ("204-10SURD/S530-A3-L", "C99771")))
-    s.block("Isolated RS-485 / Modbus RTU (never in the trip path) - DNP: footprints only, fit when a site needs it (0036)", [
+    s.block("Isolated RS-485 / Modbus RTU (never in the trip path) - fitted (0036 D9)", [
         Part("U703", "Interface_UART:ADM2587E", "ADM2587EBRWZ", {
             "GND1": "GND", "VCC": "+5V", "RxD": "UART_RX", "~{RE}": "RS485_RE_N",
             "DE": "RS485_DE", "TxD": "UART_TX", "GND2": "GND_RS485", "Visoout": "+3V3_RS485",

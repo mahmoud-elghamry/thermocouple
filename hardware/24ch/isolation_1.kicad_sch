@@ -6112,7 +6112,7 @@
 		)
 		(uuid "f6c0c43b-19c0-58e5-8df0-55268853edda")
 	)
-	(global_label "GND"
+	(global_label "SIO_WR_N"
 		(shape bidirectional)
 		(at 182.88 106.68 180)
 		(fields_autoplaced yes)
@@ -6305,9 +6305,37 @@
 		(at 205.74 109.22)
 		(uuid "6dd5cf5f-69a8-5a28-b4c3-d4f1821577ef")
 	)
-	(no_connect
-		(at 205.74 106.68)
-		(uuid "a5137b8c-d8e1-5c83-badb-910f74806092")
+	(wire
+		(pts
+			(xy 205.74 106.68)
+			(xy 208.28 106.68)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e7ded4db-ca7f-500a-9361-ac93c618bb62")
+	)
+	(global_label "SIO_WR_N_ISO"
+		(shape bidirectional)
+		(at 208.28 106.68 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "223050b3-e5c0-58c1-9fe8-42e4fc9e05e8")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 208.28 106.68 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 	)
 	(wire
 		(pts
@@ -6407,7 +6435,7 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 226.06 86.36 0)
+		(at 228.6 86.36 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -6415,7 +6443,7 @@
 		(dnp no)
 		(uuid "fff5e547-86b7-52a0-893c-5bef7a748415")
 		(property "Reference" "C411"
-			(at 228.892 85.36 0)
+			(at 231.432 85.36 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6424,7 +6452,7 @@
 			)
 		)
 		(property "Value" "100n"
-			(at 228.892 87.96 0)
+			(at 231.432 87.96 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6433,7 +6461,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
-			(at 226.06 86.36 0)
+			(at 228.6 86.36 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6442,7 +6470,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 226.06 86.36 0)
+			(at 228.6 86.36 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6451,7 +6479,7 @@
 			)
 		)
 		(property "Description" "side 1"
-			(at 226.06 86.36 0)
+			(at 228.6 86.36 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6460,7 +6488,7 @@
 			)
 		)
 		(property "MPN" "CC0805KRX7R9BB104"
-			(at 226.06 86.36 0)
+			(at 228.6 86.36 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6469,7 +6497,7 @@
 			)
 		)
 		(property "LCSC" "C49678"
-			(at 226.06 86.36 0)
+			(at 228.6 86.36 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6494,8 +6522,8 @@
 	)
 	(wire
 		(pts
-			(xy 226.06 82.55)
-			(xy 226.06 80.01)
+			(xy 228.6 82.55)
+			(xy 228.6 80.01)
 		)
 		(stroke
 			(width 0)
@@ -6505,7 +6533,7 @@
 	)
 	(global_label "+5V"
 		(shape bidirectional)
-		(at 226.06 80.01 90)
+		(at 228.6 80.01 90)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -6515,7 +6543,7 @@
 		)
 		(uuid "dca3f668-e9b4-5bc6-81ee-99f2ce8987a9")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 226.06 80.01 0)
+			(at 228.6 80.01 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6526,8 +6554,8 @@
 	)
 	(wire
 		(pts
-			(xy 226.06 90.17)
-			(xy 226.06 92.71)
+			(xy 228.6 90.17)
+			(xy 228.6 92.71)
 		)
 		(stroke
 			(width 0)
@@ -6537,7 +6565,7 @@
 	)
 	(global_label "GND"
 		(shape bidirectional)
-		(at 226.06 92.71 270)
+		(at 228.6 92.71 270)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -6547,7 +6575,7 @@
 		)
 		(uuid "47c81ae4-cfc5-51b3-a234-6fe1f3c82720")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 226.06 92.71 0)
+			(at 228.6 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6558,7 +6586,7 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 238.76 91.44 0)
+		(at 241.3 91.44 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -6566,7 +6594,7 @@
 		(dnp no)
 		(uuid "cbe5b787-f383-5abb-8b96-ff14af4ae1a9")
 		(property "Reference" "C412"
-			(at 241.592 90.44 0)
+			(at 244.132 90.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6575,7 +6603,7 @@
 			)
 		)
 		(property "Value" "100n"
-			(at 241.592 93.04 0)
+			(at 244.132 93.04 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6584,7 +6612,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
-			(at 238.76 91.44 0)
+			(at 241.3 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6593,7 +6621,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 238.76 91.44 0)
+			(at 241.3 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6602,7 +6630,7 @@
 			)
 		)
 		(property "Description" "side 2"
-			(at 238.76 91.44 0)
+			(at 241.3 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6611,7 +6639,7 @@
 			)
 		)
 		(property "MPN" "CC0805KRX7R9BB104"
-			(at 238.76 91.44 0)
+			(at 241.3 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6620,7 +6648,7 @@
 			)
 		)
 		(property "LCSC" "C49678"
-			(at 238.76 91.44 0)
+			(at 241.3 91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6645,8 +6673,8 @@
 	)
 	(wire
 		(pts
-			(xy 238.76 87.63)
-			(xy 238.76 85.09)
+			(xy 241.3 87.63)
+			(xy 241.3 85.09)
 		)
 		(stroke
 			(width 0)
@@ -6656,7 +6684,7 @@
 	)
 	(global_label "+3V3_ISO"
 		(shape bidirectional)
-		(at 238.76 85.09 90)
+		(at 241.3 85.09 90)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -6666,7 +6694,7 @@
 		)
 		(uuid "7fea232f-394d-5eb4-8cfb-78523fbfb12d")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 238.76 85.09 0)
+			(at 241.3 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6677,8 +6705,8 @@
 	)
 	(wire
 		(pts
-			(xy 238.76 95.25)
-			(xy 238.76 97.79)
+			(xy 241.3 95.25)
+			(xy 241.3 97.79)
 		)
 		(stroke
 			(width 0)
@@ -6688,7 +6716,7 @@
 	)
 	(global_label "GND_ISO"
 		(shape bidirectional)
-		(at 238.76 97.79 270)
+		(at 241.3 97.79 270)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -6698,7 +6726,7 @@
 		)
 		(uuid "377740a6-8438-58af-8308-64c27fb2bd77")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 238.76 97.79 0)
+			(at 241.3 97.79 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7275,8 +7303,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "3bad3828-1754-54c0-8219-33b6a241012d")
-		(property "Reference" "R443"
+		(uuid "3ef88ce7-6bbe-5023-b90d-87b0ef32f2e2")
+		(property "Reference" "R430"
 			(at 65.316 166.64 0)
 			(effects
 				(font
@@ -7285,7 +7313,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "22k"
+		(property "Value" "10k"
 			(at 65.316 169.24 0)
 			(effects
 				(font
@@ -7312,7 +7340,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "TMP126 3-wire SPI: MOSI reaches each SIO through 22k, SIO drives DOUT; 22k not 10k keeps the AD7124 DOUT load ~0.15 mA (spec at 0.1 mA); also defines DOUT when all are deselected (0036)"
+		(property "Description" "control CS pull-up during MCU reset"
 			(at 63.5 167.64 0)
 			(effects
 				(font
@@ -7321,7 +7349,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "0805W8F2202T5E"
+		(property "MPN" "0805W8F1002T5E"
 			(at 63.5 167.64 0)
 			(effects
 				(font
@@ -7330,7 +7358,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C17560"
+		(property "LCSC" "C17414"
 			(at 63.5 167.64 0)
 			(effects
 				(font
@@ -7340,15 +7368,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "5adc23e9-0a0e-55ac-86db-8845c7779165")
+			(uuid "cb799bfb-cdef-5132-950d-f6b62c8cf76a")
 		)
 		(pin "2"
-			(uuid "2c311ecf-a11a-5568-8de2-1ba384cce3a1")
+			(uuid "f5a184ef-183d-5b4a-b3c1-18887d139ede")
 		)
 		(instances
 			(project "thermo24"
 				(path "/396a983b-08a5-57c9-b07a-3d6ae939cc55/4bce2767-831f-5e10-a27a-e3e09fc61d98"
-					(reference "R443")
+					(reference "R430")
 					(unit 1)
 				)
 			)
@@ -7363,9 +7391,9 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "b3570880-b002-563e-a404-dbbfc90db40b")
+		(uuid "3dbf681a-f278-552b-a144-a12410b1ae7d")
 	)
-	(global_label "DIN_ISO"
+	(global_label "CS_ADC1"
 		(shape bidirectional)
 		(at 63.5 161.29 90)
 		(fields_autoplaced yes)
@@ -7375,7 +7403,7 @@
 			)
 			(justify left)
 		)
-		(uuid "496f025a-5d0a-5c89-ad69-78349976b2eb")
+		(uuid "b69a2fa4-4535-5dab-be94-22b611954468")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 63.5 161.29 0)
 			(effects
@@ -7395,9 +7423,9 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "f448eec6-82f6-5025-8f91-2db833ffee1e")
+		(uuid "6a021f5d-5b32-5264-a203-4413803bd81e")
 	)
-	(global_label "DOUT_ISO"
+	(global_label "+5V"
 		(shape bidirectional)
 		(at 63.5 173.99 270)
 		(fields_autoplaced yes)
@@ -7407,7 +7435,7 @@
 			)
 			(justify right)
 		)
-		(uuid "57d6524f-cae5-53b0-b236-32b3c1b77f83")
+		(uuid "5b48d4d1-1edb-5011-be56-db2afa64153f")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 63.5 173.99 0)
 			(effects
@@ -7426,8 +7454,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "3ef88ce7-6bbe-5023-b90d-87b0ef32f2e2")
-		(property "Reference" "R430"
+		(uuid "90410ec1-481c-5675-8a21-a6d9e35a530c")
+		(property "Reference" "R431"
 			(at 78.016 166.64 0)
 			(effects
 				(font
@@ -7491,15 +7519,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "cb799bfb-cdef-5132-950d-f6b62c8cf76a")
+			(uuid "d4cbba12-6b80-5b00-a87b-bb969d48bdfa")
 		)
 		(pin "2"
-			(uuid "f5a184ef-183d-5b4a-b3c1-18887d139ede")
+			(uuid "60044625-7a61-5ea8-8f4f-4c507d138276")
 		)
 		(instances
 			(project "thermo24"
 				(path "/396a983b-08a5-57c9-b07a-3d6ae939cc55/4bce2767-831f-5e10-a27a-e3e09fc61d98"
-					(reference "R430")
+					(reference "R431")
 					(unit 1)
 				)
 			)
@@ -7514,9 +7542,9 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "3dbf681a-f278-552b-a144-a12410b1ae7d")
+		(uuid "ba13605a-ebc1-51b2-9cfd-703beab204d0")
 	)
-	(global_label "CS_ADC1"
+	(global_label "CS_ADC2"
 		(shape bidirectional)
 		(at 76.2 161.29 90)
 		(fields_autoplaced yes)
@@ -7526,7 +7554,7 @@
 			)
 			(justify left)
 		)
-		(uuid "b69a2fa4-4535-5dab-be94-22b611954468")
+		(uuid "72c30aaa-f241-594d-aa8f-f0e4a37079a2")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 76.2 161.29 0)
 			(effects
@@ -7546,7 +7574,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "6a021f5d-5b32-5264-a203-4413803bd81e")
+		(uuid "629f09f6-f7ed-5e03-9fb1-9fdb12951e96")
 	)
 	(global_label "+5V"
 		(shape bidirectional)
@@ -7558,7 +7586,7 @@
 			)
 			(justify right)
 		)
-		(uuid "5b48d4d1-1edb-5011-be56-db2afa64153f")
+		(uuid "9b426268-2944-5fb1-9f28-fc84c8ec4257")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 76.2 173.99 0)
 			(effects
@@ -7577,8 +7605,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "90410ec1-481c-5675-8a21-a6d9e35a530c")
-		(property "Reference" "R431"
+		(uuid "b403b4ba-4938-5c44-8d5b-c1385f732515")
+		(property "Reference" "R432"
 			(at 88.176 166.64 0)
 			(effects
 				(font
@@ -7642,15 +7670,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "d4cbba12-6b80-5b00-a87b-bb969d48bdfa")
+			(uuid "d323fc34-47d5-53bf-a002-355adee443f3")
 		)
 		(pin "2"
-			(uuid "60044625-7a61-5ea8-8f4f-4c507d138276")
+			(uuid "66c9dcde-ce2c-51d5-bd2c-bfea27e0a2cf")
 		)
 		(instances
 			(project "thermo24"
 				(path "/396a983b-08a5-57c9-b07a-3d6ae939cc55/4bce2767-831f-5e10-a27a-e3e09fc61d98"
-					(reference "R431")
+					(reference "R432")
 					(unit 1)
 				)
 			)
@@ -7665,9 +7693,9 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "ba13605a-ebc1-51b2-9cfd-703beab204d0")
+		(uuid "3e09bb2b-81c8-5295-8690-1a435e64d8a6")
 	)
-	(global_label "CS_ADC2"
+	(global_label "CS_ADC3"
 		(shape bidirectional)
 		(at 86.36 161.29 90)
 		(fields_autoplaced yes)
@@ -7677,7 +7705,7 @@
 			)
 			(justify left)
 		)
-		(uuid "72c30aaa-f241-594d-aa8f-f0e4a37079a2")
+		(uuid "ad85f862-d8c6-50dc-ba92-c9c6ba1d8300")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 86.36 161.29 0)
 			(effects
@@ -7697,7 +7725,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "629f09f6-f7ed-5e03-9fb1-9fdb12951e96")
+		(uuid "ad03e8f9-9a35-5481-b755-e1af9678c7ce")
 	)
 	(global_label "+5V"
 		(shape bidirectional)
@@ -7709,7 +7737,7 @@
 			)
 			(justify right)
 		)
-		(uuid "9b426268-2944-5fb1-9f28-fc84c8ec4257")
+		(uuid "c9a0d2fd-8a30-5ed2-a249-acf04d49f411")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 86.36 173.99 0)
 			(effects
@@ -7722,15 +7750,15 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 99.06 167.64 0)
+		(at 99.06 165.1 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "b403b4ba-4938-5c44-8d5b-c1385f732515")
-		(property "Reference" "R432"
-			(at 100.876 166.64 0)
+		(uuid "ebf07123-25b7-5549-92b4-950220ee96bb")
+		(property "Reference" "R433"
+			(at 100.876 164.1 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7739,7 +7767,7 @@
 			)
 		)
 		(property "Value" "10k"
-			(at 100.876 169.24 0)
+			(at 100.876 166.7 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7748,7 +7776,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
-			(at 99.06 167.64 0)
+			(at 99.06 165.1 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7757,7 +7785,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 99.06 167.64 0)
+			(at 99.06 165.1 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7766,7 +7794,7 @@
 			)
 		)
 		(property "Description" "control CS pull-up during MCU reset"
-			(at 99.06 167.64 0)
+			(at 99.06 165.1 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7775,7 +7803,7 @@
 			)
 		)
 		(property "MPN" "0805W8F1002T5E"
-			(at 99.06 167.64 0)
+			(at 99.06 165.1 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7784,7 +7812,7 @@
 			)
 		)
 		(property "LCSC" "C17414"
-			(at 99.06 167.64 0)
+			(at 99.06 165.1 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7793,15 +7821,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "d323fc34-47d5-53bf-a002-355adee443f3")
+			(uuid "7f1bb382-547c-5520-8ce8-81f0132c8ec3")
 		)
 		(pin "2"
-			(uuid "66c9dcde-ce2c-51d5-bd2c-bfea27e0a2cf")
+			(uuid "817d6e2a-ecc1-557c-bb7e-7d5a0514d30b")
 		)
 		(instances
 			(project "thermo24"
 				(path "/396a983b-08a5-57c9-b07a-3d6ae939cc55/4bce2767-831f-5e10-a27a-e3e09fc61d98"
-					(reference "R432")
+					(reference "R433")
 					(unit 1)
 				)
 			)
@@ -7809,18 +7837,18 @@
 	)
 	(wire
 		(pts
-			(xy 99.06 163.83)
 			(xy 99.06 161.29)
+			(xy 99.06 158.75)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "3e09bb2b-81c8-5295-8690-1a435e64d8a6")
+		(uuid "5725113c-ca98-5a43-83de-e6d64e1462c3")
 	)
-	(global_label "CS_ADC3"
+	(global_label "CS_CJ1"
 		(shape bidirectional)
-		(at 99.06 161.29 90)
+		(at 99.06 158.75 90)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -7828,9 +7856,9 @@
 			)
 			(justify left)
 		)
-		(uuid "ad85f862-d8c6-50dc-ba92-c9c6ba1d8300")
+		(uuid "6355ac46-aea7-51bc-96a7-92fb35a5de21")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 99.06 161.29 0)
+			(at 99.06 158.75 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7841,18 +7869,18 @@
 	)
 	(wire
 		(pts
+			(xy 99.06 168.91)
 			(xy 99.06 171.45)
-			(xy 99.06 173.99)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "ad03e8f9-9a35-5481-b755-e1af9678c7ce")
+		(uuid "c7777df6-4425-594d-b5db-e82de7378700")
 	)
 	(global_label "+5V"
 		(shape bidirectional)
-		(at 99.06 173.99 270)
+		(at 99.06 171.45 270)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -7860,9 +7888,9 @@
 			)
 			(justify right)
 		)
-		(uuid "c9a0d2fd-8a30-5ed2-a249-acf04d49f411")
+		(uuid "90bc9fcb-8274-5e32-8821-d1d548afe22d")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 99.06 173.99 0)
+			(at 99.06 171.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7879,8 +7907,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "ebf07123-25b7-5549-92b4-950220ee96bb")
-		(property "Reference" "R433"
+		(uuid "c6eec4f9-c186-5f8c-9e6a-1367926b2aff")
+		(property "Reference" "R434"
 			(at 113.576 164.1 0)
 			(effects
 				(font
@@ -7944,15 +7972,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "7f1bb382-547c-5520-8ce8-81f0132c8ec3")
+			(uuid "69426e7c-a32d-5894-bc1c-7488a2748a37")
 		)
 		(pin "2"
-			(uuid "817d6e2a-ecc1-557c-bb7e-7d5a0514d30b")
+			(uuid "8566ef79-48f2-51f2-8324-6ca5869a8743")
 		)
 		(instances
 			(project "thermo24"
 				(path "/396a983b-08a5-57c9-b07a-3d6ae939cc55/4bce2767-831f-5e10-a27a-e3e09fc61d98"
-					(reference "R433")
+					(reference "R434")
 					(unit 1)
 				)
 			)
@@ -7967,9 +7995,9 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "5725113c-ca98-5a43-83de-e6d64e1462c3")
+		(uuid "0532e019-08c4-56ae-83f8-56e9c9c6a6f2")
 	)
-	(global_label "CS_CJ1"
+	(global_label "CS_CJ2"
 		(shape bidirectional)
 		(at 111.76 158.75 90)
 		(fields_autoplaced yes)
@@ -7979,7 +8007,7 @@
 			)
 			(justify left)
 		)
-		(uuid "6355ac46-aea7-51bc-96a7-92fb35a5de21")
+		(uuid "0c1d6b0c-0eac-5a66-b62a-4ee58229970b")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 111.76 158.75 0)
 			(effects
@@ -7999,7 +8027,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "c7777df6-4425-594d-b5db-e82de7378700")
+		(uuid "599470e7-8413-5e49-aa18-96a6a4871202")
 	)
 	(global_label "+5V"
 		(shape bidirectional)
@@ -8011,7 +8039,7 @@
 			)
 			(justify right)
 		)
-		(uuid "90bc9fcb-8274-5e32-8821-d1d548afe22d")
+		(uuid "974a5a83-19d3-5163-bc72-b81493255c6e")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 111.76 171.45 0)
 			(effects
@@ -8030,8 +8058,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "c6eec4f9-c186-5f8c-9e6a-1367926b2aff")
-		(property "Reference" "R434"
+		(uuid "7319842a-459c-5b3a-8e8f-557dccc517b4")
+		(property "Reference" "R435"
 			(at 123.736 164.1 0)
 			(effects
 				(font
@@ -8095,15 +8123,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "69426e7c-a32d-5894-bc1c-7488a2748a37")
+			(uuid "346bf89b-c7d7-5f1e-a78e-ba9748d8e468")
 		)
 		(pin "2"
-			(uuid "8566ef79-48f2-51f2-8324-6ca5869a8743")
+			(uuid "0a5f4ffb-03c6-5ecc-a9df-4eb2b5ff13c0")
 		)
 		(instances
 			(project "thermo24"
 				(path "/396a983b-08a5-57c9-b07a-3d6ae939cc55/4bce2767-831f-5e10-a27a-e3e09fc61d98"
-					(reference "R434")
+					(reference "R435")
 					(unit 1)
 				)
 			)
@@ -8118,9 +8146,9 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "0532e019-08c4-56ae-83f8-56e9c9c6a6f2")
+		(uuid "a2419a8d-d340-54b8-959c-04421d0a91f5")
 	)
-	(global_label "CS_CJ2"
+	(global_label "CS_CJ3"
 		(shape bidirectional)
 		(at 121.92 158.75 90)
 		(fields_autoplaced yes)
@@ -8130,7 +8158,7 @@
 			)
 			(justify left)
 		)
-		(uuid "0c1d6b0c-0eac-5a66-b62a-4ee58229970b")
+		(uuid "8e03e1c0-dd10-58e1-8b08-8df5b9399645")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 121.92 158.75 0)
 			(effects
@@ -8150,7 +8178,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "599470e7-8413-5e49-aa18-96a6a4871202")
+		(uuid "c2d976d7-16ac-5f3a-b64a-df4dc955aede")
 	)
 	(global_label "+5V"
 		(shape bidirectional)
@@ -8162,7 +8190,7 @@
 			)
 			(justify right)
 		)
-		(uuid "974a5a83-19d3-5163-bc72-b81493255c6e")
+		(uuid "e2587a59-a3ed-536d-b484-b62c13581c79")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 121.92 171.45 0)
 			(effects
@@ -8181,8 +8209,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "7319842a-459c-5b3a-8e8f-557dccc517b4")
-		(property "Reference" "R435"
+		(uuid "0ac21a3d-e738-58d5-b5d7-16bb826e0293")
+		(property "Reference" "R436"
 			(at 136.436 164.1 0)
 			(effects
 				(font
@@ -8246,15 +8274,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "346bf89b-c7d7-5f1e-a78e-ba9748d8e468")
+			(uuid "abcc645b-81ce-5aba-963c-d52e93977453")
 		)
 		(pin "2"
-			(uuid "0a5f4ffb-03c6-5ecc-a9df-4eb2b5ff13c0")
+			(uuid "0a4b8d65-f6c4-5b42-8ef0-120061590440")
 		)
 		(instances
 			(project "thermo24"
 				(path "/396a983b-08a5-57c9-b07a-3d6ae939cc55/4bce2767-831f-5e10-a27a-e3e09fc61d98"
-					(reference "R435")
+					(reference "R436")
 					(unit 1)
 				)
 			)
@@ -8269,9 +8297,9 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "a2419a8d-d340-54b8-959c-04421d0a91f5")
+		(uuid "278639d5-fd71-58e0-b8f2-8b8307889533")
 	)
-	(global_label "CS_CJ3"
+	(global_label "CS_CJ4"
 		(shape bidirectional)
 		(at 134.62 158.75 90)
 		(fields_autoplaced yes)
@@ -8281,7 +8309,7 @@
 			)
 			(justify left)
 		)
-		(uuid "8e03e1c0-dd10-58e1-8b08-8df5b9399645")
+		(uuid "c85df342-77b0-599e-9f2e-e1cf225c53c9")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 134.62 158.75 0)
 			(effects
@@ -8301,7 +8329,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "c2d976d7-16ac-5f3a-b64a-df4dc955aede")
+		(uuid "b4721fc5-1436-569b-bed4-3e9319d06e4f")
 	)
 	(global_label "+5V"
 		(shape bidirectional)
@@ -8313,7 +8341,7 @@
 			)
 			(justify right)
 		)
-		(uuid "e2587a59-a3ed-536d-b484-b62c13581c79")
+		(uuid "b6782843-bfd6-5444-9ba5-0406cb43db8a")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 134.62 171.45 0)
 			(effects
@@ -8332,8 +8360,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "0ac21a3d-e738-58d5-b5d7-16bb826e0293")
-		(property "Reference" "R436"
+		(uuid "cc64a0b6-de5c-5242-898d-753b6ee6d246")
+		(property "Reference" "R437"
 			(at 146.596 164.1 0)
 			(effects
 				(font
@@ -8397,15 +8425,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "abcc645b-81ce-5aba-963c-d52e93977453")
+			(uuid "fa6c8080-c476-510e-a574-c7e710452c0c")
 		)
 		(pin "2"
-			(uuid "0a4b8d65-f6c4-5b42-8ef0-120061590440")
+			(uuid "933a8f70-d4c4-55b6-a31b-9f4d1a62d1a8")
 		)
 		(instances
 			(project "thermo24"
 				(path "/396a983b-08a5-57c9-b07a-3d6ae939cc55/4bce2767-831f-5e10-a27a-e3e09fc61d98"
-					(reference "R436")
+					(reference "R437")
 					(unit 1)
 				)
 			)
@@ -8420,9 +8448,9 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "278639d5-fd71-58e0-b8f2-8b8307889533")
+		(uuid "4a95392e-df8e-5d0c-bcdd-41618084560d")
 	)
-	(global_label "CS_CJ4"
+	(global_label "CS_CJ5"
 		(shape bidirectional)
 		(at 144.78 158.75 90)
 		(fields_autoplaced yes)
@@ -8432,7 +8460,7 @@
 			)
 			(justify left)
 		)
-		(uuid "c85df342-77b0-599e-9f2e-e1cf225c53c9")
+		(uuid "39c9d333-fdf0-5880-92d2-d439751430ef")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 144.78 158.75 0)
 			(effects
@@ -8452,7 +8480,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "b4721fc5-1436-569b-bed4-3e9319d06e4f")
+		(uuid "77af9470-8f6b-5e7a-ab15-deeb35dc0d0f")
 	)
 	(global_label "+5V"
 		(shape bidirectional)
@@ -8464,7 +8492,7 @@
 			)
 			(justify right)
 		)
-		(uuid "b6782843-bfd6-5444-9ba5-0406cb43db8a")
+		(uuid "85e4da2a-9226-5317-9313-c1943ecb79a4")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 144.78 171.45 0)
 			(effects
@@ -8483,8 +8511,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "cc64a0b6-de5c-5242-898d-753b6ee6d246")
-		(property "Reference" "R437"
+		(uuid "7670d7bb-1f28-5d11-b3e4-8e880c1ecb15")
+		(property "Reference" "R438"
 			(at 159.296 164.1 0)
 			(effects
 				(font
@@ -8548,15 +8576,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "fa6c8080-c476-510e-a574-c7e710452c0c")
+			(uuid "22c4870c-3647-5139-9470-1e2291988470")
 		)
 		(pin "2"
-			(uuid "933a8f70-d4c4-55b6-a31b-9f4d1a62d1a8")
+			(uuid "38439279-53a6-5d2f-b6ff-ec757d22e3bd")
 		)
 		(instances
 			(project "thermo24"
 				(path "/396a983b-08a5-57c9-b07a-3d6ae939cc55/4bce2767-831f-5e10-a27a-e3e09fc61d98"
-					(reference "R437")
+					(reference "R438")
 					(unit 1)
 				)
 			)
@@ -8571,9 +8599,9 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "4a95392e-df8e-5d0c-bcdd-41618084560d")
+		(uuid "2c4b9deb-bb7b-5dcb-bdd9-a003446b4798")
 	)
-	(global_label "CS_CJ5"
+	(global_label "CS_CJ6"
 		(shape bidirectional)
 		(at 157.48 158.75 90)
 		(fields_autoplaced yes)
@@ -8583,7 +8611,7 @@
 			)
 			(justify left)
 		)
-		(uuid "39c9d333-fdf0-5880-92d2-d439751430ef")
+		(uuid "9cfdcc0f-69a7-538d-bf60-2ddcfe96517d")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 157.48 158.75 0)
 			(effects
@@ -8603,7 +8631,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "77af9470-8f6b-5e7a-ab15-deeb35dc0d0f")
+		(uuid "6a363a1f-af14-5164-b817-2c48c05cfa90")
 	)
 	(global_label "+5V"
 		(shape bidirectional)
@@ -8615,7 +8643,7 @@
 			)
 			(justify right)
 		)
-		(uuid "85e4da2a-9226-5317-9313-c1943ecb79a4")
+		(uuid "c35f4de3-6a18-5db1-8265-73f1a11df32e")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 157.48 171.45 0)
 			(effects
@@ -8628,15 +8656,15 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 170.18 165.1 0)
+		(at 170.18 167.64 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "7670d7bb-1f28-5d11-b3e4-8e880c1ecb15")
-		(property "Reference" "R438"
-			(at 171.996 164.1 0)
+		(uuid "865cba5b-6b1a-5df6-8f59-6063219a8850")
+		(property "Reference" "R439"
+			(at 171.996 166.64 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8645,7 +8673,7 @@
 			)
 		)
 		(property "Value" "10k"
-			(at 171.996 166.7 0)
+			(at 171.996 169.24 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8654,7 +8682,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
-			(at 170.18 165.1 0)
+			(at 170.18 167.64 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8663,7 +8691,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 170.18 165.1 0)
+			(at 170.18 167.64 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8672,7 +8700,7 @@
 			)
 		)
 		(property "Description" "control CS pull-up during MCU reset"
-			(at 170.18 165.1 0)
+			(at 170.18 167.64 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8681,7 +8709,7 @@
 			)
 		)
 		(property "MPN" "0805W8F1002T5E"
-			(at 170.18 165.1 0)
+			(at 170.18 167.64 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8690,7 +8718,7 @@
 			)
 		)
 		(property "LCSC" "C17414"
-			(at 170.18 165.1 0)
+			(at 170.18 167.64 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8699,15 +8727,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "22c4870c-3647-5139-9470-1e2291988470")
+			(uuid "181f423f-513d-5d87-8ccd-16c5962b235b")
 		)
 		(pin "2"
-			(uuid "38439279-53a6-5d2f-b6ff-ec757d22e3bd")
+			(uuid "f78a12a3-544d-5141-8b68-30c32e10dabc")
 		)
 		(instances
 			(project "thermo24"
 				(path "/396a983b-08a5-57c9-b07a-3d6ae939cc55/4bce2767-831f-5e10-a27a-e3e09fc61d98"
-					(reference "R438")
+					(reference "R439")
 					(unit 1)
 				)
 			)
@@ -8715,18 +8743,18 @@
 	)
 	(wire
 		(pts
+			(xy 170.18 163.83)
 			(xy 170.18 161.29)
-			(xy 170.18 158.75)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "2c4b9deb-bb7b-5dcb-bdd9-a003446b4798")
+		(uuid "17f7b59b-5c5f-54ff-8d3d-7cac4300c529")
 	)
-	(global_label "CS_CJ6"
+	(global_label "SIO_WR_N"
 		(shape bidirectional)
-		(at 170.18 158.75 90)
+		(at 170.18 161.29 90)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -8734,9 +8762,9 @@
 			)
 			(justify left)
 		)
-		(uuid "9cfdcc0f-69a7-538d-bf60-2ddcfe96517d")
+		(uuid "f24688a2-249e-5a7a-b8f6-b8dab20a6270")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 170.18 158.75 0)
+			(at 170.18 161.29 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8747,18 +8775,18 @@
 	)
 	(wire
 		(pts
-			(xy 170.18 168.91)
 			(xy 170.18 171.45)
+			(xy 170.18 173.99)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "6a363a1f-af14-5164-b817-2c48c05cfa90")
+		(uuid "589c9609-03bb-5a62-b8d2-e2a25c674981")
 	)
 	(global_label "+5V"
 		(shape bidirectional)
-		(at 170.18 171.45 270)
+		(at 170.18 173.99 270)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -8766,9 +8794,9 @@
 			)
 			(justify right)
 		)
-		(uuid "c35f4de3-6a18-5db1-8265-73f1a11df32e")
+		(uuid "bdbfd812-8e7d-5b14-a09b-f59b876ff26e")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 170.18 171.45 0)
+			(at 170.18 173.99 0)
 			(effects
 				(font
 					(size 1.27 1.27)
