@@ -39,8 +39,9 @@ Astra (gpt-6-astra, read-only) review: "send after fixes". Done:
 * `relay_area` no longer applies to pours (I-129): the GND pour keeps 2 mm from the contact tracks.
 * ORDER-NOTES / spec state the real smallest features (profile key `fab_limits`); "isolation slot" ->
   "copper-free isolation gap" on the family boards (no milled slot); LCD standoffs >= 11 mm (we buy them).
-* **Release candidate `production/8ch-revb0-2l-20261016-203125-6a2893/`**: MANIFEST DRC **(0, 0, 0)**, 92 BOM
-  lines, ASSEMBLY-SPEC 4 pages. The 033622 release moved to `production/_OLD_DO_NOT_ORDER/`.
+* 2026-10-19 (I-131): vias into U703.10 and U101.24 (AD7124) lands moved (Sol `output/sol-holes.txt`, backup
+  `output/pre-holes/`); DRC 0/0/0 with hole rules now errors, via hole to land >= 0.156 mm, pincaps 0.
+  **Release candidate `production/8ch-revb0-2l-20261019-042949-393f63/`**; 203125 and 033622 archived.
 * Open from the review, accepted as notes: bottom pour in 7 pieces and TC7/TC8 partly without pour under them
   (I-128 bench test), CJ placement thermally unproven, U601 exposed-pad holes at 0 mm from the paste windows
   (ask the assembler: plug/tent from the bottom), `+24V` silk touches an outline stroke.
