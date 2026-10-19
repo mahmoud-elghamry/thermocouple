@@ -42,3 +42,10 @@
   models B8/B40, full sheets (including RTD), root parts and profiles 8/8l/40 are **byte-identical (9/9)**.
   Identity hashes/report: `out/a4-proof/identity.txt`. Board folders and docs unchanged. No commit.
 * I-129 and I-130 still apply to REV A4; this sync implements the existing decision, not a board revision.
+
+## Board audit toolkit (2026-10-19, Sol, from its routing-round scripts)
+
+* KiCad-based: `holes.py` (drill spacing, via hole to SMD land), `route_report.py` (pair lengths/vias, Kelvin
+  shared runs), `pourcheck.py`; no-KiCad (stdlib, `python -S`): `board_text.py`, `text_check.py` (clearance,
+  keepouts, holes; matches KiCad's 25 pre-r10 hole pairs by UUID). 0 findings on 40ch / 8ch-new / 8ch-2l.
+  Tests: 47 plain + 14 KiCad OK. Commands in `docs/TOOLS.md`.

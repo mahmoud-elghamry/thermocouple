@@ -515,6 +515,48 @@ named parts and drops only their own-net tracks; then `finish.py dangling`, `fin
   every power/contact path; copy proven neighbourhoods from the finished 24-ch; maze.py makes staircase
   tracks on 2 mm contact nets - route relay contacts by hand. Codex Sol must not run KiCad in its sandbox.
 
+## Read-only routing audits (`hardware/family/tools/`) - 2026-10-19
+
+KiCad 10 now runs in the unelevated Codex sandbox for reading and DRC on **output/ copies**.
+Run these three commands from the repo root with KiCad's Python; each prints JSON with the
+input path/hash, never saves a board, and accepts the existing `--board 8|8l|40|24` / `--pcb` selection.
+
+```powershell
+$kp = 'C:\Program Files\KiCad\10.0\bin\python.exe'
+& $kp hardware/family/tools/holes.py --board 40
+& $kp hardware/family/tools/route_report.py --board 40
+& $kp hardware/family/tools/pourcheck.py --board 40 --pcb hardware/40ch/output/toolkit-proof/thermo40.kicad_pcb
+```
+
+* `holes.py`: all-net drill spacing (`--hole-gap`, default 0.25 mm) and via-hole/SMD land gap
+  (`--land-gap`, 0.10 mm); native slots/offsets, explicit heatsink-property exemption
+  (`--include-heatsinks` to inspect those too). Exit 1 = findings. Co-location counts exact centres;
+  KiCad's near-coincident category can differ. Interior land distances saturate at minus drill radius.
+* `route_report.py`: shortest centreline lengths/via counts, pair mismatch and shared run outside
+  the common pad. Defaults come from `profiles_checks.py` (40-ch sense pairs, terminal stars, R1092
+  Kelvin branches). Other boards/custom work: repeat `--path REF.PAD REF.PAD` or
+  `--shared COMMON.PAD SENSE.PAD CURRENT.PAD`. Exit 2 = invalid/disconnected route. No pours or delay
+  model; arcs/custom pads/duplicate pad numbers on measured nets fail explicitly.
+* `pourcheck.py`: direct saved-fill contact versus a copper path to any filled zone, optionally
+  `--net FULL_NET_NAME`; exit 1 = unattached items, 2 = missing fill/invalid input. It does not
+  prove connection to the largest island, minimum neck width or thermal capacity.
+* `board_text.py`: `python -S hardware/family/tools/board_text.py --board 40 [--pcb P]` reads pads (absolute angle/true corner radius), segments/arcs/vias, zone outlines/keepouts and matching project/rule sidecars; stdlib-only API `Board(path)`; custom primitives supported, courtyard linework uses a bounding rectangle, unsupported copper graphics/footprint zones fail explicitly.
+* `text_check.py`: `python -S hardware/family/tools/text_check.py --board 40 [--pcb P]` prints JSON copper/rule, hole and via/land findings; unfilled pours excluded, arcs conservatively inflated <=0.001 mm, native-default clearance epsilon 0.0005 mm reported with boundary cases (`--clearance-epsilon 0` for strict); tests: `python -S -m unittest test_board_text test_text_boards` from the tools folder.
+
+For pour checks, first copy the PCB **and matching `.kicad_pro`/`.kicad_dru`** into an output/ folder,
+then run `kicad-cli pcb drc --refill-zones --save-board --severity-all --format json -o <copy-dir>/drc.json
+<copy-dir>/<name>.kicad_pcb` (one line). Never use `--save-board` on the source. DRC remains the clearance gate.
+Reusable internals: `audit_common.py` (profile/loading/report identity), `route_native.py` (native
+contacts), `route_graph.py` (`Routes`, `shared_length`, `outside_polygon`, pure Python for planning/tests).
+Existing `finish.py apply`/`maze.py`/`move.py` own route replay and edits; scratch sol/ scripts stay untouched.
+
+Tests from `hardware/family/tools/`: `python -m unittest test_profiles test_docs_new test_routing`;
+`& $kp -m unittest test_routing_kicad` for synthetic native tests. Set `$env:ROUTING_BOARD_PROOFS='1'`
+for optional current-board/pre-r10/final-round-11 regressions and saved `output/toolkit-proof/` copies.
+Proof (KiCad 10.0.6): current 40/8/8l holes/lands 0/0; pre-r10 25 hole pairs (DRC 13+12), 34 land pairs;
+all eight final-round-11 sense legs reproduced to 1e-6 mm, 3 vias each, mismatch max 1.890 mm,
+22 star/Kelvin shared runs 0; fill-reachable items 1212/502/318, unattached 0.
+
 ## Things that will bite you
 
 - **A gate that reads a file can pass on the wrong file.** Two did on
