@@ -7,6 +7,7 @@ The test-point map is drawn from the board itself (kicad-cli SVG + pos.csv), so 
 
 from profiles import ACTIVE as P, ROOT
 import csv
+import hashlib
 import os
 import subprocess
 import sys
@@ -104,6 +105,10 @@ def main(rel):
     for f in os.listdir(work):
         os.remove(os.path.join(work, f))
     os.rmdir(work)
+    with open(out, "rb") as f:        # fab.py wrote MANIFEST before this file existed
+        sha = hashlib.sha256(f.read()).hexdigest()
+    with open(os.path.join(rel, "MANIFEST.txt"), "a", encoding="utf-8") as f:
+        f.write(f"  {sha}  ASSEMBLY-SPEC.pdf (added by assembly_spec.py)\n")
     print("written", out, fitz.open(out).page_count, "pages")
 
 
