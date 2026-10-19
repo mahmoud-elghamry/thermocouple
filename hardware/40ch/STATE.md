@@ -46,10 +46,13 @@ TMP126 SIO driver (P2).
   RTD1-4 SP/SN 9.4-11.9 mm, mismatch <= 1.4 mm, 3 vias each; R1092 Kelvin (REFIN tracks own, shared run 0);
   terminal leads split at the pads; C1096 loop 1.77 mm; vias in small IC pads 0; digital/sense crossings 0.
   Then `finish.py dangling` (15 removed), `silk.py`. Backup before the round: `output/pre-r10/`.
-* **Release candidate `production/40ch-reva0-20261019-024508-4774af/`**: MANIFEST DRC (errors, unconnected,
-  parity) **(0, 0, 0)**, pincaps 0 over, 108 BOM lines, none without LCSC, ASSEMBLY-SPEC 4 pages. Warnings
-  left: U1001 pin-1 silk over C1096 pad (fab clips), PT100 3 label, 7 stubs that carry a connection.
-  Next: Astra re-review of the PT100 area, then quotation.
+* Release `40ch-reva0-20261019-024508-4774af` (archived): Astra re-review **after fixes** - PT100 items FIXED,
+  but 7 overlapping drill-hole pairs (pre-existing since the copy; KiCad severity warning, the 24-ch has none)
+  and via holes cutting small SMD lands. Sol round 11 (`sol-routes11.txt`): hole pairs < 0.25 mm 19 -> 0, via
+  hole to small SMD land < 0.10 mm 61 -> 0 (own pcbnew check), SAC/SBC partly shortened (RTD1 48 -> 37 mm,
+  adjacent-layer digital crossings 25 -> 17), SP/SN 9.8-14.1 mm, mismatch <= 1.9 mm; Kelvin/decoupling kept.
+* **Release candidate `production/40ch-reva0-20261019-040422-9bed30/`**: MANIFEST DRC **(0, 0, 0)**, hole_to_hole
+  and holes_co_located 0, pincaps 0 over, 108 BOM lines, ASSEMBLY-SPEC hashed in MANIFEST. Next: quotation.
 
 ## Open
 
