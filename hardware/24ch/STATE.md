@@ -20,7 +20,7 @@
   JLC cart 2026-10-16 (PCBA x5, $650.09) holds the OLD 231449 gerbers: re-upload this release before paying.
   Full DRC incl. warnings: no hole-to-hole; only the 15 dangling-stub warnings A3 already had. Astra review 3:
   3 overlapping vias (A4) removed; 7 vias in/at pads (from A3) moved clear; 1 left (CS_CJ6 via grazes U405
-  pad 15 by 0.075 mm, no clear spot within 1.2 mm). Order with ENIG and 1 oz inner copper selected.
+  pad 15 by 0.075 mm - same net, no spot within 2.2 mm, accepted). Hole rules now error (main's drill row, 10-19).
 * Pre-order review 2026-10-15 (4 Claude reviewers + Astra, `production/review-20261015-a4/`, local): power, measurement chain,
   MCU/trip/alarm, BOM-vs-footprint all OK part by part. Found and fixed: terminal labels on J601/J701/J702
   mirrored by the A4 silk pass (`silk.py` now labels from the pad net). J503 under the LCD: closed by `0042`

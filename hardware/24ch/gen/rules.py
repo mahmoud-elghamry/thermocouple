@@ -122,6 +122,8 @@ def write_project(assign):
     rules.update(min_clearance=0.15, min_track_width=0.2, min_via_diameter=0.5,
                  min_via_annular_width=0.15, min_through_hole_diameter=0.3,
                  min_copper_edge_clearance=0.5, min_hole_clearance=0.25, min_hole_to_hole=0.25)
+    # drill collisions are fab defects, so the error-only release DRC must see them (I-131)
+    pro["board"]["design_settings"]["rule_severities"].update(hole_to_hole="error", holes_co_located="error")
     json.dump(pro, open(PRO, "w", encoding="utf-8"), indent=2)
 
 
