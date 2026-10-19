@@ -1,8 +1,7 @@
 """One board profile; consume --board/--pcb before the legacy tool parses arguments.
 
-Unknown geometry is deliberately None, never an estimated manufacturing value.
-Copy overrides also redirect sidecars and output beside the copy. Child processes
-inherit the selection. Geometry stays in each board's own gen/rules.py.
+Unknown geometry is None. Copy overrides redirect sidecars/output beside the copy.
+Children inherit selection. Geometry stays in each board's own gen/rules.py.
 """
 import importlib.util
 import os
@@ -294,7 +293,7 @@ def geometry():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module.domain, module.BANDS
-
 __import__('profiles_new').apply(PROFILES, P24)  # 8-ch / 40-ch data (Claude, 2026-10-14)
 __import__('docs_new').apply(PROFILES, P24)  # 8-ch / 40-ch release texts (Sol, 2026-10-14)
+__import__('profiles_checks').apply(PROFILES)  # read-only routing metrics
 ACTIVE = select()
