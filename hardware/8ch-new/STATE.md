@@ -28,7 +28,10 @@ buttons and panel-button header as the 24-ch. 4 layers first; 2-layer / local-fa
   pour sliver beside J501 (14.56, 20.5). Then `vbias_pour.py` (bank A guard), `fiducials.py`, `silk.py`
   (profile 8 silk in `family/tools/profiles_new.py`; silk.py reads `bus_text`/`isp_dy`); DRC 0/0 after each.
   Backups in `output/`: drc-zero, vbias, fid (.kicad_pcb).
-* **Release candidate `production/8ch-revb0-20261014-203721-5e720e/`** (`fab.py --board 8`, then
+* 2026-10-19 (I-131): 12 hole_to_hole + 11 co-located holes and 3 vias into SMD lands fixed (Sol `output/sol-holes.txt`,
+  23 rips / 3 adds; backup `output/pre-holes/`); DRC 0/0/0 with hole rules now errors, via hole to land >= 0.157 mm,
+  pincaps 0. **Release candidate `production/8ch-revb0-20261019-042934-2d12ea/`**; 5e720e archived. Older notes:
+* Release `8ch-revb0-20261014-203721-5e720e` (archived; `fab.py --board 8`, then
   `assembly_spec.py` with Python 3.10): MANIFEST DRC (0, 0, 0), 92 BOM lines / 243 parts, none without LCSC,
   DNP none; ASSEMBLY-SPEC.pdf 4 pages, ORDER-NOTES, ACCESSORIES (`accessories.csv` here). Release texts:
   `family/tools/docs_new.py` (Sol, reviewed: power-on test back on the TPs, vendor text without firmware
