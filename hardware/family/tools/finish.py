@@ -143,7 +143,7 @@ def dedupe():
     pcbnew.SaveBoard(BOARD, b)
     print(f"dedupe: removed {len(gone)} duplicate segments/vias")
 
-def add(net, layer, width, pts, end_via, b=None):
+def add(net, layer, width, pts, end_via, b=None, via_size=(0.6, 0.3)):
     save = b is None
     b = b or pcbnew.LoadBoard(BOARD)
     n = [v for k, v in b.GetNetsByName().items() if str(k).rsplit("/", 1)[-1] == net][0]
@@ -160,8 +160,8 @@ def add(net, layer, width, pts, end_via, b=None):
     if end_via:
         v = pcbnew.PCB_VIA(b)
         v.SetPosition(xy[-1])
-        v.SetWidth(mm(0.6))
-        v.SetDrill(mm(0.3))
+        v.SetWidth(mm(via_size[0]))
+        v.SetDrill(mm(via_size[1]))
         v.SetNet(n)
         b.Add(v)
     if save:
@@ -169,7 +169,7 @@ def add(net, layer, width, pts, end_via, b=None):
         print(f"add: {len(xy) - 1} segments on {net}{' + via' if end_via else ''}")
 
 def apply(path):
-    """Apply a route list: lines `rip UUID` / `add NET LAYER W x,y ... [via]` (hand or Sol routes), one save."""
+    """Apply a route list: lines `rip UUID` / `add NET LAYER W x,y ... [via [D/d]]` (hand or Sol routes), one save."""
     b = pcbnew.LoadBoard(BOARD)
     lines = [l.split() for l in open(path, encoding="utf-8") if l.strip() and not l.startswith("#")]
     want = {a[1] for a in lines if a[0] == "rip"}
@@ -178,8 +178,11 @@ def apply(path):
         b.Remove(t)
     adds = [a[1:] for a in lines if a[0] == "add"]
     for a in adds:
+        size = (0.6, 0.3)
+        if len(a) > 1 and a[-2] == "via" and "/" in a[-1]:
+            size = tuple(float(x) for x in a.pop().split("/"))
         via = a[-1] == "via"
-        add(a[0], a[1], float(a[2]), a[3:-1] if via else a[3:], via, b)
+        add(a[0], a[1], float(a[2]), a[3:-1] if via else a[3:], via, b, size)
     pcbnew.SaveBoard(BOARD, b)
     print(f"apply: ripped {len(gone)} of {len(want)}, added {len(adds)} routes")
 
