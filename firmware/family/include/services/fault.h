@@ -22,6 +22,9 @@ bool fault_at(const fault_registry_t *r, fault_code_t code, uint8_t unit);
 act_t fault_action(fault_code_t code, ch_mode_t mode);
 bool fault_trip_active(const fault_registry_t *r);
 bool fault_alarm_latched(const fault_registry_t *r);
+/* Settings-aware consumers combine G/B latches with fitted-channel C latches. */
+bool fault_global_alarm_latched(const fault_registry_t *r);
+bool fault_latched_at(const fault_registry_t *r, fault_code_t code, uint8_t unit);
 /* Clears only inactive causes; internal input corruption requires reset. */
 void fault_ack(fault_registry_t *r);
 #endif

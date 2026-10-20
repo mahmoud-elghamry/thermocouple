@@ -16,6 +16,10 @@ typedef struct {
     uint8_t mode_inv, permit, permit_inv;
     bool ack_released, window_valid;
     uint32_t window_started_ms;
+    uint32_t accepted_settings_seq, replaced_settings_seq;
+    bool replaced_sequence_valid;
+    /* Last validated configuration observed by step/result; unknown is fitted. */
+    uint8_t fitted[(MAX_CHANNELS+7u)/8u];
     uint8_t alarm_latch[MAX_CHANNELS];
     uint8_t trip_seen[MAX_CHANNELS];
     first_out_t first;
@@ -42,7 +46,9 @@ typedef struct {
 /* Caller owns all state. Service takes precedence over missing settings at boot. */
 void prot_init(prot_state_t *s, bool settings_ok, bool cal_ok, bool service);
 bool prot_integrity(const prot_state_t *s);
-/* Immediate calls: never wait for scan completion. New causes returned for logging. */
+/* Immediate calls: never wait for scan completion. New causes returned for logging.
+ * Publish the active configuration via step/result before C-fault notifications;
+ * their zero-based unit is checked against its fitted mask (channel is event ID). */
 bool prot_on_result(prot_state_t *s, uint8_t ch, const result_t *r,
                     const settings_t *cfg, uint32_t scan_no, uint32_t uptime_s);
 bool prot_on_fault(prot_state_t *s, fault_registry_t *reg, fault_code_t code,

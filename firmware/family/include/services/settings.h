@@ -55,19 +55,39 @@ typedef struct { ee_kind_t kind; uint16_t address; uint8_t value; } ee_op_t;
 typedef struct {
     store_phase_t phase;
     uint8_t image[SETTINGS_SLOT_SIZE];
+    uint8_t wrap_cal_image[CAL_SLOT_SIZE];
     uint16_t length, index, base;
     uint8_t active_slot, target_slot, retries;
     bool pending, protection_change, calibration;
+    bool settings_after_cal;
+    uint8_t calibration_active_slot;
+    bool calibration_slot_known;
     fault_code_t fault;
 } set_store_t;
 /* Initialize once per boot. Do not reinitialize to retry a failed commit. */
 void set_store_init(set_store_t *st);
 /* Begin rejects invalid RAM data; sequence is active+1. Caller must inhibit RUN
  * BEFORE executing the first emitted operation if protection_change is true.
- * active_slot = 0/1, or 2 for blank EEPROM. No pointer flip until STORE_DONE.
+ * active_slot = 0/1, or 2 for blank EEPROM. No settings pointer flip until STORE_DONE.
  * An in-progress transaction returns RES_BUSY; failures survive a new attempt. */
 res_t set_commit(set_store_t *st, const settings_t *candidate,
                  const settings_t *active, uint8_t active_slot);
+/* Required for a type-epoch wrap; plain set_commit rejects that change.
+ * Copies the active calibration (valid staged records allowed; slot 0/1), clears
+ * every wrapping channel's baseline/tag, and verifies its inactive A/B copy BEFORE
+ * writing settings. image remains the pending settings image; calibration=true
+ * during the prerequisite write. active_slot is the SETTINGS slot throughout;
+ * calibration_active_slot advances after calibration verification. STORE_DONE
+ * means both records verified; no caller-owned input must survive begin.
+ * Retries must pass that verified slot and its calibration record; a stale
+ * calibration slot is rejected. Keep this store state across attempts.
+ * On reset, boot-select both A/B pairs normally. A cut can leave old settings
+ * with a newly cleared baseline (requiring re-learning), never wrapped settings
+ * with the ancient baseline. Non-wrapping saves follow set_commit unchanged. */
+res_t set_commit_with_cal(set_store_t *st, const settings_t *candidate,
+                          const settings_t *active, uint8_t active_slot,
+                          const calibration_t *active_cal, uint8_t cal_slot);
+/* Also rejects a stale calibration slot once this store has verified a copy. */
 res_t cal_commit(set_store_t *st, const calibration_t *candidate,
                  uint32_t active_sequence, uint8_t active_slot);
 /* Pure EEPROM protocol: execute op once; next call acknowledges it with ready,

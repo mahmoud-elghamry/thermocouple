@@ -155,4 +155,146 @@ static void commit_rules(void)
     b=a; b.ch[0].type_epoch=1; CHECK(set_commit(&st,&b,&a,0)!=RES_OK);
     b=a; CHECK(set_commit(&st,&b,&a,2)!=RES_OK);
 }
-void test_settings(void) { record_rules(); calibration_rules(); calibration_power_cuts(); commit_rules(); }
+static void wrap_reboot(const uint8_t ee[4096], bool off, bool multiple)
+{
+    settings_t sa, sb, *s; calibration_t ca, cb, *c;
+    bool av, bv; int pick;
+    av=set_unpack(ee+0x40,24,24,&sa)==RES_OK;
+    bv=set_unpack(ee+0x340,24,24,&sb)==RES_OK;
+    pick=set_select(av,sa.sequence,bv,sb.sequence); CHECK(pick>=0);
+    if(pick<0) return;
+    s=pick?&sb:&sa;
+    av=cal_unpack(ee+0x640,3,&ca)==RES_OK;
+    bv=cal_unpack(ee+0x740,3,&cb)==RES_OK;
+    pick=set_select(av,ca.sequence,bv,cb.sequence); CHECK(pick>=0);
+    if(pick<0) return;
+    c=pick?&cb:&ca;
+    CHECK(c->ref_ppm[0]==123 && c->baseline_nV[1]==4000000 && c->tag[1]==1);
+    /* A second wrap, OFF -> fitted at the last board channel, is atomic with
+     * the first one's baseline invalidation in the same calibration record. */
+    if(multiple) {
+        if(s->ch[23].type_epoch==0) {
+            CHECK(s->ch[23].type==CH_TYPE_K);
+            CHECK(c->baseline_nV[23]==CAL_MISSING && c->tag[23]==0);
+            CHECK(!cal_complete(c,s));
+        } else CHECK(s->ch[23].type_epoch==63 && s->ch[23].type==CH_TYPE_OFF);
+    }
+    if(s->ch[0].type_epoch==0) {
+        CHECK(s->ch[0].type==(off?CH_TYPE_OFF:CH_TYPE_K));
+        CHECK(c->baseline_nV[0]==CAL_MISSING && c->tag[0]==0);
+        if(!off) CHECK(!cal_complete(c,s)); /* ancient K/epoch-zero baseline never resurrects */
+    } else CHECK(s->ch[0].type_epoch==63 && s->ch[0].type==CH_TYPE_J);
+}
+static void epoch_wrap_power_cuts(void)
+{
+    unsigned settings_slot, cal_slot, off;
+    for(settings_slot=0;settings_slot<2;++settings_slot)
+    for(cal_slot=0;cal_slot<2;++cal_slot)
+    for(off=0;off<2;++off) {
+        settings_t old=fixture_settings(), next, stale;
+        calibration_t cal=fixture_cal(), stale_cal;
+        set_store_t st; ee_op_t op;
+        uint8_t ee[4096], read=0; unsigned step, cal_reads=0;
+        old.ch[1]=old.ch[0];
+        old.sequence=UINT32_MAX; old.ch[0].type=CH_TYPE_J; old.ch[0].type_epoch=63;
+        old.ch[23].type_epoch=63;
+        next=old; CHECK(set_change_type(&next.ch[0],off?CH_TYPE_OFF:CH_TYPE_K)==RES_OK);
+        if(!off) { next.ch[0].alarm_dC=800; next.ch[0].trip_dC=1000; next.ch[0].probe_limit_dC=12000; }
+        CHECK(set_change_type(&next.ch[23],CH_TYPE_K)==RES_OK);
+        next.ch[23].alarm_dC=800; next.ch[23].trip_dC=1000; next.ch[23].probe_limit_dC=12000;
+        cal.sequence=UINT32_MAX; cal.ref_ppm[0]=123;
+        cal.baseline_nV[1]=4000000; cal.tag[1]=1;
+        cal.baseline_nV[23]=3500000; cal.tag[23]=1;
+        /* K/epoch-zero tag left from 64 changes ago, including in the stale slot. */
+        stale=old; --stale.sequence; stale_cal=cal; --stale_cal.sequence;
+        memset(ee,0xFF,sizeof(ee));
+        CHECK(set_pack(&old,ee+0x40+768*settings_slot)==RES_OK);
+        CHECK(set_pack(&stale,ee+0x40+768*(1-settings_slot))==RES_OK);
+        CHECK(cal_pack(&cal,ee+0x640+256*cal_slot)==RES_OK);
+        CHECK(cal_pack(&stale_cal,ee+0x640+256*(1-cal_slot))==RES_OK);
+        set_store_init(&st);
+        CHECK(set_commit(&st,&next,&old,(uint8_t)settings_slot)==RES_ERR_RANGE);
+        CHECK(set_commit_with_cal(&st,&next,&old,(uint8_t)settings_slot,NULL,(uint8_t)cal_slot)==RES_ERR_RANGE);
+        CHECK(set_commit_with_cal(&st,&next,&old,(uint8_t)settings_slot,&cal,2)==RES_ERR_RANGE);
+        stale_cal=cal; stale_cal.bank_count=1;
+        CHECK(set_commit_with_cal(&st,&next,&old,(uint8_t)settings_slot,&stale_cal,(uint8_t)cal_slot)==RES_ERR_RANGE);
+        stale_cal=cal; stale_cal.tag[23]=0;
+        CHECK(set_commit_with_cal(&st,&next,&old,(uint8_t)settings_slot,&stale_cal,(uint8_t)cal_slot)==RES_ERR_RANGE);
+        CHECK(st.phase==STORE_IDLE); /* validation failures emit no EEPROM work */
+        CHECK(set_commit_with_cal(&st,&next,&old,(uint8_t)settings_slot,&cal,(uint8_t)cal_slot)==RES_OK);
+        for(step=0;step<2000 && st.phase!=STORE_DONE && st.phase!=STORE_FAILED;++step) {
+            wrap_reboot(ee,off!=0,true);
+            set_store_step(&st,true,true,read,&op);
+            if(op.kind==EE_WRITE) {
+                if(op.address<0x640) CHECK(cal_reads==249);
+                ee[op.address]=op.value;
+            }
+            if(op.kind==EE_READ) { read=ee[op.address]; if(op.address>=0x640) ++cal_reads; }
+        }
+        CHECK(st.phase==STORE_DONE && st.active_slot==1-settings_slot && st.calibration_active_slot==1-cal_slot);
+        wrap_reboot(ee,off!=0,true);
+    }
+}
+static void wrap_failure_paths(void)
+{
+    unsigned stage, failure_kind;
+    for(stage=0;stage<2;++stage) for(failure_kind=0;failure_kind<3;++failure_kind) {
+        settings_t old=fixture_settings(), next;
+        calibration_t cal=fixture_cal(), current_cal;
+        set_store_t st; ee_op_t op;
+        uint8_t ee[4096], read=0, current_slot;
+        bool success=true, injected=false; unsigned steps, pass;
+        old.ch[1]=old.ch[0]; old.ch[0].type=CH_TYPE_J; old.ch[0].type_epoch=63;
+        next=old; next.ch[0].type=CH_TYPE_K; next.ch[0].type_epoch=0;
+        cal.ref_ppm[0]=123; cal.baseline_nV[1]=4000000; cal.tag[1]=1;
+        memset(ee,0xFF,sizeof(ee));
+        CHECK(set_pack(&old,ee+0x40)==RES_OK && cal_pack(&cal,ee+0x640)==RES_OK);
+        set_store_init(&st);
+        CHECK(set_commit_with_cal(&st,&next,&old,0,&cal,0)==RES_OK && st.protection_change);
+        CHECK(set_commit_with_cal(&st,&next,&old,0,&cal,0)==RES_BUSY);
+        for(pass=0;pass<2;++pass) {
+            for(steps=0;steps<4000 && st.phase!=STORE_DONE && st.phase!=STORE_FAILED;++steps) {
+                set_store_step(&st,true,success,read,&op); success=true;
+                if(op.kind==EE_WRITE) {
+                    if(pass==0 && failure_kind==0 && ((op.address<0x640)==(stage!=0))) {
+                        success=false; injected=true;
+                    } else ee[op.address]=op.value;
+                }
+                if(op.kind==EE_READ) {
+                    read=ee[op.address];
+                    if(pass==0 && failure_kind!=0 && ((op.address<0x640)==(stage!=0)) &&
+                       (failure_kind==1 || !injected)) { read^=1; injected=true; }
+                }
+                wrap_reboot(ee,false,false);
+                if(pass==1 && st.phase!=STORE_DONE) CHECK(st.fault==FC_G02_SAVE_FAIL_PROT);
+            }
+            CHECK(injected);
+            if(failure_kind==2 || pass==1) {
+                CHECK(st.phase==STORE_DONE && st.fault==FC_NONE && st.active_slot==1);
+                break;
+            }
+            CHECK(st.phase==STORE_FAILED && st.fault==FC_G02_SAVE_FAIL_PROT && st.active_slot==0);
+            current_slot=st.calibration_active_slot;
+            CHECK(current_slot==(stage?1:0));
+            /* 05 section 5: epoch wrap must persist baseline invalidation across
+             * power cuts. After calibration verifies, neither retry API may use
+             * the stale slot or alter the failed transaction when rejecting it. */
+            if(stage) {
+                set_store_t probe=st;
+                CHECK(set_commit_with_cal(&st,&next,&old,0,&cal,0)==RES_ERR_RANGE);
+                CHECK(memcmp(&st,&probe,sizeof(st))==0);
+                CHECK(cal_commit(&probe,&cal,cal.sequence,0)==RES_ERR_RANGE);
+                CHECK(memcmp(&st,&probe,sizeof(st))==0);
+            }
+            CHECK(cal_unpack(ee+0x640+256*current_slot,3,&current_cal)==RES_OK);
+            CHECK(set_commit_with_cal(&st,&next,&old,0,&current_cal,current_slot)==RES_OK);
+            read=0; success=true;
+        }
+        wrap_reboot(ee,false,false);
+    }
+}
+void test_settings(void)
+{
+    record_rules(); calibration_rules(); calibration_power_cuts(); commit_rules();
+    epoch_wrap_power_cuts(); wrap_failure_paths();
+}

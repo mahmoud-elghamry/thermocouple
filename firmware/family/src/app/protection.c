@@ -20,6 +20,14 @@ void prot_init(prot_state_t *s, bool settings_ok, bool cal_ok, bool service)
 {
     if(s==NULL) return;
     memset(s,0,sizeof(*s)); mode_set(s,service?SERVICE:((settings_ok&&cal_ok)?START_LATCHED:CONFIG_LOCK));
+    memset(s->fitted,0xFF,sizeof(s->fitted));
+}
+static void remember_channels(prot_state_t *s, const settings_t *cfg)
+{
+    uint8_t ch;
+    memset(s->fitted,0,sizeof(s->fitted));
+    for(ch=0;ch<cfg->channel_count;++ch) if(cfg->ch[ch].type!=CH_TYPE_OFF)
+        s->fitted[ch/8u]|=(uint8_t)(1u<<(ch%8u));
 }
 static void first(prot_state_t *s, fault_code_t code, uint8_t channel, uint8_t unit,
                    temp_dC_t value, temp_dC_t threshold, uint32_t uptime)
@@ -44,6 +52,7 @@ bool prot_on_result(prot_state_t *s, uint8_t ch, const result_t *r, const settin
     if(!prot_integrity(s) || cfg==NULL || set_validate(cfg)!=RES_OK || ch>=cfg->channel_count || ch>=MAX_CHANNELS) {
         mode_set(s,TRIPPED); first(s,FC_G04_INTERNAL,0,0,0,0,uptime_s); s->ack_released=false; return true;
     }
+    remember_channels(s,cfg);
     cond=chan_cond(r,&cfg->ch[ch],scan_no); act=chan_action(cond,cfg->ch[ch].mode);
     cause=chan_cause(r,cond); fresh=act==ACT_TRIP && s->trip_seen[ch]!=(uint8_t)cause;
     if(act!=ACT_NONE) s->alarm_latch[ch]=1;
@@ -61,6 +70,8 @@ bool prot_on_fault(prot_state_t *s, fault_registry_t *reg, fault_code_t code,
     if(!prot_integrity(s) || unit>=FAULT_UNITS || code<1 || code>=FAULT_CODES) {
         mode_set(s,TRIPPED); first(s,FC_G04_INTERNAL,0,0,0,0,uptime_s); s->ack_released=false; return true;
     }
+    if(code>=FC_C01_OPEN && code<=FC_C09_RTD && unit<MAX_CHANNELS &&
+       !(s->fitted[unit/8u]&(1u<<(unit%8u)))) action=ACT_NONE;
     if((code==FC_G01_SETTINGS_INVALID || code==FC_G10_CALIBRATION) && s->mode!=SERVICE) {
         mode_set(s,CONFIG_LOCK); s->ack_released=false;
     } else if(action==ACT_TRIP && (fresh || s->mode==RUN)) trip(s,code,channel,unit,0,0,uptime_s);
@@ -98,14 +109,15 @@ static void clear_alarms(const prot_in_t *in, prot_state_t *s)
     fault_ack(in->faults);
 }
 /* C registry units at this boundary are normalized zero-based channels.
- * A raw CM pin must be mapped by acquisition before publication (shared header
- * currently allows both encodings; raw pin identity belongs in the event). */
-static fault_code_t channel_fault(const fault_registry_t *reg, uint8_t ch)
+ * Acquisition maps a raw CM pin to its channel before publication; the raw pin
+ * identity belongs in the event value field. */
+static fault_code_t channel_fault(const fault_registry_t *reg, uint8_t ch, bool latched)
 {
     uint8_t code;
     for(code=FC_C01_OPEN;code<=FC_C09_RTD;++code) {
         if(code==FC_C04_RATE_RESERVED || code==FC_C05_STUCK_RESERVED) continue;
-        if(fault_at(reg,(fault_code_t)code,ch)) return (fault_code_t)code;
+        if(latched?fault_latched_at(reg,(fault_code_t)code,ch):fault_at(reg,(fault_code_t)code,ch))
+            return (fault_code_t)code;
     }
     return FC_NONE;
 }
@@ -128,10 +140,10 @@ static void ack(const prot_in_t *in, prot_state_t *s, prot_out_t *out, bool cfg_
     }
     for(ch=0;ch<in->settings->channel_count;++ch)
         if(!chan_trip_clear(&in->scan->meas[ch],&in->settings->ch[ch],in->scan->scan_no) ||
-           (in->settings->ch[ch].type!=CH_TYPE_OFF && in->settings->ch[ch].mode==CH_MODE_TRIP && channel_fault(in->faults,ch)!=FC_NONE)) {
+           (in->settings->ch[ch].type!=CH_TYPE_OFF && in->settings->ch[ch].mode==CH_MODE_TRIP && channel_fault(in->faults,ch,false)!=FC_NONE)) {
             out->ack_reason=ACK_R4_CHANNEL; out->refusal_channel=(uint8_t)(ch+1u);
             cond_t cond=chan_cond(&in->scan->meas[ch],&in->settings->ch[ch],in->scan->scan_no);
-            fault_code_t code=channel_fault(in->faults,ch);
+            fault_code_t code=channel_fault(in->faults,ch,false);
             if(code!=FC_NONE || chan_action(cond,in->settings->ch[ch].mode)==ACT_TRIP)
                 first(s,code!=FC_NONE?code:chan_cause(&in->scan->meas[ch],cond),
                       (uint8_t)(ch+1u),0,in->scan->meas[ch].temp_dC,in->settings->ch[ch].trip_dC,in->uptime_s);
@@ -140,13 +152,14 @@ static void ack(const prot_in_t *in, prot_state_t *s, prot_out_t *out, bool cfg_
     if(!cfg_ok || in->writing) { out->ack_reason=ACK_R5_SETTINGS; return; }
     if(!in->readback_off_ok) { out->ack_reason=ACK_R6_RELAY; return; }
     mode_set(s,RUN); memset(&s->first,0,sizeof(s->first));
+    s->accepted_settings_seq=in->settings->sequence; s->replaced_sequence_valid=false;
     memset(s->trip_seen,0,sizeof(s->trip_seen)); clear_alarms(in,s);
     /* Await a new validated scan before starting the pump; expiry still trips. */
     s->window_started_ms=in->now_ms; s->window_valid=false; out->event_mask|=EVENT_BIT(EV_ACK);
 }
 void prot_step(const prot_in_t *in, prot_state_t *s, prot_out_t *out)
 {
-    bool cfg_ok, cal_ok; uint8_t ch, unit=0; fault_code_t cause; prot_mode_t before;
+    bool cfg_ok, cal_ok, was_running; uint8_t ch, unit=0; fault_code_t cause; prot_mode_t before;
     if(out==NULL) return;
     memset(out,0,sizeof(*out)); out->alarm_active=true;
     if(in==NULL || s==NULL) return;
@@ -156,6 +169,7 @@ void prot_step(const prot_in_t *in, prot_state_t *s, prot_out_t *out)
         mode_set(s,TRIPPED); first(s,FC_G04_INTERNAL,0,0,0,0,in->uptime_s); s->ack_released=false;
     }
     cfg_ok=in->settings_valid && set_validate(in->settings)==RES_OK;
+    if(cfg_ok) remember_channels(s,in->settings);
     cal_ok=in->calibration_valid;
     if(s->mode!=SERVICE && (!cfg_ok || !cal_ok)) {
         (void)fault_raise(in->faults,cfg_ok?FC_G10_CALIBRATION:FC_G01_SETTINGS_INVALID,0);
@@ -167,6 +181,13 @@ void prot_step(const prot_in_t *in, prot_state_t *s, prot_out_t *out)
     if(in->commit_done && cfg_ok && cal_ok) {
         fault_clear(in->faults,FC_G01_SETTINGS_INVALID,0); fault_clear(in->faults,FC_G10_CALIBRATION,0);
         if(s->mode==CONFIG_LOCK || (in->protection_change && s->mode!=SERVICE)) mode_set(s,START_LATCHED);
+        if(s->mode==RUN && in->settings->sequence!=s->accepted_settings_seq) {
+            s->replaced_settings_seq=s->accepted_settings_seq;
+            /* Each save increments by one (05 §5). A gap means an unseen save;
+             * the last accepted generation is no longer the one just replaced. */
+            s->replaced_sequence_valid=(uint32_t)(in->settings->sequence-s->accepted_settings_seq)==1u;
+            s->accepted_settings_seq=in->settings->sequence;
+        }
         s->ack_released=false;
         out->event_mask|=EVENT_BIT(in->protection_change?EV_SETTINGS_CHANGED:EV_NAME_CHANGED);
     }
@@ -186,7 +207,7 @@ void prot_step(const prot_in_t *in, prot_state_t *s, prot_out_t *out)
     }
     if(cfg_ok && in->settings!=NULL) for(ch=0;ch<in->settings->channel_count;++ch) {
         const chan_cfg_t *c=&in->settings->ch[ch];
-        fault_code_t code=channel_fault(in->faults,ch);
+        fault_code_t code=channel_fault(in->faults,ch,false);
         if(c->type==CH_TYPE_OFF) continue;
         if(code!=FC_NONE) {
             s->alarm_latch[ch]=1;
@@ -196,18 +217,25 @@ void prot_step(const prot_in_t *in, prot_state_t *s, prot_out_t *out)
             s->alarm_latch[ch]=1;
     }
     if(in->ack_key_released && !in->ack) s->ack_released=true;
+    was_running=s->mode==RUN;
     ack(in,s,out,cfg_ok && cal_ok);
-    /* RUN survived a settings sequence change only if protection fields did not
-     * change. A names-only save therefore need not discard a straddling scan. */
-    if(s->mode==RUN && in->scan_complete && fresh_scan(in,false) &&
+    /* Only an observed names-only commit permits one replaced scan generation.
+     * ACK's completion belongs to the preceding state, never to its new window. */
+    if(was_running && s->mode==RUN && in->scan_complete && fresh_scan(in,false) &&
+       in->settings->sequence==s->accepted_settings_seq &&
+       (in->scan->settings_seq==s->accepted_settings_seq ||
+        (s->replaced_sequence_valid && in->scan->settings_seq==s->replaced_settings_seq)) &&
        !fault_trip_active(in->faults) && in->flow_ok) {
         s->window_valid=true; s->window_started_ms=in->now_ms; out->window_refresh=true;
+        if(in->scan->settings_seq==s->accepted_settings_seq) s->replaced_sequence_valid=false;
     }
     out->run_permission=prot_integrity(s) && s->mode==RUN && cfg_ok && cal_ok &&
         !fault_trip_active(in->faults) && in->flow_ok;
     if(out->run_permission && s->window_valid && (uint32_t)(in->now_ms-s->window_started_ms)<WINDOW_MS)
         out->window_remaining_ms=(uint16_t)(WINDOW_MS-(uint32_t)(in->now_ms-s->window_started_ms));
-    out->alarm_active=s->mode!=RUN || !cfg_ok || !cal_ok || !in->flow_ok || fault_alarm_latched(in->faults);
-    for(ch=0;ch<MAX_CHANNELS;++ch) if(s->alarm_latch[ch]) out->alarm_active=true;
+    out->alarm_active=s->mode!=RUN || !cfg_ok || !cal_ok || !in->flow_ok || fault_global_alarm_latched(in->faults);
+    if(cfg_ok) for(ch=0;ch<in->settings->channel_count;++ch)
+        if(in->settings->ch[ch].type!=CH_TYPE_OFF &&
+           (s->alarm_latch[ch] || channel_fault(in->faults,ch,true)!=FC_NONE)) out->alarm_active=true;
     if(before!=TRIPPED && s->mode==TRIPPED) out->event_mask|=EVENT_BIT(EV_TRIP);
 }

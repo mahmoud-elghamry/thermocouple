@@ -68,6 +68,21 @@ bool fault_alarm_latched(const fault_registry_t *r)
     for(c=1;c<FAULT_CODES;++c) for(i=0;i<FAULT_BYTES;++i) if(r->latch[c][i]) return true;
     return false;
 }
+bool fault_global_alarm_latched(const fault_registry_t *r)
+{
+    uint8_t c, i;
+    if(r==NULL || r->internal) return true;
+    for(c=1;c<FC_C01_OPEN;++c)
+        for(i=0;i<FAULT_BYTES;++i) if(r->latch[c][i]) return true;
+    return false;
+}
+bool fault_latched_at(const fault_registry_t *r, fault_code_t c, uint8_t u)
+{
+    if(c==FC_NONE) return false;
+    if(r==NULL || !known(c) || u>=FAULT_UNITS) return true;
+    if(c==FC_G04_INTERNAL && r->internal) return true;
+    return (r->latch[c][u/8u]&(1u<<(u%8u)))!=0;
+}
 void fault_ack(fault_registry_t *r)
 {
     uint8_t c, i;
