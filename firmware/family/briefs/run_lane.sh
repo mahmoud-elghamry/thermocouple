@@ -7,7 +7,8 @@ case "$1" in
   B) BRIEF=$B/lane-B-core.md; REP=$B/lane-B-report.md; LOG=$B/lane-B-run.log ;;
   C) BRIEF=$B/lane-C-acceptance.md; REP=$B/lane-C-report.md; LOG=$B/lane-C-run.log ;;
   B2) BRIEF=$B/lane-B2-fixes.md; REP=$B/lane-B2-report.md; LOG=$B/lane-B2-run.log ;;
-  *) echo "usage: run_lane.sh A|B|C|B2"; exit 2 ;;
+  B3) BRIEF=$B/lane-B3-fix.md; REP=$B/lane-B3-report.md; LOG=$B/lane-B3-run.log ;;
+  *) echo "usage: run_lane.sh A|B|C|B2|B3"; exit 2 ;;
 esac
 timeout 14400 codex exec -m gpt-6.1-sol -c 'model_reasoning_effort="high"' -c 'windows.sandbox="unelevated"' \
   -s workspace-write --skip-git-repo-check -C "$W" -o "$REP" - < "$BRIEF" > "$LOG" 2>&1
