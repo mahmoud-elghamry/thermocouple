@@ -207,6 +207,8 @@ latches still need ACK.
 | G01 | settings invalid / blank | settings (`05`) | T, `CONFIG_LOCK` | `LOCKED: SETUP` |
 | G02 | save failed: protection settings or calibration | store (`05`) | T until a retry succeeds | `SAVE FAILED` |
 | G13 | save failed: names, comms or PIN only | store (`05`) | A until a retry succeeds | `SAVE FAILED (INFO)` |
+| G14 | island power lost (all banks fail together) | scan (`03`) | T; full re-init | `ISLAND POWER LOST` |
+| G15 | fuse bytes differ from `02` | boot self-read (`02` 6) | T, never clears (reprogram) | `FUSE MISMATCH` |
 | G03 | flash CRC at boot | boot (`02`) | halt with outputs safe | (LCD may be blank) |
 | G04 | protection state/complement corrupt, stack canary | protection, loop (`01`) | T | `INTERNAL FAULT` |
 | G05 | complete-scan deadline missed | scan (`03`) | T | `SCAN TIMEOUT` |
@@ -214,7 +216,7 @@ latches still need ACK.
 | G07 | ALARM read-back mismatch | outputs (6.2) | T + A | `ALARM RELAY FAULT` |
 | G08 | engine reference lost (REFOK high) | scan (`03`) | T | `ENGINE REF LOST` |
 | G09 | engine reference self-test (REFTEST) failed | scan (`03`) | T | `ENGINE REF TEST` |
-| G10 | calibration record invalid | settings (`05`) | T, `CONFIG_LOCK` | `LOCKED: CALIBRATE` |
+| G10 | calibration record invalid or a fitted channel has no burnout baseline | settings (`05`), scan (`03`) | T, `CONFIG_LOCK` | `LOCKED: CALIBRATE` |
 | G11 | reset by watchdog | boot | I (start latched anyway) | `RESET: WATCHDOG` |
 | G12 | reset by brown-out | boot | I | `RESET: LOW SUPPLY` |
 | B01 | ADC no response / wrong ID | ad7124 (`03`) | TB | `BANK x ADC FAIL` |
@@ -225,16 +227,21 @@ latches still need ACK.
 | B06 | reference cross-check out of window | scan | TB | `BANK x REF` |
 | B07 | AVDD out of window | scan | TB | `BANK x AVDD` |
 | B08 | zero check out of window | scan | TB | `BANK x ZERO` |
-| B09 | gain-ratio check out of window | scan | TB | `BANK x GAIN` |
+| B09 | non-zero or gain-ratio check out of window | scan | TB | `BANK x GAIN` |
 | B10 | both CJ sensors invalid | tmp126 (`03`) | TB | `BANK x CJ FAIL` |
 | B11 | CJ sensors disagree | scan | TB | `BANK x CJ DIFF` |
 | B12 | one CJ sensor invalid | tmp126 | TB in v1 (A only after bench qualification, `0043` 3.4) | `BANK x CJ DEGRADED` |
-| B13 | 40-ch decoder signature mismatch | iso_spi (`03`) | T | `ADDRESS FAULT` |
+| B13 | device signature mismatch (all boards; decoder aliasing on the 40-ch) | scan (`03` 9) | T | `ADDRESS FAULT` |
 | B14 | 40-ch RTD bank failure | rtd (`03`) | T | `RTD BANK FAIL` |
 | C01 | open thermocouple (burnout) | scan | TC/AC | `CH nn OPEN` |
 | C02 | out of range for its type / probe limit | tc_math | TC/AC | `CH nn RANGE` |
 | C03 | common-mode check failed | scan | TC/AC | `CH nn COMMON MODE` |
 | C04 | rate advisory | channel_eval | I (advisory) | `CH nn RATE?` |
 | C05 | stuck advisory | channel_eval | I (advisory) | `CH nn STUCK?` |
+| C06 | burnout lower window (shorted input) | scan (`03` 4.1) | TC/AC | `CH nn SHORTED` |
+| C07 | input over/under-voltage flag | ad7124 | TC/AC | `CH nn OVERVOLT` |
+| C08 | implausibly cold (< -50 C) | tc_math | TC/AC | `CH nn TOO COLD` |
+| C09 | PT100 fault (40-ch, 41-43) | rtd (`03` 8) | TC/AC | `CH nn RTD FAULT` |
+| B15 | unexpected ADC reset (POR flag) | ad7124 (`03` 2.4) | TB; re-init | `BANK x ADC RESET` |
 
 Codes never change meaning once released; new faults get new numbers.

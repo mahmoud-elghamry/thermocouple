@@ -65,7 +65,7 @@ and waits for SET (ESC skips and prints `SKIP`). The step never starts on a key 
 
 ```
 P01 BOARD 24 v1.0.0 a3f9c1 OK
-P02 FUSES FF-D1-FC OK
+P02 FUSES F7-C1-FC OK
 P03 RESET POWERON OK
 P04 FLASH_CRC 7A21 OK
 P05 EEPROM_A INVALID OK
@@ -82,5 +82,5 @@ P15 SCAN 702ms OK
 END 61 OK 23 FAIL
 ```
 
-(The fuse bytes and ID value above are placeholders; the real ones are fixed in `02` and `03`.) Claude reads this
+(Fuse bytes per `02` 6; the ADC ID value is OPEN-Q5 in `03` until confirmed on the first boards.) Claude reads this
 on the PC through the USB-RS485 adapter and answers with the next action.

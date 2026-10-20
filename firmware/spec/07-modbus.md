@@ -64,7 +64,7 @@ Values not available yet (before the first scan) read as 0x8000 with the validit
 | 52 | last refused ACK reason | R1..R6 as 1..6, 0 none |
 | 53-63 | reserved | 0 |
 
-Fault code index: Gnn -> nn (1..20), B01..B14 -> 21..34, C01..C05 -> 41..45 (stable, never reused). One bit per
+Fault code index: Gnn -> nn (1..20), B01..B14 -> 21..34, C01..C09 -> 41..49 (stable, never reused). One bit per
 code; which bank raised a B-code is in the event log and on the LCD.
 
 ### 4.2 Channel block, base 100 + 10*(ch-1), ch = 1..43
