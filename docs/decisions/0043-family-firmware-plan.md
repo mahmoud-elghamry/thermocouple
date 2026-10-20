@@ -1,151 +1,210 @@
 # 0043 - Family firmware plan (8/24/40-ch): features, safety logic, menus, phases
 
-* Status: **proposed** (plan only, no code; owner 2026-10-20: "plan first, Astra reviews, then pick the implementer")
-* Date: 2026-10-20
-* Builds on: `0029` (per-channel setpoints, manual ACK), `0031` (architecture, Modbus never in the trip path),
-  `0032` (ADC diagnostics, charge pump), `0034` (open sensor trips, alarm only, buttons), `0036`, `0037` (one
-  firmware), `0038` (K or J per channel), `0039` (8/40-ch, decoder, PT100), `0041` (TMP126 SIO_WR_N, UP+DOWN = ESC),
-  `0042` (LCD and buttons on the door); ISSUES I-100, I-104, I-118, I-119, I-098, I-086, I-094, I-013, I-120
-* Reference products: Murphy TDXM-DC (per-channel SP1-SP3, TC type per channel incl. "ignore", offset, group
-  deviation from average, last-trip history, Modbus RTU fn 3/6), Dynalco SC-2124M (4x20 LCD, channel names,
-  password setup, open-TC detection, alarm/shutdown classes). Sources in the review folder; the official TDXM-DC
-  manual (00-02-0511) could not be fetched, so TDXM details are from an older manual.
+* Status: **proposed, rev 2** (plan only, no code). Rev 1 2026-10-20; rev 2 the same day after Astra review 4
+  (`production/review-20261015-a4/ASTRA-4-firmware-plan-report.md`, local): 11 blockers and 10 "should" folded
+  in. Owner decisions in section 8 still open.
+* Builds on: `0029` (per-channel setpoints, manual ACK), `0030` D8 (config lock), `0031` (architecture; Modbus never
+  in the trip path; D5 alarm relay), `0032` (ADC diagnostics, engine reference, charge pump), `0034` (open sensor
+  trips, alarm only, buttons), `0036`, `0037` (one firmware), `0038` (K or J per channel), `0039` (8/40-ch,
+  decoder, PT100), `0041` (TMP126 SIO_WR_N, UP+DOWN = ESC), `0042` (LCD and buttons on the door); ISSUES I-100,
+  I-104, I-118, I-119, I-098, I-086, I-094, I-013, I-114, I-120
+* Reference products: Murphy TDXM-DC (per-channel setpoints, TC type per channel incl. "ignore", last-trip
+  history, Modbus RTU), Dynalco SC-2124M (4x20 LCD, channel names, password setup, open-TC detection).
 
 ## 1. Goal and scope
 
-One firmware image per board type (build-time `BOARD=8|24|40`), ATmega1284P at 8 MHz, that does what an engine
-technician expects from a TDXM-class scanner, plus the safety rules this project already fixed. The first boards'
-bench test is **a service mode of this firmware**, not a separate program, so the code tested on the bench is the
-code that ships.
+One firmware image per board type (build-time `BOARD=8|24|40`), ATmega1284P at 8 MHz: what an engine technician
+expects from a TDXM-class scanner, under the safety rules already fixed in this repo. The bench test of the first
+boards is **a service mode of this firmware**, so the code tested on the bench is the code that ships.
 
-Out of scope for v1: remote writes over Modbus, analog outputs, real-time clock, Fahrenheit, languages other than
-English on the LCD (HD44780 has no Arabic glyphs).
+Out of scope for v1: Modbus writes, analog outputs, RTC, Fahrenheit, non-English LCD text, deviation alarms and
+operator offsets (section 8), more than one PIN level.
 
-## 2. What the technician sees (operator features)
+## 2. Channels and settings
 
-### 2.1 Per-channel settings (saved, CRC-checked, A/B copies)
+### 2.1 Per channel (saved; see 5 for storage rules)
 
-| Setting | Values | Default (blank board) | Who may change |
+| Setting | Values | Blank-board default | Notes |
 |---|---|---|---|
-| Fitted / type | OFF (not fitted), K, J (PT100 on the 40-ch RTD inputs) | none - board is config-locked until set (`0030` D8) | Engineer |
-| Mode | TRIP (alarm + shutdown) / ALARM ONLY | TRIP | Engineer |
-| Name | 6 chars, e.g. `CYL1A`, `EXH-L` | `CH01`.. | Technician |
-| Alarm setpoint (high warning) | 0..probe max, 1 C steps | none - must be entered | Technician |
-| Trip setpoint (high shutdown) | > alarm SP, <= probe max | none - must be entered | Technician |
-| Reset band (hysteresis) | 2..50 C | 5 C | Technician |
-| Trip delay | 0..5 s (in whole scans) | 1 scan | Engineer |
-| Offset | -5..+5 C | 0 | Engineer (shown on the channel screen when not 0) |
-| Deviation group | none / A / B | none | Engineer |
+| Fitted / type | OFF, K, J; PT100 on the 40-ch RTD inputs | none -> config lock (`0030` D8) | type change: RUN inhibited, setpoints re-confirmed, old samples discarded, ACK (`0038` D2) |
+| Mode | TRIP / ALARM ONLY | TRIP | truth table in 3.2 |
+| Name | 6 chars, shown with the fixed channel number (`01 CYL1A`) | blank | |
+| Alarm SP | 0..probe limit, 1 C | none -> config lock | |
+| Trip SP | alarm SP < trip SP <= probe limit | none -> config lock | |
+| Reset band | 2..50 C | 5 C | used for trip reset and alarm clear |
+| Probe limit | per channel, entered at commissioning | type's table max | bounds both SPs (`0038`) |
 
-No temperature is ever invented: a fitted channel without both setpoints keeps the config lock (I-100).
+No temperature is ever invented (I-100). No trip delay: every validated result is compared at once (GOAL 1 s,
+I-013).
 
-### 2.2 Global settings
+### 2.2 Global
 
-Deviation alarm per group (alarm only, never trip in v1): a channel more than `dev` C from its group's average of
-valid channels, enabled only above a group average of `dev_min` C (so a cold engine does not alarm). Modbus address
-and baud (9600/19200). Technician and engineer PINs. Display contrast is hardware (pot), not firmware.
+Modbus address and baud (9600/19200); one setup PIN; production calibration record (REF ratio per bank, `0032`).
 
-### 2.3 Screens (20x4)
+## 3. Protection logic
 
-* **Home** (default, returns here after 60 s without a key): line 1 status
-  `RUN OK` / `ALARM 2` / `TRIP CYL3B` (first-out) / `LOCKED: SETUP`; lines 2-4 six channels per page
-  `01 512K 02 498K` with a marker per channel (`!` alarm, `#` trip, `?` fault, `-` not fitted). UP/DOWN pages.
-* **Hottest**: the 3 highest valid channels with names.
-* **Channel detail** (SET on home, then pick): name, type, mode, value, alarm/trip SP, min/max since reset, CJ.
-* **Events**: last 32 events (trip, alarm, fault, ACK, power-up, setting change) with an uptime stamp and the
-  power-cycle count (no RTC). First-out trip stays at the top until ACK.
-* **Menu** (hold SET 3 s): Setpoints / Channel setup / Groups / Comms / Service / PINs / Exit.
+### 3.1 Validated scan (what may refresh RUN)
 
-### 2.4 Keys
+A scan of a bank is **validated** only if, for that scan: every ADC read had a good SPI CRC; the ADC ID/revision,
+configuration registers and error register read back as written; the MCLK/conversion counter advanced; each
+channel result carries a fresh sequence tag from this scan; the diagnostic slots of 4.2 passed; both TMP126 of the
+bank were read with good CRC (or the degraded rule of 3.4 applies). A failed read is retried at most twice in the
+same scan; then the bank is FAULT. The **whole board scan** is validated when every bank is. Over-temperature
+evaluation uses hardware-valid results only and is never suppressed by advisory checks (I-098).
 
-UP, DOWN scroll and change values; SET enters / confirms; ESC back (24-ch: UP+DOWN together, `0041` D3; 8/40-ch:
-read the ESC pin if fitted and also accept UP+DOWN, so all boards behave the same); ACK acknowledges.
-Edits are made in a copy and need a confirm screen showing old -> new before they are saved and read back.
+### 3.2 Channel truth table
 
-### 2.5 Access levels
+| Condition | TRIP channel | ALARM ONLY channel | OFF channel |
+|---|---|---|---|
+| value >= trip SP | trip + alarm | alarm | ignored |
+| alarm SP <= value < trip SP | alarm | alarm | ignored |
+| sensor fault (open TC, out of range, burnout fail) | trip + alarm | alarm | ignored |
+| needed for ACK | valid and <= trip SP - band | valid or not: does not block ACK | no |
 
-* Operator, no PIN: view, ACK.
-* Technician PIN: names, alarm/trip setpoints, reset band.
-* Engineer PIN: type/fitted, mode, delay, offset, groups, comms, service mode, PIN change.
-* PIN recovery: hold ACK+SET at power-up -> shows a code; the engineer gets the reset from the documented
-  procedure. Factory default PINs are printed in the installation drawing (I-085) and must be changed at
-  commissioning.
+Global instrument faults (3.3) trip regardless of channel modes.
 
-## 3. Protection logic (the part that must be right)
+### 3.3 Global faults -> trip + alarm
 
-Per channel, each validated scan gives one of: OK, ALARM, TRIP, FAULT (open TC, out of range, ADC/CJ diagnostic
-failure for its bank).
+ADC missing / wrong ID / configuration readback mismatch / repeated CRC; REF cross-check or AVDD out of window;
+engine reference lost (REFOK, PA2, active-low) or REFTEST self-test failed (4.3); both CJ of a bank invalid or
+disagreeing (3.4); 40-ch decoder signature mismatch (4.4); RTD bank failure on the 40-ch (4.5); complete-scan
+deadline missed; settings invalid; RUN or ALARM read-back mismatch.
 
-* **Trip**: value >= trip SP for `delay` consecutive validated scans, or FAULT on a TRIP-mode channel.
-  Any trip -> RUN contact opens within one scan (<= 1 s budget, I-013) and stays open (latched).
-* **Alarm**: value >= alarm SP, deviation alarm, FAULT on an ALARM-ONLY channel, or any trip. Alarm relay as in
-  `0031` D5; alarm latches until ACK.
-* **ACK** clears a latched trip only when every fitted channel is valid and at or below (trip SP - reset band),
-  no global fault is active and the settings are valid. ACK with a condition still present is refused, and the
-  LCD says why.
-* **Global faults -> trip** (all channels): ADC missing / wrong ID / CRC errors repeated / REF cross-check fail /
-  AVDD out of window; both CJ sensors of a bank failed; scan deadline missed; settings invalid; RUN read-back
-  mismatch. One CJ of a bank failed -> use the other for that bank and raise ALARM (not trip).
-* **Power-up / reset / brown-out / watchdog**: RUN off, latched; ACK needed (`0029`). No automatic restart.
-* **RUN output**: PB3 charge-pump PWM >= 1 kHz is (re)enabled only for a window that each completed, validated
-  scan refreshes; if the window expires the PWM stops and the contact drops (I-118). Watchdog <= 0.5 s, fed only
-  from scan progress, never from an ISR (I-119). WDTON, BOD, JTAG off, EESAVE (I-104).
-* **Settings changes while running**: proposed (owner decides, see 7): alarm SP, names and LOWERING a trip SP may
-  be edited while running; RAISING a trip SP, type, mode, fitted, delay and offset need RUN inhibited (engine
-  stopped) and an ACK afterwards (`0038` D2 requires RUN inhibited for type changes).
-* **Modbus never grants RUN, clears a trip or writes settings in v1** (`0031` D7, I-086, I-094).
+### 3.4 Cold junction
 
-## 4. Measurement (fixed by earlier decisions, restated for the implementer)
+Both TMP126 of a bank read every scan (ID 0x2126, CRC, re-read once on CRC fail, value <= 2 scans old). The two
+must agree within a window set from the bench gradient test (I-114). One valid and one invalid: the bank keeps
+running on the valid one, status DEGRADED CJ on the LCD and ALARM; the error of this fallback is measured on the
+bench before it is accepted (until then the stricter rule is: trip). Both valid but disagreeing: trip.
 
-* Banks of one AD7124-8 + two TMP126; 8-ch = 1 bank, 24-ch = 3 (direct CS), 40-ch = 5 + RTD ADC (74HC154).
-* AD7124: SPI mode 3 <= 2 MHz, CRC on every read, REF_EN = 1, no REFIN2, mid power, 25 SPS. Banks run in parallel.
-  Scan schedule per bank: 8 TC + burnout(rotating) + REF + zero + non-zero + common-mode(rotating); slot count
-  (13-15) to be fixed by the implementer from CALCULATIONS 9.7 and recorded; target cycle <= 0.75 s.
-* TMP126 bit-banged with SIO_WR_N timing of `0041`; ID 0x2126; CRC on; re-read on CRC fail; 0x0000 = 0 C.
-  CJ per channel interpolated between the bank's two sensors by pin position (I-114).
-* K/J conversion in voltage domain with NIST tables (5 C steps, ~2.5 KB), CJ converted with the same type.
-* Open-TC: burnout current rotating one channel per scan; burnout readings never used as temperature.
-* Plausibility (I-098): rate/stuck checks raise ALARM only until bench-validated thresholds exist.
+### 3.5 Latch, ACK and startup
 
-## 5. Service mode (= the bench test of the first boards)
+* Any trip opens RUN within one scan and latches. Power-up, reset, brown-out and watchdog reset all start latched:
+  `START: ACK REQUIRED` (`0029`). No automatic restart.
+* ACK is accepted only: from a fresh press (the key must be seen released after boot, after the trip and after
+  any service/recovery gesture); with the latest validated scan younger than one scan; every TRIP-mode fitted
+  channel valid and <= trip SP - band; no global fault; settings valid. Otherwise the LCD says why.
+* While latched, evaluation continues: new trips, alarms and faults are still detected, displayed and logged; the
+  first-out stays at the top.
+* **Alarm relay** (`0031` D5, ALARM_DRIVE PC6, read-back PC7): polarity as on the board (energised = no alarm,
+  so a dead board alarms - to confirm against the schematic in F0). Latches until ACK after the condition has
+  cleared by the reset band; an active warning stays on the LCD after ACK. Read-back mismatch -> global fault.
 
-Entered by holding SET at power-up; RUN stays inhibited for the whole session. Prints a plain-text report on
-RS-485 (9600 8N1, same pins as Modbus, Modbus off in this mode) and shows it on the LCD:
-board type, fuse/bootloader check, each ADC ID/revision/error reg/AVDD/REF ratio, each TMP126 ID and value,
-each channel raw uV + temperature + burnout result, button states (press each key), relay drive and read-back
-test (RUN and ALARM toggled once with readback), EEPROM A/B write-read test, scan time measured. Every line ends
-`OK` or `FAIL <reason>`. Claude reads this report directly on the PC through the USB-RS485 adapter.
+### 3.6 RUN output and watchdog
 
-## 6. Software structure and phases
+PB3 charge-pump PWM >= 1 kHz runs only while (a) the protection latch permits RUN and (b) a deadline window,
+refreshed by each validated board scan, has not expired (I-118). Watchdog <= 0.5 s, enabled first thing at
+start-up (WDTON set, so it cannot be disabled - no long delays before the main loop), fed only when acquisition
+has advanced, never from an ISR (I-119); a separate complete-scan deadline catches a loop that advances but never
+completes. Fuses: WDTON, BOD, JTAG off (+ MCUCR.JTD), EESAVE (I-104).
 
-Reuse from `firmware/` (8-ch REV A2): layering MCAL/HAL/APP, source lists, host-mock tests, protection latch/ACK
-and CRC-settings concepts, LCD and button HAL. Replace: board map, MAX31856 driver, scalar setpoint, static RUN
-level, 2 s watchdog, ATmega32 fuses/programming.
+### 3.7 Settings while running (owner decision 8.1, proposed)
 
-Modules: `board_cfg` (per-board pins, CS strategy direct/decoder), `iso_spi` (CS, timing, SIO_WR_N),
-`ad7124`, `tmp126`, `scan` (schedule, deadline), `tc_math` (K/J/PT100), `channel_eval`, `protection`,
-`outputs` (charge pump window, alarm relay, read-back), `settings` (A/B, explicit serialisation, versioned),
-`events` (EEPROM ring), `ui` (screens, menus, PIN), `modbus` (read-only map), `service`.
+All protection settings (type, mode, setpoints, band, probe limit) only with RUN inhibited and a new ACK after
+saving; names may be edited live. This is a new, simpler policy than `0038` D2 (which covers type changes only).
+"RUN inhibited" means the contact is open; it does not prove the engine has stopped.
+
+## 4. Measurement
+
+### 4.1 Banks
+
+8-ch = 1 bank, 24-ch = 3 (direct CS), 40-ch = 5 + RTD ADC (74HC154). AD7124: SPI mode 3 <= 2 MHz, CRC on, REF_EN = 1,
+no REFIN2, mid power, 25 SPS, one CS low at a time, >= 1 us between CS edges, no continuous read. Banks in
+parallel. TMP126 bit-banged with the SIO_WR_N timing of `0041`; SIO_WR_N never low while an AD7124 CS is low.
+
+### 4.2 Slot schedule per bank (15 slots, CALCULATIONS 9.7, ~0.70 s cycle)
+
+8 TC channels; REF3030 cross-check at gain 1 (calibrated ratio, window +-1.6 % provisional); zero (shorted input);
+non-zero / PGA gain-ratio check; AVDD/6; rotating common-mode check (one channel per scan); rotating burnout (one
+channel per scan, upper and lower window plus a per-channel baseline learned at commissioning; burnout readings
+never used as temperature); one spare slot for the gain-ratio second reading. Open-TC coverage is therefore about
+every 8 scans (~6 s), not 1 s; a sensor that fails open between checks still reads implausibly (rail) and trips.
+K/J in voltage domain with NIST tables, CJ converted with the same type; CJ per channel interpolated between the
+bank's two sensors by pin position (I-114).
+
+### 4.3 Engine reference
+
+REFOK (PA2, active-low) checked every scan; REFTEST (PA3) self-test at start-up and every N minutes, with the
+sequence of `0032` rev 4. Cut FEED, cut SENSE and a failed self-test each inhibit RUN (bench test in I-120).
+
+### 4.4 40-ch decoder
+
+Sequence: CS_EN high, >= 1 us, set address, >= 1 us, CS_EN low, >= 1 us, clock (`0039` D3). At start-up each ADC
+and TMP126 gets a unique value written to a spare register; every scan that value is read back, so an aliased
+address is caught even between identical parts. Island power loss (either isolator side) -> full re-init and RUN
+inhibited until a fresh, fully validated scan.
+
+### 4.5 40-ch PT100 bank
+
+3 x 3-wire PT100 + one 150R 0.1 % check resistor (slot 4) on the RTD ADC; IOUT 2 x 250 uA swapped every reading;
+Rref 2.49k, gain 16; ~2.3 ms reference settling and filter restart after every current change, no conversion
+spanning a change; reference and gain checks; a currents-off reading detects sheath faults (`0039` P4/P5,
+CALCULATIONS 10.11). Check-resistor or reference failure invalidates the whole RTD bank (global fault).
+
+### 4.6 Advisory checks
+
+Rate and stuck checks (I-098) are display-only advisories until bench thresholds exist; they never mark a sample
+invalid and never suppress the over-temperature comparison.
+
+## 5. Settings and event storage
+
+A/B records with version, board type, channel count, explicit serialisation (no C structs), CRC16, and semantic
+checks (type, mode, ranges, alarm < trip <= probe limit, board identity). Save = write the older copy, read back,
+then switch; a failed save keeps the old copy active, latches a fault until a retry succeeds and ACK. Blank or
+invalid -> config lock, RUN never granted, ACK cannot clear it. EEPROM budget allocated in CALCULATIONS (to add:
+names, probe limits, calibration, event ring) and channel masks as byte arrays (40-ch > 32 channels).
+Events: transitions only (trip with channel, cause, value, threshold; alarm; fault; ACK; power-up; setting change),
+32 entries, stamped with uptime and a power-cycle counter; trip history kept after ACK.
+
+## 6. Screens and keys (20x4)
+
+* Home: line 1 status (`RUN OK`, `ALARM 2`, `TRIP 03 CYL3B`, `START: ACK REQUIRED`, `LOCKED: SETUP`,
+  `DEGRADED CJ`, `SERVICE`); lines 2-4 six channels per page with markers (`!` alarm, `#` trip, `?` fault,
+  `-` off, `a` alarm-only). UP/DOWN pages; optional automatic page rotation with hold.
+* Channel detail: number + name, type, mode, value, SPs, min/max since ACK, CJ.
+* Events list; first-out with cause, value and threshold at the top until ACK.
+* Setup (hold SET 3 s + PIN): Channels / Comms / Service / PIN / Exit. Edits on a copy, confirm screen old -> new,
+  save and read back. A new trip always takes over the screen, even inside a menu.
+* Keys: UP, DOWN, SET (short = enter/confirm, long = setup), ESC (24-ch: UP+DOWN chord, `0041` D3; 8/40-ch: ESC
+  pin and the chord), ACK. Chord wins over single keys; release-before-press rule of 3.5. HAL to be adapted for
+  20x4 addressing and ESC (the 8-ch HAL is 16x2 with NEXT).
+* One setup PIN; recovery: hold ACK+SET at power-up -> RUN inhibited, PIN reset to the default, settings kept,
+  event logged.
+
+## 7. Service mode, structure and phases
+
+**Service mode** (hold SET at power-up, separate from setup): RUN never closes on entry. Passive part, automatic:
+board type, fuse readback, each ADC ID/registers/AVDD/REF ratio, each TMP126, each channel raw uV + temperature +
+burnout, scan time, keys (press each), REFOK/REFTEST. Active part, each step confirmed on the keypad and only with
+the contacts disconnected (shown on the LCD): RUN and ALARM drive + read-back; EEPROM test on a scratch area that
+never touches commissioned settings. Plain-text report on RS-485 (9600 8N1, Modbus off in this mode) and on the
+LCD, each line `OK` or `FAIL <reason>`; Claude reads it on the PC through the USB-RS485 adapter.
+
+Reuse from `firmware/` (8-ch REV A2): MCAL/HAL/APP layering, source lists, host-mock tests, protection
+latch/ACK concepts, CRC settings pattern. Replace: board map, MAX31856 driver, scalar setpoint, static RUN level,
+2 s watchdog and the start-up that disables it, ATmega32 fuses/programming, 16x2 LCD, button set.
+
+Modules: `board_cfg`, `iso_spi`, `ad7124`, `tmp126`, `rtd` (40-ch), `scan`, `tc_math`, `channel_eval`,
+`protection`, `outputs`, `settings`, `events`, `ui`, `modbus`, `service`.
 
 | Phase | Content | Gate |
 |---|---|---|
-| F0 | board_cfg, iso_spi, ad7124, tmp126, scan, tc_math, service mode | host tests; runs on the first boards; service report all OK |
-| F1 | channel_eval, protection, outputs, settings, events | host tests of every rule in section 3 (table-driven), fault injection; bench: trip <= 1 s, ACK rules, power-cut, watchdog |
-| F2 | ui screens, menus, PINs | bench walk-through by the owner's technician |
-| F3 | modbus read-only map, deviation alarm | Modbus poll test; I-120 matrix |
+| F0 | ATmega1284P programming + fuses + early watchdog; board_cfg, iso_spi, ad7124, tmp126, scan with all diagnostic slots, tc_math; minimal outputs (RUN off/latched, read-back), calibration storage, 20x4 diagnostic display; service mode | host tests; cold start and watchdog-reset start on the bench; service report all OK on the first boards |
+| F1 | channel_eval, protection (3.1-3.6), settings A/B, events | table-driven host tests of every rule in 3; fault injection: stalled acquisition with timers running, held keys, power cut during save, partial island power, aliasing (40-ch); bench: trip <= 1 s, ACK rules; Astra review before engine use |
+| F2 | ui screens, setup menus, PIN | bench walk-through by the owner's technician |
+| F3 | Modbus read-only map (fn 3/4; signed 0.1 C, validity/age, type, mode, faults, actual RUN, first-out; all writes rejected), flood/malformed-frame test | Modbus poll test; I-120 matrix |
 
-Each phase: code + host tests by the implementer (Sol), review and gates by Claude, Astra review of F1
-(protection) before it runs on an engine.
+Implementer: Sol per phase with host tests; Claude reviews and runs the gates; Astra reviews F1.
 
-## 7. Decisions the owner should confirm
+## 8. Owner decisions (Astra's recommendation in brackets)
 
-1. Settings while the engine runs: proposed split in section 3 (safe-direction edits live, the rest with RUN
-   inhibited) vs `0038`'s stricter "RUN inhibited for any settings change".
-2. Alarm relay latches until ACK (proposed) vs follows the condition.
-3. Deviation alarm in v1 as alarm only (proposed) vs not at all vs allowed to trip.
-4. Offset per channel +-5 C (TDXM has it; proposed engineer-only and shown) vs none.
-5. Names on the LCD (6 chars) - yes proposed.
-6. Modbus read-only in v1 - proposed.
+1. Protection settings only with the contact open and a new ACK; names live [yes].
+2. Alarm relay latches until ACK after the condition clears [yes].
+3. Deviation-from-average alarm: not in v1, add if the technicians ask [defer].
+4. Per-channel offset: none in v1; production calibration only [omit].
+5. 6-char names next to the channel number [yes].
+6. Modbus read-only in v1 [yes].
 
-Rejected: startup bypass timer (only needed for low setpoints; v1 has high setpoints only); Fahrenheit; RTC
-(events use uptime + power-cycle count); separate test firmware (service mode instead).
+Rejected: trip delay (breaks the 1 s rule); startup bypass timer (only for low setpoints); two PIN levels and
+challenge-response recovery (I-100 needs a lock, not roles); "hottest" screen (channels have different limits);
+separate test firmware (service mode instead).
