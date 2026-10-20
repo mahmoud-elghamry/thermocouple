@@ -44,3 +44,8 @@ failing and argue it in the report with the spec clause.
 ## Report (final message, under 400 words)
 
 What changed per item, the three results with counts, anything still failing and why.
+
+## Resume note (2026-10-21)
+
+A first B2 run was interrupted mid-work: its edits are in the working tree (`git diff` shows them - protection,
+fault, settings_store, their headers and unit tests). Continue from them; do not start over.
