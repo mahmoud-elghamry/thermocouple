@@ -123,8 +123,8 @@ All behaviour with memory is an explicit state machine: `enum` state, a transiti
 `next = f(state, inputs)`, and a table in the spec. **Unknown or out-of-range state values are treated as the
 most restrictive state** (global: `TRIPPED`; channel: `FAULT`). Machines:
 
-* Global protection: `CONFIG_LOCK`, `START_LATCHED`, `RUN`, `TRIPPED`, `SETUP_INHIBIT`, `SERVICE`
-  (`04-protection.md`).
+* Global protection: `CONFIG_LOCK`, `START_LATCHED`, `RUN`, `TRIPPED`, `SERVICE` (`04-protection.md`;
+  a protection-settings commit returns to `START_LATCHED`, so no separate inhibit state).
 * Per channel: `OFF`, `OK`, `ALARM`, `TRIP`, `FAULT` (`04-protection.md`).
 * Per bank acquisition: init, configure, verify, slot loop, recover (`03-acquisition.md`).
 * UI: screen stack and edit session (`06-ui.md`).
