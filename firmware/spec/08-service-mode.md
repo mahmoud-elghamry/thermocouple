@@ -5,7 +5,9 @@ so the code tested on the bench is the code that runs on the engine. Normative f
 
 ## 1. Entry, exit, safety
 
-* Entry: SET held at power-up (`06` 2), also on a blank or invalid board (service does not need settings).
+* Entry: **only** SET held at power-up (`06` 2); it works on a blank or invalid board too (service does not need
+  settings). A board with invalid settings or calibration boots into `CONFIG_LOCK` (`04` 4), never into service by
+  itself.
   State `SERVICE` (`04`): **RUN never closes** except in steps A03/A04, which start the pump themselves for at
   most 1 s after confirmation (Timer2 deadline 1000 ms, stopped at the end of the step or on any key, the
   watchdog still running); the ALARM relay stays de-energised (= alarm) except in A02.
