@@ -174,6 +174,12 @@ when reading (shown as `--`), never repaired.
 | 9 CALIBRATION | calibration record written |
 | 10 PIN_RESET | PIN recovery used |
 
+**Burst handling.** Entries wait in a RAM queue for the EEPROM owner (~55 ms per entry). A burst (e.g. island
+loss: every channel and bank at once) can exceed the queue. A full queue **drops the new entry**, counts it
+(`events lost`, shown in service mode and later on Modbus) and raises **G13** (alarm only, clears on ACK once the
+queue has drained). Losing a log entry is never a protection fault: it must not raise G04 or anything that keeps
+ACK refused. The TRIP entry carrying the first-out cause is enqueued first in a burst.
+
 ### 7.3 Budget and wear
 
 * Writes per year (estimate, generous): 10 boots/day -> 3,650 power-cycle writes (8 B, alternating slots);

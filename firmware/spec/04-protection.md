@@ -226,7 +226,7 @@ latches still need ACK.
 |---|---|---|---|---|
 | G01 | settings invalid / blank | settings (`05`) | T, `CONFIG_LOCK` | `LOCKED: SETUP` |
 | G02 | save failed: protection settings or calibration | store (`05`) | T until a retry succeeds | `SAVE FAILED` |
-| G13 | save failed: names, comms or PIN only | store (`05`) | A until a retry succeeds | `SAVE FAILED (INFO)` |
+| G13 | save failed: names, comms or PIN only; or event entries lost in a burst (`05` 7) | store (`05`) | A until a retry succeeds / the queue drained and ACK | `SAVE FAILED (INFO)` |
 | G14 | island power lost (all banks fail together) | scan (`03`) | T; full re-init | `ISLAND POWER LOST` |
 | G15 | fuse bytes differ from `02` | boot self-read (`02` 6) | T, never clears (reprogram) | `FUSE MISMATCH` |
 | G03 | flash CRC at boot | boot (`02`) | halt with outputs safe | (LCD may be blank) |
