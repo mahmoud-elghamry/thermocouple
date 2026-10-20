@@ -1,7 +1,8 @@
 #!/bin/sh
 # run_lane.sh <lane> [resume] : run one Codex Sol lane on the family firmware.
 #   lanes: A B C B2 B3 F1 (F1 shares group A: main.c) (brief lane-<X>*.md -> report lane-<X>-report.md, log lane-<X>-run.log)
-#   resume: continue the same Codex session (thread id saved in lane-<X>.thread) instead of a fresh one.
+#   resume: continue the saved Codex session (lane-<X>.thread) and send the brief as the next turn; a follow-up
+#   lane continues its parent session by copying the thread file (lane-F1.thread -> lane-F1b.thread).
 # One writer per file group: lanes that write the same files share a lock (B, B2, B3 = group B); different
 # groups (A, B, C) may run in parallel. A lock whose runner pid is dead is stale and is taken over.
 W=/d/tasks/thermo/.claude/worktrees/24ch-rev-a4
@@ -25,7 +26,7 @@ trap 'rm -rf "$LOCK"' EXIT
 [ -f "$LOG" ] && mv "$LOG" "$LOG.$(date +%H%M%S)"
 COMMON="-m gpt-6.1-sol -c model_reasoning_effort=\"high\" -c windows.sandbox=\"unelevated\" -s workspace-write --skip-git-repo-check -C $W --json -o $REP"
 if [ "$2" = "resume" ] && [ -s "$THREAD" ]; then
-  echo "Continue the task; your earlier edits are in the working tree. Re-read the brief if needed: $BRIEF" | \
+  { echo "Continue in this session; your earlier edits are in the working tree. Current brief:"; cat "$BRIEF"; } | \
     timeout 14400 sh -c "codex exec $COMMON resume $(cat "$THREAD") -" > "$LOG" 2>&1
 else
   timeout 14400 sh -c "codex exec $COMMON -" < "$BRIEF" > "$LOG" 2>&1
