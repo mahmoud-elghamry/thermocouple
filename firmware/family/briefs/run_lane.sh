@@ -2,7 +2,8 @@
 # run_lane.sh <lane> [resume] : run one Codex Sol lane on the family firmware.
 #   lanes: A B C B2 B3 (brief lane-<X>*.md -> report lane-<X>-report.md, log lane-<X>-run.log)
 #   resume: continue the same Codex session (thread id saved in lane-<X>.thread) instead of a fresh one.
-# One writer only: refuses while another `codex exec` runs or the lock dir exists (stale lock: check, then rmdir).
+# One writer per file group: lanes that write the same files share a lock (B, B2, B3 = group B); different
+# groups (A, B, C) may run in parallel. A lock whose runner pid is dead is stale and is taken over.
 W=/d/tasks/thermo/.claude/worktrees/24ch-rev-a4
 B=$W/firmware/family/briefs
 case "$1" in
@@ -10,12 +11,17 @@ case "$1" in
   B2) BRIEF=$B/lane-B2-fixes.md ;;      B3) BRIEF=$B/lane-B3-fix.md ;;
   *) echo "usage: run_lane.sh A|B|C|B2|B3 [resume]"; exit 2 ;;
 esac
-REP=$B/lane-$1-report.md; LOG=$B/lane-$1-run.log; THREAD=$B/lane-$1.thread; LOCK=$B/.lane.lock
-RUNNING=$(powershell -NoProfile -Command "@(Get-CimInstance Win32_Process | Where-Object { \$_.Name -eq 'codex.exe' -and \$_.CommandLine -match ' exec ' }).Count" | tr -cd "0-9")
-if [ -z "$RUNNING" ] || [ "$RUNNING" -gt 0 ]; then echo "refused: a codex exec is already running ($RUNNING)"; exit 3; fi
+REP=$B/lane-$1-report.md; LOG=$B/lane-$1-run.log; THREAD=$B/lane-$1.thread
+case "$1" in B|B2|B3) GROUP=B ;; *) GROUP=$1 ;; esac
+LOCK=$B/.lock-$GROUP
 if [ "$2" = "resume" ] && [ ! -s "$THREAD" ]; then echo "refused: no saved thread in $THREAD"; exit 4; fi
-mkdir "$LOCK" 2>/dev/null || { echo "refused: $LOCK exists (another lane running?)"; exit 3; }
-trap 'rmdir "$LOCK"' EXIT
+if ! mkdir "$LOCK" 2>/dev/null; then
+  OLD=$(cat "$LOCK/pid" 2>/dev/null)
+  if [ -n "$OLD" ] && kill -0 "$OLD" 2>/dev/null; then echo "refused: group $GROUP busy (runner pid $OLD)"; exit 3; fi
+  echo "taking over stale lock of group $GROUP (pid ${OLD:-?} gone)"
+fi
+echo $$ > "$LOCK/pid"
+trap 'rm -rf "$LOCK"' EXIT
 [ -f "$LOG" ] && mv "$LOG" "$LOG.$(date +%H%M%S)"
 COMMON="-m gpt-6.1-sol -c model_reasoning_effort=\"high\" -c windows.sandbox=\"unelevated\" -s workspace-write --skip-git-repo-check -C $W --json -o $REP"
 if [ "$2" = "resume" ] && [ -s "$THREAD" ]; then

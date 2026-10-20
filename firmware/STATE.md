@@ -14,8 +14,8 @@
   37.8 KB flash / 7.2 KB RAM); core 125435 checks + S01-S28 (`test/build_core.ps1`); independent acceptance tests
   written from the spec only 14182/14182 (`test/build_acceptance.ps1`) - all three must stay green.
   Next: F1 integration (protection into main, Modbus, UI), then an Astra code review.
-  Runner: `sh firmware/family/briefs/run_lane.sh <lane> [resume]` - refuses while another `codex exec` runs
-  (two Sol on the same files happened once, 2026-10-21); `resume` continues the saved session. `docs/TOOLS.md`.
+  Runner: `sh firmware/family/briefs/run_lane.sh <lane> [resume]` - one lock per file group (B/B2/B3 share
+  one; A, B, C may run in parallel; two Sol on the same files happened once, 2026-10-21); `resume` continues the saved session. `docs/TOOLS.md`.
 * **24-ch F0 code exists but is untested on hardware** (I-100); F0 is enough for bring-up (programming,
   service-mode readings, relay tests); F1 (protection that can grant RUN) is not done.
 * Direction (`0037` D2): **one firmware for the board family** (8 / 24 / 36 ch = 1 / 3 / 5 banks of

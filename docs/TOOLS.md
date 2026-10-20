@@ -537,7 +537,7 @@ named parts and drops only their own-net tracks; then `finish.py dangling`, `fin
   `firmware/family/briefs/` (tracked). Codex quota can run out mid-run: the log ends with "usage limit".
   **Before starting or restarting any Sol, list running `codex.exe ... exec` processes**: a Claude session that
   ends does not stop its Sol (2026-10-21: two B2 runs wrote the same files). `firmware/family/briefs/run_lane.sh`
-  does this check plus a lock, saves the thread id, and `run_lane.sh <lane> resume` continues that session.
+  keeps one lock per file group (B/B2/B3 share one; A, B, C run in parallel), saves the thread id, and `run_lane.sh <lane> resume` continues that session.
 - **`kicad-tool` on Windows needs `KICAD_CLI`** (its default is the macOS path;
   the error is a bare `[WinError 2]`) and `KICAD10_FOOTPRINT_DIR` for `pcb sync`.
 - **Freerouting rounds clearances down** (0.2454 mm against a 0.25 mm rule), so
