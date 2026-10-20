@@ -128,7 +128,13 @@ window is a countdown owned by the Timer2 ISR (`02` 4.2): only the protection pa
 write with interrupts disabled); the ISR stops the pump when it reaches zero.
 Restarting the PWM requires condition 2 to be re-established by a *new* validated scan. **ACK ordering:** an
 accepted ACK enters `RUN` with the window closed and its expiry timer started at the ACK; the PWM starts only when
-the next validated scan opens the window, and if none arrives within `T_WIN` the expiry trip (G05) applies.
+the next validated scan opens the window, and if none arrives within `T_WIN` the expiry trip (G05) applies. "Next"
+means a scan whose completion is processed in a later loop pass than the ACK: a scan completing in the same pass
+as the ACK never opens the window. **Settings sequence:** the window is refreshed only by a scan tagged with the
+active settings sequence; the single exception is a names-only commit made while in `RUN`, after which a scan
+tagged with the sequence just replaced is also accepted, until the first scan with the new sequence. An active
+sequence that changed without a commit seen by protection refreshes nothing (the window expires -> G05).
+**OFF channels:** channel faults (C01-C09) on a channel set to OFF are ignored for alarm, trip and ACK alike.
 
 `T_WIN` = 900 ms > one normal scan cycle (~690 ms, `03`) and > the worst slow scan (~870 ms) of `03` 10.2; set from the scan time
 measured on the first boards (service step P15) and recorded. A stalled scan opens RUN within `T_WIN` + pump decay
