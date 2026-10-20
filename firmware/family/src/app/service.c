@@ -1,4 +1,5 @@
 #include "app/service.h"
+#include "app/ee_owner.h"
 #include "services/scan.h"
 #include "services/tc_math.h"
 #include "drivers/keys.h"
@@ -26,16 +27,14 @@ typedef enum { PASSIVE, PROMPT, CONFIRM, ACTIVE, RELEASE, CAL_COLLECT, CAL_SAVE,
 static state_t state;
 static const settings_t *settings;
 static calibration_t *active_cal,candidate;
-static bool settings_good,a_good,b_good,flash_good,test_ok,store_ack;
+static bool settings_good,a_good,b_good,flash_good,test_ok,cal_submitted;
 static uint8_t cal_slot,pstep,item,astep,key_index,cal_count;
 static uint16_t n_ok,n_fail,worst,ee_index,drop_ms;
 static uint32_t started,progress,last_scan,confirmed;
 static int32_t sums[24]; /* F0 scope: 24 inputs; 16 REF or 8 burnout sums fit int32. */
-static set_store_t store;
-static ee_op_t op;
 static char line[124];
 static uint16_t protected_crc;
-uint8_t *svc_boot_image(void) { return store.image; }
+uint8_t *svc_boot_image(void) { return ee_owner_boot_image(); }
 static void display(const char *s) {
     char frame[80]; size_t n=strlen(s); memset(frame,' ',80);
     (void)snprintf(frame,21,"SERVICE MODE %c%02u",astep?'A':'P',astep?astep:pstep);
@@ -65,11 +64,13 @@ void svc_init(const settings_t *cfg,calibration_t *cal,bool valid,bool av,bool b
     settings=cfg; active_cal=cal; settings_good=valid; a_good=av; b_good=bv;
     cal_slot=slot; flash_good=flash; state=PASSIVE; pstep=1; astep=item=key_index=0;
     n_ok=n_fail=worst=0; started=progress=tick_ms(); confirmed=0; last_scan=0; relays_safe(); keys_rearm();
+    ee_owner_init(NULL,cal,2,slot,valid);
 }
 bool svc_finished(void) { return state==FINISHED; }
 uint8_t svc_active_step(void) { return astep; }
 uint32_t svc_progress_ms(void) { return progress; }
 void svc_loop_time(uint16_t ms) { if(ms>worst) worst=ms; }
+void svc_settings_committed(bool valid) { settings_good=valid; }
 static void next_active(void) {
     relays_safe(); keys_rearm(); item=0;
     if(++astep>7) { state=FINISH; astep=0; } else state=PROMPT;
@@ -182,34 +183,38 @@ static void collect_cal(void) {
             if(ppm < -10000 || ppm>10000) test_ok=false; candidate.ref_ppm[c]=ppm;
         } else if(confirmed&(1UL<<c)) {
             int32_t baseline=(int32_t)(sums[c]/8);
+            if(settings_good && settings->ch[c].type==CH_TYPE_OFF) {
+                candidate.baseline_nV[c]=CAL_MISSING; candidate.tag[c]=0; continue;
+            }
             if(baseline<1500000 || baseline>10000000) test_ok=false;
             candidate.baseline_nV[c]=baseline;
             candidate.tag[c]=settings_good?(uint8_t)((settings->ch[c].type_epoch<<2)|settings->ch[c].type):1;
         }
     }
-    memset(&store,0,sizeof store);
-    if(!test_ok || cal_commit(&store,&candidate,active_cal?active_cal->sequence:0,cal_slot)!=RES_OK) {
+    if(!test_ok) {
         report("CALIBRATION",0,false,"WINDOW"); next_active(); return;
     }
-    memset(&op,0,sizeof op); store_ack=false; state=CAL_SAVE;
+    cal_submitted=false; state=CAL_SAVE;
 }
 static void save_cal(void) {
-    bool success=true; uint8_t value=0;
-    if(!ee_ready()) return;
-    if(store_ack && op.kind==EE_READ) value=ee_read(op.address);
-    set_store_step(&store,true,success,value,&op);
-    store_ack=false;
-    if(op.kind==EE_WRITE) { success=ee_write_byte(op.address,op.value)==RES_OK; store_ack=success; }
-    else if(op.kind==EE_READ) store_ack=true;
-    if(!success || store.phase==STORE_FAILED) { report("CALIBRATION",0,false,"EEPROM"); next_active(); }
-    else if(store.phase==STORE_DONE) {
-        candidate.sequence=cal_slot==2?0:active_cal->sequence+1; cal_slot=store.active_slot;
-        if(active_cal) *active_cal=candidate;
-        report("CALIBRATION",(long)candidate.sequence,true,""); next_active();
+    if(!cal_submitted) {
+        res_t r=ee_owner_calibration(&candidate);
+        if(r==RES_BUSY) return;
+        if(r!=RES_OK) { report("CALIBRATION",0,false,"EEPROM"); next_active(); return; }
+        cal_submitted=true;
+    } else if(!ee_owner_busy()) {
+        if(!ee_owner_cal_saved()) report("CALIBRATION",0,false,"EEPROM");
+        else {
+            event_t e; memset(&e,0,sizeof e); e.type=EV_CALIBRATION; e.uptime_s=tick_ms()/1000u;
+            (void)ee_owner_log(&e);
+            report("CALIBRATION",(long)active_cal->sequence,true,"");
+        }
+        next_active();
     }
 }
 void svc_task(void) {
     key_t key; uint32_t dt;
+    ee_owner_step();
     if(state==FINISHED || rs485_busy()) return;
     key=keys_get(); dt=tick_ms()-started;
     switch(state) {
@@ -270,8 +275,8 @@ void svc_task(void) {
         } else if(astep==5 && ee_ready()) {
             if(ee_index<256) { uint16_t addr=(uint16_t)(0xF00+ee_index);
                 uint8_t v=(uint8_t)(ee_index^0xA5);
-                if(item==0) { if(ee_write_byte(addr,v)==RES_OK) item=1; }
-                else if(item==1) { if(ee_read(addr)!=v) test_ok=false; if(ee_write_byte(addr,0xFF)==RES_OK) item=2; }
+                if(item==0) { if(ee_owner_scratch(addr,v)==RES_OK) item=1; }
+                else if(item==1) { if(ee_read(addr)!=v) test_ok=false; if(ee_owner_scratch(addr,0xFF)==RES_OK) item=2; }
                 else { if(ee_read(addr)!=0xFF) test_ok=false; ++ee_index; item=0; }
             } else { test_ok&=protected_crc==record_crc(); report("EEPROM_SCRATCH",256,test_ok,""); next_active(); }
         }

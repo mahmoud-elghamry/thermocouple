@@ -1,5 +1,8 @@
 #include "app/service.h"
 #include "app/protection.h"
+#include "app/app.h"
+#include "app/ee_owner.h"
+#include "app/stack_budget.h"
 #include "services/scan.h"
 #include "services/fault.h"
 #include "drivers/iso_spi.h"
@@ -16,7 +19,7 @@
 #ifdef __AVR__
 #include <avr/interrupt.h>
 #include <avr/io.h>
-#define stack_guard ((volatile uint8_t *)(RAMEND-1024u))
+#define stack_guard ((volatile uint8_t *)(RAMEND-APP_STACK_BYTES))
 #else
 static uint8_t stack_guard[16];
 #endif
@@ -32,7 +35,7 @@ static uint32_t boot_progress,boot_time;
 static uint32_t sequence_a;
 static bool cal_a_valid;
 static bool a_valid,b_valid,set_valid,cal_valid,flash_valid,service_entry;
-static uint8_t cal_slot,mode;
+static uint8_t cal_slot,settings_slot,mode;
 static void load_bytes(uint16_t base,uint16_t length) {
     uint8_t i;
     for(i=0;i<16 && load_pos<length;i++,load_pos++) bytes[load_pos]=ee_read((uint16_t)(base+load_pos));
@@ -52,8 +55,8 @@ void f0_init(void) {
     memset(&calibration,0,sizeof calibration);
     boot=BOOT_LCD; mode=START_LATCHED; boot_time=boot_progress=tick_ms();
     a_valid=b_valid=set_valid=cal_valid=flash_valid=service_entry=false;
-    cal_slot=2; load_pos=0;
-    bytes=svc_boot_image();
+    cal_slot=settings_slot=2; load_pos=0;
+    bytes=ee_owner_boot_image();
 }
 static void boot_step(void) {
     res_t r; bool av,bv; uint8_t i;
@@ -83,6 +86,7 @@ static void boot_step(void) {
             int selected;
             b_valid=set_unpack(bytes,board()->channels,board()->channels,&active)==RES_OK;
             selected=set_select(a_valid,sequence_a,b_valid,active.sequence); set_valid=selected>=0;
+            settings_slot=selected<0?2:(uint8_t)selected;
             if(selected==0) { boot=RELOAD_SETTINGS_A; load_pos=0; break; }
             if(!set_valid) {
                 memset(&active,0,sizeof active); active.board_type=board()->channels; active.channel_count=board()->channels;
@@ -126,10 +130,13 @@ static void boot_step(void) {
         } break;
     case BEGIN_ACQ:
         service_entry|=!set_valid;
-        mode=service_entry?SERVICE:START_LATCHED;
+        mode=service_entry?SERVICE:((set_valid && cal_valid)?START_LATCHED:CONFIG_LOCK);
         scan_init(service_entry?NULL:&active,&calibration,&faults);
         if(service_entry) svc_init(&active,&calibration,set_valid,a_valid,b_valid,cal_slot,flash_valid);
-        else { char frame[80]; memset(frame,' ',80); memcpy(frame,"START: ACK REQUIRED",19); lcd_frame(frame); }
+        else { char frame[80]; memset(frame,' ',80);
+            memcpy(frame,mode==CONFIG_LOCK?"LOCKED: CALIBRATE  ":"START: ACK REQUIRED",19); lcd_frame(frame); }
+        ee_owner_init(&active,&calibration,settings_slot,cal_slot,set_valid);
+        app_init(&active,&calibration,&faults,set_valid,service_entry);
         keys_rearm(); boot=LOOP; break;
     default: relays_safe(); boot=BEGIN_ACQ; break;
     }
@@ -139,17 +146,25 @@ void f0_task(void) {
     if(boot!=LOOP) { boot_step(); progress=boot_progress; }
     else { scan_task(); progress=scan_progress_ms(); }
     seen|=1;
-    /* F0 protection stub: no temperature, setting or ACK can grant RUN. */
-    if(mode!=SERVICE) relays_safe();
-    seen|=2;
-    keys_task(); if(mode==SERVICE && boot==LOOP) svc_task(); seen|=4;
-    lcd_task(); seen|=8; rs485_task(); seen|=16;
+    keys_task(); seen|=2;
+    if(boot==LOOP && flash_valid) {
+        seen|=(uint8_t)(app_step(tick_ms()-progress<=100u)<<2);
+        mode=(uint8_t)app_protection()->mode;
+        if(mode==SERVICE) { svc_task(); seen|=8; }
+    } else { relays_safe(); seen|=12; }
+    lcd_task(); seen|=16; rs485_task(); seen|=32;
+    /* SERVICE steps the same EEPROM owner itself (also used by standalone
+     * service driver tests). Normal mode executes exactly one owner step here. */
+    if(boot==LOOP && mode!=SERVICE && flash_valid) ee_owner_step();
+    seen|=64;
     for(i=0;i<16;i++) if(stack_guard[i]!=0xA5) {
         relays_safe(); (void)fault_raise(&faults,FC_G04_INTERNAL,0); return;
     }
+    seen|=128;
     if(tick_ms()-start>8) { relays_safe(); (void)fault_raise(&faults,FC_G04_INTERNAL,0); return; }
     if(mode==SERVICE) svc_loop_time((uint16_t)(tick_ms()-start));
-    (void)flow_check(seen,31,progress);
+    if(boot==LOOP) app_loop_time((uint16_t)(tick_ms()-start));
+    (void)flow_check(seen,255,progress);
 }
 uint8_t f0_mode(void) { return mode; }
 #ifndef FAMILY_TEST

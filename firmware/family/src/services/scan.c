@@ -125,6 +125,9 @@ static void result(uint8_t b,uint32_t code) {
     else if(f!=FC_NONE) channel_fault(slot<8?ch:slot==13?(uint8_t)(8*b+(work.scan_no%16)/2):target,f);
     limit=scan_limit(slot,code,diag.raw[b][10],ref,base,diag.raw[b][work.scan_no%8]);
     if(limit>=FC_B01_ADC_ID && limit<=FC_B15_ADC_RESET) bank_fault(b,limit);
+    /* OFF has no learned baseline/tag (05 §6). Its burnout result cannot
+     * lock a partially fitted board; REF calibration remains mandatory. */
+    if(slot==14 && cfg && cfg->ch[target].type==CH_TYPE_OFF) limit=FC_NONE;
     if(limit==FC_G10_CALIBRATION) raise(limit,0);
     if(slot<8) {
         result_t *m=&work.meas[ch];
@@ -148,11 +151,14 @@ static void result(uint8_t b,uint32_t code) {
         }
         pending|=1UL<<ch;
     } else if(slot==13) {
-        uint8_t input=(uint8_t)(work.scan_no%16),unit=(uint8_t)(16*b+input);
+        uint8_t input=(uint8_t)(work.scan_no%16);
         uint16_t bit=(uint16_t)(1u<<input);
         target=(uint8_t)(8*b+(work.scan_no%16)/2);
-        if(limit!=FC_NONE || f==FC_C03_COMMON_MODE) { cm_bad[b]|=bit; channel_fault(target,FC_C03_COMMON_MODE); raise(FC_C03_COMMON_MODE,unit); }
-        else { cm_bad[b]&=(uint16_t)~bit; if(registry) fault_clear(registry,FC_C03_COMMON_MODE,unit); }
+        if(limit!=FC_NONE || f==FC_C03_COMMON_MODE) { cm_bad[b]|=bit; channel_fault(target,FC_C03_COMMON_MODE); raise(FC_C03_COMMON_MODE,target); }
+        else { cm_bad[b]&=(uint16_t)~bit; }
+        /* One registry unit per owning channel, retaining both physical pin
+         * bits until each clears. Raw pin identity remains in scan_no % 16. */
+        if(registry && !(cm_bad[b]&(uint16_t)(3u<<(2*(input/2))))) fault_clear(registry,FC_C03_COMMON_MODE,target);
         if(!(cm_bad[b]&(uint16_t)(3u<<(2*(input/2))))) work.meas[target].flags&=0xF7;
     } else if(slot==14) {
         diag.burnout_nV[target]=scan_emf(code,32)-scan_emf(diag.raw[b][work.scan_no%8],32);

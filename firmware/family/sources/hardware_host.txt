@@ -4,7 +4,7 @@ src/drivers/iso_spi.c
 src/drivers/ad7124.c
 src/drivers/tmp126.c
 src/mcal/flash_crc.c
-test/fakes/fake_mcal.c
+test/integration/model.c
 test/fakes/fake_ad7124.c
 test/fakes/fake_tmp126.c
 test/unit/test_scan.c
@@ -22,5 +22,12 @@ test/unit/test_service.c
 src/services/settings.c
 src/services/settings_cal.c
 src/services/settings_store.c
-test/unit/test_main.c
+test/integration/test_app.c
 src/app/main.c
+src/app/app.c
+src/app/ack_input.c
+src/app/ee_owner.c
+src/app/protection.c
+src/app/channel_eval.c
+src/app/outputs.c
+src/services/events.c

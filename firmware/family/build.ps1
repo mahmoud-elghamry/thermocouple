@@ -21,16 +21,31 @@ if(-not $AvrOnly) {
     $dev=Join-Path $vs 'Common7/Tools/VsDevCmd.bat'
     $src=@(Sources 'hardware_host')
     $quoted=($src | ForEach-Object { '"'+$_+'"' }) -join ' '
+    # hardware_host includes the real F1 shell and register-fake integration
+    # scenarios; the obsolete F0 "ACK cannot grant RUN" test is superseded.
     $exe=Join-Path $out 'test_hardware.exe'
     $installer=Split-Path $vswhere
-    $cmd="set `"PATH=$installer;%PATH%`" && call `"$dev`" -arch=x64 -no_logo && cl /nologo /std:c11 /W4 /WX /fsanitize=address /Zi /DFAMILY_TEST /D_CRT_SECURE_NO_WARNINGS /I`"$root/include`" /I`"$root/test/fakes`" $quoted /Fe:`"$exe`" /Fo:`"$out/`" /Fd:`"$out/hardware.pdb`""
+    $cmd="set `"PATH=$installer;%PATH%`" && call `"$dev`" -arch=x64 -no_logo && cl /nologo /std:c11 /W4 /WX /O2 /fsanitize=address /Zi /DFAMILY_TEST /D_CRT_SECURE_NO_WARNINGS /I`"$root/include`" /I`"$root/test/fakes`" $quoted /Fe:`"$exe`" /Fo:`"$out/`" /Fd:`"$out/hardware.pdb`""
     Run $env:ComSpec @('/d','/s','/c',$cmd)
     Run $env:ComSpec @('/d','/s','/c',"set `"PATH=$installer;%PATH%`" && call `"$dev`" -arch=x64 -no_logo && `"$exe`"")
 }
 if(-not $HostOnly) {
     $bin='C:/Program Files (x86)/Labcenter Electronics/Proteus 8 Professional/Tools/ARDUINO/hardware/tools/avr/bin'
     $gcc=Join-Path $bin 'avr-gcc.exe'
-    $elf=Join-Path $out 'thermo24_f0.elf'
+    $stackHeader=Get-Content (Join-Path $root 'include/app/stack_budget.h') -Raw
+    $stackBytes=[int]([regex]::Match($stackHeader,'#define APP_STACK_BYTES (\d+)u').Groups[1].Value)
+    if($stackBytes -lt 1024) { throw 'Stack reservation missing/too small' }
+    # The existing pure commit owns a settings + calibration working copy.
+    # Keep the shell canary below that frame plus caller/interrupt margin.
+    $stackObj=Join-Path $out 'settings_stack.o'
+    Run $gcc @('-std=c11','-Os','-Wall','-Wextra','-Werror','-mmcu=atmega1284p',"-I$root/include",'-fstack-usage','-c',(Join-Path $root 'src/services/settings_store.c'),'-o',$stackObj)
+    $frames=Get-Content (Join-Path $out 'settings_stack.su') | ForEach-Object {
+        if($_ -match '\t(\d+)\t') { [int]$Matches[1] }
+    }
+    $maxFrame=($frames | Measure-Object -Maximum).Maximum
+    if(-not $maxFrame -or $maxFrame+384 -gt $stackBytes) { throw "Commit stack frame $maxFrame + 384 margin exceeds $stackBytes" }
+    Write-Host "AVR commit frame: $maxFrame bytes; caller/interrupt margin: 384; stack reservation: $stackBytes"
+    $elf=Join-Path $out 'thermo24_f1.elf'
     $flags=@('-std=c11','-Os','-Wall','-Wextra','-Werror','-mmcu=atmega1284p','-DF_CPU=8000000UL',"-I$root/include",'-ffunction-sections','-fdata-sections','-Wl,--gc-sections,--section-start=.image_crc=0x1FFFE,--undefined=image_crc')
     Run $gcc ($flags+@(Sources 'hardware_avr')+@('-o',$elf))
     $objcopy=Join-Path $bin 'avr-objcopy.exe'
@@ -63,10 +78,10 @@ if(-not $HostOnly) {
     $sections=& (Join-Path $bin 'avr-size.exe') '-A' $elf
     [int]$ram=0
     foreach($row in $sections) { if($row -match '^\.(data|bss|noinit)\s+(\d+)') { $ram+=[int]$Matches[2] } }
-    if($ram+1024 -gt 12288) { throw "RAM budget exceeded: $ram + 1024 stack" }
+    if($ram+$stackBytes -gt 12288) { throw "RAM budget exceeded: $ram + $stackBytes stack" }
     if($end+2 -gt 65536) { throw "Flash budget exceeded: $end + 2 CRC" }
-    Write-Host "RAM with 1024-byte stack allowance: $($ram+1024)/12288; flash CRC storage: 2 bytes"
-    Run (Join-Path $bin 'avr-objcopy.exe') @('-O','ihex','-R','.eeprom',$elf,(Join-Path $out 'thermo24_f0.hex'))
+    Write-Host "RAM with $stackBytes-byte stack allowance: $($ram+$stackBytes)/12288; flash CRC storage: 2 bytes"
+    Run (Join-Path $bin 'avr-objcopy.exe') @('-O','ihex','-R','.eeprom',$elf,(Join-Path $out 'thermo24_f1.hex'))
     Run (Join-Path $bin 'avr-size.exe') @('-C','--mcu=atmega1284p',$elf)
 }
 Stop-Transcript | Out-Null
