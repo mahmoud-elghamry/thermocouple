@@ -121,7 +121,9 @@ Accepted ACK in `START_LATCHED`/`TRIPPED`: go to `RUN`; also clear every alarm l
 3. no trip fault active;
 4. flow check of `01` 2.3 passing (otherwise the watchdog resets the MCU anyway).
 
-If any fails, `outputs` stops the PB3 PWM (timer output disconnected, pin driven low) in the same loop. The
+If any fails, `outputs` stops the PB3 PWM (timer output disconnected, pin driven low) in the same loop.
+**Expiry of the RUN window while in `RUN` is itself a trip**: protection enters `TRIPPED` with cause G05 at that
+moment, so a later validated scan can never re-close the contact without an ACK. The
 window is a countdown owned by the Timer2 ISR (`02` 4.2): only the protection path reloads it (one atomic
 write with interrupts disabled); the ISR stops the pump when it reaches zero.
 Restarting the PWM requires condition 2 to be re-established by a *new* validated scan.

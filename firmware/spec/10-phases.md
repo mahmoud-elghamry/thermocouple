@@ -43,7 +43,7 @@ ERR_CRC, ERR_ID, ERR_READBACK, ERR_RANGE }`.
 | Phase | Deliverable | Gate to pass before the next phase |
 |---|---|---|
 | **F0** bring-up (needed when the first boards arrive), **24-ch only** | build system for ATmega1284P; `board_cfg` for the 24-ch (8/40-ch tables later, same structure); minimal settings load + validate (read-only, no editing) and the fault registry; MCAL; early watchdog + flow check; fuses + programming script; `iso_spi`, `ad7124`, `tmp126`, `scan` with **all** diagnostic slots, `tc_math`; `outputs` minimal (RUN off, ALARM de-energised, read-back); calibration storage; 20x4 `lcd` + `keys`; `service` mode complete | unit + driver tests pass on the PC; on the first boards: programming + fuse read-back, cold start, watchdog-reset start, service report all OK for fitted items (`09` T01-T04, T09, T10) |
-| **F1** protection | `channel_eval`, `protection`, `outputs` full (window, read-back table), `settings` A/B with commit, `events`, `fault` | all unit tests and scenarios S01-S25 pass; **Astra review of F1 code**; bench T05-T08, T13 |
+| **F1** protection | `channel_eval`, `protection`, `outputs` full (window, read-back table), `settings` A/B with commit, `events`, `fault` | all unit tests and scenarios S01-S28 pass; **Astra review of F1 code**; bench T05-T08, T13 |
 | **F2** operator UI | `ui` screens and setup menus, PIN, commissioning flow | screen tests; owner's technician commissions a board from blank with only the LCD and keys |
 | **F3** Modbus | `modbus` read-only map | map tests; bench T12; I-120 matrix before the first engine |
 

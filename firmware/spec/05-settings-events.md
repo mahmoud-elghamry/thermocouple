@@ -50,7 +50,7 @@ N = channel count; 40-ch: 16 + 688 + 2 = 706 B < 768.
 | 8 | i16 | alarm SP, 0.1 C | 0 <= alarm < trip |
 | 10 | i16 | trip SP, 0.1 C | alarm < trip <= probe limit |
 | 12 | u8 | reset band, 1 C | 2..50 |
-| 13 | u8 | reserved | 0 |
+| 13 | u8 | type epoch | 0..63; incremented (mod 64) on every type change of this channel, including to and from OFF |
 | 14 | i16 | probe limit, 0.1 C | <= type table max (K 1372 C, J 1200 C, PT100 400 C - the table range of `03` 8) |
 
 Type OFF has one canonical encoding, which the validator accepts only for OFF: mode 0, name kept, alarm 0,
@@ -107,7 +107,8 @@ Names only: the same procedure without the trip; the contact is not opened.
 the working copy, and the edit cannot be committed until they are entered again. Selecting OFF writes the
 canonical OFF encoding (2.2) with no re-entry. After the commit, results of
 the changed channels are discarded and ACK needs a complete validated scan under the new settings sequence
-(`04` 5 rule 3). A type change makes that channel's burnout baseline unusable through the type binding of 6 (re-learn in A07).
+(`04` 5 rule 3). A type change (any, incl. K -> OFF -> K) increments the channel's type epoch, so the old baseline no longer matches
+its tag (6) and must be re-learned in A07 - across resets too, since both values are stored.
 
 ## 6. Calibration record (256 B slot, A/B like settings)
 
@@ -119,7 +120,7 @@ the changed channels are discarded and ACK needs a complete validated scan under
 | 4 | u32 | sequence |
 | 8 | i32 x 6 | REF3030 / internal-reference ratio per bank, ppm deviation from nominal (`03` REF check); valid range +-10000 ppm (`03` 4: +-1.0 %); `0x7FFFFFFF` = not calibrated; unused banks 0 |
 | 32 | i32 x 43 | burnout baseline per channel, nV (`03` burnout window); `0x7FFFFFFF` = not learned |
-| 204 | u8 x 43 | type the baseline was learned under (1 K, 2 J; 0 not learned) |
+| 204 | u8 x 43 | learned-under tag: bits 7..2 type epoch, bits 1..0 type (1 K, 2 J; 0 not learned) |
 | 247 | u16 | CRC16 (record 249 B < 256) |
 
 * Written in service mode (`08`): `CAL REF` (automatic, no instrument needed) and `LEARN BURNOUT` (with every
@@ -128,7 +129,7 @@ the changed channels are discarded and ACK needs a complete validated scan under
 * **Staged use.** A06 writes the REF part, A07 the burnout part, each as a complete A/B record (the other part
   copied unchanged). A record may be valid with parts missing ('not calibrated' / 'not learned' markers).
 * **Protection uses calibration only when complete for the active settings:** every bank REF-calibrated, and
-  every fitted channel has a learned baseline **whose stored type equals the channel's current type**.
+  every fitted channel has a learned baseline **whose tag equals the channel's current type and type epoch**.
   Otherwise G10 / `LOCKED: CALIBRATE`. This binding replaces any cross-record transaction: a type change can
   never be paired with an old baseline, even after a reset in the middle of a save.
 * Partial learning: `LEARN BURNOUT` stores only when every fitted channel learned inside the absolute window;

@@ -59,6 +59,9 @@ every table in `04` and `05` exercised; branch coverage reported (gcov) and ever
 | S23 | settings committed mid-scan | the straddling scan does not count for ACK (R2) |
 | S24 | island power lost then restored | G14, full re-init, RUN only after ACK and a validated scan |
 | S25 | G05 deadline fault clears at the next scan | trip latch stays until ACK (no silent recovery to RUN) |
+| S26 | RUN window expires at 900 ms, a validated scan arrives at 950 ms | TRIPPED at 900 ms; contact stays open until ACK |
+| S27 | channel K -> OFF -> K, reset in between | baseline not accepted (epoch changed); LOCKED: CALIBRATE until re-learned |
+| S28 | blank board learns in service, then a channel is configured as J | that channel LOCKED: CALIBRATE until re-learned |
 
 ## 4. Bench tests on the first boards (service mode + scripted, results in the board's log)
 

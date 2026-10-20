@@ -145,8 +145,7 @@ P1  write CHANNEL_s = image | 0x8000
 P2  write ADC_CONTROL = 0x0744   (single conversion: one settled conversion, then standby)
 P3  poll STATUS once per main loop (loop <= 5 ms typical, <= 8 ms worst, `01` 2) until RDY = 0. The conversion
     start time is stamped at P2; timeout = 1.15 x 42.331 ms + 8 ms (worst loop) = 57 ms after P2 -> B05.
-    Polling delay is not conversion time: the slot period window of section 4 uses the RDY-seen time minus
-    the worst loop as its lower bound
+    The observed RDY time (first poll that sees RDY = 0, measured from P2) must lie in 36-57 ms (section 4).
 P4  read DATA (24 bits + STATUS + CRC); checks of 2.4; CRC failure -> re-read DATA (data stays until the next
     conversion), at most 2 re-reads, then B02
 P5  write CHANNEL_s = image (disabled)
@@ -154,7 +153,8 @@ P5  write CHANNEL_s = image (disabled)
 
 The three banks (five on the 40-ch, plus the RTD ADC) run P1-P5 interleaved: P2 is issued to every bank within
 ~1 ms, so all banks convert in parallel and finish each slot within ~1 ms of each other. One scan:
-15 x (44.559 + ~1.5 ms overhead) = **~690 ms worst** at -5 % clock, inside C 9.7's ~700 ms screen; 1 s budget
+15 x (44.559 + ~1.5 ms overhead) = **~690 ms normal** at -5 % clock (C 9.7's ~700 ms screen); worst with
+slow polling 15 x ~58 ms = ~870 ms (10.2); 1 s budget
 (GOAL, I-013) with 30 ms pump/relay release (C 8.5).
 
 The sequencer alternative (all 15 channels enabled, one start per scan) saves ~20 ms per scan but depends on
@@ -164,8 +164,11 @@ the baseline.
 
 ### 3.2 Work between slots and scans
 
-During each ~42 ms conversion window the MCU (CS of that ADC high except for short transactions): reads back
-two or three registers of the image list round-robin (all registers once per scan), reads the TMP126 frames
+During each ~42 ms conversion window the MCU (CS of that ADC high except for short transactions) may read back
+only the **static** registers of the image list (CONFIG_x, FILTER_x, ERROR_EN, IO_CONTROL_x, OFFSET/GAIN,
+OFFSET_7 signature), two or three round-robin, all once per scan. The **mutable** ones (ADC_CONTROL, CHANNEL
+enables) are read only at the post-P5 point of section 5, never during a conversion (ADI: ADC_CONTROL changes
+at end of conversion, AD7124 Rev F p.50). Then it reads the TMP126 frames
 (section 6), evaluates finished TC results (immediately, C 9.7: "Temperature samples must not wait for the next
 complete-scan processing pass"), services UI/Modbus in bounded steps. Between scans: rotate CHANNEL_13/14 images
 (write + read back), read ERROR, ID, MCLK_COUNT, OFFSET_7 signature.
@@ -483,7 +486,7 @@ Bank codes carry the bank letter (e.g. `B06 C`); channel codes the channel numbe
 |---|---|---|---|
 | G08 | Engine reference lost | REFOK high in a scan (outside self-test) | REFOK low in a validated scan (latch per `04`) |
 | G09 | REFTEST self-test failed | REFOK not high during REFTEST (`02` 10) | next self-test passes |
-| G05 | Scan deadline missed | board scan not complete within 1000 ms | next validated board scan |
+| G05 | Scan deadline missed, or RUN window (900 ms, `04` 6.1) expired in `RUN` | board scan not complete within 1000 ms, or window expiry | next validated board scan (the trip latch stays until ACK) |
 | G14 | Island power lost | all banks fail CRC/ID in the same scan, or REFOK high together with bank faults on every bank | full re-init + validated board scan |
 | B13 | Device signature mismatch | any signature read back wrong (section 9) | re-init + validated board scan |
 | B14 | RTD bank fault (40-ch) | any RTD-bank check of section 8.3 except per-probe | validated RTD scan |
