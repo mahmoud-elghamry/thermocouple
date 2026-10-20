@@ -8,6 +8,11 @@
 * `firmware/` holds the **REV A2 8-channel** firmware (ATmega, MAX31856 front end): 4 builds and
   3 host test suites pass (2026-10-09 snapshot `production/validation-20261009-043553-906505`).
   Build: `pwsh -File firmware\build.ps1`; cloud: `make -C firmware all test`.
+* **Family firmware (`0043`):** specification `firmware/spec/` rev 5, reviewed by Astra three times (reports in
+  `production/review-20261015-a4/ASTRA-5..7`, local). Code goes to `firmware/family/` (the 8-ch code stays
+  untouched). F0 = 24-ch only, implemented by Codex Sol in two parallel lanes (hardware path / pure core),
+  briefs in `firmware/family/briefs/`; Claude reviews, runs the host tests and commits on branch `24ch-rev-a4`.
+  Any session can continue from the briefs + this line + `docs/TOOLS.md` "Codex roles".
 * **The 24-ch firmware is not written** (I-100). It is the main blocker: without it the 24-ch board
   cannot be tested beyond its supply rails (ASSEMBLY-SPEC power-on test).
 * Direction (`0037` D2): **one firmware for the board family** (8 / 24 / 36 ch = 1 / 3 / 5 banks of

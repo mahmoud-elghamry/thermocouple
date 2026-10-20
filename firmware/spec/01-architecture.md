@@ -171,8 +171,8 @@ presence. It is `const` data selected by `BOARD`. Code outside `board_cfg` loops
 ## 9. Source layout
 
 ```
-firmware/
-  spec/                 this specification
+firmware/family/      (new tree; the 8-ch REV A2 code in firmware/src stays as reference)
+  ../spec/              this specification (firmware/spec)
   src/board/            board_cfg_8.c board_cfg_24.c board_cfg_40.c
   src/mcal/             gpio spi uart timer wdt eeprom flash_crc
   src/drivers/          iso_spi ad7124 tmp126 rtd lcd keys relays rs485

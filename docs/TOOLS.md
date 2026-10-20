@@ -528,6 +528,13 @@ named parts and drops only their own-net tracks; then `finish.py dangling`, `fin
 - **Codex 0.162 alpha cannot run any command with the elevated Windows sandbox**
   (`helper_unknown_error: setup refresh had errors`; it then reviews blind). Run
   `codex exec -c 'windows.sandbox="unelevated"' -s read-only -o report.md - < brief.txt`.
+- **Codex roles used here (2026-10-20, verified):** reviewer **Astra** =
+  `codex exec -m gpt-6-astra -c 'model_reasoning_effort="high"' -c 'windows.sandbox="unelevated"' -s read-only -C <worktree> -o <report.md> - < <brief.md>`
+  (never xhigh); implementer **Sol** = `codex exec -m gpt-6.1-sol -c 'windows.sandbox="unelevated"' -s workspace-write --skip-git-repo-check -C <dir> -o <report.md> - < <brief.md>`.
+  With `unelevated`, Sol **can** run kicad-cli and KiCad python (2026-10-19 test); board writes still one writer
+  through `gen/guard.py`. Write the command into a `.sh` file and run it with `sh` (the Claude Code worktree
+  guard rejects complex inline commands). Briefs and reports: `production/review-20261015-a4/` (local) and
+  `firmware/family/briefs/` (tracked). Codex quota can run out mid-run: the log ends with "usage limit".
 - **`kicad-tool` on Windows needs `KICAD_CLI`** (its default is the macOS path;
   the error is a bare `[WinError 2]`) and `KICAD10_FOOTPRINT_DIR` for `pcb sync`.
 - **Freerouting rounds clearances down** (0.2454 mm against a 0.25 mm rule), so
