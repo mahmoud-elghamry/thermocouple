@@ -203,7 +203,10 @@ Implementer: Sol per phase with host tests; Claude reviews and runs the gates; A
 3. Deviation-from-average alarm: not in v1, add if the technicians ask [defer].
 4. Per-channel offset: none in v1; production calibration only [omit].
 5. 6-char names next to the channel number [yes].
-6. Modbus read-only in v1 [yes].
+6. Modbus read-only in v1 [yes]. Owner 2026-10-20: writes may come later. The v1 map reserves holding
+   registers for them; a later version may accept setpoint writes only with a local enable on the keypad, CRC,
+   read-back, the same semantic checks as the keypad and RUN inhibited (I-094); RUN, ACK and trip reset stay
+   local-only for good (`0031` D7).
 
 Rejected: trip delay (breaks the 1 s rule); startup bypass timer (only for low setpoints); two PIN levels and
 challenge-response recovery (I-100 needs a lock, not roles); "hottest" screen (channels have different limits);
