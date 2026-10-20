@@ -126,7 +126,9 @@ If any fails, `outputs` stops the PB3 PWM (timer output disconnected, pin driven
 moment, so a later validated scan can never re-close the contact without an ACK. The
 window is a countdown owned by the Timer2 ISR (`02` 4.2): only the protection path reloads it (one atomic
 write with interrupts disabled); the ISR stops the pump when it reaches zero.
-Restarting the PWM requires condition 2 to be re-established by a *new* validated scan.
+Restarting the PWM requires condition 2 to be re-established by a *new* validated scan. **ACK ordering:** an
+accepted ACK enters `RUN` with the window closed and its expiry timer started at the ACK; the PWM starts only when
+the next validated scan opens the window, and if none arrives within `T_WIN` the expiry trip (G05) applies.
 
 `T_WIN` = 900 ms > one normal scan cycle (~690 ms, `03`) and > the worst slow scan (~870 ms) of `03` 10.2; set from the scan time
 measured on the first boards (service step P15) and recorded. A stalled scan opens RUN within `T_WIN` + pump decay

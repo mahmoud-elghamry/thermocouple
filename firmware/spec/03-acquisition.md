@@ -348,7 +348,8 @@ between J1 and J2 is not included in the uniform-pitch assumption. Weights are a
   <= 0.65 mV = 650 000 nV, x 100 < 2^31). No floating point.
 * Interpolation error of a 10 C table, computed here against the full NIST functions (0.05 C sweep): K <= 0.14 C
   (worst near -195 C), J <= 0.17 C (near -205 C); **<= 0.03 C for T >= -50 C** for both. A 20 C table would give
-  0.52 / 0.61 C - rejected. This is conversion arithmetic only, not system accuracy.
+  0.52 / 0.61 C - rejected. These bounds are before rounding to the 0.1 C output (which adds <= 0.05 C). This is
+  conversion arithmetic only, not system accuracy.
 * ADC resolution 9.3 nV = 0.0002 C at 41 uV/C - negligible. Gain 32 full scale 78.125 mV covers K to 1372 C
   (54.886 mV) and J to 1200 C (69.553 mV) plus CJ and burnout offset.
 * Out of range: `E < E[0]` or `E > E[last]` -> C02 (no temperature). Saturation/near full scale -> C02 (section 4).

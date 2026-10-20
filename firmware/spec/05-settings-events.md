@@ -108,7 +108,9 @@ the working copy, and the edit cannot be committed until they are entered again.
 canonical OFF encoding (2.2) with no re-entry. After the commit, results of
 the changed channels are discarded and ACK needs a complete validated scan under the new settings sequence
 (`04` 5 rule 3). A type change (any, incl. K -> OFF -> K) increments the channel's type epoch, so the old baseline no longer matches
-its tag (6) and must be re-learned in A07 - across resets too, since both values are stored.
+its tag (6) and must be re-learned in A07 - across resets too, since both values are stored. When the epoch wraps
+(63 -> 0) the same commit also writes that channel's baseline as 'not learned' (calibration record, A/B), so a
+baseline 64 type changes old can never match again.
 
 ## 6. Calibration record (256 B slot, A/B like settings)
 
@@ -132,6 +134,8 @@ its tag (6) and must be re-learned in A07 - across resets too, since both values
   every fitted channel has a learned baseline **whose tag equals the channel's current type and type epoch**.
   Otherwise G10 / `LOCKED: CALIBRATE`. This binding replaces any cross-record transaction: a type change can
   never be paired with an old baseline, even after a reset in the middle of a save.
+* PT100 channels (40-ch only) have no calibration part in v1: until the 40-ch phase defines one, a fitted PT100
+  fails completeness (G10). The 24-ch board has no PT100 input, so F0/F1 are unaffected.
 * Partial learning: `LEARN BURNOUT` stores only when every fitted channel learned inside the absolute window;
   otherwise nothing is stored and the failing channels are listed.
 

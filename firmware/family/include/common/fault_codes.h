@@ -15,7 +15,8 @@ typedef enum {
     FC_B05_ADC_STALLED = 25, FC_B06_REF = 26, FC_B07_AVDD = 27, FC_B08_ZERO = 28, FC_B09_GAIN = 29,
     FC_B10_CJ_BOTH = 30, FC_B11_CJ_DIFF = 31, FC_B12_CJ_ONE = 32, FC_B13_SIGNATURE = 33, FC_B14_RTD = 34,
     FC_B15_ADC_RESET = 35,
-    /* channel (unit = channel 0..42, or input pin for C03) */
+    /* channel (unit = zero-based channel 0..42 for every C code; for C03 acquisition maps the failing input pin
+     * to its owning channel, and the raw pin goes into the event value field) */
     FC_C01_OPEN = 41, FC_C02_RANGE = 42, FC_C03_COMMON_MODE = 43, FC_C04_RATE_RESERVED = 44,
     FC_C05_STUCK_RESERVED = 45, FC_C06_SHORTED = 46, FC_C07_OVUV = 47, FC_C08_COLD = 48, FC_C09_RTD = 49,
     /* causes, not faults */
