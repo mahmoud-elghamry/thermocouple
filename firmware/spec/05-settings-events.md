@@ -51,10 +51,10 @@ N = channel count; 40-ch: 16 + 688 + 2 = 706 B < 768.
 | 10 | i16 | trip SP, 0.1 C | alarm < trip <= probe limit |
 | 12 | u8 | reset band, 1 C | 2..50 |
 | 13 | u8 | reserved | 0 |
-| 14 | i16 | probe limit, 0.1 C | <= type table max (K 1372 C, J 1200 C, PT100 850 C) |
+| 14 | i16 | probe limit, 0.1 C | <= type table max (K 1372 C, J 1200 C, PT100 400 C - the table range of `03` 8) |
 
-For type OFF the other fields are ignored but must still be in range (defaults 0) so the CRC and the validator
-stay simple.
+Type OFF has one canonical encoding, which the validator accepts only for OFF: mode 0, name kept, alarm 0,
+trip 0, band 2, probe limit 0.
 
 ### 2.3 Serialisation and CRC
 
@@ -96,11 +96,17 @@ waits for commissioning (`06`).
    succeeds) or G13 for names/comms/PIN only (alarm); retry once automatically,
    then on the next commit attempt.
 
-**Power cut at any step:** before step 5 the old copy is intact and has the higher valid sequence, or the new copy
-fails CRC -> boot uses the old copy. After step 4 both are valid and the new one has the higher sequence -> boot
-uses the new one. No step leaves zero valid copies unless both were already invalid.
+**Power cut at any step:** while the new copy is incomplete it fails CRC/validation, so boot uses the old one.
+Once the new copy is completely written it is valid and has the higher sequence, so boot uses it even if the
+cut came before the RAM pointer flip - which is correct, because the flip happens only after it was read back
+valid. No step leaves zero valid copies unless both were already invalid.
 
 Names only: the same procedure without the trip; the contact is not opened.
+
+**Type change** (`0038` D2): selecting a new type clears that channel's alarm SP, trip SP and probe limit in
+the working copy, and the edit cannot be committed until they are entered again. After the commit, results of
+the changed channels are discarded and ACK needs a complete validated scan under the new settings sequence
+(`04` 5 rule 3). A type change also invalidates that channel's burnout baseline (re-learn, 6).
 
 ## 6. Calibration record (256 B slot, A/B like settings)
 
@@ -110,13 +116,15 @@ Names only: the same procedure without the trip; the contact is not opened.
 | 2 | u8 | version 1 |
 | 3 | u8 | bank count |
 | 4 | u32 | sequence |
-| 8 | i32 x 6 | REF3030 / internal-reference ratio per bank, ppm deviation from nominal (`03` REF check) |
-| 32 | i32 x 43 | burnout baseline per channel, nV (`03` burnout window) |
+| 8 | i32 x 6 | REF3030 / internal-reference ratio per bank, ppm deviation from nominal (`03` REF check); valid range +-20000 ppm; unused banks 0 |
+| 32 | i32 x 43 | burnout baseline per channel, nV (`03` burnout window); `0x7FFFFFFF` = not learned (allowed only for OFF channels) |
 | 204 | u16 | CRC16 |
 
 * Written in service mode (`08`): `CAL REF` (automatic, no instrument needed) and `LEARN BURNOUT` (with every
   fitted thermocouple connected and intact). Both are part of commissioning (`06`).
 * Invalid or missing -> `CONFIG_LOCK` with G10 (`LOCKED: CALIBRATE`). Same A/B save and power-cut rules as 5.
+* Partial learning: `LEARN BURNOUT` stores only when every fitted channel learned inside the absolute window;
+  otherwise nothing is stored and the failing channels are listed.
 
 ## 7. Events
 
@@ -132,7 +140,7 @@ Names only: the same procedure without the trip; the contact is not opened.
 | 7 | u24 | uptime, s (wraps after 194 days) |
 | 10 | i16 | value, 0.1 C (or 0) |
 | 12 | i16 | threshold, 0.1 C (or 0) |
-| 14 | u8 | reserved |
+| 14 | u8 | unit: bank 1-5 for B-codes, input pin for C03, 0 otherwise |
 | 15 | u8 | CRC8 (poly 0x07) over bytes 0..14 |
 
 Ring of 32; the next write goes to the slot after the newest valid entry. An entry with a bad CRC is skipped
@@ -142,7 +150,7 @@ when reading (shown as `--`), never repaired.
 
 | Type | When |
 |---|---|
-| 1 POWER_UP | each boot (code: G11/G12 if reset by watchdog/brown-out) |
+| 1 POWER_UP | each boot, written after the first validated scan (a reset loop writes nothing); code G11/G12 if reset by watchdog/brown-out |
 | 2 TRIP | entering `TRIPPED`, and each *new* trip cause while tripped (code, channel, value, threshold) |
 | 3 ALARM | a new alarm cause appears |
 | 4 FAULT | a fault code becomes active (once per activation) |

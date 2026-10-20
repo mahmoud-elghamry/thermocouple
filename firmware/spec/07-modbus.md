@@ -9,9 +9,13 @@ is never in the trip path (`0031` D7, I-086, I-094). Normative for `modbus`, dri
 * Isolated RS-485 (ADM2587E), UART0 PD0/PD1, driver enable DE on PD7 (`02`). Half duplex, slave only.
 * 8 data bits, no parity, 2 stop bits (Modbus rule for no parity) - fixed; baud 9600 or 19200 from settings;
   address 1..247 from settings. Broadcast (address 0) is ignored (no writes exist).
+* Inter-character gap > 1.5 characters inside a frame -> the frame is discarded (Modbus serial line 2.5.1.1).
+  RX bytes are timestamped by Timer1 at 50 us resolution (`02` 4.4), so both limits are measurable at 19200.
+  UART framing/overrun errors mark the frame bad (discarded).
 * Frame end: silence >= 3.5 characters (9600: 4.0 ms; 19200: 1.75 ms per the Modbus spec's fixed 1.75 ms above
   19200 - use 2.0 ms at 19200). Measured with the 1 ms tick + the UART RX timestamp.
-* Response: DE high, send, wait for the transmit-complete flag of the last byte, DE low. Turnaround delay before
+* Response: built into a 256 B TX buffer (largest response 5 + 2x64 = 133 B), sent by the UDRE interrupt one byte
+  at a time; DE high before the first byte, low after the transmit-complete flag of the last byte. Turnaround delay before
   answering >= 3.5 characters after the request.
 
 ## 2. CPU budget (protection never starved)
@@ -46,8 +50,8 @@ Values not available yet (before the first scan) read as 0x8000 with the validit
 | 4 | firmware patch | |
 | 5 | settings schema version | |
 | 6 | protection state | 0 CONFIG_LOCK, 1 START_LATCHED, 2 RUN, 3 TRIPPED, 4 SERVICE |
-| 7 | RUN contact actual (from read-back RUN_SENSE) | 0 open, 1 closed |
-| 8 | ALARM relay actual (read-back) | 0 de-energised (= alarm), 1 energised |
+| 7 | RUN coil-drive feedback (RUN_SENSE on the coil low side - infers coil drive, not contact continuity; a welded contact is an accepted limit, I-081) | 0 not driven, 1 driven |
+| 8 | ALARM coil-drive feedback (same inference) | 0 not driven (= alarm), 1 driven |
 | 9 | active alarm count | |
 | 10 | first-out cause code | fault code index (table 9 of `04`), 0 none |
 | 11 | first-out channel | 1..43 or 0 |
@@ -64,7 +68,7 @@ Values not available yet (before the first scan) read as 0x8000 with the validit
 | 52 | last refused ACK reason | R1..R6 as 1..6, 0 none |
 | 53-63 | reserved | 0 |
 
-Fault code index: Gnn -> nn (1..20), B01..B14 -> 21..34, C01..C09 -> 41..49 (stable, never reused). One bit per
+Fault code index: Gnn -> nn (1..20), B01..B15 -> 21..35, C01..C11 -> 41..51 (C10/C11 are first-out causes: over trip / over alarm SP) (stable, never reused). One bit per
 code; which bank raised a B-code is in the event log and on the LCD.
 
 ### 4.2 Channel block, base 100 + 10*(ch-1), ch = 1..43

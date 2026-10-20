@@ -48,7 +48,7 @@ write CONFIG_0 0x0875: `19 08 75` CRC `0x7C`; read ID returning 0x12: `45 12` CR
 | CONFIG_2 | 0x1B | 16 | **0x0840** | REF check: Bipolar, REF_SEL 00 = REFIN1 (REF3030), REF buffers off, AIN_BUFP 1, AIN_BUFM 0 (AINM = AVSS), PGA 1 |
 | CONFIG_3 | 0x1C | 16 | **0x0810** | Bipolar, internal ref, AIN buffers off, PGA 1 (AVDD/6) |
 | CONFIG_4 | 0x1D | 16 | **0x0818** | Bipolar, REF_SEL 11 = AVDD, buffers off, PGA 1 (common-mode check, ratiometric to AVDD) |
-| CONFIG_5 | 0x1E | 16 | **0x0870** | Bipolar, internal ref, AIN buffers on, PGA 1 (20 mV at gain 1, gain-ratio partner of CONFIG_0) |
+| CONFIG_5 | 0x1E | 16 | **0x0810** | Bipolar, internal ref, **AIN buffers off**, PGA 1 (20 mV at gain 1, gain-ratio partner of CONFIG_0). ADI does not allow buffered gain-1 internal signals (AD7124 Rev F, Signal Chain Check, p.68); the AINM undervoltage flag that this internal signal raises is ignored in this slot only |
 | CONFIG_6, 7 | 0x1F, 0x20 | 16 | 0x0860 | reset value, unused, read back |
 | FILTER_0..5 | 0x21-0x26 | 24 | **0xE60180** | Filter 111 = post filter, REJ60 0, POST_FILTER **011 = 25 SPS** (62 dB at 50/60 Hz +-1 Hz), SINGLE_CYCLE 0, FS left at reset 0x180 (Table 75 p.89, Table 62 p.64). **OPEN-Q1:** confirm FS is ignored when Filter = 111 |
 | FILTER_6, 7 | 0x27, 0x28 | 24 | 0x060180 | reset, unused |
@@ -87,9 +87,9 @@ A failure in A3-A10 is retried twice (whole sequence from A1); then the bank is 
 
 ID = 0x12 in Rev B (p.83). The register is device ID in bits 7:4 and silicon revision in bits 3:0 (assumption
 from the 0x12 value and AD7124 driver practice). Rule: `ID[7:4] == 0x1` (AD7124-8) **and** `ID[3:0]` in a
-build-time whitelist, initially {0x2} plus the revision read on the first boards. **OPEN-Q5:** current English
-data sheet lists the ID values of the shipping silicon (0x14 / 0x16 are possible); fill the whitelist from it and
-from the first boards. Wrong ID -> B01.
+build-time whitelist {0x2, 0x4, 0x6, 0x7} (Rev B 0x12; Rev F documents 0x17 for current silicon). The revision
+read on the first boards is recorded; an ID outside the list -> B01. **OPEN-Q5** closes when the first boards'
+ID is logged.
 
 ### 2.4 Status byte (DATA_STATUS = 1)
 
@@ -143,8 +143,10 @@ fault); alternative internal short to evaluate on the bench.
 ```
 P1  write CHANNEL_s = image | 0x8000
 P2  write ADC_CONTROL = 0x0744   (single conversion: one settled conversion, then standby)
-P3  poll STATUS every ~1 ms (short CS-low transactions, rule 4 of 01 2.1) until RDY = 0;
-    timeout 1.15 x 42.331 ms = 49 ms -> B05
+P3  poll STATUS once per main loop (loop <= 5 ms typical, <= 20 ms worst, `01` 2) until RDY = 0. The conversion
+    start time is stamped at P2; timeout = 1.15 x 42.331 ms + 20 ms (worst loop) = 69 ms after P2 -> B05.
+    Polling delay is not conversion time: the slot period window of section 4 uses the RDY-seen time minus
+    the worst loop as its lower bound
 P4  read DATA (24 bits + STATUS + CRC); checks of 2.4; CRC failure -> re-read DATA (data stays until the next
     conversion), at most 2 re-reads, then B02
 P5  write CHANNEL_s = image (disabled)
@@ -215,8 +217,11 @@ rail and reads out of range (C02) or implausibly (0043 4.2).
 
 ## 5. ERROR register classification (ADC Rev B Table 70 p.83)
 
-Read ERROR (0x46) when a STATUS shows ERROR_FLAG = 1, and once per scan unconditionally. A set bit is re-read at
-most twice in the same scan (0043 3.1); still set -> fault as below.
+Read ERROR (0x46) when a STATUS shows ERROR_FLAG = 1, and once per scan unconditionally. **The first observed
+ERROR value is kept against the conversion it belongs to** (reading ERROR clears ADC_CONV_ERR and other latched
+bits, so a re-read is not evidence). A conversion with a conversion/saturation/OV-UV bit is never used as a
+temperature: the fault below applies, and only a **new** conversion of that slot in a later scan can clear it.
+SPI_* communication bits: the transaction is retried (at most twice per scan, 0043 3.1); repeated -> B04.
 
 | Bits | During slot 0-7 | During slot 13 / 14 | During slots 8-12 | Any time |
 |---|---|---|---|---|
@@ -356,7 +361,7 @@ Same as 2.1 except:
 | CONFIG_0 | **0x09E4** | Bipolar, REF_BUFP 1, REF_BUFM 1 (REFIN1- = 0.165 V >= 0.1 V headroom, C 10.11), AIN_BUFP/M 1, REF_SEL 00 = REFIN1, PGA 100 = 16 |
 | CONFIG_1 | **0x0810** | internal ref, buffers off, gain 1 (AVDD/6, sheath test) |
 | CONFIG_2 | **0x0874** | internal ref, AIN buffers on, gain 16 (20 mV) |
-| CONFIG_3 | **0x0870** | internal ref, AIN buffers on, gain 1 (20 mV partner) |
+| CONFIG_3 | **0x0810** | internal ref, AIN buffers off, gain 1 (20 mV partner; same rule as CONFIG_5) |
 | CONFIG_4, 5 | 0x0860 | unused (reset) |
 | IO_CONTROL_1 | per slot, below | IOUT1(13:11) = 011 = 250 uA, IOUT0(10:8) = 011 = 250 uA, IOUT1_CH(7:4), IOUT0_CH(3:0) (Table 68) |
 
@@ -411,11 +416,11 @@ Check-resistor or reference failure invalidates the whole RTD bank -> global fau
 **OPEN-Q17:** whether REF_DET_ERR flags conversions that use the internal reference while the RTD currents are
 off (slots 8-11); if it does, mask it there.
 
-## 9. Device signatures (0043 4.4; mandatory on the 40-ch, proposed on all boards)
+## 9. Device signatures (0043 4.4; mandatory on all boards)
 
 Written once at start-up (and after every re-init), read back **every scan**; any mismatch -> **B13** (aliased
 address, stuck CSAx, swapped CS line). On 8/24-ch the same check costs two reads per device and catches crossed
-chip selects, so the code path is identical on all boards (proposal).
+chip selects, so the code path is identical on all boards.
 
 | Device | Spare register | Value |
 |---|---|---|
@@ -430,7 +435,8 @@ chip selects, so the code path is identical on all boards (proposal).
 2. ID read in scan n passes 2.3; no STATUS with POR_FLAG = 1.
 3. Every register of the image list (2.1, incl. OFFSET/GAIN captured after calibration and the OFFSET_7
    signature) read back in scan n equal to its image; rotating CHANNEL_13/14 equal to the images of scan n.
-4. ERROR read in scan n: no bank-level bit (section 5) set after 2 re-reads.
+4. ERROR read in scan n: no bank-level bit (section 5) observed for any conversion of scan n (communication
+   bits only after their retries).
 5. All 15 slots completed in order, each result with CH_ACTIVE = slot, RDY inside its window, MCLK_COUNT advanced.
 6. Slots 8-12 inside their limits (section 4).
 7. CJ: both TMP126 valid and agreeing (6.4), or the degraded rule when `CJ_DEGRADED_ALLOWED` is set.
@@ -448,14 +454,16 @@ was validated (diagnostic slots 8-12 come after the TC slots in the same scan).
 
 1. Every bank of the board validated for scan n (section 10.1).
 2. 40-ch: RTD bank validated for scan n (section 8) and all 16 signatures (6 ADC + 10 TMP126) matched (section 9).
-   8/24-ch: all signatures matched (if adopted).
+   8/24-ch: all signatures of its devices matched.
 3. REFOK read low in scan n outside a REFTEST window; no REFTEST failure pending (`02` 10).
 4. Scan n completed within **850 ms** of its start (*provisional*; 15 x 44.6 + overhead ~690 ms) - else G05.
 5. No island-loss condition (G14) and no full re-init pending.
 6. Fuse self-check passed at start-up (G15 not set).
 
-Only a validated board scan reloads the RUN deadline (`02` 4.2) and counts as acquisition progress for the
-watchdog (`02` 5).
+Only a validated board scan reloads the RUN deadline (`02` 4.2). The watchdog is **not** tied to validated
+scans: it is fed by the flow check of `01` 2.3, where acquisition progress means any slot state advance (a
+STATUS poll answered, a conversion read, a slot completed, a boot/calibration/service step completed) within
+the last 100 ms. Boot, calibration and service steps are written as bounded states so they also report progress.
 
 ## 11. Fault codes detected in acquisition
 

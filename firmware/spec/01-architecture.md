@@ -35,8 +35,9 @@ reset -> boot (2.1) -> loop forever:
   hardware; waits are states with a timeout measured in `ms_tick`.
 * Target loop period <= 5 ms, worst case <= 20 ms (budget table in `10-phases.md`). The AD7124 conversion
   (~42 ms per slot at 25 SPS) is much longer than a loop, so polling its ready flag each loop costs nothing.
-* **ISRs are minimal**: 1 ms timer (increments `ms_tick`, samples keys into a shift register), UART RX/TX byte
-  into/out of ring buffers, nothing else. No decision is ever made in an ISR. The charge-pump PWM is a hardware
+* **ISRs are minimal**: 1 ms timer (increments `ms_tick`, samples keys, counts down the RUN deadline and stops
+  the pump at zero - it can only stop it, never start it), UART RX byte + 50 us timestamp (Timer1) into a ring,
+  UART TX from a buffer, nothing else. No decision is ever made in an ISR. The charge-pump PWM is a hardware
   timer output with no ISR.
 * Rejected: an RTOS (stacks per task in 16 KB RAM, priority bugs, nothing gained at this size); fully
   interrupt-driven acquisition (hard to test, races with the SPI sharing between banks).
@@ -101,7 +102,7 @@ BOARD      board_cfg (const tables per board)                         (data)
 | `board_cfg` | build | all | `const` in flash |
 | active settings | `settings` | all | `const settings_t *` - changed only by a committed transaction (4.1) |
 | `meas[ch]` results of the last scan | `scan` | channel_eval, ui, modbus, service | struct per channel `{temp_dC, emf_nV, scan_no, flags}` |
-| fault registry (bitset by code) | `fault` service; raised by drivers/scan, latched/cleared by protection | protection, ui, modbus, events | byte array, one bit per code |
+| fault registry | `fault` service; raised/cleared by detectors | protection, ui, modbus, events | one entry per (code, unit) - unit = bank, channel or input pin - so bank A and bank B can hold the same code independently; aggregated per code only for display/Modbus |
 | protection state | `protection` | out_task, ui, modbus, events | struct; RUN permission stored twice (value + complement) |
 | events ring | `events` | ui, modbus | EEPROM + RAM head copy |
 | key events | `keys` driver | ui only | small queue |

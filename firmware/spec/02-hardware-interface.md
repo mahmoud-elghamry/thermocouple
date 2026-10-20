@@ -454,7 +454,7 @@ RS-485 is never in the trip path (0031 D7).
 * REFOK (PA2) sampled once per board scan outside a self-test window; high -> **G08** (0043 4.3). Debounce:
   none in firmware - the hardware has 100 nF on the 1 M sense node (`c_iso.py` C419, R422) and 1 M hysteresis
   (R442, ~20 mV).
-* REFTEST self-test (0043 4.3; 0032 rev 4 item 3): at start-up (S14) and every **N = 10 min (proposed,
+* REFTEST self-test (0043 4.3; 0032 rev 4 item 3): at start-up (S14) and every **N = 10 min (decided 2026-10-20,
   OPEN-H7, `04`)**:
   1. REFOK must read low (connected) before the test, else G08 (no self-test on a broken wire).
   2. REFTEST = 1; wait **>= 5 ms** (R425 1k into C419 100 nF: tau 0.1 ms; comparator and isolators ns).
@@ -486,8 +486,8 @@ and the time to default (tDO 8/12 in 6.10, unit not legible in the local text) -
 | H1 | CA-IS3761 output level with its input floating (MCU in reset) | English CA-IS3761 data sheet / bench |
 | H2 | Nexperia 74HC154 timing at 2 V (TI CD74HC154 used as bound) | Nexperia 74HC_HCT154 data sheet |
 | H3 | AD7124 DOUT edge on the real bus capacitance (read-path budget) | scope MISO at 2 MHz on the first boards; until then 1 MHz |
-| H4 | RUN deadline reload value (900 ms proposed) | `04` with the measured scan time |
+| H4 | RUN deadline 900 ms decided (`04` 6.1); re-check against the measured scan time (P15) | first boards |
 | H5 | real WDT timeout (0.25 s typ chosen so it stays < 0.5 s) | measure hot and cold in service mode |
 | H6 | USBasp `-B` value through J501 / R405 | first programming session |
-| H7 | REFTEST waits (5 ms / 20 ms) and interval N (10 min proposed) | bench, I-120 cut FEED/SENSE; `04` for N |
+| H7 | REFTEST waits (5 ms / 20 ms); interval N = 10 min decided | bench, I-120 cut FEED/SENSE |
 | H8 | CA-IS3761 default-output timing (tDO) and input-side-unpowered behaviour | English data sheet |

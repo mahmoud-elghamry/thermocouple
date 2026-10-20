@@ -18,8 +18,8 @@ This file is normative for `channel_eval`, `protection`, `outputs` and the fault
 |---|---|---|
 | `meas[ch]` `{temp_dC, emf_nV, scan_no, flags}` | `scan` (`03`) | flags: `VALID`, `OPEN`, `RANGE`, `CM_FAIL`, `ADVISORY_RATE`, `ADVISORY_STUCK` |
 | bank status per bank | `scan` | `VALIDATED` or the bank fault codes of `03` |
-| `scan_validated` (whole board) | `scan` | all banks validated in this scan (`03` section 8) |
-| fault registry | drivers, scan, store, outputs | bitset by code (section 9) |
+| `scan_validated` (whole board) | `scan` | all banks validated in this scan (`03` section 10.2), with the active settings sequence it was evaluated under |
+| fault registry | drivers, scan, store, outputs | entries by (code, unit) (`01` 4) |
 | active settings | `settings` | `const`, validated (`05`) |
 | key commands | `ui` mailbox | `ACK`, `COMMIT_SETTINGS` |
 | read-back pins | `outputs` | RUN_SENSE (PC2), ALARM_SENSE (PC7) |
@@ -60,13 +60,16 @@ Advisory flags (rate, stuck; I-098) never change the condition; they only add an
 
 ## 4. Global protection state machine (`protection`)
 
-States: `CONFIG_LOCK`, `START_LATCHED`, `RUN`, `TRIPPED`, `SERVICE`. RUN contact may be closed **only in `RUN`**.
+States: `CONFIG_LOCK`, `START_LATCHED`, `RUN`, `TRIPPED`, `SERVICE`. RUN contact may be closed **only in `RUN`**, with one exception: the confirmed one-second bench relay test of
+`08` A03/A04 in `SERVICE` (pump started by the service step itself, Timer2 deadline 1000 ms, stopped
+unconditionally at the end of the step or on any key).
 ALARM relay: section 7.
 
 | From | Event / condition | To | Actions |
 |---|---|---|---|
 | (boot) | settings invalid or calibration invalid | `CONFIG_LOCK` | event `POWER_UP`, raise G01/G10 |
-| (boot) | SET held at power-up (`08`) | `SERVICE` | event `SERVICE_ENTRY` |
+| (boot) | ACK+SET held at power-up | PIN recovery (`06` 5.3), then as below | event `PIN_RESET` |
+| (boot) | SET held at power-up (`08`) - **takes precedence over settings validity**, so a blank board can be serviced | `SERVICE` | event `SERVICE_ENTRY` |
 | (boot) | otherwise | `START_LATCHED` | cause `START` (power-up, WDT, BOD per reset flags), event |
 | `CONFIG_LOCK` | valid settings committed (`05`) and calibration valid | `START_LATCHED` | cause `SETTINGS` |
 | `START_LATCHED` | ACK accepted (section 5) | `RUN` | event `ACK` |
@@ -99,8 +102,8 @@ An `ACK` command from `ui` is accepted only if **all** hold; otherwise it is ref
 | # | Rule | Refusal code / LCD text |
 |---|---|---|
 | 1 | state is `START_LATCHED` or `TRIPPED` (in `RUN`, ACK only clears cleared alarms, 7.2) | - |
-| 2 | the key press is fresh: ACK was seen released after boot, after the last trip and after any power-up gesture, and pressed for >= 50 ms (`06`) | `R1 RELEASE ACK KEY` |
-| 3 | the latest board scan is validated and its `scan_no` is the current one (age < 1 scan) | `R2 WAIT FOR SCAN` |
+| 2 | the key press is fresh: ACK was seen released after boot, after the last trip and after any power-up gesture, held >= 50 ms (`06` 2); a queued ACK expires after 500 ms or on any trip or settings change | `R1 RELEASE ACK KEY` |
+| 3 | the latest board scan is validated, completed less than 1000 ms ago, and was evaluated under the **current** settings sequence (a scan straddling a settings switch does not count) | `R2 WAIT FOR SCAN` |
 | 4 | no trip-action global/bank fault is active (section 9) | `R3 FAULT Gnn/Bnn` |
 | 5 | every TRIP-mode fitted channel is clear per 3.3 | `R4 CH nn HOT/FAULT` |
 | 6 | settings valid and not being written | `R5 SETTINGS` |
@@ -118,7 +121,9 @@ Accepted ACK in `START_LATCHED`/`TRIPPED`: go to `RUN`; also clear every alarm l
 3. no trip fault active;
 4. flow check of `01` 2.3 passing (otherwise the watchdog resets the MCU anyway).
 
-If any fails, `outputs` stops the PB3 PWM (timer output disconnected, pin driven low) in the same loop.
+If any fails, `outputs` stops the PB3 PWM (timer output disconnected, pin driven low) in the same loop. The
+window is a countdown owned by the Timer2 ISR (`02` 4.2): only the protection path reloads it (one atomic
+write with interrupts disabled); the ISR stops the pump when it reaches zero.
 Restarting the PWM requires condition 2 to be re-established by a *new* validated scan.
 
 `T_WIN` = 900 ms > one scan cycle (~700 ms, `03`) plus the worst loop (20 ms) with margin; set from the scan time
@@ -150,7 +155,7 @@ The same scheme for ALARM_SENSE (PC7) -> G07.
 | `outputs` stops PWM (same loop) | < 5 ms |
 | charge-pump decay to relay drop-out | 15-30 ms (`CALCULATIONS` 8.5) |
 | G6K release time | <= 3 ms (datasheet max) |
-| **total** | **< 0.75 s** (requirement 1 s, GOAL; to be measured, I-013) |
+| **total** | **~0.75-0.8 s estimate** incl. the filter allowance of `CALCULATIONS` 9.7 (requirement 1 s, GOAL; to be measured, I-013) |
 
 Open-thermocouple detection is slower by design: burnout is checked on one channel per scan (each channel about
 every 6 s, `03`). An open TC also drives the reading to a rail (`RANGE`), which trips at the next conversion.
@@ -182,9 +187,14 @@ on slot result (ch):                         # immediate path, section 1
     if action(c, mode[ch]) has TRIP: enter_tripped(cause=ch)     # PWM stopped in the same loop
     if action has ALARM: set_alarm_latch(ch)
 
+on fault raised (code, unit):                # immediate, any time
+    if action has TRIP: enter_tripped(cause=code)   # latch set now; condition recovery never clears it
+    if action has ALARM: set_alarm_latch(code, unit)
+    (a fault whose condition later disappears is cleared in the registry; the trip latch stays until ACK)
+
 on board scan complete:
     for each fitted ch: re-evaluate (markers, clear tests)
-    for each active fault f in registry: apply action(f)  # section 9
+    (fault actions are NOT deferred to here: see 'on fault raised')
     if state == RUN and scan_validated and no trip action and no trip fault:
         run_window_open_until = now + T_WIN
     handle mailbox command (ACK / COMMIT) with fresh data      # section 5, 4
@@ -212,7 +222,7 @@ latches still need ACK.
 | G03 | flash CRC at boot | boot (`02`) | halt with outputs safe | (LCD may be blank) |
 | G04 | protection state/complement corrupt, stack canary | protection, loop (`01`) | T | `INTERNAL FAULT` |
 | G05 | complete-scan deadline missed | scan (`03`) | T | `SCAN TIMEOUT` |
-| G06 | RUN read-back mismatch | outputs (6.2) | T + A | `RUN RELAY FAULT` |
+| G06 | RUN coil-drive feedback mismatch | outputs (6.2) | T + A | `RUN RELAY FAULT` |
 | G07 | ALARM read-back mismatch | outputs (6.2) | T + A | `ALARM RELAY FAULT` |
 | G08 | engine reference lost (REFOK high) | scan (`03`) | T | `ENGINE REF LOST` |
 | G09 | engine reference self-test (REFTEST) failed | scan (`03`) | T | `ENGINE REF TEST` |
@@ -236,12 +246,14 @@ latches still need ACK.
 | C01 | open thermocouple (burnout) | scan | TC/AC | `CH nn OPEN` |
 | C02 | out of range for its type / probe limit | tc_math | TC/AC | `CH nn RANGE` |
 | C03 | common-mode check failed | scan | TC/AC | `CH nn COMMON MODE` |
-| C04 | rate advisory | channel_eval | I (advisory) | `CH nn RATE?` |
-| C05 | stuck advisory | channel_eval | I (advisory) | `CH nn STUCK?` |
+| C04 | rate advisory - reserved, not implemented in v1 (I-098 thresholds unvalidated) | - | - | - |
+| C05 | stuck advisory - reserved, not implemented in v1 | - | - | - |
 | C06 | burnout lower window (shorted input) | scan (`03` 4.1) | TC/AC | `CH nn SHORTED` |
 | C07 | input over/under-voltage flag | ad7124 | TC/AC | `CH nn OVERVOLT` |
 | C08 | implausibly cold (< -50 C) | tc_math | TC/AC | `CH nn TOO COLD` |
 | C09 | PT100 fault (40-ch, 41-43) | rtd (`03` 8) | TC/AC | `CH nn RTD FAULT` |
+| C10 | cause only (not a fault): over trip setpoint | channel_eval | (first-out/event cause) | `CH nn OVER TRIP` |
+| C11 | cause only (not a fault): over alarm setpoint | channel_eval | (event cause) | `CH nn OVER ALARM` |
 | B15 | unexpected ADC reset (POR flag) | ad7124 (`03` 2.4) | TB; re-init | `BANK x ADC RESET` |
 
 Codes never change meaning once released; new faults get new numbers.

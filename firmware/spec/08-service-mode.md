@@ -5,8 +5,12 @@ so the code tested on the bench is the code that runs on the engine. Normative f
 
 ## 1. Entry, exit, safety
 
-* Entry: SET held at power-up (`06` 2). State `SERVICE` (`04`): **RUN never closes** in this mode - the PWM is not
-  started at all; the ALARM relay stays de-energised (= alarm) except in the one confirmed relay step.
+* Entry: SET held at power-up (`06` 2), also on a blank or invalid board (service does not need settings).
+  State `SERVICE` (`04`): **RUN never closes** except in steps A03/A04, which start the pump themselves for at
+  most 1 s after confirmation (Timer2 deadline 1000 ms, stopped at the end of the step or on any key, the
+  watchdog still running); the ALARM relay stays de-energised (= alarm) except in A02.
+* Service acquisition measures every input as type K for display only; it never grants protection validity
+  and never uses or invents setpoints.
 * Exit: only by reset/power cycle; the next start is `START_LATCHED` (ACK needed).
 * Modbus is off; the RS-485 port prints the report as plain text, 9600 8N1, CR LF line ends.
 * The LCD shows the current step on line 1 (`SERVICE MODE  P03`) and the last report line on lines 2-4.
@@ -59,7 +63,7 @@ and waits for SET (ESC skips and prints `SKIP`). The step never starts on a key 
 | A04 | RUN with PWM stopped but pin held high 1 s (static level) | relay must NOT stay energised after the pump decays (proves the charge pump) |
 | A05 | EEPROM test on the scratch area 0x0F00-0x0FFF only: write pattern, read back, restore 0xFF | pattern matches; settings/calibration untouched (their CRC re-checked) |
 | A06 | `CAL REF` (if selected): measure each bank's REF ratio, store the calibration record (`05` 6) | record valid after read-back |
-| A07 | `LEARN BURNOUT` (if selected, every fitted probe connected): store baselines | every fitted channel inside the absolute window |
+| A07 | `LEARN BURNOUT` (if selected): the LCD lists the inputs that read a connected probe now; the technician confirms that list as the fitted channels; baselines stored for them, others marked not learned | every confirmed channel inside the absolute window (`05` 6) |
 
 ## 5. Example (24-ch, bench, one probe on channel 1, others open)
 

@@ -53,7 +53,12 @@ every table in `04` and `05` exercised; branch coverage reported (gcov) and ever
 | S17 | names-only commit while RUN | RUN stays closed |
 | S18 | ALARM ONLY channel over its trip SP, then a TRIP channel normal | alarm only; ACK of other trips not blocked by it |
 | S19 | channel OFF with an open input | ignored entirely |
-| S20 | rate/stuck advisory during a real fast rise | trip still happens at the trip SP |
+| S20 | (advisories not in v1) a real fast rise of 100 C/s | trip at the trip SP, nothing suppresses it |
+| S21 | same fault code on two banks; one clears | the other bank's fault stays active |
+| S22 | ADC_CONV_ERR on one conversion, ERROR read clears it | that conversion never used; fault until a new good conversion |
+| S23 | settings committed mid-scan | the straddling scan does not count for ACK (R2) |
+| S24 | island power lost then restored | G14, full re-init, RUN only after ACK and a validated scan |
+| S25 | G05 deadline fault clears at the next scan | trip latch stays until ACK (no silent recovery to RUN) |
 
 ## 4. Bench tests on the first boards (service mode + scripted, results in the board's log)
 
@@ -62,7 +67,7 @@ every table in `04` and `05` exercised; branch coverage reported (gcov) and ever
 | T01 | power-on values (`POWER-ON-TEST.pdf`), lab supply with 0.3 A limit | in range | - |
 | T02 | programming + fuse read-back | P02 OK | I-104 |
 | T03 | service passive report | all fitted items OK | - |
-| T04 | ice water and boiling water on two channels vs reference thermometer | within the error budget of `03` | I-101 |
+| T04 | ice water and boiling water on two channels vs reference thermometer | within +-2 C (provisional bench acceptance; the K-table error itself is < 0.2 C, `03` 7) | I-101 |
 | T05 | trip timing: heat a probe (or inject an EMF) across the trip SP, scope on the contact | <= 1 s, measured | I-013 |
 | T06 | open a probe wire | C01 within ~6 s (burnout) or at once (rail) | 0034 |
 | T07 | cut FEED, cut SENSE | G08 trip | 0032 |
