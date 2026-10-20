@@ -17,18 +17,38 @@ static prot_state_t protection;
 static prot_out_t output;
 static outputs_t outputs;
 static bool command_pending,service_mode,window_watch;
-static bool trip_logged;
+static bool trip_logged,first_logged,first_this_pass;
 static uint32_t last_scan,window_at;
 static uint16_t worst_loop;
 static ack_reason_t last_ack;
 static uint8_t seen_fault[FAULT_CODES][FAULT_BYTES],channel_cause[MAX_CHANNELS];
-static void log_event(event_type_t type,fault_code_t code,uint8_t channel,uint8_t unit,
-                      temp_dC_t value,temp_dC_t threshold) {
+static void enqueue_event(event_type_t type,fault_code_t code,uint8_t channel,uint8_t unit,
+                      temp_dC_t value,temp_dC_t threshold,uint32_t uptime_s) {
     event_t e;
     memset(&e,0,sizeof e); e.type=type; e.code=code; e.channel=channel; e.unit=unit;
-    e.value_dC=value; e.threshold_dC=threshold; e.uptime_s=tick_ms()/1000u;
+    e.value_dC=value; e.threshold_dC=threshold; e.uptime_s=uptime_s;
     if(type==EV_TRIP) trip_logged=true;
-    if(!ee_owner_log(&e)) (void)fault_raise(faults,FC_G04_INTERNAL,0);
+    if(!ee_owner_log(&e)) (void)fault_raise(faults,FC_G13_SAVE_FAIL_INFO,0);
+}
+static uint8_t first_event_unit(void) {
+    const first_out_t *f=&protection.first;
+    if(f->code>=FC_B01_ADC_ID && f->code<=FC_B15_ADC_RESET) return (uint8_t)(f->unit+1);
+    if(f->code==FC_C03_COMMON_MODE) return (uint8_t)(scan_current()->scan_no%16u);
+    return 0;
+}
+static void log_first_trip(void) {
+    const first_out_t *f=&protection.first;
+    if(first_logged || !f->valid) return;
+    first_logged=first_this_pass=true;
+    /* Before companion FAULT/ALARM entries consume the burst's free slots. */
+    enqueue_event(EV_TRIP,f->code,f->channel,first_event_unit(),f->value_dC,f->threshold_dC,f->uptime_s);
+}
+static void log_event(event_type_t type,fault_code_t code,uint8_t channel,uint8_t unit,
+                      temp_dC_t value,temp_dC_t threshold) {
+    log_first_trip();
+    if(type==EV_TRIP && first_this_pass && code==protection.first.code &&
+       channel==protection.first.channel && unit==first_event_unit()) return;
+    enqueue_event(type,code,channel,unit,value,threshold,tick_ms()/1000u);
 }
 void app_init(settings_t *cfg,calibration_t *calibration,fault_registry_t *registry,
               bool valid,bool service) {
@@ -37,6 +57,7 @@ void app_init(settings_t *cfg,calibration_t *calibration,fault_registry_t *regis
     memset(&outputs,0,sizeof outputs); memset(&output,0,sizeof output);
     memset(seen_fault,0,sizeof seen_fault); memset(channel_cause,0,sizeof channel_cause);
     command_pending=window_watch=false; last_scan=0; worst_loop=0; last_ack=ACK_NONE;
+    first_logged=first_this_pass=false;
     prot_init(&protection,valid,valid && cal_complete(cal,cfg),service);
     /* Publish fitted-channel identity before any fault notifications. */
     memset(&in,0,sizeof in); in.settings=settings; in.faults=faults;
@@ -106,7 +127,7 @@ uint8_t app_step(bool flow_ok) {
     prot_in_t in; output_decision_t d; uint8_t done,seen=0; res_t r;
     prot_mode_t before;
     memset(&in,0,sizeof in);
-    trip_logged=false;
+    trip_logged=first_this_pass=false;
     if(command_pending) {
         r=ee_owner_settings(&mailbox);
         if(r!=RES_BUSY) { command_pending=false; if(r!=RES_OK) last_ack=ACK_R5_SETTINGS; }
@@ -143,7 +164,8 @@ uint8_t app_step(bool flow_ok) {
     }
     if(done==2) log_event(EV_CALIBRATION,FC_NONE,0,0,0,0);
     if(ee_owner_fault()!=FC_NONE) (void)fault_raise(faults,ee_owner_fault(),0);
-    if(ee_owner_fault()!=FC_G13_SAVE_FAIL_INFO) fault_clear(faults,FC_G13_SAVE_FAIL_INFO,0);
+    if(ee_owner_info_fault()) (void)fault_raise(faults,FC_G13_SAVE_FAIL_INFO,0);
+    else fault_clear(faults,FC_G13_SAVE_FAIL_INFO,0);
     if(ee_owner_fault()!=FC_G02_SAVE_FAIL_PROT) fault_clear(faults,FC_G02_SAVE_FAIL_PROT,0);
     immediate_results();
     /* Keep the last granted scan's freshness deadline even if B05 opens RUN
@@ -161,6 +183,15 @@ uint8_t app_step(bool flow_ok) {
     ack_input_step(&in); before=protection.mode;
     prot_step(&in,&protection,&output);
     seen|=1;
+    if(output.event_mask&(1u<<(EV_ACK-1))) {
+        first_logged=false;
+        ee_owner_ack_events();
+        if(!ee_owner_info_fault()) {
+            fault_clear(faults,FC_G13_SAVE_FAIL_INFO,0);
+            fault_ack(faults); /* accepted ACK also clears this now-inactive latch */
+        }
+    }
+    log_first_trip();
     if(in.scan_complete && in.scan->scan_validated) window_watch=false;
     if(output.window_refresh) { window_watch=true; window_at=in.now_ms; }
     if(in.ack) last_ack=output.ack_reason;

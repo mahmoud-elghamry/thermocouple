@@ -6,10 +6,10 @@ static set_store_t store;
 static settings_t *active;
 static calibration_t *calibration;
 static uint8_t settings_slot,cal_slot,done,head,tail,count;
-static bool settings_ok,begin_notice,transaction,cal_transaction,cal_saved,io_ok,overflow,bg_fault;
-static bool counted,counter_pending,event_pending;
+static bool settings_ok,begin_notice,transaction,cal_transaction,cal_saved,io_ok,internal_error,bg_fault;
+static bool counted,counter_pending,event_pending,loss_alarm;
 static uint8_t counter_slot,counter_index,event_index,event_slot;
-static uint32_t cycles;
+static uint32_t cycles,events_lost;
 static events_t ring;
 static event_t queue[QUEUE_SIZE];
 static ee_op_t operation;
@@ -23,7 +23,8 @@ void ee_owner_init(settings_t *cfg,calibration_t *cal,uint8_t ss,uint8_t cs,bool
     uint16_t i; uint32_t a,b; bool av,bv;
     active=cfg; calibration=cal; settings_slot=ss; cal_slot=cs; settings_ok=valid;
     done=head=tail=count=0; begin_notice=transaction=cal_transaction=cal_saved=false;
-    counted=counter_pending=event_pending=overflow=bg_fault=false; io_ok=true;
+    counted=counter_pending=event_pending=internal_error=bg_fault=false; io_ok=true;
+    loss_alarm=false; events_lost=0;
     memset(&operation,0,sizeof operation); set_store_init(&store);
     for(i=0;i<512;i++) ((uint8_t *)&ring)[i]=ee_read((uint16_t)(0x840+i));
     a=read32(0x10); b=read32(0x18);
@@ -38,8 +39,12 @@ bool ee_owner_cal_saved(void) { return cal_saved; }
 bool ee_owner_take_begin(void) { bool b=begin_notice; begin_notice=false; return b; }
 uint8_t ee_owner_take_done(void) { uint8_t d=done; done=0; return d; }
 fault_code_t ee_owner_fault(void) {
-    return overflow?FC_G04_INTERNAL:store.fault!=FC_NONE?store.fault:bg_fault?FC_G13_SAVE_FAIL_INFO:FC_NONE;
+    return internal_error?FC_G04_INTERNAL:store.fault!=FC_NONE?store.fault:ee_owner_info_fault()?FC_G13_SAVE_FAIL_INFO:FC_NONE;
 }
+bool ee_owner_info_fault(void) { return store.fault==FC_G13_SAVE_FAIL_INFO || bg_fault || loss_alarm; }
+uint32_t ee_owner_events_lost(void) { return events_lost; }
+bool ee_owner_events_drained(void) { return count==0 && !event_pending && ee_ready(); }
+void ee_owner_ack_events(void) { if(ee_owner_events_drained()) loss_alarm=false; }
 uint32_t ee_owner_cycles(void) { return cycles; }
 static bool background_busy(void) { return counter_pending || event_pending; }
 res_t ee_owner_settings(const settings_t *candidate) {
@@ -59,7 +64,11 @@ res_t ee_owner_calibration(const calibration_t *candidate) {
     return r;
 }
 bool ee_owner_log(const event_t *event) {
-    if(!event || count==QUEUE_SIZE) { overflow=true; return false; }
+    if(!event) { internal_error=true; return false; }
+    if(count==QUEUE_SIZE) {
+        if(events_lost!=UINT32_MAX) ++events_lost;
+        loss_alarm=true; return false;
+    }
     queue[head]=*event; queue[head].power_cycles=(uint16_t)(cycles+(counted?0u:1u));
     head=(uint8_t)((head+1u)%QUEUE_SIZE); ++count; return true;
 }
@@ -74,15 +83,15 @@ static void publish(void) {
     /* A wrap can verify calibration before the settings record fails. Publish
      * that verified invalidation even on failure; retries must use its slot. */
     if(store.calibration_slot_known && store.calibration_active_slot!=cal_slot && !cal_transaction) {
-        if(cal_unpack(store.wrap_cal_image,calibration->bank_count,calibration)!=RES_OK) overflow=true;
+        if(cal_unpack(store.wrap_cal_image,calibration->bank_count,calibration)!=RES_OK) internal_error=true;
         else cal_slot=store.calibration_active_slot;
     }
     if(store.phase!=STORE_DONE) return;
     if(cal_transaction) {
-        if(cal_unpack(store.image,calibration->bank_count,calibration)!=RES_OK) { overflow=true; return; }
+        if(cal_unpack(store.image,calibration->bank_count,calibration)!=RES_OK) { internal_error=true; return; }
         cal_slot=store.active_slot; cal_saved=true; done=2;
     } else {
-        if(set_unpack(store.image,active->board_type,active->channel_count,active)!=RES_OK) { overflow=true; return; }
+        if(set_unpack(store.image,active->board_type,active->channel_count,active)!=RES_OK) { internal_error=true; return; }
         settings_slot=store.active_slot; settings_ok=true; done=1;
     }
 }
@@ -107,7 +116,7 @@ void ee_owner_step(void) {
     }
     if(!event_pending && count) {
         int slot=ev_log(&ring,&queue[tail]);
-        if(slot<0) { overflow=true; return; }
+        if(slot<0) { internal_error=true; return; }
         event_slot=(uint8_t)slot; event_index=0; event_pending=true;
         tail=(uint8_t)((tail+1u)%QUEUE_SIZE); --count;
     }

@@ -17,6 +17,16 @@ feedback inputs. Additional cases cover names/protection saves, failed-save retr
 epoch wrap, all 24 channels fitted, ALARM ONLY, C03 channel attribution, service
 mailbox commits and REF/burnout calibration with OFF inputs.
 
+F1b replays a simultaneous 24-channel C-fault fan-out at the registry seam while
+all three register-fake ADCs report transport loss. Recovery uses real scans and
+keys, with no reset: queue loss raises G13, never G04, and clears only on an
+accepted ACK after the final queued EEPROM byte is durable. Tests also cover an
+early accepted ACK, drain without ACK, preservation of another G13 save-failure
+source, dropping the new entry, and giving the final free queue slot to first-out
+TRIP before its companion FAULT. First-out code, channel, unit, value, threshold
+and uptime are checked in EEPROM. The saturating per-boot loss count remains
+available after ACK and is printed as `P17 EVENTS_LOST` in the service report.
+
 The settings cut sweep covers all 403 emitted byte writes, the initial boundary,
 and durable magic before RAM publication. Every case boots and checks both
 changed protection fields together; both the old and the new record must occur.

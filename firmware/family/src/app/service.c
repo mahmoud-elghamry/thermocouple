@@ -23,7 +23,7 @@
 #ifndef FAMILY_BUILD_HASH
 #define FAMILY_BUILD_HASH "local"
 #endif
-typedef enum { PASSIVE, PROMPT, CONFIRM, ACTIVE, RELEASE, CAL_COLLECT, CAL_SAVE, FINISH, FINISHED } state_t;
+typedef enum { PASSIVE, PROMPT, CONFIRM, ACTIVE, RELEASE, CAL_COLLECT, CAL_SAVE, FINISH, REPORT_END, FINISHED } state_t;
 static state_t state;
 static const settings_t *settings;
 static calibration_t *active_cal,candidate;
@@ -131,6 +131,9 @@ static void passive(void) {
     case 14:strcpy(name,"ENGREF");value=gpio_read(board()->refok);ok=value==0 && d->ref_test_ok;break;
     case 15:strcpy(name,"SCAN");value=d->duration_ms;ok=value<=750;break;
     case 16:strcpy(name,"LOOP");value=worst;ok=value<=8;break;
+    case 17:
+        (void)snprintf(line,sizeof line,"P17 EVENTS_LOST %lu OK",(unsigned long)ee_owner_events_lost());
+        send_detail(true); ++pstep; return;
     default:astep=1;state=PROMPT;keys_rearm();return;
     }
     report(name,value,ok,ok?"":"CHECK");
@@ -284,6 +287,10 @@ void svc_task(void) {
     case CAL_COLLECT:collect_cal();break;
     case CAL_SAVE:save_cal();break;
     case FINISH:
+        /* Refresh the diagnostic after commissioning writes as well. */
+        (void)snprintf(line,sizeof line,"P17 EVENTS_LOST %lu OK",(unsigned long)ee_owner_events_lost());
+        display(line); (void)rs485_line(line); state=REPORT_END;break;
+    case REPORT_END:
         (void)snprintf(line,sizeof line,"END %u OK %u FAIL",n_ok,n_fail); display(line); (void)rs485_line(line); state=FINISHED;break;
     default:relays_safe();state=FINISHED;break;
     }

@@ -231,6 +231,7 @@ static void service_owner(void) {
     service_key(false); loop(15000); CHECK(svc_active_step()==7);
     service_key(false); service_key(false); loop(50000);
     CHECK(svc_finished()); CHECK(!timer_run_active()); CHECK(events(EV_CALIBRATION)==2);
+    CHECK(strstr(fake_uart_log,"EVENTS_LOST ")!=NULL);
     CHECK(cal_unpack(fake_eeprom+0x640,3,&saved)==RES_OK);
     CHECK(saved.baseline_nV[0]!=CAL_MISSING && saved.tag[0]==1);
     CHECK(saved.baseline_nV[1]==CAL_MISSING && saved.tag[1]==0);
@@ -242,8 +243,103 @@ static void service_owner(void) {
     loop(1); CHECK(!timer_run_active() && f0_mode()==TRIPPED);
     CHECK(fault_active(app_faults(),FC_G04_INTERNAL));
 }
+static bool first_new_event(uint16_t previous,event_t *first) {
+    event_t e; uint16_t closest=UINT16_MAX; unsigned slot;
+    for(slot=0;slot<EVENT_SLOTS;slot++) if(ev_unpack(fake_eeprom+0x840+16*slot,&e)==RES_OK) {
+        uint16_t delta=(uint16_t)(e.sequence-previous);
+        if(delta && delta<0x8000u && delta<closest) { *first=e; closest=delta; }
+    }
+    return closest!=UINT16_MAX;
+}
+static void island_burst(void) {
+    unsigned ch,step; first_out_t first; events_t ring; event_t last,stored;
+    fake_reset(); fixture();
+    for(ch=1;ch<24;ch++) { cfg.ch[ch]=cfg.ch[0]; cal.baseline_nV[ch]=3200000; cal.tag[ch]=1; }
+    write_records(); f0_init(); loop(3000); ack(); loop(750);
+    CHECK(f0_mode()==RUN && timer_run_active());
+    memcpy(&ring,fake_eeprom+0x840,sizeof ring); CHECK(ev_get(&ring,0,&last)==RES_OK);
+    for(ch=0;ch<3;ch++) fake_ad_crc((uint8_t)ch,255);
+    for(step=0;step<900 && !fault_active(app_faults(),FC_G14_ISLAND_LOST);step++) loop(1);
+    CHECK(step<900 && f0_mode()==TRIPPED); first=app_protection()->first;
+    /* Replay the simultaneous per-channel detector fan-out at the registry
+     * seam, alongside the real ADC transport/island failure. This makes the
+     * notification burst independent of which scan slot lost power. */
+    for(ch=0;ch<24;ch++) (void)fault_raise((fault_registry_t *)app_faults(),FC_C02_RANGE,(uint8_t)ch);
+    loop(1);
+    CHECK(fault_active(app_faults(),FC_G13_SAVE_FAIL_INFO)); CHECK(ee_owner_events_lost()>0);
+    CHECK(!fault_active(app_faults(),FC_G04_INTERNAL));
+    for(ch=0;ch<3;ch++) fake_ad_crc((uint8_t)ch,0);
+    for(step=0;step<200 && !first_new_event(last.sequence,&stored);step++) loop(1);
+    CHECK(step<200 && stored.type==EV_TRIP);
+    CHECK(stored.code==first.code && stored.channel==first.channel);
+    CHECK(stored.value_dC==first.value_dC && stored.threshold_dC==first.threshold_dC);
+    CHECK(stored.uptime_s==first.uptime_s);
+    CHECK(stored.unit==(first.code>=FC_B01_ADC_ID?(uint8_t)(first.unit+1):0));
+    loop(3000); CHECK(scan_last()->scan_validated);
+    CHECK(ee_owner_events_drained() && fault_active(app_faults(),FC_G13_SAVE_FAIL_INFO));
+    ack();
+    CHECK(f0_mode()==RUN); CHECK(!fault_active(app_faults(),FC_G04_INTERNAL));
+    CHECK(!fault_active(app_faults(),FC_G13_SAVE_FAIL_INFO));
+    CHECK(!fault_latched_at(app_faults(),FC_G13_SAVE_FAIL_INFO,0));
+    loop(750); CHECK(timer_run_active());
+    CHECK(first.valid);
+    printf("island burst: recovered without reset; events lost=%lu; first TRIP=%u\n",
+           (unsigned long)ee_owner_events_lost(),(unsigned)stored.code);
+}
+static void overflow_ack(void) {
+    event_t e; uint32_t lost; unsigned i; settings_t candidate;
+    running(); CHECK(ee_owner_events_drained());
+    memset(&e,0,sizeof e); e.type=EV_NAME_CHANGED;
+    for(i=0;i<32;i++) { e.value_dC=(temp_dC_t)i; CHECK(ee_owner_log(&e)); }
+    e.value_dC=32000; CHECK(!ee_owner_log(&e)); loop(1);
+    CHECK(ee_owner_events_lost()>0 && fault_active(app_faults(),FC_G13_SAVE_FAIL_INFO));
+    ack(); CHECK(f0_mode()==RUN); CHECK(fault_active(app_faults(),FC_G13_SAVE_FAIL_INFO));
+    loop(2400); CHECK(ee_owner_events_drained());
+    CHECK(fault_active(app_faults(),FC_G13_SAVE_FAIL_INFO)); /* draining alone cannot clear it */
+    lost=ee_owner_events_lost(); ack(); CHECK(!fault_active(app_faults(),FC_G13_SAVE_FAIL_INFO));
+    CHECK(!fault_latched_at(app_faults(),FC_G13_SAVE_FAIL_INFO,0));
+    CHECK(ee_owner_events_lost()==lost && f0_mode()==RUN && timer_run_active());
+    for(i=0;i<EVENT_SLOTS;i++) if(ev_unpack(fake_eeprom+0x840+16*i,&e)==RES_OK) CHECK(e.value_dC!=32000);
+    /* The event-loss ACK must not erase a separate names-save G13 source. */
+    running(); candidate=*app_settings(); memcpy(candidate.ch[0].name,"RETRY ",6);
+    model_eeprom_fail(true); CHECK(app_commit_settings(&candidate)==RES_OK); loop(20);
+    CHECK(fault_active(app_faults(),FC_G13_SAVE_FAIL_INFO)); model_eeprom_fail(false);
+    memset(&e,0,sizeof e); e.type=EV_NAME_CHANGED;
+    for(i=0;i<33;i++) (void)ee_owner_log(&e);
+    loop(2600); CHECK(ee_owner_events_drained() && ee_owner_events_lost()>0);
+    ack(); CHECK(f0_mode()==RUN && fault_active(app_faults(),FC_G13_SAVE_FAIL_INFO));
+    CHECK(app_commit_settings(&candidate)==RES_OK); loop(2500); ack();
+    CHECK(!fault_active(app_faults(),FC_G13_SAVE_FAIL_INFO));
+    CHECK(!fault_latched_at(app_faults(),FC_G13_SAVE_FAIL_INFO,0));
+}
+static void first_out_last_slot(void) {
+    event_t e; first_out_t first; unsigned i,trips=0;
+    running(); CHECK(ee_owner_events_drained());
+    memset(&e,0,sizeof e); e.type=EV_NAME_CHANGED;
+    for(i=0;i<31;i++) CHECK(ee_owner_log(&e));
+    (void)fault_raise((fault_registry_t *)app_faults(),FC_G08_ENGREF_LOST,0); loop(1);
+    CHECK(f0_mode()==TRIPPED); first=app_protection()->first;
+    CHECK(ee_owner_events_lost()>0 && !fault_active(app_faults(),FC_G04_INTERNAL));
+    loop(2500); CHECK(ee_owner_events_drained());
+    for(i=0;i<EVENT_SLOTS;i++) if(ev_unpack(fake_eeprom+0x840+16*i,&e)==RES_OK && e.type==EV_TRIP) {
+        CHECK(e.code==first.code && e.uptime_s==first.uptime_s); ++trips;
+    }
+    CHECK(trips==1); /* the final free slot went to first-out, ahead of FAULT */
+    ack(); CHECK(f0_mode()==RUN && !fault_active(app_faults(),FC_G13_SAVE_FAIL_INFO));
+}
+static void service_lost_report(void) {
+    event_t e; unsigned i;
+    fake_reset(); fixture(); fake_pin(board()->keys[2],false); f0_init(); loop(3000);
+    CHECK(f0_mode()==SERVICE && ee_owner_events_drained());
+    memset(&e,0,sizeof e); e.type=EV_NAME_CHANGED;
+    for(i=0;i<32;i++) CHECK(ee_owner_log(&e));
+    CHECK(!ee_owner_log(&e)); loop(9000);
+    CHECK(ee_owner_events_lost()==1);
+    CHECK(strstr(fake_uart_log,"P17 EVENTS_LOST 1 OK")!=NULL);
+}
 void test_main(void) {
     model_enable();
+    island_burst(); overflow_ack(); first_out_last_slot(); service_lost_report();
     safety(); injected(); lifecycle(); configurations(); service_owner(); commits();
     printf("host modeled loop worst: %lu us (I/O timing; AVR CPU WCET requires bench)\n",(unsigned long)worst_us);
     printf("integration: %u checks PASS; S01-S06, S09-S12, S14, commit power cuts\n",checks);

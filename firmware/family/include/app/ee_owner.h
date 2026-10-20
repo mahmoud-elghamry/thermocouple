@@ -19,7 +19,12 @@ uint8_t ee_owner_take_done(void);
 fault_code_t ee_owner_fault(void);
 bool ee_owner_cal_saved(void);
 bool ee_owner_settings_valid(void);
-bool ee_owner_log(const event_t *event); /* bounded queue; overflow -> G04 */
+/* Full queue drops the NEW entry; loss is G13, never an internal trip. */
+bool ee_owner_log(const event_t *event);
+uint32_t ee_owner_events_lost(void); /* saturating count, since owner boot init */
+bool ee_owner_events_drained(void); /* includes the final byte becoming ready */
+bool ee_owner_info_fault(void); /* G13 sources: save failure, I/O, event loss */
+void ee_owner_ack_events(void); /* call ONLY for an accepted ACK; drain required */
 void ee_owner_validated_scan(fault_code_t reset_code, uint32_t uptime_s);
 uint32_t ee_owner_cycles(void);
 /* Scratch writes also serialize with transactions/events; service-only. */
