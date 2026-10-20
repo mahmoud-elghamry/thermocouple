@@ -48,7 +48,7 @@ write CONFIG_0 0x0875: `19 08 75` CRC `0x7C`; read ID returning 0x12: `45 12` CR
 | CONFIG_2 | 0x1B | 16 | **0x0840** | REF check: Bipolar, REF_SEL 00 = REFIN1 (REF3030), REF buffers off, AIN_BUFP 1, AIN_BUFM 0 (AINM = AVSS), PGA 1 |
 | CONFIG_3 | 0x1C | 16 | **0x0810** | Bipolar, internal ref, AIN buffers off, PGA 1 (AVDD/6) |
 | CONFIG_4 | 0x1D | 16 | **0x0818** | Bipolar, REF_SEL 11 = AVDD, buffers off, PGA 1 (common-mode check, ratiometric to AVDD) |
-| CONFIG_5 | 0x1E | 16 | **0x0810** | Bipolar, internal ref, **AIN buffers off**, PGA 1 (20 mV at gain 1, gain-ratio partner of CONFIG_0). ADI does not allow buffered gain-1 internal signals (AD7124 Rev F, Signal Chain Check, p.68); the AINM undervoltage flag that this internal signal raises is ignored in this slot only |
+| CONFIG_5 | 0x1E | 16 | **0x0810** | Bipolar, internal ref, **AIN buffers off**, PGA 1 (20 mV at gain 1, gain-ratio partner of CONFIG_0). ADI does not allow buffered gain-1 internal signals (AD7124 Rev F, Signal Chain Check, p.68); the AINM undervoltage flag that the internal 20 mV signal raises is ignored in **both** slots that measure it (10 and 11), independent of gain; all other checks stay |
 | CONFIG_6, 7 | 0x1F, 0x20 | 16 | 0x0860 | reset value, unused, read back |
 | FILTER_0..5 | 0x21-0x26 | 24 | **0xE60180** | Filter 111 = post filter, REJ60 0, POST_FILTER **011 = 25 SPS** (62 dB at 50/60 Hz +-1 Hz), SINGLE_CYCLE 0, FS left at reset 0x180 (Table 75 p.89, Table 62 p.64). **OPEN-Q1:** confirm FS is ignored when Filter = 111 |
 | FILTER_6, 7 | 0x27, 0x28 | 24 | 0x060180 | reset, unused |
@@ -143,8 +143,8 @@ fault); alternative internal short to evaluate on the bench.
 ```
 P1  write CHANNEL_s = image | 0x8000
 P2  write ADC_CONTROL = 0x0744   (single conversion: one settled conversion, then standby)
-P3  poll STATUS once per main loop (loop <= 5 ms typical, <= 20 ms worst, `01` 2) until RDY = 0. The conversion
-    start time is stamped at P2; timeout = 1.15 x 42.331 ms + 20 ms (worst loop) = 69 ms after P2 -> B05.
+P3  poll STATUS once per main loop (loop <= 5 ms typical, <= 8 ms worst, `01` 2) until RDY = 0. The conversion
+    start time is stamped at P2; timeout = 1.15 x 42.331 ms + 8 ms (worst loop) = 57 ms after P2 -> B05.
     Polling delay is not conversion time: the slot period window of section 4 uses the RDY-seen time minus
     the worst loop as its lower bound
 P4  read DATA (24 bits + STATUS + CRC); checks of 2.4; CRC failure -> re-read DATA (data stays until the next
@@ -180,7 +180,7 @@ int64, round by adding 2^19 before the shift).
 |---|---|---|---|
 | all | CRC on every transaction | 2 retries | B02 |
 | all | STATUS.POR_FLAG = 0 | - | B15 -> full re-init of that bank |
-| all | STATUS.CH_ACTIVE = s, RDY within 0.85-1.15 x 42.331 ms of P2 (Timer1/ms tick) | window *provisional* (C 9.7 -5 % clock) | B05 |
+| all | STATUS.CH_ACTIVE = s; RDY first seen between 0.85 x 42.331 ms (36 ms) and 1.15 x 42.331 ms + 8 ms (57 ms) after P2 - the upper bound includes one worst-case loop of polling delay | window *provisional* (C 9.7 -5 % clock) | B05 |
 | all | ERROR_FLAG -> ERROR register classified (section 5) | - | B04 or channel code |
 | 0-7 | code inside +-FS: `|delta| < 0.98 x 2^23` and no ADC_SAT_ERR / ADC_CONV_ERR | - | C02 (out of range) |
 | 0-7 | no AINP/AINM OV/UV flag | flags are AVDD + 40 mV / AVSS - 40 mV comparators (ADC Rev B p.65, Fig. 119) | C07 |
@@ -232,7 +232,15 @@ SPI_* communication bits: the transaction is retried (at most twice per scan, 00
 
 **OPEN-Q4:** which ERROR bits clear on read and which follow the live condition (English data sheet "Diagnostics").
 
-MCLK_COUNT (0x08): read at P2 and at P4 of one slot per scan; it must have changed (0043 3.1 "MCLK/conversion
+**Register read-back timing and expected states:** the image compare of 10.1 item 3 is done once per scan,
+after P5 of the last slot, when the ADC has finished its single conversion and is back in standby: expected
+ADC_CONTROL = image with MODE = standby (the value the device reports after a single conversion), every
+CHANNEL_x enable bit = 0 (images otherwise unchanged), CONFIG/FILTER/ERROR_EN/IO_CONTROL/OFFSET_7 = image,
+OFFSET/GAIN = the values captured after calibration.
+
+MCLK_COUNT (0x08) is asynchronous to SPI, so one read can be torn: read it repeatedly until two consecutive
+reads agree (at most 4 reads, else B05) - the agreed value is the sample. Sampled at P2 and at P4 of one slot
+per scan; it must have changed (0043 3.1 "MCLK/conversion
 counter advanced"), else B05. A frequency check from MCLK_COUNT needs its exact increment rate (Rev B Table 72
 reads "/131" - **OPEN-Q11**); until then the slot-period window of section 4 is the clock check.
 
@@ -456,7 +464,8 @@ was validated (diagnostic slots 8-12 come after the TC slots in the same scan).
 2. 40-ch: RTD bank validated for scan n (section 8) and all 16 signatures (6 ADC + 10 TMP126) matched (section 9).
    8/24-ch: all signatures of its devices matched.
 3. REFOK read low in scan n outside a REFTEST window; no REFTEST failure pending (`02` 10).
-4. Scan n completed within **850 ms** of its start (*provisional*; 15 x 44.6 + overhead ~690 ms) - else G05.
+4. Scan n completed within **1000 ms** of its start (normal ~690 ms; worst 15 x ~58 ms = ~870 ms) - else G05.
+   (The RUN window of 900 ms in `04` 6.1 still opens RUN sooner if scans stop arriving.)
 5. No island-loss condition (G14) and no full re-init pending.
 6. Fuse self-check passed at start-up (G15 not set).
 
@@ -474,7 +483,7 @@ Bank codes carry the bank letter (e.g. `B06 C`); channel codes the channel numbe
 |---|---|---|---|
 | G08 | Engine reference lost | REFOK high in a scan (outside self-test) | REFOK low in a validated scan (latch per `04`) |
 | G09 | REFTEST self-test failed | REFOK not high during REFTEST (`02` 10) | next self-test passes |
-| G05 | Scan deadline missed | board scan not complete within 850 ms | next validated board scan |
+| G05 | Scan deadline missed | board scan not complete within 1000 ms | next validated board scan |
 | G14 | Island power lost | all banks fail CRC/ID in the same scan, or REFOK high together with bank faults on every bank | full re-init + validated board scan |
 | B13 | Device signature mismatch | any signature read back wrong (section 9) | re-init + validated board scan |
 | B14 | RTD bank fault (40-ch) | any RTD-bank check of section 8.3 except per-probe | validated RTD scan |

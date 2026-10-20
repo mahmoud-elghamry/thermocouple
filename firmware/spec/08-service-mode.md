@@ -43,7 +43,7 @@ one line per item. The last line is `END <n_ok> OK <n_fail> FAIL`.
 | P13 | `CH<nn>_BURN` per channel | burnout reading | in window / open detected as expected |
 | P14 | `ENGREF` | REFOK level, REFTEST result | REFOK active with FEED-SENSE connected; self-test passes |
 | P15 | `SCAN` | ms per board scan | <= 750 ms |
-| P16 | `LOOP` | worst loop ms | <= 20 ms |
+| P16 | `LOOP` | worst loop ms | <= 8 ms |
 
 ## 4. Interactive and active steps
 
@@ -62,8 +62,8 @@ and waits for SET (ESC skips and prints `SKIP`). The step never starts on a key 
 | A03 | RUN relay: start the PWM for 1 s, stop | RUN_SENSE low while on, high within 100 ms after stop; drop-out time printed in ms |
 | A04 | RUN with PWM stopped but pin held high 1 s (static level) | relay must NOT stay energised after the pump decays (proves the charge pump) |
 | A05 | EEPROM test on the scratch area 0x0F00-0x0FFF only: write pattern, read back, restore 0xFF | pattern matches; settings/calibration untouched (their CRC re-checked) |
-| A06 | `CAL REF` (if selected): measure each bank's REF ratio, store the calibration record (`05` 6) | record valid after read-back |
-| A07 | `LEARN BURNOUT` (if selected): the LCD lists the inputs that read a connected probe now; the technician confirms that list as the fitted channels; baselines stored for them, others marked not learned | every confirmed channel inside the absolute window (`05` 6) |
+| A06 | `CAL REF` (if selected): measure each bank's REF ratio and store the REF part of the calibration record (`05` 6; burnout part kept, or 'not learned' on a blank record) | record valid after read-back |
+| A07 | `LEARN BURNOUT` (if selected; needs a valid REF part from A06): the LCD lists the inputs that read a connected probe now; the technician confirms that list (the **confirmed mask**, independent of settings, so it works on a blank board); baselines + the type learned under (K) are stored for the mask, others 'not learned' | every confirmed channel inside the absolute window (`05` 6) |
 
 ## 5. Example (24-ch, bench, one probe on channel 1, others open)
 

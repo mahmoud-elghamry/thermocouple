@@ -20,7 +20,7 @@ every table in `04` and `05` exercised; branch coverage reported (gcov) and ever
 
 | Module | Tests |
 |---|---|
-| `tc_math` | NIST reference points for K and J every 50 C across the range, both directions (EMF->T and T->EMF for CJ), error <= the table-interpolation bound of `03`; negative EMF (tip colder than CJ); out-of-range -> RANGE flag; PT100 points 0/100/850 C |
+| `tc_math` | NIST reference points for K and J every 50 C across the range, both directions (EMF->T and T->EMF for CJ), error <= the table-interpolation bound of `03`; negative EMF (tip colder than CJ); out-of-range -> RANGE flag; PT100 points 0/100/400 C (40-ch, deferred) |
 | `channel_eval` | every row of `04` 3.1/3.2 for each mode; boundaries: value == alarm SP, == trip SP, == trip SP - band, one LSB either side; advisory flags never change the condition |
 | `protection` | every transition of `04` section 4; every ACK rule of section 5 (one test per refusal reason); first-out kept while further causes arrive; state/complement corruption -> TRIPPED; unknown enum -> most restrictive |
 | `outputs` | window open/expiry, PWM never started without a fresh validated scan, read-back table `04` 6.2 with the 60 ms settle and 100 ms filter |

@@ -18,7 +18,7 @@ ERR_CRC, ERR_ID, ERR_READBACK, ERR_RANGE }`.
 | `protection` | `prot_step(const prot_in_t*, prot_state_t*, prot_out_t*)`, `prot_on_result(ch, ...)` | **yes** |
 | `outputs` | `out_task(const prot_out_t*)`, `out_readback() -> rb_t` | no |
 | `settings` | `set_validate(const settings_t*) -> res_t`, `set_pack/unpack`, `set_active()`, `set_commit(const settings_t*)` | validator/pack pure |
-| `events` | `ev_log(type, code, ch, value, thr)`, `ev_get(i, *e)` | no |
+| `events` | `ev_log(type, code, unit, ch, value, thr)`, `ev_get(i, *e)` | no |
 | `fault` | `fault_raise(code, unit)`, `fault_clear(code, unit)`, `fault_active(code)` | no |
 | `ui` | `ui_task(budget_us)`; mailbox `ui_cmd_t` | screens pure |
 | `modbus` | `mb_task(budget_us)`; `mb_build(const snapshot_t*, req, *resp)` | builder pure |
@@ -29,11 +29,11 @@ ERR_CRC, ERR_ID, ERR_READBACK, ERR_RANGE }`.
 
 | Item | Budget | Basis |
 |---|---|---|
-| Loop period | <= 5 ms typical, <= 20 ms worst | `01` 2 |
+| Loop period | <= 5 ms typical, <= 8 ms worst | `01` 2 |
 | `ui_task` | <= 1 ms | 8 LCD chars x ~50 us + formatting |
 | `modbus_task` | <= 1 ms per call, one frame | `07` 2 |
-| Scan cycle | <= 750 ms (target ~700) | `03`, `04` 6.3 |
-| Crossing -> contact open | < 0.75 s (requirement 1 s) | `04` 6.3 |
+| Scan cycle | ~690 ms normal, <= 870 ms worst, deadline 1000 ms (G05) | `03` 3.1, 10.2 |
+| Crossing -> contact open | ~0.75 s normal, ~0.9 s worst estimate (requirement 1 s; measured T05) | `04` 6.3 |
 | Flash | <= 64 KB of 128 KB (tables ~3 KB) | CALCULATIONS 9.8/10.8 |
 | RAM | <= 8 KB of 16 KB incl. 1 KB stack | `05` 7.3 + buffers |
 | EEPROM | per `05` 1 | |
@@ -43,7 +43,7 @@ ERR_CRC, ERR_ID, ERR_READBACK, ERR_RANGE }`.
 | Phase | Deliverable | Gate to pass before the next phase |
 |---|---|---|
 | **F0** bring-up (needed when the first boards arrive), **24-ch only** | build system for ATmega1284P; `board_cfg` for the 24-ch (8/40-ch tables later, same structure); minimal settings load + validate (read-only, no editing) and the fault registry; MCAL; early watchdog + flow check; fuses + programming script; `iso_spi`, `ad7124`, `tmp126`, `scan` with **all** diagnostic slots, `tc_math`; `outputs` minimal (RUN off, ALARM de-energised, read-back); calibration storage; 20x4 `lcd` + `keys`; `service` mode complete | unit + driver tests pass on the PC; on the first boards: programming + fuse read-back, cold start, watchdog-reset start, service report all OK for fitted items (`09` T01-T04, T09, T10) |
-| **F1** protection | `channel_eval`, `protection`, `outputs` full (window, read-back table), `settings` A/B with commit, `events`, `fault` | all unit tests and scenarios S01-S20 pass; **Astra review of F1 code**; bench T05-T08, T13 |
+| **F1** protection | `channel_eval`, `protection`, `outputs` full (window, read-back table), `settings` A/B with commit, `events`, `fault` | all unit tests and scenarios S01-S25 pass; **Astra review of F1 code**; bench T05-T08, T13 |
 | **F2** operator UI | `ui` screens and setup menus, PIN, commissioning flow | screen tests; owner's technician commissions a board from blank with only the LCD and keys |
 | **F3** Modbus | `modbus` read-only map | map tests; bench T12; I-120 matrix before the first engine |
 

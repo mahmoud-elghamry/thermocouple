@@ -126,7 +126,7 @@ window is a countdown owned by the Timer2 ISR (`02` 4.2): only the protection pa
 write with interrupts disabled); the ISR stops the pump when it reaches zero.
 Restarting the PWM requires condition 2 to be re-established by a *new* validated scan.
 
-`T_WIN` = 900 ms > one scan cycle (~700 ms, `03`) plus the worst loop (20 ms) with margin; set from the scan time
+`T_WIN` = 900 ms > one normal scan cycle (~690 ms, `03`) and > the worst slow scan (~870 ms) of `03` 10.2; set from the scan time
 measured on the first boards (service step P15) and recorded. A stalled scan opens RUN within `T_WIN` + pump decay
 (< 0.95 s), so even a stall at the moment of a real over-temperature still meets the 1 s rule. Over-temperature
 seen in a result does not wait for the window: it opens RUN immediately (section 1).
@@ -149,13 +149,13 @@ The same scheme for ALARM_SENSE (PC7) -> G07.
 
 | Step | Time |
 |---|---|
-| crossing happens just after the channel's slot started; next conversion of this channel | <= one slot cycle 700 ms (`03`: 15 slots x ~42.3 ms + overhead) |
+| crossing happens just after the channel's slot started; next conversion of this channel | <= one scan cycle: ~690 ms normal, ~870 ms worst (`03` 3.1, 10.2) |
 | that conversion (single-cycle settled) | included above |
 | read, CRC, conversion, `eval_channel` -> trip | < 5 ms |
 | `outputs` stops PWM (same loop) | < 5 ms |
 | charge-pump decay to relay drop-out | 15-30 ms (`CALCULATIONS` 8.5) |
 | G6K release time | <= 3 ms (datasheet max) |
-| **total** | **~0.75-0.8 s estimate** incl. the filter allowance of `CALCULATIONS` 9.7 (requirement 1 s, GOAL; to be measured, I-013) |
+| **total** | **~0.75 s normal, ~0.9 s worst estimate** incl. the filter allowance of `CALCULATIONS` 9.7 (requirement 1 s, GOAL; to be measured, I-013) |
 
 Open-thermocouple detection is slower by design: burnout is checked on one channel per scan (each channel about
 every 6 s, `03`). An open TC also drives the reading to a rail (`RANGE`), which trips at the next conversion.

@@ -288,7 +288,7 @@ Check on the bench: 2 kHz gate voltage at minimum 5 V (C 8.5 "Measure the gate a
 
 RUN deadline (0043 3.6, I-118): `run_deadline_ms` is reloaded **only** by the scan-completion path when a
 validated board scan is published and protection permits RUN; the Timer2 ISR decrements it and calls the stop
-sequence above when it reaches 0. Proposed reload value **900 ms** (cycle ~700 ms, C 9.7; trip budget 1 s,
+sequence above when it reaches 0. Reload value **900 ms** (decided, `04` 6.1; re-checked against the measured scan time) (cycle ~700 ms, C 9.7; trip budget 1 s,
 GOAL). The ISR can only remove RUN, never start the pump. **OPEN-H4:** reload value to be fixed in `04` with
 the measured scan time.
 
