@@ -71,7 +71,7 @@ every table in `04` and `05` exercised; branch coverage reported (gcov) and ever
 | T02 | programming + fuse read-back | P02 OK | I-104 |
 | T03 | service passive report | all fitted items OK | - |
 | T04 | ice water and boiling water on two channels vs reference thermometer | within +-2 C (provisional bench acceptance; the K-table error itself is < 0.2 C, `03` 7) | I-101 |
-| T05 | trip timing: heat a probe (or inject an EMF) across the trip SP, scope on the contact | <= 1 s, measured | I-013 |
+| T05 | trip timing: heat a probe (or inject an EMF) across the trip SP, scope on the contact | <= 2 s required, ~1 s expected; measured value recorded | I-013 |
 | T06 | open a probe wire | C01 within ~6 s (burnout) or at once (rail) | 0034 |
 | T07 | cut FEED, cut SENSE | G08 trip | 0032 |
 | T08 | pull the 24 V while running; brown-out | contact opens; restart needs ACK | 0029 |
@@ -85,7 +85,7 @@ every table in `04` and `05` exercised; branch coverage reported (gcov) and ever
 
 | Requirement | Spec | Tests |
 |---|---|---|
-| Any channel trips the common contact, <= 1 s (GOAL, 0029) | `04` 3, 6.3 | S02, T05 |
+| Any channel trips the common contact, <= 2 s (GOAL, 0029; target ~1 s) | `04` 3, 6.3 | S02, T05 |
 | Energised to run; reset/power loss opens (0030 D5) | `04` 4, 6 | S01, S06, T08 |
 | Charge pump, refreshed only by completed scans (I-118) | `01` 2.4, `04` 6.1 | S05, T10 |
 | Watchdog <= 0.5 s, flow-checked (I-119) | `01` 2.3 | S06 |

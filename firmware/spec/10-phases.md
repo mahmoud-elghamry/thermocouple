@@ -33,7 +33,7 @@ ERR_CRC, ERR_ID, ERR_READBACK, ERR_RANGE }`.
 | `ui_task` | <= 1 ms | 8 LCD chars x ~50 us + formatting |
 | `modbus_task` | <= 1 ms per call, one frame | `07` 2 |
 | Scan cycle | ~690 ms normal, <= 870 ms worst, deadline 1000 ms (G05) | `03` 3.1, 10.2 |
-| Crossing -> contact open | ~0.75 s normal, ~0.9 s worst estimate (requirement 1 s; measured T05) | `04` 6.3 |
+| Crossing -> contact open | ~0.75 s normal, ~0.9 s worst estimate (requirement 2 s, target ~1 s; measured T05) | `04` 6.3 |
 | Flash | <= 64 KB of 128 KB (tables ~3 KB) | CALCULATIONS 9.8/10.8 |
 | RAM | <= 8 KB of 16 KB incl. 1 KB stack | `05` 7.3 + buffers |
 | EEPROM | per `05` 1 | |

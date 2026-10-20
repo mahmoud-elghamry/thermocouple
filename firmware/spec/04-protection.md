@@ -130,7 +130,7 @@ Restarting the PWM requires condition 2 to be re-established by a *new* validate
 
 `T_WIN` = 900 ms > one normal scan cycle (~690 ms, `03`) and > the worst slow scan (~870 ms) of `03` 10.2; set from the scan time
 measured on the first boards (service step P15) and recorded. A stalled scan opens RUN within `T_WIN` + pump decay
-(< 0.95 s), so even a stall at the moment of a real over-temperature still meets the 1 s rule. Over-temperature
+(< 0.95 s), so even a stall at the moment of a real over-temperature still meets the ~1 s design target (requirement 2 s). Over-temperature
 seen in a result does not wait for the window: it opens RUN immediately (section 1).
 
 ### 6.2 Read-back
@@ -157,7 +157,7 @@ The same scheme for ALARM_SENSE (PC7) -> G07.
 | `outputs` stops PWM (same loop) | < 5 ms |
 | charge-pump decay to relay drop-out | 15-30 ms (`CALCULATIONS` 8.5) |
 | G6K release time | <= 3 ms (datasheet max) |
-| **total** | **~0.75 s normal, ~0.9 s worst estimate** incl. the filter allowance of `CALCULATIONS` 9.7 (requirement 1 s, GOAL; to be measured, I-013) |
+| **total** | **~0.75 s normal, ~0.9 s worst estimate** incl. the filter allowance of `CALCULATIONS` 9.7 (requirement 2 s, GOAL; target ~1 s; to be measured, I-013) |
 
 Open-thermocouple detection is slower by design: burnout is checked on one channel per scan (each channel about
 every 6 s, `03`). An open TC also drives the reading to a rail (`RANGE`), which trips at the next conversion.

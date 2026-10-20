@@ -10,7 +10,7 @@ In order of weight (from the owner's priorities and the energised-to-run rule):
 
 1. **Fail safe.** Any fault, hang, corruption or unknown value must end with the RUN contact open. The contact is
    held closed only by continuous, positive evidence that the system is healthy.
-2. **Deterministic timing.** Threshold crossing to contact open <= 1 s on every board, under any UI or Modbus load.
+2. **Deterministic timing.** Threshold crossing to contact open <= 2 s required (GOAL, like Murphy TDXM), ~1 s design target, on every board, under any UI or Modbus load.
 3. **Testable on the PC.** Everything that decides something runs and is tested on the host without hardware.
 4. **One firmware, three boards.** Board differences are data, not code paths scattered in `#ifdef`s.
 5. **Simple.** 8-bit MCU, one developer at a time, AI implementers: no RTOS, no dynamic memory, no clever tricks.

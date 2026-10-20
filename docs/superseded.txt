@@ -24,3 +24,4 @@ a chat works in its own branch | 0037 D5: hardware on main, firmware in branch f
 R443 (TMP126 SIO) | 0041: gated SIO driver U411 + R446, R443 removed
 R443 22k DIN-DOUT | 0041: gated SIO driver U411 + R446, R443 removed
 + R443 22k DIN-DOUT | 0041: gated SIO driver U411 + R446, R443 removed
+trip must happen within **1 s** | GOAL 2026-10-20: within 2 s (like Murphy TDXM), ~1 s design target
