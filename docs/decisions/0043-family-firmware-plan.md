@@ -2,7 +2,7 @@
 
 * Status: **proposed, rev 2** (plan only, no code). Rev 1 2026-10-20; rev 2 the same day after Astra review 4
   (`production/review-20261015-a4/ASTRA-4-firmware-plan-report.md`, local): 11 blockers and 10 "should" folded
-  in. Owner decisions in section 8 still open.
+  in. **Section 8 table approved by the owner 2026-10-20.** Detailed specification: `firmware/spec/`.
 * Builds on: `0029` (per-channel setpoints, manual ACK), `0030` D8 (config lock), `0031` (architecture; Modbus never
   in the trip path; D5 alarm relay), `0032` (ADC diagnostics, engine reference, charge pump), `0034` (open sensor
   trips, alarm only, buttons), `0036`, `0037` (one firmware), `0038` (K or J per channel), `0039` (8/40-ch,
