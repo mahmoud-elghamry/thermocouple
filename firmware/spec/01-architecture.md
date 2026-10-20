@@ -65,7 +65,7 @@ so even a loop that keeps feeding the watchdog but never completes a scan opens 
 
 ### 2.4 RUN as a "dead-man" output
 
-**Pattern: positive keep-alive.** The RUN contact is held by a charge pump driven by a 1 kHz+ hardware PWM
+**Pattern: positive keep-alive.** The RUN contact is held by a charge pump driven by a 2 kHz hardware PWM (>= 1 kHz required; 2 kHz gives 4.1-4.2 V gate, CALCULATIONS 8.5)
 (PB3). Protection does not "set RUN on"; it *refreshes a permission window* after each validated board scan in
 which RUN is allowed. `out_task` stops the PWM when the window expires or permission is withdrawn. A static
 output level can never hold the relay (hardware: AC-coupled charge pump, `0032` rev 4). Three independent

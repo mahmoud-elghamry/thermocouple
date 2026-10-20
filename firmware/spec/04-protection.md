@@ -113,7 +113,7 @@ Accepted ACK in `START_LATCHED`/`TRIPPED`: go to `RUN`; also clear every alarm l
 ### 6.1 Conditions to keep RUN closed (all at once)
 
 1. state == `RUN` (stored as value + complement; both must agree);
-2. a **RUN window** is open: it is (re)opened to `T_WIN = 1200 ms` only by a validated board scan processed in
+2. a **RUN window** is open: it is (re)opened to `T_WIN = 900 ms` only by a validated board scan processed in
    state `RUN` with no trip action; it is never extended by anything else;
 3. no trip fault active;
 4. flow check of `01` 2.3 passing (otherwise the watchdog resets the MCU anyway).
@@ -121,8 +121,10 @@ Accepted ACK in `START_LATCHED`/`TRIPPED`: go to `RUN`; also clear every alarm l
 If any fails, `outputs` stops the PB3 PWM (timer output disconnected, pin driven low) in the same loop.
 Restarting the PWM requires condition 2 to be re-established by a *new* validated scan.
 
-`T_WIN` = 1200 ms > one scan cycle (~700 ms, `03`) with margin for one slow loop; a stalled scan opens RUN within
-`T_WIN` + charge-pump decay. Over-temperature does not wait for the window: it opens RUN immediately (section 1).
+`T_WIN` = 900 ms > one scan cycle (~700 ms, `03`) plus the worst loop (20 ms) with margin; set from the scan time
+measured on the first boards (service step P15) and recorded. A stalled scan opens RUN within `T_WIN` + pump decay
+(< 0.95 s), so even a stall at the moment of a real over-temperature still meets the 1 s rule. Over-temperature
+seen in a result does not wait for the window: it opens RUN immediately (section 1).
 
 ### 6.2 Read-back
 
@@ -203,7 +205,8 @@ latches still need ACK.
 | Code | Name | Detected by (spec) | Action | LCD text (<= 20) |
 |---|---|---|---|---|
 | G01 | settings invalid / blank | settings (`05`) | T, `CONFIG_LOCK` | `LOCKED: SETUP` |
-| G02 | settings save failed | store (`05`) | T until a retry succeeds | `SAVE FAILED` |
+| G02 | save failed: protection settings or calibration | store (`05`) | T until a retry succeeds | `SAVE FAILED` |
+| G13 | save failed: names, comms or PIN only | store (`05`) | A until a retry succeeds | `SAVE FAILED (INFO)` |
 | G03 | flash CRC at boot | boot (`02`) | halt with outputs safe | (LCD may be blank) |
 | G04 | protection state/complement corrupt, stack canary | protection, loop (`01`) | T | `INTERNAL FAULT` |
 | G05 | complete-scan deadline missed | scan (`03`) | T | `SCAN TIMEOUT` |

@@ -8,7 +8,7 @@ Decided behaviour: `0043` sections 2, 5, 8. Pattern: copy-edit-validate-commit (
 | Address | Size | Content |
 |---|---|---|
 | 0x0000 | 16 | device header: magic `'T','F'`, layout version (1), board type, reserved |
-| 0x0010 | 16 | power-cycle counter: `uint32` value, `uint32` complement, written twice (two slots, 8 B each) |
+| 0x0010 | 16 | power-cycle counter: `uint32` value, `uint32` complement, written twice (two slots, 8 B each); written only after the first validated scan of a boot, so a reset loop cannot wear it out |
 | 0x0040 | 768 | settings record **A** |
 | 0x0340 | 768 | settings record **B** |
 | 0x0640 | 256 | calibration record **A** |
@@ -92,7 +92,8 @@ waits for commissioning (`06`).
 4. Read the whole slot back and validate it (3).
 5. On success: switch the active pointer to the new record; event `SETTINGS_CHANGED` (or `NAME_CHANGED`); if
    protection fields changed, protection stays `START_LATCHED` until ACK.
-6. On failure: the old record stays active; raise G02 (trip until a retry succeeds); retry once automatically,
+6. On failure: the old record stays active; raise G02 for protection/calibration records (trip until a retry
+   succeeds) or G13 for names/comms/PIN only (alarm); retry once automatically,
    then on the next commit attempt.
 
 **Power cut at any step:** before step 5 the old copy is intact and has the higher valid sequence, or the new copy
