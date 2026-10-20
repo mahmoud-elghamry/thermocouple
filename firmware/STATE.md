@@ -10,11 +10,12 @@
   Build: `pwsh -File firmware\build.ps1`; cloud: `make -C firmware all test`.
 * **Family firmware (`0043`):** specification `firmware/spec/` rev 5, reviewed by Astra three times (reports in
   `production/review-20261015-a4/ASTRA-5..7`, local). Code goes to `firmware/family/` (the 8-ch code stays
-  untouched). Status 2026-10-20 (all re-run by Claude): lane A F0 hardware path 715 checks pass, AVR 37.4 KB
-  flash / 7.0 KB RAM (`build.ps1`); lane B core 4084 checks + S01-S28 (`test/build_core.ps1`); lane C independent
-  acceptance from the spec only, 14182 assertions, **12 fail** (`test/build_acceptance.ps1`) -> fix lane B2
-  running. Next: B2 green, then F1 integration (protection into main, Modbus, UI) and an Astra code review.
-  Briefs/reports/runner in `firmware/family/briefs/` (`sh run_lane.sh A|B|C|B2`); `docs/TOOLS.md` "Codex roles".
+  untouched). Status 2026-10-21 (clean build, re-run by Claude): F0 hardware path 715 checks (`build.ps1`, AVR
+  37.8 KB flash / 7.2 KB RAM); core 125435 checks + S01-S28 (`test/build_core.ps1`); independent acceptance tests
+  written from the spec only 14182/14182 (`test/build_acceptance.ps1`) - all three must stay green.
+  Next: F1 integration (protection into main, Modbus, UI), then an Astra code review.
+  Runner: `sh firmware/family/briefs/run_lane.sh <lane> [resume]` - refuses while another `codex exec` runs
+  (two Sol on the same files happened once, 2026-10-21); `resume` continues the saved session. `docs/TOOLS.md`.
 * **24-ch F0 code exists but is untested on hardware** (I-100); F0 is enough for bring-up (programming,
   service-mode readings, relay tests); F1 (protection that can grant RUN) is not done.
 * Direction (`0037` D2): **one firmware for the board family** (8 / 24 / 36 ch = 1 / 3 / 5 banks of
