@@ -1,6 +1,6 @@
 #!/bin/sh
 # run_lane.sh <lane> [resume] : run one Codex Sol lane on the family firmware.
-#   lanes: A B C B2 B3 (brief lane-<X>*.md -> report lane-<X>-report.md, log lane-<X>-run.log)
+#   lanes: A B C B2 B3 F1 (F1 shares group A: main.c) (brief lane-<X>*.md -> report lane-<X>-report.md, log lane-<X>-run.log)
 #   resume: continue the same Codex session (thread id saved in lane-<X>.thread) instead of a fresh one.
 # One writer per file group: lanes that write the same files share a lock (B, B2, B3 = group B); different
 # groups (A, B, C) may run in parallel. A lock whose runner pid is dead is stale and is taken over.
@@ -8,11 +8,11 @@ W=/d/tasks/thermo/.claude/worktrees/24ch-rev-a4
 B=$W/firmware/family/briefs
 case "$1" in
   A) BRIEF=$B/lane-A-hardware-F0.md ;;  B) BRIEF=$B/lane-B-core.md ;;  C) BRIEF=$B/lane-C-acceptance.md ;;
-  B2) BRIEF=$B/lane-B2-fixes.md ;;      B3) BRIEF=$B/lane-B3-fix.md ;;
-  *) echo "usage: run_lane.sh A|B|C|B2|B3 [resume]"; exit 2 ;;
+  B2) BRIEF=$B/lane-B2-fixes.md ;;      B3) BRIEF=$B/lane-B3-fix.md ;;  F1) BRIEF=$B/lane-F1-integration.md ;;
+  *) echo "usage: run_lane.sh A|B|C|B2|B3|F1 [resume]"; exit 2 ;;
 esac
 REP=$B/lane-$1-report.md; LOG=$B/lane-$1-run.log; THREAD=$B/lane-$1.thread
-case "$1" in B|B2|B3) GROUP=B ;; *) GROUP=$1 ;; esac
+case "$1" in B|B2|B3) GROUP=B ;; A|F1) GROUP=A ;; *) GROUP=$1 ;; esac
 LOCK=$B/.lock-$GROUP
 if [ "$2" = "resume" ] && [ ! -s "$THREAD" ]; then echo "refused: no saved thread in $THREAD"; exit 4; fi
 if ! mkdir "$LOCK" 2>/dev/null; then
