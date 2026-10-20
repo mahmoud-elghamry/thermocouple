@@ -120,7 +120,7 @@ baseline 64 type changes old can never match again.
 | 2 | u8 | version 1 |
 | 3 | u8 | bank count |
 | 4 | u32 | sequence |
-| 8 | i32 x 6 | REF3030 / internal-reference ratio per bank, ppm deviation from nominal (`03` REF check); valid range +-10000 ppm (`03` 4: +-1.0 %); `0x7FFFFFFF` = not calibrated; unused banks 0 |
+| 8 | i32 x 6 | reference ratio per bank exactly as measured in slot 8 (`03` 4: internal / external), ppm deviation from nominal; valid range +-10000 ppm (`03` 4: +-1.0 %); `0x7FFFFFFF` = not calibrated; unused banks 0 |
 | 32 | i32 x 43 | burnout baseline per channel, nV (`03` burnout window); `0x7FFFFFFF` = not learned |
 | 204 | u8 x 43 | learned-under tag: bits 7..2 type epoch, bits 1..0 type (1 K, 2 J; 0 not learned) |
 | 247 | u16 | CRC16 (record 249 B < 256) |

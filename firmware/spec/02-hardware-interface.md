@@ -302,7 +302,8 @@ the measured scan time.
 | OCR2A | `124` | 125 kHz / 125 = 1000 Hz | |
 | TIMSK2 | `0x02` | OCIE2A | |
 
-ISR work is bounded: `ms_tick++`, RUN deadline countdown, nothing else.
+ISR work is bounded: `ms_tick++`, RUN deadline countdown, and the key sampling of `06` 2 (port read + debounce
+counters), nothing else.
 
 ### 4.4 Timer1 - 1 us time base (optional)
 
@@ -412,7 +413,7 @@ every island device deselected, SIO_WR_N high. The protection latch starts latch
 
 | Step | Action | Time bound |
 |---|---|---|
-| S0 (`.init3`, before .data/.bss init) | `cli`; `wdr`; copy MCUSR to a `.noinit` byte, MCUSR = 0; WDT timed sequence -> WDP = 0100 (0.25 s) (section 5); MCUCR.JTD = 1 written twice within 4 cycles (AVR 25.8.1); PORTB3 = 0, DDRB3 = 1 | < 20 cycles; must finish inside the 16 ms default timeout |
+| S0 (`.init3`, before .data/.bss init) | `cli`; `wdr`; copy MCUSR to a `.noinit` byte, MCUSR = 0; WDT timed sequence -> WDP = 0100 (0.25 s) (section 5); MCUCR.JTD = 1 written twice within 4 cycles (AVR 25.8.1); PORTB3 = 0, DDRB3 = 1 | < 40 cycles (F0 build: 26); must finish inside the 16 ms default timeout |
 | S1 | C runtime: .data copy, .bss clear (16 KB) | ~ few ms at 8 MHz, < 0.25 s |
 | S2 | GPIO per section 1 (PORT then DDR): CS / CS_EN / SIO_WR_N high, RUN low, ALARM low, DE low, REFTEST low, SCK high, LCD low, button and unused pull-ups | us |
 | S3 | read fuses from software, check (section 6); fail -> G15, continue in fault | us |
@@ -430,7 +431,9 @@ every island device deselected, SIO_WR_N high. The protection latch starts latch
 | S15 | first board scan (`03` 7): all slots, CJ, signatures, REFOK | ~ 0.7 s |
 | S16 | publish first validated board scan to `protection`; RUN stays open until ACK rules of `04` pass | |
 
-Any failure in S9-S15 raises its fault code (`03` section 11) and the loop keeps scanning; recovery is
+Any failure in S9-S15 raises its fault code (`03` section 11) and the loop keeps scanning. Where `03` names a
+bank re-init, F0/F1 may re-init the whole island instead (simpler; RUN is inhibited either way until a validated
+board scan); recovery is
 automatic when a later scan validates (RUN still needs ACK).
 
 MCUSR flags (AVR 25.8.2: JTRF, WDRF, BORF, EXTRF, PORF) are passed to `events` as the start-up cause.

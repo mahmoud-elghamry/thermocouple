@@ -65,7 +65,8 @@ and waits for SET (ESC skips and prints `SKIP`). The step never starts on a key 
 | A06 | `CAL REF` (if selected): measure each bank's REF ratio and store the REF part of the calibration record (`05` 6; burnout part kept, or 'not learned' on a blank record) | record valid after read-back |
 | A07 | `LEARN BURNOUT` (if selected; needs a valid REF part from A06): the LCD lists the inputs that read a connected probe now; the technician confirms that list (the **confirmed mask**, independent of settings, so it works on a blank board); baselines are stored for the mask, each tagged with the channel's type and type epoch from the valid settings
 (`05` 6); on a blank board (no valid settings) they are tagged K, epoch 0, and must be re-learned for any channel
-later configured as J, others 'not learned' | every confirmed channel inside the absolute window (`05` 6) |
+later configured as J, others 'not learned'. A confirmed channel that the valid settings set to OFF is stored
+as 'not learned' (no tag exists for OFF) and is not a failure | every confirmed channel inside the absolute window (`05` 6) |
 
 ## 5. Example (24-ch, bench, one probe on channel 1, others open)
 
