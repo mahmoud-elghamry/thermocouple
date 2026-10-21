@@ -26,8 +26,10 @@ OFFSET = [
     ("SOT-23", 180),           # SOT-23 and SOT-23-5: model mirrored end for end
     ("SOT-363", 180),          # TMP126 SC-70-6
     ("LED_D3.0mm", 180),       # D702, D712: model cathode on the anode pad
-    ("PinHeader_1x16", 270),   # J502: model stood across the pad row
+    ("PinHeader_", 270),       # J502, J501, JP731-JP733: model stood across the pad row (owner spotted J501)
     ("Relay_DPDT_Omron_G6K", 270),  # K701/K702: model pins in rows, our pads in columns; model pin 1 bottom-left
+    ("Converter_DCDC_Murata_CRE1", 270),  # U401 B0505S: model stood across its pin row (owner spotted it);
+                                          # pin 1 must land on the right-hand pad (GND), else input and output swap
 ]
 
 

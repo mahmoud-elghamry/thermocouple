@@ -273,7 +273,7 @@ REMARK = ("1) X-ray U101,U201,U301,U601 exposed pads, send images. 2) Power-on t
           "(+24V,0V), limit 150mA. Expect vs GND TP601: TP603 23.3-24.0V, TP602 5V 4.85-5.15V. Vs GNDI TP402: "
           "TP401 3V3I 3.23-3.37V, TP404 VREF 2.99-3.01V, TP403 VMID 1.60-1.70V. Input current <100mA. Power off: "
           "GND to GNDI open >10Mohm. Send readings per board, stop if out of range. 3) Photos of each board. "
-          "4) Wash flux. 5) K701/K702 coil has polarity: pin 1 = +5V, check on placement.")
+          "4) Wash flux. 5) Polarity: check pin 1 of K701/K702 (coil +5V) and U401 B0505S (GND) on placement.")
 
 
 def main(rel):
