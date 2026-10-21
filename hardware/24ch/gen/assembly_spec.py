@@ -254,7 +254,8 @@ WHICH = """WHICH FILE GOES WHERE - {name}
 
 JLCPCB website order (only these reach JLC):
   thermo24-gerbers.zip   upload as the gerber
-  BOM.csv, CPL.csv       upload on the assembly step
+  BOM.csv, CPL-JLC.csv   upload on the assembly step (CPL-JLC = rotations for JLC's models, `jlc_cpl.py`;
+                         plain CPL.csv is for other assemblers)
   POWER-ON-TEST.zip      PCBA option "Function test" -> Attach (box accepts zip/rar only)
   Assembly remark        paste the text below (the website has no other file of ours)
 
@@ -272,7 +273,7 @@ REMARK = ("1) X-ray U101,U201,U301,U601 exposed pads, send images. 2) Power-on t
           "(+24V,0V), limit 150mA. Expect vs GND TP601: TP603 23.3-24.0V, TP602 5V 4.85-5.15V. Vs GNDI TP402: "
           "TP401 3V3I 3.23-3.37V, TP404 VREF 2.99-3.01V, TP403 VMID 1.60-1.70V. Input current <100mA. Power off: "
           "GND to GNDI open >10Mohm. Send readings per board, stop if out of range. 3) Photos of each board. "
-          "4) Wash flux.")
+          "4) Wash flux. 5) K701/K702 coil has polarity: pin 1 = +5V, check on placement.")
 
 
 def main(rel):
