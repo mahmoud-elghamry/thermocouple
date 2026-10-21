@@ -28,6 +28,10 @@ if(-not $AvrOnly) {
     $cmd="set `"PATH=$installer;%PATH%`" && call `"$dev`" -arch=x64 -no_logo && cl /nologo /std:c11 /W4 /WX /O2 /fsanitize=address /Zi /DFAMILY_TEST /D_CRT_SECURE_NO_WARNINGS /I`"$root/include`" /I`"$root/test/fakes`" $quoted /Fe:`"$exe`" /Fo:`"$out/`" /Fd:`"$out/hardware.pdb`""
     Run $env:ComSpec @('/d','/s','/c',$cmd)
     Run $env:ComSpec @('/d','/s','/c',"set `"PATH=$installer;%PATH%`" && call `"$dev`" -arch=x64 -no_logo && `"$exe`"")
+    $timerExe=Join-Path $out 'test_timer.exe'
+    $cmd="set `"PATH=$installer;%PATH%`" && call `"$dev`" -arch=x64 -no_logo && cl /nologo /std:c11 /W4 /WX /O2 /I`"$root/test/stubs`" /I`"$root/include`" `"$root/src/mcal/timer.c`" `"$root/test/integration/test_timer.c`" /Fe:`"$timerExe`" /Fo:`"$out/`""
+    Run $env:ComSpec @('/d','/s','/c',$cmd)
+    Run $timerExe @()
 }
 if(-not $HostOnly) {
     $bin='C:/Program Files (x86)/Labcenter Electronics/Proteus 8 Professional/Tools/ARDUINO/hardware/tools/avr/bin'

@@ -129,7 +129,6 @@ static void boot_step(void) {
             if(!cal_valid) (void)fault_raise(&faults,FC_G10_CALIBRATION,0); boot=BEGIN_ACQ;
         } break;
     case BEGIN_ACQ:
-        service_entry|=!set_valid;
         mode=service_entry?SERVICE:((set_valid && cal_valid)?START_LATCHED:CONFIG_LOCK);
         scan_init(service_entry?NULL:&active,&calibration,&faults);
         if(service_entry) svc_init(&active,&calibration,set_valid,a_valid,b_valid,cal_slot,flash_valid);

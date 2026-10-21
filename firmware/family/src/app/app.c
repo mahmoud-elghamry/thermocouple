@@ -16,11 +16,17 @@ static fault_registry_t *faults;
 static prot_state_t protection;
 static prot_out_t output;
 static outputs_t outputs;
-static bool command_pending,service_mode,window_watch;
+static bool command_pending,service_mode,window_watch,calibration_good;
 static bool trip_logged,first_logged,first_this_pass;
-static uint32_t last_scan,window_at;
+static uint32_t last_scan,window_at,event_uptime;
 static uint16_t worst_loop;
 static ack_reason_t last_ack;
+static void observe_expiry(void) {
+    if(timer_run_expired() && protection.mode==RUN) {
+        (void)prot_on_fault(&protection,faults,FC_G05_SCAN_DEADLINE,0,CH_MODE_TRIP,0,tick_ms()/1000u);
+        ack_input_cancel();
+    }
+}
 static uint8_t seen_fault[FAULT_CODES][FAULT_BYTES],channel_cause[MAX_CHANNELS];
 static void enqueue_event(event_type_t type,fault_code_t code,uint8_t channel,uint8_t unit,
                       temp_dC_t value,temp_dC_t threshold,uint32_t uptime_s) {
@@ -48,20 +54,22 @@ static void log_event(event_type_t type,fault_code_t code,uint8_t channel,uint8_
     log_first_trip();
     if(type==EV_TRIP && first_this_pass && code==protection.first.code &&
        channel==protection.first.channel && unit==first_event_unit()) return;
-    enqueue_event(type,code,channel,unit,value,threshold,tick_ms()/1000u);
+    enqueue_event(type,code,channel,unit,value,threshold,event_uptime);
 }
 void app_init(settings_t *cfg,calibration_t *calibration,fault_registry_t *registry,
               bool valid,bool service) {
     prot_in_t in;
     settings=cfg; cal=calibration; faults=registry; service_mode=service;
+    event_uptime=tick_ms()/1000u;
     memset(&outputs,0,sizeof outputs); memset(&output,0,sizeof output);
     memset(seen_fault,0,sizeof seen_fault); memset(channel_cause,0,sizeof channel_cause);
     command_pending=window_watch=false; last_scan=0; worst_loop=0; last_ack=ACK_NONE;
     first_logged=first_this_pass=false;
-    prot_init(&protection,valid,valid && cal_complete(cal,cfg),service);
+    calibration_good=valid && cal_complete(cal,cfg);
+    prot_init(&protection,valid,calibration_good,service);
     /* Publish fitted-channel identity before any fault notifications. */
     memset(&in,0,sizeof in); in.settings=settings; in.faults=faults;
-    in.settings_valid=valid; in.calibration_valid=valid && cal_complete(cal,cfg);
+    in.settings_valid=valid; in.calibration_valid=calibration_good;
     in.now_ms=tick_ms(); in.flow_ok=true; prot_step(&in,&protection,&output);
     ack_input_init();
     if(service) log_event(EV_SERVICE_ENTRY,FC_NONE,0,0,0,0);
@@ -88,7 +96,7 @@ static void immediate_results(void) {
         cond_t condition=chan_cond(r,c,scan->scan_no);
         fault_code_t code=chan_cause(r,condition); act_t action=chan_action(condition,c->mode);
         prot_mode_t before=protection.mode;
-        (void)prot_on_result(&protection,ch,r,settings,scan->scan_no,tick_ms()/1000u);
+        (void)prot_on_result(&protection,ch,r,settings,scan->scan_no,event_uptime);
         if(action!=ACT_NONE && channel_cause[ch]!=(uint8_t)code) {
             log_event(action==ACT_TRIP?EV_TRIP:EV_ALARM,code,(uint8_t)(ch+1),0,r->temp_dC,
                       action==ACT_TRIP?c->trip_dC:c->alarm_dC);
@@ -97,12 +105,8 @@ static void immediate_results(void) {
         if(before==RUN && protection.mode!=RUN) ack_input_cancel();
     }
 }
-static void immediate_faults(void) {
-    uint8_t code,byte,bit;
-    for(code=1;code<FC_C10_OVER_TRIP;code++) for(byte=0;byte<FAULT_BYTES;byte++) {
-        uint8_t active=faults->active[code][byte];
-        uint8_t fresh=(uint8_t)(active&~seen_fault[code][byte]);
-        seen_fault[code][byte]=active;
+static void fault_events(uint8_t code,uint8_t byte,uint8_t fresh) {
+    uint8_t bit;
         for(bit=0;fresh && bit<8;bit++) if(fresh&(1u<<bit)) {
             uint8_t unit=(uint8_t)(8*byte+bit),ch=0,event_unit=0;
             ch_mode_t mode=CH_MODE_TRIP; bool fitted=true;
@@ -112,7 +116,7 @@ static void immediate_faults(void) {
                 fitted=settings->ch[unit].type!=CH_TYPE_OFF;
                 if(code==FC_C03_COMMON_MODE) event_unit=(uint8_t)(scan_current()->scan_no%16u);
             } else if(code>=FC_B01_ADC_ID) event_unit=(uint8_t)(unit+1);
-            (void)prot_on_fault(&protection,faults,(fault_code_t)code,unit,mode,ch,tick_ms()/1000u);
+            (void)prot_on_fault(&protection,faults,(fault_code_t)code,unit,mode,ch,event_uptime);
             if(fitted) {
                 log_event(EV_FAULT,(fault_code_t)code,ch,event_unit,0,0);
                 if(fault_action((fault_code_t)code,mode)==ACT_TRIP)
@@ -121,18 +125,41 @@ static void immediate_faults(void) {
             if(before==RUN && protection.mode!=RUN) ack_input_cancel();
             fresh&=(uint8_t)~(1u<<bit);
         }
+}
+static void immediate_faults(void) {
+    uint16_t n;
+    const uint8_t *active=&faults->active[1][0];
+    uint8_t *seen=&seen_fault[1][0];
+    for(n=0;n<(FC_C10_OVER_TRIP-1u)*FAULT_BYTES;n++) {
+        uint8_t bits=*active++;
+        if(bits!=*seen) {
+            uint8_t fresh=(uint8_t)(bits&~*seen); *seen=bits;
+            if(fresh) fault_events((uint8_t)(1u+n/FAULT_BYTES),(uint8_t)(n%FAULT_BYTES),fresh);
+        }
+        ++seen;
+    }
+}
+static void feedback_fault(fault_code_t code,bool active) {
+    if(active) (void)fault_raise(faults,code,0); else fault_clear(faults,code,0);
+    { uint8_t bits=faults->active[code][0];
+      uint8_t fresh=(uint8_t)(bits&~seen_fault[code][0]);
+      seen_fault[code][0]=bits;
+      if(fresh) fault_events((uint8_t)code,0,fresh);
     }
 }
 uint8_t app_step(bool flow_ok) {
     prot_in_t in; output_decision_t d; uint8_t done,seen=0; res_t r;
     prot_mode_t before;
     memset(&in,0,sizeof in);
+    event_uptime=tick_ms()/1000u;
     trip_logged=first_this_pass=false;
     if(command_pending) {
         r=ee_owner_settings(&mailbox);
         if(r!=RES_BUSY) { command_pending=false; if(r!=RES_OK) last_ack=ACK_R5_SETTINGS; }
     }
     done=ee_owner_take_done();
+    if(done) calibration_good=ee_owner_settings_valid() && cal_complete(cal,settings);
+    (void)prot_begin_pass(&protection,settings);
     in.commit_begin=ee_owner_take_begin(); in.commit_done=done!=0;
     in.protection_change=ee_owner_protection_change();
     if(in.commit_begin || in.commit_done) ack_input_cancel();
@@ -144,7 +171,7 @@ uint8_t app_step(bool flow_ok) {
         /* Service owns the confirmed relay-test bypass and key queue. Settings
          * still use the same mailbox and durable owner as the later UI. */
         in.settings=settings; in.faults=faults; in.now_ms=tick_ms();
-        in.settings_valid=ee_owner_settings_valid(); in.calibration_valid=cal_complete(cal,settings);
+        in.settings_valid=ee_owner_settings_valid(); in.calibration_valid=calibration_good;
         in.flow_ok=flow_ok; in.writing=ee_owner_busy();
         /* No service measurement is protection evidence. Still execute the
          * state/complement checks, including during confirmed relay tests. */
@@ -167,7 +194,7 @@ uint8_t app_step(bool flow_ok) {
     if(ee_owner_info_fault()) (void)fault_raise(faults,FC_G13_SAVE_FAIL_INFO,0);
     else fault_clear(faults,FC_G13_SAVE_FAIL_INFO,0);
     if(ee_owner_fault()!=FC_G02_SAVE_FAIL_PROT) fault_clear(faults,FC_G02_SAVE_FAIL_PROT,0);
-    immediate_results();
+    observe_expiry(); immediate_results();
     /* Keep the last granted scan's freshness deadline even if B05 opens RUN
      * earlier. A stalled acquisition still records G05 after that window. */
     if(window_watch && tick_ms()-window_at>=900u) {
@@ -176,7 +203,7 @@ uint8_t app_step(bool flow_ok) {
     immediate_faults();
     in.settings=settings; in.scan=scan_last(); in.faults=faults;
     in.now_ms=tick_ms(); in.uptime_s=in.now_ms/1000u;
-    in.settings_valid=ee_owner_settings_valid(); in.calibration_valid=cal_complete(cal,settings);
+    in.settings_valid=ee_owner_settings_valid(); in.calibration_valid=calibration_good;
     in.writing=ee_owner_busy(); in.flow_ok=flow_ok;
     in.scan_complete=in.scan->scan_no!=last_scan; last_scan=in.scan->scan_no;
     in.readback_off_ok=!relay_run_sense() && !relay_alarm_sense();
@@ -184,6 +211,7 @@ uint8_t app_step(bool flow_ok) {
     prot_step(&in,&protection,&output);
     seen|=1;
     if(output.event_mask&(1u<<(EV_ACK-1))) {
+        if(before!=RUN) timer_run_ack_expiry();
         first_logged=false;
         ee_owner_ack_events();
         if(!ee_owner_info_fault()) {
@@ -197,14 +225,15 @@ uint8_t app_step(bool flow_ok) {
     if(in.ack) last_ack=output.ack_reason;
     if(before==RUN && protection.mode!=RUN) ack_input_cancel();
     d=outputs_step(&outputs,&output,tick_ms(),!relay_run_sense(),!relay_alarm_sense());
-    outputs_hw_apply(d.pwm_enable,d.alarm_energise,output.window_remaining_ms);
+    observe_expiry();
+    outputs_hw_apply_at(d.pwm_enable && protection.mode==RUN,d.alarm_energise && protection.mode==RUN,
+                        output.window_remaining_ms,in.now_ms);
+    observe_expiry();
+    if(protection.mode!=RUN) outputs_hw_apply(false,false,0);
     seen|=2;
-    if(d.run_fault!=FC_NONE) (void)fault_raise(faults,d.run_fault,0);
-    else fault_clear(faults,FC_G06_RUN_FEEDBACK,0);
-    if(d.alarm_fault!=FC_NONE) (void)fault_raise(faults,d.alarm_fault,0);
-    else fault_clear(faults,FC_G07_ALARM_FEEDBACK,0);
     /* Feedback faults reach protection in this pass; PWM already stopped. */
-    immediate_faults();
+    feedback_fault(FC_G06_RUN_FEEDBACK,d.run_fault!=FC_NONE);
+    feedback_fault(FC_G07_ALARM_FEEDBACK,d.alarm_fault!=FC_NONE);
     if(protection.mode!=RUN) {
         output.run_permission=false; output.window_remaining_ms=0; output.alarm_active=true;
     }

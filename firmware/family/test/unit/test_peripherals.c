@@ -40,7 +40,8 @@ void test_peripherals(void) {
     outputs_hw_apply(false,false,0); outputs_hw_apply(true,false,900);
     fake_advance(899); outputs_hw_apply(true,false,10); CHECK(timer_run_remaining()==1);
     fake_advance(1); outputs_hw_apply(true,false,9); CHECK(!timer_run_active());
-    outputs_hw_apply(true,false,900); CHECK(timer_run_active()); outputs_hw_apply(false,false,0);
+    outputs_hw_apply(true,false,900); CHECK(!timer_run_active()); CHECK(timer_run_expired());
+    timer_run_ack_expiry(); outputs_hw_apply(true,false,900); CHECK(timer_run_active()); outputs_hw_apply(false,false,0);
     fake_reset(); gpio_init(); keys_init(); step(10); keys_repeat(true);
     key(0,true); step(7); CHECK(keys_held()==0 && keys_get()==KEY_NONE);
     step(1); CHECK((keys_held()&1)!=0); step(149); CHECK(keys_get()==KEY_NONE);

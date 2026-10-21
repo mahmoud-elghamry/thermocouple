@@ -54,26 +54,39 @@ bool fault_active(const fault_registry_t *r, fault_code_t c)
 }
 bool fault_trip_active(const fault_registry_t *r)
 {
-    uint8_t c;
-    if(r==NULL || r->internal) return true;
-    /* C-codes are evaluated with their channel mode by channel_eval/protection. */
-    for(c=1;c<41;++c) if(known((fault_code_t)c) &&
-        fault_action((fault_code_t)c,CH_MODE_TRIP)==ACT_TRIP && fault_active(r,(fault_code_t)c)) return true;
-    return false;
+    uint8_t unit; return fault_first_trip(r,&unit)!=FC_NONE;
+}
+fault_code_t fault_first_trip(const fault_registry_t *r,uint8_t *unit)
+{
+    uint8_t c,b,bit;
+    *unit=0;
+    if(r==NULL || r->internal) return FC_G04_INTERNAL;
+    for(c=1;c<=FC_B15_ADC_RESET;++c) {
+        if((c>=16 && c<=20) || c==11 || c==12 || c==13) continue;
+        for(b=0;b<FAULT_BYTES;++b) {
+            uint8_t bits=r->active[c][b];
+            if(!bits) continue;
+            for(bit=0;bit<8;++bit) if(bits&(1u<<bit)) {
+                *unit=(uint8_t)(8*b+bit); return (fault_code_t)c;
+            }
+        }
+    }
+    return FC_NONE;
 }
 bool fault_alarm_latched(const fault_registry_t *r)
 {
-    uint8_t c, i;
+    uint16_t n; const uint8_t *p;
     if(r==NULL || r->internal) return true;
-    for(c=1;c<FAULT_CODES;++c) for(i=0;i<FAULT_BYTES;++i) if(r->latch[c][i]) return true;
+    p=&r->latch[1][0];
+    for(n=FAULT_BYTES;n<FAULT_CODES*FAULT_BYTES;++n) if(*p++) return true;
     return false;
 }
 bool fault_global_alarm_latched(const fault_registry_t *r)
 {
-    uint8_t c, i;
+    uint16_t n; const uint8_t *p;
     if(r==NULL || r->internal) return true;
-    for(c=1;c<FC_C01_OPEN;++c)
-        for(i=0;i<FAULT_BYTES;++i) if(r->latch[c][i]) return true;
+    p=&r->latch[1][0];
+    for(n=FAULT_BYTES;n<FC_C01_OPEN*FAULT_BYTES;++n) if(*p++) return true;
     return false;
 }
 bool fault_latched_at(const fault_registry_t *r, fault_code_t c, uint8_t u)
@@ -85,7 +98,8 @@ bool fault_latched_at(const fault_registry_t *r, fault_code_t c, uint8_t u)
 }
 void fault_ack(fault_registry_t *r)
 {
-    uint8_t c, i;
+    uint16_t n; uint8_t *l; const uint8_t *a;
     if(r==NULL) return;
-    for(c=1;c<FAULT_CODES;++c) for(i=0;i<FAULT_BYTES;++i) r->latch[c][i]&=r->active[c][i];
+    l=&r->latch[1][0]; a=&r->active[1][0];
+    for(n=FAULT_BYTES;n<FAULT_CODES*FAULT_BYTES;++n) { *l++&=*a++; }
 }

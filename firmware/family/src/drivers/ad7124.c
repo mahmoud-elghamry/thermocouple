@@ -1,4 +1,5 @@
 #include "drivers/ad7124.h"
+#include "app/acquisition_budget.h"
 #include "drivers/iso_spi.h"
 #include "board/board_cfg.h"
 #include "mcal/timer.h"
@@ -145,11 +146,14 @@ res_t ad_init(uint8_t b) {
         d->offset[1]=d->offset[0]; d->gain[1]=d->gain[0];
         r=ad_write(b,0x2A,d->offset[1]); if(r==RES_OK) r=ad_write(b,0x32,d->gain[1]);
         if(r==RES_OK) r=ad_write(b,9,1);
-        d->state=6; d->verify_index=0; break;
+        d->state=6; d->verify_index=0; d->index=0; break;
     case 6:
-        r=ad_verify(b); if(r==RES_BUSY) return r;
-        if(r==RES_OK) r=ad_verify_mutable(b);
+        if(d->verify_index<32) {
+            r=ad_verify(b);
+            if(r==RES_OK || r==RES_BUSY) return RES_BUSY;
+        } else r=ad_verify_mutable_part(b,d->index++);
         if(r!=RES_OK) return init_fail(b,r,FC_B03_ADC_READBACK);
+        if(d->index<19) return RES_BUSY;
         d->fault=FC_NONE; d->state=7; return RES_OK;
     case 7:return RES_OK;
     default:return RES_ERR_READBACK;
@@ -166,18 +170,21 @@ res_t ad_verify(uint8_t b) {
     ++a[b].verify_index; return a[b].verify_index==32?RES_OK:RES_BUSY;
 }
 res_t ad_verify_mutable(uint8_t b) {
-    uint8_t i; uint32_t v=0; res_t r;
+    uint8_t i; res_t r;
+    for(i=0;i<19;i++) { r=ad_verify_mutable_part(b,i); if(r!=RES_OK) return r; }
+    return RES_OK;
+}
+res_t ad_verify_mutable_part(uint8_t b,uint8_t i) {
+    uint32_t v=0; res_t r; uint8_t reg;
     if(b>=board()->banks) return RES_ERR_RANGE;
-    r=ad_read(b,1,&v); if(r!=RES_OK) return r;
-    if(v!=0x0748) { a[b].fault=FC_B03_ADC_READBACK; return RES_ERR_READBACK; }
-    for(i=0;i<16;i++) {
-        r=ad_read(b,(uint8_t)(9+i),&v); if(r!=RES_OK) return r;
-        if(v!=ad_slot_image(i,a[b].scan)) { a[b].fault=FC_B03_ADC_READBACK; return RES_ERR_READBACK; }
-    }
-    r=ad_read(b,5,&v); if(r!=RES_OK) return r;
-    if(!id_ok(v)) { a[b].fault=FC_B01_ADC_ID; return RES_ERR_ID; }
-    r=ad_read(b,6,&v); if(r!=RES_OK) return r;
-    if(v) { a[b].fault=FC_B04_ADC_ERROR; return RES_ERR_READBACK; } return RES_OK;
+    if(i>=19) return RES_ERR_RANGE;
+    reg=i==0?1:i<17?(uint8_t)(8+i):i==17?5:6;
+    r=ad_read(b,reg,&v); if(r!=RES_OK) return r;
+    if(i==17) { if(id_ok(v)) return RES_OK; a[b].fault=FC_B01_ADC_ID; return RES_ERR_ID; }
+    else if(i==18) { if(!v) return RES_OK; a[b].fault=FC_B04_ADC_ERROR; }
+    else { if(v==(i==0?0x0748u:ad_slot_image((uint8_t)(i-1u),a[b].scan))) return RES_OK;
+        a[b].fault=FC_B03_ADC_READBACK; }
+    return RES_ERR_READBACK;
 }
 static res_t mclk(uint8_t b,uint8_t *v) {
     uint8_t i; uint32_t prev=0,now=0; res_t r=ad_read(b,8,&prev);

@@ -23,7 +23,8 @@
 #ifndef FAMILY_BUILD_HASH
 #define FAMILY_BUILD_HASH "local"
 #endif
-typedef enum { PASSIVE, PROMPT, CONFIRM, ACTIVE, RELEASE, CAL_COLLECT, CAL_SAVE, FINISH, REPORT_END, FINISHED } state_t;
+typedef enum { PASSIVE, PROMPT, CONFIRM, ACTIVE, RELEASE, CAL_COLLECT, CAL_SAVE, FINISH, REPORT_END, FINISHED,
+               CRC_BEFORE, CRC_AFTER } state_t;
 static state_t state;
 static const settings_t *settings;
 static calibration_t *active_cal,candidate;
@@ -33,7 +34,7 @@ static uint16_t n_ok,n_fail,worst,ee_index,drop_ms;
 static uint32_t started,progress,last_scan,confirmed;
 static int32_t sums[24]; /* F0 scope: 24 inputs; 16 REF or 8 burnout sums fit int32. */
 static char line[124];
-static uint16_t protected_crc;
+static uint16_t protected_crc,crc_pos,crc_work;
 uint8_t *svc_boot_image(void) { return ee_owner_boot_image(); }
 static void display(const char *s) {
     char frame[80]; size_t n=strlen(s); memset(frame,' ',80);
@@ -139,14 +140,14 @@ static void passive(void) {
     report(name,value,ok,ok?"":"CHECK");
     if(++item==count) { item=0; ++pstep; }
 }
-static uint16_t record_crc(void) {
-    uint16_t a,c=0xFFFF; uint8_t bit;
+static bool record_crc_step(void) {
+    uint8_t i,bit;
     /* Includes settings and calibration A/B; scratch is deliberately excluded. */
-    for(a=0x40;a<0x840;a++) {
-        c^=(uint16_t)ee_read(a)<<8;
-        for(bit=0;bit<8;bit++) c=(uint16_t)((c&0x8000u)?(c<<1)^0x1021u:c<<1);
+    for(i=0;i<16 && crc_pos<0x840;i++,crc_pos++) {
+        crc_work^=(uint16_t)ee_read(crc_pos)<<8;
+        for(bit=0;bit<8;bit++) crc_work=(uint16_t)((crc_work&0x8000u)?(crc_work<<1)^0x1021u:crc_work<<1);
     }
-    return c;
+    return crc_pos==0x840;
 }
 static void cal_start(void) {
     uint8_t c;
@@ -217,6 +218,9 @@ static void save_cal(void) {
 }
 void svc_task(void) {
     key_t key; uint32_t dt;
+    if(state==ACTIVE && astep>=2 && astep<=4 && keys_pressed()) {
+        relays_safe(); report("ABORT",0,false,"PRESS"); next_active(); return;
+    }
     ee_owner_step();
     if(state==FINISHED || rs485_busy()) return;
     key=keys_get(); dt=tick_ms()-started;
@@ -230,9 +234,9 @@ void svc_task(void) {
         else if(key==KEY_SET) {
             started=tick_ms(); test_ok=true; item=0; key_index=0; drop_ms=UINT16_MAX; state=ACTIVE;
             if(astep==2) relay_alarm(true);
-            if(astep==3) timer_run_start(1000);
-            if(astep==4) timer_run_static_high();
-            if(astep==5) { protected_crc=record_crc(); ee_index=0; }
+            if(astep==3) { timer_run_ack_expiry(); timer_run_start(1000); }
+            if(astep==4) { timer_run_ack_expiry(); timer_run_static_high(); }
+            if(astep==5) { crc_pos=0x40; crc_work=0xFFFF; ee_index=0; state=CRC_BEFORE; }
             if(astep==6) cal_start();
             if(astep==7) {
                 uint8_t c; confirmed=0;
@@ -281,7 +285,14 @@ void svc_task(void) {
                 if(item==0) { if(ee_owner_scratch(addr,v)==RES_OK) item=1; }
                 else if(item==1) { if(ee_read(addr)!=v) test_ok=false; if(ee_owner_scratch(addr,0xFF)==RES_OK) item=2; }
                 else { if(ee_read(addr)!=0xFF) test_ok=false; ++ee_index; item=0; }
-            } else { test_ok&=protected_crc==record_crc(); report("EEPROM_SCRATCH",256,test_ok,""); next_active(); }
+            } else { crc_pos=0x40; crc_work=0xFFFF; state=CRC_AFTER; }
+        }
+        break;
+    case CRC_BEFORE: case CRC_AFTER:
+        if(key!=KEY_NONE) { report("ABORT",0,false,"KEY"); next_active(); break; }
+        if(record_crc_step()) {
+            if(state==CRC_BEFORE) { protected_crc=crc_work; state=ACTIVE; }
+            else { test_ok&=protected_crc==crc_work; report("EEPROM_SCRATCH",256,test_ok,""); next_active(); }
         }
         break;
     case CAL_COLLECT:collect_cal();break;

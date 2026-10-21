@@ -148,4 +148,13 @@ void test_protection(void)
     h_run(&h); h.in.ack_key_released=true; h_step(&h,3,false);
     h.in.ack_key_released=false; h.in.ack=true; h.in.commit_begin=true; h.in.protection_change=true;
     h_step(&h,4,false); CHECK(h.state.mode==START_LATCHED && h.out.ack_reason==ACK_R1_RELEASE);
+    /* Astra S2 / 04 7.2: newer immediate evidence wins over completed scans. */
+    h_run(&h); h.cfg.ch[0].mode=CH_MODE_ALARM_ONLY;
+    r=sample(900,2); prot_on_result(&h.state,0,&r,&h.cfg,2,0);
+    h_ack(&h,3); CHECK(h.out.alarm_active && h.state.alarm_latch[0]);
+    h_step(&h,4,false); CHECK(h.out.alarm_active);
+    r=sample(700,2); prot_on_result(&h.state,0,&r,&h.cfg,2,0);
+    h.scan.meas[0]=sample(900,1); h_ack(&h,5);
+    CHECK(!h.out.alarm_active && !h.state.alarm_latch[0]);
+    h_step(&h,6,false); CHECK(!h.out.alarm_active);
 }

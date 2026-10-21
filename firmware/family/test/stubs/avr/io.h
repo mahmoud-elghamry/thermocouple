@@ -1,0 +1,6 @@
+#ifndef TEST_AVR_IO_H
+#define TEST_AVR_IO_H
+#include <stdint.h>
+extern uint8_t TCCR0A,TCCR0B,TIMSK0,TCCR1A,TCCR1B,TIMSK1;
+extern uint8_t ASSR,TCCR2A,TCCR2B,OCR2A,TIMSK2,TCNT0,OCR0A,PORTB;
+#endif

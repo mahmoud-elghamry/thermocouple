@@ -21,6 +21,7 @@ bool fault_active(const fault_registry_t *r, fault_code_t code);
 bool fault_at(const fault_registry_t *r, fault_code_t code, uint8_t unit);
 act_t fault_action(fault_code_t code, ch_mode_t mode);
 bool fault_trip_active(const fault_registry_t *r);
+fault_code_t fault_first_trip(const fault_registry_t *r,uint8_t *unit); /* byte search; G/B only */
 bool fault_alarm_latched(const fault_registry_t *r);
 /* Settings-aware consumers combine G/B latches with fitted-channel C latches. */
 bool fault_global_alarm_latched(const fault_registry_t *r);

@@ -1,4 +1,5 @@
 #include "services/scan.h"
+#include "app/acquisition_budget.h"
 #include "services/tc_math.h"
 #include "drivers/ad7124.h"
 #include "drivers/tmp126.h"
@@ -16,7 +17,7 @@ static const settings_t *cfg;
 static const calibration_t *cal;
 static fault_registry_t *registry;
 static uint32_t start,progress,wait_start,pending,last_ref;
-static uint8_t initialized,slot,done,cj_index;
+static uint8_t initialized,slot,done,cj_index,end_index;
 static bool prior[MAX_BANKS],good[MAX_BANKS],verify_done[MAX_BANKS],reinit,transport[MAX_BANKS];
 static int32_t cj_mC[10];
 static bool cj_valid[10];
@@ -210,7 +211,7 @@ void scan_task(void) {
             ad_scan_begin(b,work.scan_no);
             if(ad_fault(b)!=FC_NONE) { bank_fault(b,ad_fault(b)); reinit=true; }
         }
-        cj_index=0; phase=reinit?END_SCAN:READ_CJ; break;
+        cj_index=end_index=0; phase=reinit?END_SCAN:READ_CJ; break;
     case READ_CJ:
         r=cj_read(cj_index,&cj_mC[cj_index]); diag.cj_status[cj_index]=r; cj_valid[cj_index]=r==RES_OK; progress=tick_ms();
         if(++cj_index<board()->cj_count) break;
@@ -245,10 +246,13 @@ void scan_task(void) {
         break;
     case END_SCAN:
         if(!reinit) for(b=0;b<board()->banks;b++) {
-            r=ad_verify_mutable(b); diag.registers_ok[b]=r==RES_OK && verify_done[b];
-            if(!diag.registers_ok[b]) { bank_fault(b,ad_fault(b)); reinit=true; }
-            if(good[b] && registry) { uint8_t f; for(f=FC_B01_ADC_ID;f<=FC_B15_ADC_RESET;f++) fault_clear(registry,(fault_code_t)f,b); }
+            r=ad_verify_mutable_part(b,end_index); diag.registers_ok[b]=r==RES_OK && verify_done[b];
+            if(!diag.registers_ok[b]) {
+                bank_fault(b,ad_fault(b)); transport[b]=r==RES_ERR_CRC || r==RES_ERR_ID; reinit=true;
+            }
+            if(end_index==18 && good[b] && registry) { uint8_t f; for(f=FC_B01_ADC_ID;f<=FC_B15_ADC_RESET;f++) fault_clear(registry,(fault_code_t)f,b); }
         }
+        if(!reinit && ++end_index<19) { progress=tick_ms(); break; }
         publish(); break;
     case RECOVER:
         if(tick_ms()-wait_start>=10) { scan_restart(); progress=tick_ms(); }

@@ -19,10 +19,11 @@ src/services/tc_math.c
 src/services/tc_tables.c
 src/app/service.c
 test/unit/test_service.c
-src/services/settings.c
+test/stubs/settings_counted.c
 src/services/settings_cal.c
 src/services/settings_store.c
 test/integration/test_app.c
+test/integration/test_review.c
 src/app/main.c
 src/app/app.c
 src/app/ack_input.c

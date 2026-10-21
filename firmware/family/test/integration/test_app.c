@@ -124,8 +124,8 @@ static void commits(void) {
     memcpy(image,fake_eeprom,sizeof image);
     for(cut=0;cut<=404;cut++) {
         fake_reset(); memcpy(fake_eeprom,image,sizeof image); f0_init(); loop(800);
-        CHECK(app_commit_settings(&candidate)==RES_OK); writes=model_write_count();
-        for(steps=0;steps<4000 && model_write_count()-writes<(cut>403?403:cut);steps++) loop(1);
+        CHECK(app_commit_settings(&candidate)==RES_OK); writes=model_settings_write_count();
+        for(steps=0;steps<4000 && model_settings_write_count()-writes<(cut>403?403:cut);steps++) loop(1);
         CHECK(steps<4000);
         if(cut==404) fake_advance(4);
         model_power_cut();
@@ -337,8 +337,10 @@ static void service_lost_report(void) {
     CHECK(ee_owner_events_lost()==1);
     CHECK(strstr(fake_uart_log,"P17 EVENTS_LOST 1 OK")!=NULL);
 }
+void test_review(void);
 void test_main(void) {
     model_enable();
+    test_review();
     island_burst(); overflow_ack(); first_out_last_slot(); service_lost_report();
     safety(); injected(); lifecycle(); configurations(); service_owner(); commits();
     printf("host modeled loop worst: %lu us (I/O timing; AVR CPU WCET requires bench)\n",(unsigned long)worst_us);

@@ -31,7 +31,7 @@ void lcd_task(void) {
         } return;
     }
     for(i=0;i<80 && n<8;i++) {
-        uint8_t p=cursor; cursor=(uint8_t)((cursor+1)%80);
+        uint8_t p=cursor; if(++cursor==80) cursor=0;
         if(wanted[p]!=shown[p]) {
             byte((uint8_t)(0x80|((p%20)+row[p/20])),false);
             byte((uint8_t)wanted[p],true); shown[p]=wanted[p]; ++n;

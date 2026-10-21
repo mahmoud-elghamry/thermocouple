@@ -22,6 +22,11 @@ typedef struct {
     uint8_t fitted[(MAX_CHANNELS+7u)/8u];
     uint8_t alarm_latch[MAX_CHANNELS];
     uint8_t trip_seen[MAX_CHANNELS];
+    uint32_t latest_scan[MAX_CHANNELS];
+    uint8_t latest_seen[(MAX_CHANNELS+7u)/8u];
+    uint8_t alarm_clear[(MAX_CHANNELS+7u)/8u];
+    const settings_t *pass_cfg;
+    bool pass_prepared,pass_valid;
     first_out_t first;
 } prot_state_t;
 typedef struct {
@@ -46,6 +51,9 @@ typedef struct {
 /* Caller owns all state. Service takes precedence over missing settings at boot. */
 void prot_init(prot_state_t *s, bool settings_ok, bool cal_ok, bool service);
 bool prot_integrity(const prot_state_t *s);
+/* Once per shell pass; configuration stays immutable until prot_step returns.
+ * Standalone callers need not prepare: prot_on_result still validates itself. */
+bool prot_begin_pass(prot_state_t *s,const settings_t *cfg);
 /* Immediate calls: never wait for scan completion. New causes returned for logging.
  * Publish the active configuration via step/result before C-fault notifications;
  * their zero-based unit is checked against its fitted mask (channel is event ID). */
