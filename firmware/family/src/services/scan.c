@@ -1,5 +1,6 @@
 #include "services/scan.h"
 #include "app/acquisition_budget.h"
+#include "app/cj_schedule.h"
 #include "services/tc_math.h"
 #include "drivers/ad7124.h"
 #include "drivers/tmp126.h"
@@ -9,7 +10,7 @@
 #include "board/board_cfg.h"
 #include <string.h>
 typedef enum { INIT_ADC, INIT_CJ, WAIT_CJ, REF_PRE, REF_HIGH, REF_LOW,
-               BEGIN_SCAN, READ_CJ, START_SLOT, POLL_SLOT, END_SCAN, RECOVER } phase_t;
+               BEGIN_SCAN, BEGIN_BANK, START_SLOT, POLL_SLOT, END_SCAN, RECOVER } phase_t;
 static phase_t phase;
 static scan_out_t work,published;
 static scan_diag_t diag;
@@ -31,7 +32,9 @@ emf_nV_t scan_emf(uint32_t code,uint8_t gain) {
     int64_t d=(int32_t)code-0x800000L;
     /* Symmetric nearest rounding; avoids implementation-dependent negative shifts. */
     int64_t n=d*2500000000LL,div=(int64_t)gain*8388608L;
-    n=n>=0?(n+div/2)/div:-((-n+div/2)/div);
+    if(gain==1) n=n>=0?(n+(1L<<22))>>23:-(((-n)+(1L<<22))>>23);
+    else if(gain==32) n=n>=0?(n+(1L<<27))>>28:-(((-n)+(1L<<27))>>28);
+    else n=n>=0?(n+div/2)/div:-((-n+div/2)/div);
     if(n>INT32_MAX) return INT32_MAX;
     if(n<INT32_MIN) return INT32_MIN;
     return (emf_nV_t)n;
@@ -69,7 +72,7 @@ fault_code_t scan_limit(uint8_t s,uint32_t code,uint32_t partner,int32_t ref,
     return FC_NONE; /* All diagnostic windows provisional: 03 section 4. */
 }
 void scan_restart(void) {
-    phase=INIT_ADC; initialized=0; cj_index=0; reinit=false; diag.initialized=false;
+    phase=INIT_ADC; initialized=0; cj_index=end_index=0; reinit=false; diag.initialized=false;
     diag.ref_test_ok=false; wait_start=tick_ms(); ad_reset_state(); cj_reset();
     memset(prior,0,sizeof prior); gpio_write(board()->reftest,false);
 }
@@ -139,7 +142,7 @@ static void result(uint8_t b,uint32_t code) {
         else if(f!=FC_NONE) channel_fault(ch,f);
         else if(good[b] && cj_valid[2*b] && cj_valid[2*b+1]) {
             uint16_t w=board()->channel[ch].cj_weight_q8;
-            int32_t cj=cj_mC[2*b]+(int32_t)(((int64_t)(cj_mC[2*b+1]-cj_mC[2*b])*w)/256);
+            int32_t cj=cj_mC[2*b]+(int32_t)(((cj_mC[2*b+1]-cj_mC[2*b])*(int32_t)w)/256);
             ch_type_t type=cfg?cfg->ch[ch].type:CH_TYPE_K;
             uint8_t flags=tc_convert(type,m->emf_nV,(temp_dC_t)(cj/100),&m->temp_dC);
             m->flags|=(uint8_t)(flags&~MEAS_VALID);
@@ -169,14 +172,35 @@ static void result(uint8_t b,uint32_t code) {
         }
     }
 }
+/* One current-scan CJ frame per pass. STATUS/RDY is still polled for every
+ * bank; held DATA is processed after all six CJ records have been checked. */
+static void cj_task(void) {
+    uint8_t b; res_t r;
+    if(cj_index>=board()->cj_count) return;
+    r=cj_read_step(cj_index,&cj_mC[cj_index]); progress=tick_ms();
+    if(r==RES_BUSY) return;
+    diag.cj_status[cj_index]=r; cj_valid[cj_index]=r==RES_OK;
+    if(++cj_index!=board()->cj_count) return;
+    for(b=0;b<board()->banks;b++) {
+        int32_t diff=cj_mC[2*b]-cj_mC[2*b+1];
+        work.cj_dC[b][0]=(temp_dC_t)(cj_mC[2*b]/100); work.cj_dC[b][1]=(temp_dC_t)(cj_mC[2*b+1]/100);
+        if(!cj_valid[2*b] && !cj_valid[2*b+1]) bank_fault(b,FC_B10_CJ_BOTH);
+        else if(!cj_valid[2*b] || !cj_valid[2*b+1]) bank_fault(b,FC_B12_CJ_ONE);
+        else if(diff < -3000 || diff>3000) bank_fault(b,FC_B11_CJ_DIFF);
+    }
+}
 void scan_task(void) {
-    uint8_t b; res_t r; uint32_t code=0;
+    uint8_t b; res_t r; uint32_t code=0; bool handled=false;
     switch(phase) {
     case INIT_ADC:
-        for(b=0;b<board()->banks;b++) if(!(initialized&(1u<<b))) {
-            r=ad_init(b);
-            if(r==RES_OK) initialized|=(uint8_t)(1u<<b);
-            else if(r!=RES_BUSY) { raise(ad_fault(b),b); phase=RECOVER; wait_start=tick_ms(); }
+        for(b=0;b<board()->banks;b++) {
+            uint8_t bank=end_index++;
+            if(end_index==board()->banks) end_index=0;
+            if(initialized&(1u<<bank)) continue;
+            r=ad_init(bank);
+            if(r==RES_OK) initialized|=(uint8_t)(1u<<bank);
+            else if(r!=RES_BUSY) { raise(ad_fault(bank),bank); phase=RECOVER; wait_start=tick_ms(); }
+            break;
         }
         progress=tick_ms();
         if(initialized==(1u<<board()->banks)-1u) { phase=INIT_CJ; cj_index=0; }
@@ -184,7 +208,7 @@ void scan_task(void) {
     case INIT_CJ:
         r=cj_init(cj_index); progress=tick_ms();
         if(r!=RES_OK) { raise(FC_B10_CJ_BOTH,(uint8_t)(cj_index/2)); phase=RECOVER; wait_start=tick_ms(); }
-        else if(++cj_index==board()->cj_count) { phase=WAIT_CJ; wait_start=tick_ms(); }
+        else if(++cj_index==board()->cj_count) { cj_index=0; phase=WAIT_CJ; wait_start=tick_ms(); }
         break;
     case WAIT_CJ: if(tick_ms()-wait_start>=8) { diag.initialized=true; phase=REF_PRE; progress=tick_ms(); } break;
     case REF_PRE:
@@ -208,41 +232,39 @@ void scan_task(void) {
         start=tick_ms(); ++work.scan_no; work.scan_validated=false; work.settings_seq=cfg?cfg->sequence:0;
         for(b=0;b<board()->banks;b++) {
             good[b]=true; transport[b]=false; verify_done[b]=false; diag.cal_safe[b]=true; diag.registers_ok[b]=false;
-            ad_scan_begin(b,work.scan_no);
-            if(ad_fault(b)!=FC_NONE) { bank_fault(b,ad_fault(b)); reinit=true; }
         }
-        cj_index=end_index=0; phase=reinit?END_SCAN:READ_CJ; break;
-    case READ_CJ:
-        r=cj_read(cj_index,&cj_mC[cj_index]); diag.cj_status[cj_index]=r; cj_valid[cj_index]=r==RES_OK; progress=tick_ms();
-        if(++cj_index<board()->cj_count) break;
-        for(b=0;b<board()->banks;b++) {
-            int32_t diff=cj_mC[2*b]-cj_mC[2*b+1];
-            work.cj_dC[b][0]=(temp_dC_t)(cj_mC[2*b]/100); work.cj_dC[b][1]=(temp_dC_t)(cj_mC[2*b+1]/100);
-            if(!cj_valid[2*b] && !cj_valid[2*b+1]) bank_fault(b,FC_B10_CJ_BOTH);
-            else if(!cj_valid[2*b] || !cj_valid[2*b+1]) bank_fault(b,FC_B12_CJ_ONE);
-            else if(diff < -3000 || diff>3000) bank_fault(b,FC_B11_CJ_DIFF); /* OPEN-Q13 */
-        }
-        slot=0; phase=START_SLOT; break;
+        cj_index=end_index=0; phase=BEGIN_BANK; break;
+    case BEGIN_BANK:
+        b=end_index++; ad_scan_begin(b,work.scan_no);
+        if(ad_fault(b)!=FC_NONE) { bank_fault(b,ad_fault(b)); reinit=true; }
+        if(end_index==board()->banks) { end_index=0; slot=0; done=0; phase=reinit?END_SCAN:START_SLOT; }
+        break;
     case START_SLOT:
         done=0;
         for(b=0;b<board()->banks;b++) {
             r=ad_start_slot(b,slot);
             if(r!=RES_OK) { bank_fault(b,ad_fault(b)); transport[b]=r==RES_ERR_CRC || r==RES_ERR_ID; reinit=true; }
         }
-        progress=tick_ms(); phase=reinit?END_SCAN:POLL_SLOT; break;
+        progress=tick_ms(); end_index=0; phase=reinit?END_SCAN:POLL_SLOT; break;
     case POLL_SLOT:
+        cj_task();
         for(b=0;b<board()->banks;b++) if(!(done&(1u<<b))) {
-            r=ad_poll(b,&code);
-            if(r==RES_OK) { result(b,code); done|=(uint8_t)(1u<<b); }
-            else if(r!=RES_BUSY) { bank_fault(b,ad_fault(b)); transport[b]=r==RES_ERR_CRC || r==RES_ERR_ID; reinit=true; done|=(uint8_t)(1u<<b); }
+            r=ad_ready(b); /* P3 for every bank, even when another DATA completes. */
+            if(r==RES_OK && !handled && cj_index==board()->cj_count) { r=ad_poll(b,&code); handled=true;
+                if(r==RES_OK) { result(b,code); done|=(uint8_t)(1u<<b); }
+            }
+            if(r!=RES_OK && r!=RES_BUSY) { bank_fault(b,ad_fault(b)); transport[b]=r==RES_ERR_CRC || r==RES_ERR_ID; reinit=true; done|=(uint8_t)(1u<<b); }
             progress=tick_ms();
-            if(!verify_done[b] && !reinit) { r=ad_verify(b);
+        }
+        if(!handled && !reinit) {
+            b=end_index++; if(end_index==board()->banks) end_index=0;
+            if(!verify_done[b]) { r=ad_verify(b);
                 if(r==RES_OK) verify_done[b]=true;
                 else if(r!=RES_BUSY) { bank_fault(b,ad_fault(b)); reinit=true; }
             }
         }
-        if(reinit) { phase=END_SCAN; break; }
-        if(done==(1u<<board()->banks)-1u) { if(++slot==15) phase=END_SCAN; else phase=START_SLOT; }
+        if(reinit) { if(done==(1u<<board()->banks)-1u) { end_index=0; phase=END_SCAN; } break; }
+        if(done==(1u<<board()->banks)-1u) { end_index=0; if(++slot==15) phase=END_SCAN; else phase=START_SLOT; }
         break;
     case END_SCAN:
         if(!reinit) for(b=0;b<board()->banks;b++) {

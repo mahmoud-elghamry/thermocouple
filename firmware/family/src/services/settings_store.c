@@ -1,4 +1,5 @@
 #include "services/settings.h"
+#include "settings_bytes.h"
 #include <string.h>
 void set_store_init(set_store_t *st)
 {
@@ -77,6 +78,124 @@ res_t cal_commit(set_store_t *st, const calibration_t *candidate, uint32_t activ
     if(cal_pack(&next,st->image)!=RES_OK) return RES_ERR_RANGE;
     begin(st,active_slot,249,true,true); return RES_OK;
 }
+enum { PREP_NEW,PREP_OLD,PREP_EPOCH,PREP_CAL_CHECK,PREP_ZERO,PREP_SETTINGS,
+       PREP_CAL,PREP_SETTINGS_CRC,PREP_CAL_CRC,PREP_FINISH };
+res_t set_prepare_with_cal(set_store_t *s,const settings_t *candidate,const settings_t *active,
+                          uint8_t slot,const calibration_t *cal,uint8_t cal_slot)
+{
+    if(!s || !candidate || slot>2 || candidate->channel_count>MAX_CHANNELS) return RES_ERR_RANGE;
+    if(!available(s)) return RES_BUSY;
+    if(active?(slot>1 || active->channel_count!=candidate->channel_count || active->board_type!=candidate->board_type):slot!=2)
+        return RES_ERR_RANGE;
+    s->protection_change=set_protection_changed(active,candidate);
+    s->prep_candidate=candidate; s->prep_active=active; s->prep_cal=cal;
+    s->prep_sequence=active?active->sequence+1u:0; s->prep_cal_slot=cal_slot;
+    s->active_slot=slot; s->phase=STORE_PREPARE; s->prep_stage=PREP_NEW;
+    s->prep_cursor=0; s->prep_position=0; s->prep_fitted=s->prep_wrap=s->prep_cal_only=false;
+    s->pending=false; s->calibration=false;
+    memset(s->prep_wrap_mask,0,sizeof s->prep_wrap_mask); return RES_OK;
+}
+res_t cal_prepare(set_store_t *s,const calibration_t *candidate,uint32_t sequence,uint8_t slot)
+{
+    if(!s || !candidate || slot>2) return RES_ERR_RANGE;
+    if(!available(s)) return RES_BUSY;
+    if(s->calibration_slot_known && slot!=s->calibration_active_slot) return RES_ERR_RANGE;
+    s->prep_cal=candidate; s->prep_candidate=s->prep_active=NULL;
+    s->prep_sequence=slot==2?0:sequence+1u; s->active_slot=slot;
+    s->protection_change=s->calibration=s->prep_cal_only=true;
+    s->pending=s->prep_wrap=false; s->prep_position=0; s->prep_cursor=0;
+    s->phase=STORE_PREPARE; s->prep_stage=PREP_CAL_CHECK; return RES_OK;
+}
+static void prepare_fail(set_store_t *s)
+{
+    s->phase=STORE_FAILED;
+    if(s->fault!=FC_G02_SAVE_FAIL_PROT) s->fault=s->protection_change?FC_G02_SAVE_FAIL_PROT:FC_G13_SAVE_FAIL_INFO;
+}
+static void prepare_step(set_store_t *s)
+{
+    uint8_t n,i; uint16_t end; uint8_t *out;
+    const settings_t *cfg=s->prep_candidate,*old=s->prep_active;
+    const calibration_t *cal=s->prep_cal;
+    switch(s->prep_stage) {
+    case PREP_NEW: case PREP_OLD: {
+        const settings_t *p=s->prep_stage==PREP_NEW?cfg:old;
+        n=(uint8_t)(p->channel_count-s->prep_cursor); if(n>4) n=4;
+        if(set_validate_part(p,s->prep_cursor,n,&s->prep_fitted)!=RES_OK) { prepare_fail(s); return; }
+        s->prep_cursor=(uint8_t)(s->prep_cursor+n);
+        if(s->prep_cursor<p->channel_count) return;
+        if(!s->prep_fitted) { prepare_fail(s); return; }
+        s->prep_stage=(uint8_t)(s->prep_stage==PREP_NEW && old?PREP_OLD:PREP_EPOCH);
+        s->prep_cursor=0; s->prep_fitted=false; return;
+    }
+    case PREP_EPOCH:
+        if(old) {
+            end=(uint16_t)(s->prep_cursor+4u); if(end>cfg->channel_count) end=cfg->channel_count;
+            for(i=s->prep_cursor;i<end;i++) {
+                uint8_t expected=old->ch[i].type_epoch;
+                if(old->ch[i].type!=cfg->ch[i].type) expected=(uint8_t)((expected+1u)&63u);
+                if(expected!=cfg->ch[i].type_epoch) { prepare_fail(s); return; }
+                if(old->ch[i].type_epoch==63 && expected==0) {
+                    s->prep_wrap=true; s->prep_wrap_mask[i/8u]|=(uint8_t)(1u<<(i%8u));
+                }
+            }
+            s->prep_cursor=(uint8_t)end; if(end<cfg->channel_count) return;
+        }
+        s->prep_stage=PREP_CAL_CHECK; return;
+    case PREP_CAL_CHECK:
+        if(s->prep_wrap || s->prep_cal_only) {
+            if(cal_validate(cal)!=RES_OK || (s->prep_wrap &&
+               (s->prep_cal_slot>1 || cal->bank_count!=(cfg->board_type==40?6u:cfg->channel_count/8u) ||
+                (s->calibration_slot_known && s->prep_cal_slot!=s->calibration_active_slot)))) {
+                prepare_fail(s); return;
+            }
+        }
+        s->prep_stage=PREP_ZERO; s->prep_position=0; return;
+    case PREP_ZERO:
+        out=s->prep_position<SETTINGS_SLOT_SIZE?s->image+s->prep_position:s->wrap_cal_image+s->prep_position-SETTINGS_SLOT_SIZE;
+        memset(out,0,64); s->prep_position+=64;
+        if(s->prep_position<(s->prep_wrap?SETTINGS_SLOT_SIZE+CAL_SLOT_SIZE:SETTINGS_SLOT_SIZE)) return;
+        s->prep_cursor=0; s->prep_stage=s->prep_cal_only?PREP_CAL:PREP_SETTINGS; return;
+    case PREP_SETTINGS:
+        n=(uint8_t)(cfg->channel_count-s->prep_cursor); if(n>4) n=4;
+        if(set_pack_part(cfg,s->image,s->prep_cursor,n)!=RES_OK) { prepare_fail(s); return; }
+        if(s->prep_cursor==0) put32(s->image+6,s->prep_sequence);
+        s->prep_cursor=(uint8_t)(s->prep_cursor+n);
+        if(s->prep_cursor<cfg->channel_count) return;
+        s->prep_cursor=0; s->prep_position=0; s->prep_crc=0xFFFF;
+        s->prep_stage=s->prep_wrap?PREP_CAL:PREP_SETTINGS_CRC; return;
+    case PREP_CAL:
+        out=s->prep_cal_only?s->image:s->wrap_cal_image;
+        n=(uint8_t)(MAX_BANKS+MAX_CHANNELS-s->prep_cursor); if(n>8) n=8;
+        if(cal_pack_part(cal,out,s->prep_cursor,n)!=RES_OK) { prepare_fail(s); return; }
+        if(s->prep_cursor==0) put32(out+4,s->prep_cal_only?s->prep_sequence:cal->sequence+1u);
+        for(i=s->prep_cursor;i<(uint8_t)(s->prep_cursor+n);i++) if(i>=MAX_BANKS && s->prep_wrap) {
+            uint8_t ch=(uint8_t)(i-MAX_BANKS);
+            if(s->prep_wrap_mask[ch/8u]&(1u<<(ch%8u))) { put32(out+32u+4u*ch,(uint32_t)CAL_MISSING); out[204u+ch]=0; }
+        }
+        s->prep_cursor=(uint8_t)(s->prep_cursor+n);
+        if(s->prep_cursor<MAX_BANKS+MAX_CHANNELS) return;
+        s->prep_position=0; s->prep_crc=0xFFFF;
+        s->prep_stage=s->prep_cal_only?PREP_CAL_CRC:PREP_SETTINGS_CRC; return;
+    case PREP_SETTINGS_CRC: case PREP_CAL_CRC:
+        out=s->prep_stage==PREP_SETTINGS_CRC || s->prep_cal_only?s->image:s->wrap_cal_image;
+        end=s->prep_stage==PREP_SETTINGS_CRC?(uint16_t)(16u+16u*cfg->channel_count):247;
+        n=(uint8_t)(end-s->prep_position>16?16:end-s->prep_position);
+        s->prep_crc=set_crc16_continue(s->prep_crc,out+s->prep_position,n); s->prep_position+=n;
+        if(s->prep_position<end) return;
+        put16(out+end,s->prep_crc); s->prep_position=0; s->prep_crc=0xFFFF;
+        s->prep_stage=s->prep_stage==PREP_SETTINGS_CRC && s->prep_wrap?PREP_CAL_CRC:PREP_FINISH; return;
+    case PREP_FINISH: {
+        uint8_t slot=s->active_slot; bool prot=s->protection_change;
+        if(s->prep_cal_only) begin(s,slot,249,true,true);
+        else {
+            begin(s,slot,(uint16_t)(18u+16u*cfg->channel_count),false,prot);
+            if(s->prep_wrap) { begin(s,s->prep_cal_slot,249,true,true); s->active_slot=slot; s->settings_after_cal=true; }
+        }
+        return;
+    }
+    default: prepare_fail(s); return;
+    }
+}
 static void retry_or_fail(set_store_t *s)
 {
     s->pending=false;
@@ -91,6 +210,7 @@ void set_store_step(set_store_t *s, bool ready, bool success, uint8_t value, ee_
     if(op==NULL) return;
     memset(op,0,sizeof(*op));
     if(s==NULL || !ready) return;
+    if(s->phase==STORE_PREPARE) { prepare_step(s); return; }
     if(s->phase==STORE_IDLE || s->phase==STORE_DONE || s->phase==STORE_FAILED) return;
     if(s->pending) {
         s->pending=false;

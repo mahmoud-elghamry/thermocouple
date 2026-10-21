@@ -5,6 +5,10 @@ import sys
 
 root = Path(sys.argv[1])
 text = (root / "cycles.log").read_text()
+mcal = (root / "mcal.log").read_text()
+soft = [int(b)-int(a) for a,b in re.findall(
+    r"BEGIN 9 \d+\n.*?# cycles\s+(\d+)\n.*?END\n.*?# cycles\s+(\d+)",mcal,re.S)]
+assert len(soft)==256
 marker = None
 rows = []
 start = fake = io_start = bound = 0
@@ -12,7 +16,7 @@ count = 0
 # Conservative -Os MCAL bounds, including call/return margin. Soft SPI is
 # calibrated across all 256 TX values in mcal.log (3234 cycles); reserve 3300.
 costs = {1: 400, 2: 100, 3: 100, 4: 60, 6: 30, 7: 30, 8: 110,
-         9: 3300, 10: 100, 11: 40, 12: 300, 13: 300, 14: 100,
+         9: max(soft)+16, 10: 100, 11: 40, 12: 300, 13: 300, 14: 100,
          15: 40, 16: 60, 17: 20, 18: 80, 19: 100, 20: 10,
          21: 20, 22: 100, 23: 150, 24: 150, 25: 80, 26: 20,
          27: 100, 28: 100, 29: 100, 30: 80, 31: 60}

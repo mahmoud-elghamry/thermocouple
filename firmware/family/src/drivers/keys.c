@@ -3,8 +3,14 @@
 #include "mcal/gpio.h"
 #include "mcal/timer.h"
 #include <string.h>
-static volatile uint8_t history[5];
-static volatile uint8_t stable;
+#if defined(__AVR__) && !defined(FAMILY_REGISTER_MODEL)
+#include "app/keys_sample_avr.h"
+volatile uint8_t keys_history[5],keys_stable;
+#define history keys_history
+#define stable keys_stable
+#else
+static volatile uint8_t history[5],stable;
+#endif
 static uint8_t previous,armed,delivered,pending,press_edges;
 static uint32_t since[5],repeat_at[2];
 static bool chord,repeating;
@@ -22,12 +28,16 @@ void keys_init(void) {
     stable=previous=press_edges=0; repeating=false; keys_rearm();
 }
 void keys_sample_isr(void) {
+#if defined(__AVR__) && !defined(FAMILY_REGISTER_MODEL)
+    keys_sample_fast();
+#else
     uint8_t i;
     for(i=0;i<board()->key_count;i++) {
         history[i]=(uint8_t)((history[i]<<1)|(gpio_read(board()->keys[i])?1u:0u));
         if(history[i]==0) stable|=(uint8_t)(1u<<i);
         else if(history[i]==255) stable&=(uint8_t)~(1u<<i);
     }
+#endif
 }
 uint8_t keys_held(void) { return stable; }
 void keys_repeat(bool e) { repeating=e; }

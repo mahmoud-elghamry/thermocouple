@@ -32,6 +32,10 @@ if(-not $AvrOnly) {
     $cmd="set `"PATH=$installer;%PATH%`" && call `"$dev`" -arch=x64 -no_logo && cl /nologo /std:c11 /W4 /WX /O2 /I`"$root/test/stubs`" /I`"$root/include`" `"$root/src/mcal/timer.c`" `"$root/test/integration/test_timer.c`" /Fe:`"$timerExe`" /Fo:`"$out/`""
     Run $env:ComSpec @('/d','/s','/c',$cmd)
     Run $timerExe @()
+    $prepExe=Join-Path $out 'test_prepare.exe'
+    $cmd="set `"PATH=$installer;%PATH%`" && call `"$dev`" -arch=x64 -no_logo && cl /nologo /std:c11 /W4 /WX /O2 /I`"$root/include`" `"$root/src/services/settings.c`" `"$root/src/services/settings_cal.c`" `"$root/src/services/settings_store.c`" `"$root/test/integration/test_prepare.c`" /Fe:`"$prepExe`" /Fo:`"$out/`""
+    Run $env:ComSpec @('/d','/s','/c',$cmd)
+    Run $prepExe @()
 }
 if(-not $HostOnly) {
     $bin='C:/Program Files (x86)/Labcenter Electronics/Proteus 8 Professional/Tools/ARDUINO/hardware/tools/avr/bin'
@@ -42,7 +46,7 @@ if(-not $HostOnly) {
     # The existing pure commit owns a settings + calibration working copy.
     # Keep the shell canary below that frame plus caller/interrupt margin.
     $stackObj=Join-Path $out 'settings_stack.o'
-    Run $gcc @('-std=c11','-Os','-Wall','-Wextra','-Werror','-mmcu=atmega1284p',"-I$root/include",'-fstack-usage','-c',(Join-Path $root 'src/services/settings_store.c'),'-o',$stackObj)
+    Run $gcc @('-std=c11','-Os','-fshort-enums','-Wall','-Wextra','-Werror','-mmcu=atmega1284p',"-I$root/include",'-fstack-usage','-c',(Join-Path $root 'src/services/settings_store.c'),'-o',$stackObj)
     $frames=Get-Content (Join-Path $out 'settings_stack.su') | ForEach-Object {
         if($_ -match '\t(\d+)\t') { [int]$Matches[1] }
     }
@@ -50,7 +54,7 @@ if(-not $HostOnly) {
     if(-not $maxFrame -or $maxFrame+384 -gt $stackBytes) { throw "Commit stack frame $maxFrame + 384 margin exceeds $stackBytes" }
     Write-Host "AVR commit frame: $maxFrame bytes; caller/interrupt margin: 384; stack reservation: $stackBytes"
     $elf=Join-Path $out 'thermo24_f1.elf'
-    $flags=@('-std=c11','-Os','-Wall','-Wextra','-Werror','-mmcu=atmega1284p','-DF_CPU=8000000UL',"-I$root/include",'-ffunction-sections','-fdata-sections','-Wl,--gc-sections,--section-start=.image_crc=0x1FFFE,--undefined=image_crc')
+    $flags=@('-std=c11','-Os','-fshort-enums','-Wall','-Wextra','-Werror','-mmcu=atmega1284p','-DF_CPU=8000000UL',"-I$root/include",'-ffunction-sections','-fdata-sections','-Wl,--gc-sections,--section-start=.image_crc=0x1FFFE,--undefined=image_crc')
     Run $gcc ($flags+@(Sources 'hardware_avr')+@('-o',$elf))
     $objcopy=Join-Path $bin 'avr-objcopy.exe'
     $raw=Join-Path $out 'image.bin'

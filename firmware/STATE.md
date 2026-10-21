@@ -10,12 +10,14 @@
   Build: `pwsh -File firmware\build.ps1`; cloud: `make -C firmware all test`.
 * **Family firmware (`0043`):** specification `firmware/spec/` rev 5, reviewed by Astra three times (reports in
   `production/review-20261015-a4/ASTRA-5..7`, local). Code goes to `firmware/family/` (the 8-ch code stays
-  untouched). Status 2026-10-21 (clean build, re-run by Claude): F0 hardware path 715 checks (`build.ps1`, AVR
-  37.8 KB flash / 7.2 KB RAM); core 125435 checks + S01-S28 (`test/build_core.ps1`); independent acceptance tests
-  written from the spec only 14182/14182 (`test/build_acceptance.ps1`) - all three must stay green.
-  Next: F1 integration (protection into main, Modbus, UI), then an Astra code review.
-  Runner: `sh firmware/family/briefs/run_lane.sh <lane> [resume]` - one lock per file group (B/B2/B3 share
-  one; A, B, C may run in parallel; two Sol on the same files happened once, 2026-10-21); `resume` continues the saved session. `docs/TOOLS.md`.
+  untouched). Status 2026-10-21 night (owner closed the session; safe stop):
+  F0 + F1 done and committed up to `e2e0b28` (clean build by Claude: integration 2693646, core 125440, acceptance
+  14182/14182, all pass); Astra F1 review findings fixed except **S3: AVR loop 41.75 ms worst vs 8 ms**
+  (`test/integration/profile_avr.ps1`, avr-gdb simulator). Lane **F1d** (brief `briefs/lane-F1d-cpu.md`) was
+  stopped mid-work; its partial edits are the WIP commit after `660d0cb` - **untested, gates not run**.
+  To continue: `sh firmware/family/briefs/run_lane.sh F1d resume` (same Sol session, thread in `lane-F1d.thread`),
+  then delete outputs, run the three gates + the profiler, review, commit. After F1d: short Astra re-check of
+  the F1c/F1d fixes, then F2 (UI) and F3 (Modbus) in parallel (separate files). Runner: one lock per file group.
 * **24-ch F0 code exists but is untested on hardware** (I-100); F0 is enough for bring-up (programming,
   service-mode readings, relay tests); F1 (protection that can grant RUN) is not done.
 * Direction (`0037` D2): **one firmware for the board family** (8 / 24 / 36 ch = 1 / 3 / 5 banks of

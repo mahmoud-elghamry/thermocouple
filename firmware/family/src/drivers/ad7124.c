@@ -7,7 +7,7 @@
 typedef struct {
     uint32_t offset[6],gain[6],factory,started,scan,errors;
     uint8_t state,index,attempt,slot,mclk,id,verify_index;
-    bool crc,active; fault_code_t fault;
+    bool crc,active,ready; uint8_t ready_status; uint16_t ready_dt; fault_code_t fault;
 } adc_t;
 static adc_t a[MAX_BANKS];
 static const uint16_t configs[8]={0x0875,0x0A75,0x0840,0x0810,0x0818,0x0810,0x0860,0x0860};
@@ -17,9 +17,21 @@ static uint8_t width(uint8_t r) {
     if(r==1 || r==4 || (r>=9 && r<=0x20)) return 2;
     return 3;
 }
+#ifdef __AVR__
+#include <avr/pgmspace.h>
+#define CRC_MEMORY PROGMEM
+#define CRC_BYTE(i) pgm_read_byte(&crc_table[i])
+#else
+#define CRC_MEMORY
+#define CRC_BYTE(i) crc_table[i]
+#endif
+static const uint8_t crc_table[16] CRC_MEMORY={0,7,14,9,28,27,18,21,56,63,54,49,36,35,42,45};
 uint8_t ad_crc8(const uint8_t *p,uint8_t n) {
-    uint8_t c=0,i,j;
-    for(i=0;i<n;i++) { c^=p[i]; for(j=0;j<8;j++) c=(uint8_t)((c&0x80u)?(c<<1)^7:c<<1); }
+    uint8_t c=0,i;
+    for(i=0;i<n;i++) {
+        c^=p[i]; c=(uint8_t)((c<<4)^CRC_BYTE(c>>4));
+        c=(uint8_t)((c<<4)^CRC_BYTE(c>>4));
+    }
     return c;
 }
 static res_t transfer(uint8_t b,uint8_t reg,uint32_t *v,bool rd) {
@@ -207,7 +219,7 @@ res_t ad_start_slot(uint8_t b,uint8_t s) {
     if(s==0) { r=mclk(b,&a[b].mclk); if(r!=RES_OK) return r; }
     r=ad_write(b,(uint8_t)(9+s),ad_slot_image(s,a[b].scan)|0x8000u);
     if(r==RES_OK) r=ad_write(b,1,0x0744);
-    if(r==RES_OK) { a[b].started=tick_ms(); a[b].active=true; }
+    if(r==RES_OK) { a[b].started=tick_ms(); a[b].active=true; a[b].ready=false; }
     return r;
 }
 fault_code_t ad_classify_error(uint8_t s,uint32_t e) {
@@ -219,14 +231,24 @@ fault_code_t ad_classify_error(uint8_t s,uint32_t e) {
     if(e&0xF000u) return s<8?FC_C07_OVUV:s==13?FC_C03_COMMON_MODE:FC_B04_ADC_ERROR;
     return FC_NONE;
 }
-res_t ad_poll(uint8_t b,uint32_t *code) {
-    uint32_t s=0,data=0,e=0,dt; uint8_t clock,k; res_t r; fault_code_t f;
+res_t ad_ready(uint8_t b) {
+    uint32_t s=0,dt; res_t r;
     if(b>=board()->banks || !a[b].active) return RES_ERR_RANGE;
+    if(a[b].ready) return RES_OK;
     r=ad_read(b,0,&s); if(r!=RES_OK) return r;
     if(s&0x10u) { a[b].fault=FC_B15_ADC_RESET; return RES_ERR_READBACK; }
     dt=tick_ms()-a[b].started;
     if(s&0x80u) { if(dt<57) return RES_BUSY; a[b].fault=FC_B05_ADC_STALLED; return RES_ERR_TIMEOUT; }
-    if(dt<36 || dt>57) { a[b].fault=FC_B05_ADC_STALLED; return RES_ERR_TIMEOUT; } /* OPEN-Q2 */
+    if(dt<36 || dt>57) { a[b].fault=FC_B05_ADC_STALLED; return RES_ERR_TIMEOUT; }
+    a[b].ready=true; a[b].ready_status=(uint8_t)s; a[b].ready_dt=(uint16_t)dt;
+    return RES_OK;
+}
+res_t ad_poll(uint8_t b,uint32_t *code) {
+    uint32_t s,data=0,e=0; uint8_t clock,k; res_t r=ad_ready(b); fault_code_t f;
+    if(r!=RES_OK) return r;
+    s=a[b].ready_status;
+    /* ad_ready stamped the first observed RDY time (P3). Reading held DATA
+     * in a later pass cannot change that observation or its timing check. */
     for(k=0;k<3;k++) {
         r=ad_read(b,2,&data); if(r!=RES_OK) return r;
         if(data&0x10) { a[b].fault=FC_B15_ADC_RESET; return RES_ERR_READBACK; }

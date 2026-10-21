@@ -1,5 +1,5 @@
 # Instruction cycles from the installed GNU AVR simulator, compiled at -Os.
-param([string]$Gdb='C:/Users/malgh/.platformio/packages/toolchain-atmelavr/bin/avr-gdb.exe')
+param([string]$Optimization='Os',[string]$Gdb='C:/Users/malgh/.platformio/packages/toolchain-atmelavr/bin/avr-gdb.exe')
 $ErrorActionPreference='Stop'
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $out=Join-Path $root 'build/profile'
@@ -31,7 +31,7 @@ bool timer_run_start_at(uint16_t d,uint32_t at) {
 [IO.File]::WriteAllText("$out/fake_mcal.c",$fake)
 $sources=Get-Content "$root/sources/hardware_avr.txt" | Where-Object { $_ -and $_ -notmatch '^src/mcal/' } | ForEach-Object { "$root/$_" }
 $sources+=@("$PSScriptRoot/avr_mcal_wrap.c","$root/test/fakes/fake_ad7124.c","$root/test/fakes/fake_tmp126.c","$PSScriptRoot/avr_profile.c")
-& "$bin/avr-gcc.exe" '-std=c11' '-g' '-Os' '-Wall' '-Wextra' '-Werror' '-mmcu=atmega1284p' '-DF_CPU=8000000UL' '-DFAMILY_TEST' "-I$out" "-I$root/include" '-ffunction-sections' '-fdata-sections' '-Wl,--gc-sections' @sources '-o' "$out/profile.elf"
+& "$bin/avr-gcc.exe" '-std=c11' '-g' ('-'+$Optimization) '-fshort-enums' '-Wall' '-Wextra' '-Werror' '-mmcu=atmega1284p' '-DF_CPU=8000000UL' '-DFAMILY_TEST' '-DFAMILY_REGISTER_MODEL' "-I$out" "-I$root/include" '-ffunction-sections' '-fdata-sections' '-Wl,--gc-sections' @sources '-o' "$out/profile.elf"
 if($LASTEXITCODE) { throw 'AVR profile compilation failed' }
 & "$bin/avr-size.exe" '-C' '--mcu=atmega1284p' "$out/profile.elf"
 & "$bin/avr-objdump.exe" '-d' "$out/profile.elf" | Out-File "$out/disassembly.txt" -Encoding ascii
@@ -55,16 +55,13 @@ commands
 silent
 printf "BEGIN %u %u\n", profile_phase, profile_pass
 info target
-disable IO_BREAKS
-if (profile_phase==2 && profile_pass<750) || (profile_phase==3 && profile_pass==0) || ((profile_phase==4 || profile_phase==5 || profile_phase==8) && profile_pass<20) || (profile_phase==0 && profile_pass==430) || (profile_phase==1 && profile_pass==58) || (profile_phase==6 && profile_pass==652)
 enable IO_BREAKS
-end
 continue
 end
 break profile_end
 commands
 silent
-printf "END %u %u %lu %lu %lu\n", profile_phase, profile_pass, fake_spi_bytes, fake_soft_bytes, profile_delay
+printf "END %u %u %lu %lu %lu %u\n", profile_phase, profile_pass, fake_spi_bytes, fake_soft_bytes, profile_delay, $io_depth
 info target
 disable IO_BREAKS
 continue
@@ -74,18 +71,29 @@ break profile_done
 $commands=$commands.Replace('DATA_FILE',("$out/data.bin" -replace '\\','/'))
 $names=@('gpio_init','gpio_write','gpio_read','gpio_mask','delay_us','spi_init','spi_enable','spi_xfer','spi_soft_xfer','timer_init','tick_ms','timer_run_start','timer_run_start_at','timer_run_stop','timer_run_remaining','timer_run_active','timer_run_expired','timer_run_ack_expiry','timer_run_static_high','wdt_feed','reset_cause','fuses_read','fuses_ok','flow_check','ee_read','ee_ready','ee_write_byte','uart_init','uart_put','uart_get','uart_tx_complete')
 $symbols=& "$bin/avr-nm.exe" '-S' '--defined-only' "$out/profile.elf"
+$returns=@()
+foreach($line in Get-Content "$out/disassembly.txt") {
+    if($line -match '^\s*([0-9a-f]+):.*\bret\s*$') { $returns += [Convert]::ToInt32($Matches[1],16) }
+}
+$anchor=$symbols | Where-Object { $_ -match '\sprofile_begin$' }
+$anchorAddress=[Convert]::ToInt32(($anchor.Trim() -split '\s+')[0],16)
 $ioCommands=''; $breakNo=5
 for($n=0;$n -lt $names.Length;$n++) {
     $symbol=$symbols | Where-Object { $_ -match ('\s'+$names[$n]+'$') }
     if(-not $symbol) { continue }
     $words=$symbol.Trim() -split '\s+'
     $address=[Convert]::ToInt32($words[0],16); $size=[Convert]::ToInt32($words[1],16)
-    $ioCommands+="break *$($names[$n])`ncommands`nsilent`nif `$io_depth==0`nprintf `"IO_BEGIN $($n+1) %u\n`", (unsigned int)`$r24+256*(unsigned int)`$r25`ninfo target`nend`nset `$io_depth=`$io_depth+1`ncontinue`nend`n"
-    $ioCommands+="break *($($names[$n])+$($size-2))`ncommands`nsilent`nset `$io_depth=`$io_depth-1`nif `$io_depth==0`nprintf `"IO_END\n`"`ninfo target`nend`ncontinue`nend`n"
-    $breakNo+=2
+    $ioCommands+="break *(profile_begin+$($address-$anchorAddress))`ncommands`nsilent`nif `$io_depth==0`nprintf `"IO_BEGIN $($n+1) %u\n`", (unsigned int)`$r24+256*(unsigned int)`$r25`ninfo target`nend`nset `$io_depth=`$io_depth+1`ncontinue`nend`n"
+    $breakNo++
+    $functionReturns=@($returns | Where-Object { $_ -ge $address -and $_ -lt $address+$size })
+    if(-not $functionReturns.Length) { throw "Wrapper $($names[$n]) has no RET" }
+    foreach($ret in $functionReturns) {
+        $ioCommands+="break *(profile_begin+$($ret-$anchorAddress))`ncommands`nsilent`nset `$io_depth=`$io_depth-1`nif `$io_depth==0`nprintf `"IO_END\n`"`ninfo target`nend`ncontinue`nend`n"
+        $breakNo++
+    }
 }
 $commands=$commands.Replace('IO_BREAKS',"5-$($breakNo-1)")
-$commands+="`n$ioCommands`nset `$io_depth=0`ndisable 5-$($breakNo-1)`ncontinue`nquit`n"
+$commands+="`n$ioCommands`nset `$io_depth=0`ndisable 5-$($breakNo-1)`ncontinue`nprintf `"PROFILE_ERRORS %u MIXED %u\n`",profile_errors,profile_mixed`nquit`n"
 [IO.File]::WriteAllText("$out/profile.gdb",$commands)
 & $env:ComSpec /d /s /c "`"$Gdb`" -batch -x `"$out/profile.gdb`" `"$out/profile.elf`" > `"$out/cycles.log`" 2>&1"
 if($LASTEXITCODE) { throw 'AVR simulator failed; inspect cycles.log' }
@@ -97,7 +105,7 @@ break main
 run
 restore DATA_FILE binary 0x800100
 delete 1
-break set_commit_with_cal
+break set_prepare_with_cal
 continue
 info target
 finish
@@ -108,12 +116,12 @@ $commit=$commit.Replace('DATA_FILE',("$out/data.bin" -replace '\\','/'))
 [IO.File]::WriteAllText("$out/commit.gdb",$commit)
 & $env:ComSpec /d /s /c "`"$Gdb`" -batch -x `"$out/commit.gdb`" `"$out/profile.elf`" > `"$out/commit.log`" 2>&1"
 if($LASTEXITCODE) { throw 'Pure commit measurement failed' }
-$wrap=$commit.Replace('break set_commit_with_cal','break set_commit_with_cal if profile_phase==8')
+$wrap=$commit.Replace('break set_prepare_with_cal','break set_prepare_with_cal if profile_phase==8')
 [IO.File]::WriteAllText("$out/wrap.gdb",$wrap)
 & $env:ComSpec /d /s /c "`"$Gdb`" -batch -x `"$out/wrap.gdb`" `"$out/profile.elf`" > `"$out/wrap.log`" 2>&1"
 if($LASTEXITCODE) { throw 'Epoch-wrap commit measurement failed' }
 # Calibrate the actual GPIO/software-SPI/timer implementations, without fakes.
-& "$bin/avr-gcc.exe" '-std=c11' '-g' '-Os' '-Wall' '-Wextra' '-Werror' '-mmcu=atmega1284p' '-DF_CPU=8000000UL' "-I$root/include" "$root/src/mcal/gpio.c" "$root/src/mcal/timer.c" "$root/src/mcal/spi.c" "$root/src/drivers/keys.c" "$root/src/board/board_cfg_24.c" "$PSScriptRoot/avr_mcal_cycles.c" '-o' "$out/mcal.elf"
+& "$bin/avr-gcc.exe" '-std=c11' '-g' ('-'+$Optimization) '-fshort-enums' '-Wall' '-Wextra' '-Werror' '-mmcu=atmega1284p' '-DF_CPU=8000000UL' "-I$root/include" "$root/src/mcal/gpio.c" "$root/src/mcal/timer.c" "$root/src/mcal/spi.c" "$root/src/drivers/keys.c" "$root/src/board/board_cfg_24.c" "$PSScriptRoot/avr_mcal_cycles.c" "$PSScriptRoot/avr_store_cycles.c" "$root/src/services/settings.c" "$root/src/services/settings_cal.c" "$root/src/services/settings_store.c" '-o' "$out/mcal.elf"
 if($LASTEXITCODE) { throw 'MCAL calibration compilation failed' }
 & "$bin/avr-objcopy.exe" '-O' 'binary' '-j' '.data' "$out/mcal.elf" "$out/mcal_data.bin"
 $elf=[IO.File]::ReadAllBytes("$out/mcal.elf"); $elf[36]=($elf[36] -band 128) -bor 5
@@ -141,6 +149,7 @@ continue
 end
 break cycle_done
 continue
+printf "MCAL_ERRORS %u\n",cycle_errors
 quit
 '@
 $mcal=$mcal.Replace('DATA_FILE',("$out/mcal_data.bin" -replace '\\','/'))

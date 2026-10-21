@@ -24,7 +24,10 @@ typedef struct {
     uint8_t trip_seen[MAX_CHANNELS];
     uint32_t latest_scan[MAX_CHANNELS];
     uint8_t latest_seen[(MAX_CHANNELS+7u)/8u];
-    uint8_t alarm_clear[(MAX_CHANNELS+7u)/8u];
+    uint8_t alarm_clear[(MAX_CHANNELS+7u)/8u],trip_clear[(MAX_CHANNELS+7u)/8u];
+    uint8_t completed_clear[(MAX_CHANNELS+7u)/8u];
+    uint32_t clear_scan,clear_settings;
+    bool clear_valid;
     const settings_t *pass_cfg;
     bool pass_prepared,pass_valid;
     first_out_t first;
@@ -36,6 +39,11 @@ typedef struct {
     uint32_t now_ms, uptime_s;
     bool settings_valid, calibration_valid, writing;
     bool scan_complete, ack, ack_key_released;
+    /* Optional shell evidence: results_evaluated certifies EVERY completed
+     * result was already passed to prot_on_result unchanged; scan_unchanged
+     * certifies the immutable completed snapshot/configuration is unchanged.
+     * Standalone callers leave both false. Neither relaxes ACK evidence. */
+    bool results_evaluated,scan_unchanged;
     uint16_t ack_held_ms, ack_age_ms;
     bool readback_off_ok, flow_ok;
     /* Begin protection edit before EEPROM I/O; completed commit unlocks CONFIG_LOCK. */
@@ -61,5 +69,9 @@ bool prot_on_result(prot_state_t *s, uint8_t ch, const result_t *r,
                     const settings_t *cfg, uint32_t scan_no, uint32_t uptime_s);
 bool prot_on_fault(prot_state_t *s, fault_registry_t *reg, fault_code_t code,
                    uint8_t unit, ch_mode_t mode, uint8_t channel, uint32_t uptime_s);
+/* Shell has already raised this newly active registry bit. Returns its action;
+ * skips a duplicate registry write, retaining the same protection notification. */
+act_t prot_observe_fault(prot_state_t *s,fault_registry_t *reg,fault_code_t code,
+    uint8_t unit,ch_mode_t mode,uint8_t channel,uint32_t uptime_s);
 void prot_step(const prot_in_t *in, prot_state_t *s, prot_out_t *out);
 #endif

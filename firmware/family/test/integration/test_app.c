@@ -302,7 +302,8 @@ static void overflow_ack(void) {
     for(i=0;i<EVENT_SLOTS;i++) if(ev_unpack(fake_eeprom+0x840+16*i,&e)==RES_OK) CHECK(e.value_dC!=32000);
     /* The event-loss ACK must not erase a separate names-save G13 source. */
     running(); candidate=*app_settings(); memcpy(candidate.ch[0].name,"RETRY ",6);
-    model_eeprom_fail(true); CHECK(app_commit_settings(&candidate)==RES_OK); loop(20);
+    model_eeprom_fail(true); CHECK(app_commit_settings(&candidate)==RES_OK);
+    for(i=0;i<200 && !fault_active(app_faults(),FC_G13_SAVE_FAIL_INFO);i++) loop(1);
     CHECK(fault_active(app_faults(),FC_G13_SAVE_FAIL_INFO)); model_eeprom_fail(false);
     memset(&e,0,sizeof e); e.type=EV_NAME_CHANGED;
     for(i=0;i<33;i++) (void)ee_owner_log(&e);

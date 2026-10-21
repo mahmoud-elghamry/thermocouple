@@ -4,6 +4,9 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/atomic.h>
+#ifdef __AVR__
+#include "app/keys_sample_avr.h"
+#endif
 static volatile uint32_t ms;
 static volatile uint16_t deadline;
 static volatile bool expired;
@@ -33,5 +36,18 @@ void timer_run_ack_expiry(void) { ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { if(!deadli
 uint16_t timer_run_remaining(void) { uint16_t v; ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { v=deadline; } return v; }
 bool timer_run_active(void) { return timer_run_remaining()!=0 && TCCR0B!=0; }
 void timer_run_static_high(void) { timer_run_stop(); ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { if(!expired) { PORTB|=8; deadline=1000; } } }
-void timer_tick_isr(void) { ++ms; if(deadline && --deadline==0) { expired=true; timer_run_stop(); } keys_sample_isr(); }
-ISR(TIMER2_COMPA_vect) { timer_tick_isr(); }
+static inline void tick_isr_core(void) {
+    ++ms;
+    if(deadline && --deadline==0) {
+        expired=true; TCCR0A=0; PORTB&=0xF7u; TCCR0B=0;
+    }
+}
+void timer_tick_isr(void) { tick_isr_core(); keys_sample_isr(); }
+ISR(TIMER2_COMPA_vect) {
+    tick_isr_core();
+#ifdef __AVR__
+    keys_sample_fast();
+#else
+    keys_sample_isr();
+#endif
+}

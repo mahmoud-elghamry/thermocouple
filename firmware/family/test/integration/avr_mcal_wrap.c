@@ -72,7 +72,7 @@ static void enter(uint8_t kind,uint16_t arg) {
     if(depth++==0) { profile_kind=kind; profile_arg=arg; profile_io_begin(); }
 }
 static void leave(void) { if(--depth==0) profile_io_end(); }
-#define WRAPPER __attribute__((noinline,optimize("no-optimize-sibling-calls")))
+#define WRAPPER __attribute__((noinline,noclone,optimize("no-optimize-sibling-calls")))
 #define RET(t,n,a,c,k,p) WRAPPER t n a { t result; enter(k,p); result=base_##n c; leave(); return result; }
 #define VOID(n,a,c,k,p) WRAPPER void n a { enter(k,p); base_##n c; leave(); }
 VOID(gpio_init,(void),(),1,0)

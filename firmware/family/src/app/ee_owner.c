@@ -5,6 +5,7 @@
 static set_store_t store;
 static settings_t *active;
 static calibration_t *calibration;
+static calibration_t cal_mailbox;
 static uint8_t settings_slot,cal_slot,done,head,tail,count;
 static bool settings_ok,begin_notice,transaction,cal_transaction,cal_saved,io_ok,internal_error,bg_fault;
 static bool counted,counter_pending,event_pending,loss_alarm;
@@ -36,6 +37,10 @@ void ee_owner_init(settings_t *cfg,calibration_t *cal,uint8_t ss,uint8_t cs,bool
     cycles=av || bv?(counter_slot?b:a):0;
 }
 bool ee_owner_busy(void) { return transaction; }
+store_phase_t ee_owner_phase(void) { return store.phase; }
+bool ee_owner_publish_pending(void) {
+    return transaction && store.phase==STORE_VERIFY && store.pending && store.index+1u==store.length;
+}
 bool ee_owner_protection_change(void) { return store.protection_change; }
 bool ee_owner_settings_valid(void) { return settings_ok; }
 bool ee_owner_cal_saved(void) { return cal_saved; }
@@ -54,7 +59,7 @@ res_t ee_owner_settings(const settings_t *candidate) {
     res_t r;
     if(transaction || background_busy() || !ee_ready()) return RES_BUSY;
     if(!active) return RES_ERR_RANGE;
-    r=set_commit_with_cal(&store,candidate,settings_ok?active:NULL,settings_slot,calibration,cal_slot);
+    r=set_prepare_with_cal(&store,candidate,settings_ok?active:NULL,settings_slot,calibration,cal_slot);
     if(r==RES_OK) { transaction=begin_notice=true; cal_transaction=false; io_ok=true; operation.kind=EE_NONE; }
     return r;
 }
@@ -62,18 +67,25 @@ res_t ee_owner_calibration(const calibration_t *candidate) {
     res_t r;
     if(transaction || background_busy() || !ee_ready()) return RES_BUSY;
     if(!calibration || !candidate || candidate->bank_count!=calibration->bank_count) return RES_ERR_RANGE;
-    r=cal_commit(&store,candidate,calibration->sequence,cal_slot);
+    cal_mailbox=*candidate;
+    r=cal_prepare(&store,&cal_mailbox,calibration->sequence,cal_slot);
     if(r==RES_OK) { transaction=begin_notice=cal_transaction=true; cal_saved=false; io_ok=true; operation.kind=EE_NONE; }
     return r;
 }
-bool ee_owner_log(const event_t *event) {
-    if(!event) { internal_error=true; return false; }
+event_t *ee_owner_event(void) {
+    event_t *e;
     if(count==QUEUE_SIZE) {
         if(events_lost!=UINT32_MAX) ++events_lost;
-        loss_alarm=true; return false;
+        loss_alarm=true; return NULL;
     }
-    queue[head]=*event; queue[head].power_cycles=(uint16_t)(cycles+(counted?0u:1u));
-    head=(uint8_t)((head+1u)%QUEUE_SIZE); ++count; return true;
+    e=&queue[head]; e->sequence=0; e->power_cycles=(uint16_t)(cycles+(counted?0u:1u));
+    head=(uint8_t)((head+1u)%QUEUE_SIZE); ++count; return e;
+}
+bool ee_owner_log(const event_t *event) {
+    event_t *e; uint16_t power;
+    if(!event) { internal_error=true; return false; }
+    e=ee_owner_event(); if(!e) return false;
+    power=e->power_cycles; *e=*event; e->power_cycles=power; return true;
 }
 void ee_owner_validated_scan(fault_code_t reset_code,uint32_t uptime) {
     event_t e;
@@ -83,18 +95,22 @@ void ee_owner_validated_scan(fault_code_t reset_code,uint32_t uptime) {
     (void)ee_owner_log(&e);
 }
 static void publish(void) {
-    /* A wrap can verify calibration before the settings record fails. Publish
-     * that verified invalidation even on failure; retries must use its slot. */
+    uint8_t ch;
+    /* Preparation validated immutable owner mailboxes; the byte protocol has
+     * compared EVERY stored byte with their packed image. Publish that same
+     * candidate, without repeating CRC/unpack/validation in the handoff pass. */
     if(store.calibration_slot_known && store.calibration_active_slot!=cal_slot && !cal_transaction) {
-        if(cal_unpack(store.wrap_cal_image,calibration->bank_count,calibration)!=RES_OK) internal_error=true;
-        else cal_slot=store.calibration_active_slot;
+        for(ch=0;ch<MAX_CHANNELS;ch++) if(store.prep_wrap_mask[ch/8u]&(1u<<(ch%8u))) {
+            calibration->baseline_nV[ch]=CAL_MISSING; calibration->tag[ch]=0;
+        }
+        ++calibration->sequence; cal_slot=store.calibration_active_slot;
     }
     if(store.phase!=STORE_DONE) return;
     if(cal_transaction) {
-        if(cal_unpack(store.image,calibration->bank_count,calibration)!=RES_OK) { internal_error=true; return; }
+        *calibration=cal_mailbox; calibration->sequence=store.prep_sequence;
         cal_slot=store.active_slot; cal_saved=true; done=2;
     } else {
-        if(set_unpack(store.image,active->board_type,active->channel_count,active)!=RES_OK) { internal_error=true; return; }
+        *active=*store.prep_candidate; active->sequence=store.prep_sequence;
         settings_slot=store.active_slot; settings_ok=true; done=1;
     }
 }

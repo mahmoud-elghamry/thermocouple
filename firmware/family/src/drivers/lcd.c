@@ -17,7 +17,7 @@ void lcd_init(void) {
 }
 void lcd_frame(const char frame[80]) { memcpy(wanted,frame,80); }
 void lcd_task(void) {
-    uint8_t i,n=0;
+    uint8_t p,line;
     if(tick_ms()-last_init>=10000) { init_step=0; due=tick_ms()+40; last_init=tick_ms(); memset(shown,0,80); }
     if((int32_t)(tick_ms()-due)<0) return;
     if(init_step<8) {
@@ -30,11 +30,11 @@ void lcd_task(void) {
         case 6:byte(6,false);break; default:byte(1,false);due=tick_ms()+2;break;
         } return;
     }
-    for(i=0;i<80 && n<8;i++) {
-        uint8_t p=cursor; if(++cursor==80) cursor=0;
-        if(wanted[p]!=shown[p]) {
-            byte((uint8_t)(0x80|((p%20)+row[p/20])),false);
-            byte((uint8_t)wanted[p],true); shown[p]=wanted[p]; ++n;
-        }
+    /* One cell maximum: bounded bus work even for a completely new frame. */
+    p=cursor; if(++cursor==80) cursor=0;
+    if(wanted[p]!=shown[p]) {
+        line=p>=60?3u:p>=40?2u:p>=20?1u:0u;
+        byte((uint8_t)(0x80|((p-20u*line)+row[line])),false);
+        byte((uint8_t)wanted[p],true); shown[p]=wanted[p];
     }
 }

@@ -28,6 +28,18 @@ res_t cal_pack(const calibration_t *c, uint8_t out[CAL_SLOT_SIZE])
     }
     put16(out+247,set_crc16(out,247)); return RES_OK;
 }
+res_t cal_pack_part(const calibration_t *c,uint8_t *out,uint8_t first,uint8_t count)
+{
+    uint8_t i;
+    if(c==NULL || out==NULL || first>MAX_BANKS+MAX_CHANNELS || count>MAX_BANKS+MAX_CHANNELS-first) return RES_ERR_RANGE;
+    if(first==0) { put16(out,0x434C); out[2]=1; out[3]=c->bank_count; put32(out+4,c->sequence); }
+    for(i=first;i<(uint8_t)(first+count);i++) {
+        if(i<MAX_BANKS) put32(out+8u+4u*i,(uint32_t)c->ref_ppm[i]);
+        else { uint8_t ch=(uint8_t)(i-MAX_BANKS);
+            put32(out+32u+4u*ch,(uint32_t)c->baseline_nV[ch]); out[204u+ch]=c->tag[ch]; }
+    }
+    return RES_OK;
+}
 res_t cal_unpack(const uint8_t in[CAL_SLOT_SIZE], uint8_t banks, calibration_t *c)
 {
     uint8_t i;
@@ -42,8 +54,13 @@ res_t cal_unpack(const uint8_t in[CAL_SLOT_SIZE], uint8_t banks, calibration_t *
 }
 bool cal_complete(const calibration_t *c, const settings_t *s)
 {
-    uint8_t i, banks;
     if(cal_validate(c)!=RES_OK || set_validate(s)!=RES_OK) return false;
+    return cal_bindings_complete(c,s);
+}
+bool cal_bindings_complete(const calibration_t *c,const settings_t *s)
+{
+    uint8_t i,banks;
+    if(!c || !s || s->channel_count>MAX_CHANNELS) return false;
     banks=s->board_type==40?6u:(uint8_t)(s->channel_count/8u);
     if(c->bank_count!=banks) return false;
     for(i=0;i<banks;++i) if(c->ref_ppm[i]==CAL_MISSING) return false;
