@@ -8,8 +8,9 @@ Two differences between KiCad and JLC's models, both read from JLC's own preview
   footprint with a drilled pad, Mid X/Y is moved to the centre of its pads.
 CPL.csv stays the plain KiCad list for other assemblers. Runs in KiCad's python (needs pcbnew):
     "C:/Program Files/KiCad/10.0/bin/python.exe" jlc_cpl.py <release folder>
-Relays K701/K702 are NOT turned: JLC's model shows pin 1 on the other row, which no rotation fixes (the G6K
-coil has polarity) - the assembly remark asks their engineer to check them on the placement preview.
+Checked part by part on JLC's preview of the corrected file (2026-10-21): every polarised part matched its silk
+pin-1 mark except the G6K relays, which needed 270 as well (KiCad's footprint is the datasheet top view turned
+90 degrees; the G6K coil has polarity, so the assembly remark also asks their engineer to check K701/K702).
 """
 import csv
 import os
@@ -26,6 +27,7 @@ OFFSET = [
     ("SOT-363", 180),          # TMP126 SC-70-6
     ("LED_D3.0mm", 180),       # D702, D712: model cathode on the anode pad
     ("PinHeader_1x16", 270),   # J502: model stood across the pad row
+    ("Relay_DPDT_Omron_G6K", 270),  # K701/K702: model pins in rows, our pads in columns; model pin 1 bottom-left
 ]
 
 
