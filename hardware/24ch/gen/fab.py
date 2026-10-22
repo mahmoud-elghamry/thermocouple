@@ -162,6 +162,9 @@ FILES
 - BOM.csv              : parts list. The LCSC column is a reference part number only - you can source
                          the parts wherever suits you; equivalents are welcome.
 - CPL.csv              : placement list (all parts on the top side).
+- CPL-JLC.csv          : the same placement list with rotations matched to JLCPCB's part models
+                         (checked on the JLC preview). Use this one for a JLCPCB order.
+- POWER-ON-TEST.pdf    : the power-on test after assembly (no firmware needed), with expected values.
 - DNP.txt              : footprints that stay empty on this order (not in the BOM or CPL).
 - ACCESSORIES.csv      : loose items (mating plugs, standoffs). Please quote them if you can supply them.
 - ASSEMBLY-SPEC.pdf    : the full build preferences, the power-on test with expected values, and

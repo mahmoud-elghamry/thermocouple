@@ -260,7 +260,8 @@ JLCPCB website order (only these reach JLC):
   Assembly remark        paste the text below (the website has no other file of ours)
 
 E-mail quotation / support / another assembler (NORI etc.):
-  PURCHASING zip = gerbers + BOM + CPL + ASSEMBLY-SPEC.pdf + ORDER-NOTES.txt + schematic + ACCESSORIES + DNP
+  PURCHASING zip = gerbers + BOM + CPL + CPL-JLC + ASSEMBLY-SPEC.pdf + POWER-ON-TEST.pdf + ORDER-NOTES.txt
+                   + schematic + ACCESSORIES + DNP (ORDER-NOTES lists them for the reader)
 
 Outside reviewer (expert): FOR-REVIEWER zip = schematic PDF, BOM, gerbers, ASSEMBLY-SPEC.pdf, KiCad project.
 
