@@ -26,6 +26,11 @@ All files are written by one author (Claude) so names, codes and patterns agree;
 * MCU ATmega1284P, 8 MHz crystal, 128 KB flash, 16 KB RAM, 4 KB EEPROM. avr-gcc, C11, no dynamic memory, no
   floating point in the protection path (integer fixed point).
 * One source tree; `BOARD=8|24|40` at build time selects `board_cfg`. One binary per board type.
+* **Implemented scope: the 24-ch board only (owner 2026-10-23: the 40-ch board is probably never built).** The
+  firmware carries no 40-ch, PT100 (`rtd`) or 74HC154 decoder code; arrays are sized `MAX_CHANNELS` 24,
+  `MAX_BANKS` 3. The 40-ch sections of these files (`02` 1.3 and 2.3, `03` 8, PT100 rows of `05`) stay as the
+  design record and are not normative for the code. The 8-ch board stays a `board_cfg` extension point. The
+  EEPROM map of `05` keeps its addresses, so a later board does not change the record layout. J stays supported.
 * Host tests (gcc on the PC) for every module that has logic; hardware access only through MCAL/HAL so it can be
   mocked.
 

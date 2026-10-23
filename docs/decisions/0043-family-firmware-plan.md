@@ -213,3 +213,11 @@ Implementer: Sol per phase with host tests; Claude reviews and runs the gates; A
 Rejected: trip delay (eats the response budget for no gain); startup bypass timer (only for low setpoints); two PIN levels and
 challenge-response recovery (I-100 needs a lock, not roles); "hottest" screen (channels have different limits);
 separate test firmware (service mode instead).
+
+## 9. Scope change (owner 2026-10-23)
+
+The 40-ch board is probably never built, so the firmware implements the 24-ch board only: no 40-ch, PT100 or
+74HC154 decoder code, arrays sized for 24 channels and 3 banks (saves RAM). The 40-ch parts of `firmware/spec`
+stay as the design record; the EEPROM map keeps its addresses; the 8-ch board stays a `board_cfg` extension point;
+J stays (it is a table). Rejected: keeping 40-ch code paths "for later" (RAM, test surface and review cost now for
+a board nobody plans to build).

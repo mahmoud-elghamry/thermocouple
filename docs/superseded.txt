@@ -28,3 +28,4 @@ trip must happen within **1 s** | GOAL 2026-10-20: within 2 s (like Murphy TDXM)
 Design target stays ~1 s: the 24-ch firmware estimate is ~0.75 s normal, ~0.9 s worst
 T_WIN = 900 ms
 worst case <= 8 ms
+MAX_CHANNELS 43u /* 40-ch board: 40 TC + 3 PT100 */ | 0043 9 (2026-10-23): firmware is 24-ch only, MAX_CHANNELS 24, MAX_BANKS 3
