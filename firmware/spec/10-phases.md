@@ -35,7 +35,7 @@ ERR_CRC, ERR_ID, ERR_READBACK, ERR_RANGE }`.
 | Scan cycle | ~690 ms normal, <= 1050 ms worst, deadline 1200 ms (G05) | `03` 3.1, 10.2 |
 | Crossing -> contact open | ~0.75 s normal, ~1.1 s worst estimate (requirement 2 s; measured T05) | `04` 6.3 |
 | Flash | <= 64 KB of 128 KB (tables ~3 KB) | CALCULATIONS 9.8/10.8 |
-| RAM | <= 12 KB of 16 KB incl. 1.5 KB stack (F1: commit frame measured 1046 B + 384 B margin; F0 measured 8.0 KB: two scan copies, settings A/B images, fault registry; raised from 8 KB 2026-10-20) | `05` 7.3 + buffers |
+| RAM | <= 14 KB of 16 KB incl. 1.5 KB stack (raised from 12 KB 2026-10-23 for UI + Modbus, F1 measured 11.9 KB; F1: commit frame measured 1046 B + 384 B margin; F0 measured 8.0 KB: two scan copies, settings A/B images, fault registry; raised from 8 KB 2026-10-20) | `05` 7.3 + buffers |
 | EEPROM | per `05` 1 | |
 
 ## 3. Phases
