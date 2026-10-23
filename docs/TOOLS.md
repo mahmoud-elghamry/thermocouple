@@ -15,7 +15,7 @@ working, fix it here rather than working around it in a session.
 | `kicad-tool` | `%USERPROFILE%\.local\bin` | schematic edits, schematic↔board sync. Install: `uv tool install git+https://github.com/mash/kicad-skills.git` - **never** `pip install kiutils`, that pulls upstream and breaks it |
 | Freerouting 2.4.1 | `%LOCALAPPDATA%\kicad-tools\freerouting.jar` | autorouting via Specctra DSN/SES |
 | Temurin JRE 25 | `%LOCALAPPDATA%\kicad-tools\jre25\*\bin\java.exe` | runs Freerouting |
-| avr-gcc | see `firmware/build.ps1` | firmware |
+| avr-gcc | see `firmware/family/build.ps1` (old 8-ch: `firmware/8ch-legacy/build.ps1`) | firmware |
 | Konnect | `C:\Users\Public\AI-Tools\konnect\konnect.exe` (what `~/.claude.json` registers; `sch_layout/kon.py` needs it on PATH or in `KONNECT`) | the KiCad MCP - 226 tools; IPC when KiCad is open, S-expressions when it is closed |
 
 Freerouting and the JRE are **not** in the repository. Override the paths with
@@ -98,7 +98,7 @@ looks at MPN. Run this whenever `build.py` adds symbols.
 ## Firmware
 
 ```powershell
-pwsh -File firmware\build.ps1     # -Wall -Wextra -Werror, plus host unit tests
+pwsh -File firmware\family\build.ps1     # 24-ch family firmware; old 8-ch: firmware\8ch-legacy\build.ps1
 ```
 
 ## Visual check
@@ -324,7 +324,7 @@ what is still missing.
 
 | Workstation | Cloud equivalent |
 |---|---|
-| `pwsh -File firmware\build.ps1` | `make -C firmware all test` (build.ps1 needs MSVC) |
+| `pwsh -File firmware\8ch-legacy\build.ps1` (old 8-ch) | `make -C firmware/8ch-legacy all test` (build.ps1 needs MSVC) |
 | `pwsh -File hardware\8ch\run_all.ps1` | `pwsh -File hardware/8ch/validate.ps1` |
 | `run_all.ps1 -Regenerate` | by hand, measured 2026-09-24: Temurin JRE 25 (`github.com/adoptium/temurin25-binaries`) and `freerouting-2.4.1.jar` (`github.com/freerouting/freerouting` releases) into `~/.local/opt`; KiCad's footprints copied out of the image; then `apply_rules.py`, `kicad-tool pcb sync`, and `generate_board.py` / `route.py` / `close_gaps.py` run with the image's `python3` (`docker run --user root` with `/tmp`, `/home`, `~/.local` mounted, `FREEROUTING_JAR`, `FREEROUTING_JAVA`, `JAVA_TOOL_OPTIONS=` cleared). Routing takes ~12 min. |
 

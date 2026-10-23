@@ -7,7 +7,7 @@
 
 * `firmware/` holds the **REV A2 8-channel** firmware (ATmega, MAX31856 front end): 4 builds and
   3 host test suites pass (2026-10-09 snapshot `production/validation-20261009-043553-906505`).
-  Build: `pwsh -File firmware\build.ps1`; cloud: `make -C firmware all test`.
+  Moved to `firmware/8ch-legacy/` 2026-10-23 (owner); build `pwsh -File firmware\8ch-legacy\build.ps1`.
 * **Family firmware (`0043`):** specification `firmware/spec/` rev 5, reviewed by Astra three times (reports in
   `production/review-20261015-a4/ASTRA-5..7`, local). Code goes to `firmware/family/` (the 8-ch code stays
   untouched). F1e resolved the CPU finding against the owner-approved 20 ms loop / 1200 ms window.

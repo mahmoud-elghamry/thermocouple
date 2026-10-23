@@ -1,7 +1,7 @@
 # 09 - Verification: tests, fakes, fault injection, bench, traceability
 
 Every rule in `03`-`08` has a test that would fail if the rule were broken. Host tests run on every build
-(`firmware/build.ps1`, CI); bench tests run on the first boards; field tests at the first engine (I-120).
+(`firmware/family/build.ps1`); bench tests run on the first boards; field tests at the first engine (I-120).
 
 ## 1. Test levels
 
