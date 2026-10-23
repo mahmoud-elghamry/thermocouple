@@ -103,7 +103,10 @@ pwsh -File firmware\family\test\integration\soak.ps1   # 60-day simulated soak, 
 pwsh -File firmware\family\program.ps1 -DryRun         # USBasp: fuses F7/C1/FC + read-back, flash + verify
 ```
 
-`build.ps1` takes ~13 min (AVR cycle profiler, cppcheck 2.22 at `C:/Program Files/Cppcheck`). `program.ps1`
+`build.ps1` takes ~17 min (all tests + AVR cycle profiler, cppcheck 2.22 at `C:/Program Files/Cppcheck`): run it
+after every code change. **Image only, ~30 s:** `pwsh -File firmware\family\build.ps1 -AvrOnly -CompileOnly` (cppcheck,
+startup-order check, CRC, identity, metadata; no tests) - use it before programming when only docs changed, because
+`program.ps1` refuses an image whose embedded commit is not HEAD. `program.ps1`
 finds avrdude in PlatformIO or Proteus (`Tools/ARDUINO/.../avrdude.exe` 6.3), uses `-B 10` (100 kHz ISP for the
 factory 1 MHz clock) and prints one `PROGRAM PASS`/`PROGRAM FAIL` line; drop `-DryRun` with the USBasp connected.
 
