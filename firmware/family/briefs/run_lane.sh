@@ -25,6 +25,10 @@ echo $$ > "$LOCK/pid"
 trap 'rm -rf "$LOCK"' EXIT
 [ -f "$LOG" ] && mv "$LOG" "$LOG.$(date +%H%M%S)"
 COMMON="-m gpt-6.1-sol -c model_reasoning_effort=\"high\" -c windows.sandbox=\"unelevated\" -s workspace-write --skip-git-repo-check -C $W --json -o $REP"
+# Readable progress for the task panel: a separate reader of the log, never in Codex's output path.
+STOP=$LOCK/show.stop
+PYTHONIOENCODING=utf-8 python -u "$B/show_progress.py" "$LOG" "$STOP" &
+SHOW=$!
 if [ "$2" = "resume" ] && [ -s "$THREAD" ]; then
   { echo "Continue in this session; your earlier edits are in the working tree. Current brief:"; cat "$BRIEF"; } | \
     timeout 14400 sh -c "codex exec $COMMON resume $(cat "$THREAD") -" > "$LOG" 2>&1
@@ -32,5 +36,6 @@ else
   timeout 14400 sh -c "codex exec $COMMON -" < "$BRIEF" > "$LOG" 2>&1
 fi
 RC=$?
+touch "$STOP"; wait $SHOW 2>/dev/null
 grep -o '"thread_id":"[^"]*"' "$LOG" | head -1 | cut -d'"' -f4 > "$THREAD"
 echo "exit $RC thread $(cat "$THREAD")"
