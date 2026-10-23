@@ -85,11 +85,11 @@ void test_protection(void)
     for(k=0;k<4;++k) {
         rig_init(&r);
         if(k==0) r.scan.scan_validated=false;
-        if(k==1) r.in.now_ms=1100; /* exactly 1000 ms old */
+        if(k==1) r.in.now_ms=1300; /* exactly 1200 ms old */
         if(k==2) r.scan.settings_seq=9;
-        if(k==3) r.in.now_ms=1099;
+        if(k==3) r.in.now_ms=1299;
         rig_ack(&r);
-        (void)snprintf(input,sizeof(input),"R2 variant=%u invalid/1000ms/old-sequence/999ms",k);
+        (void)snprintf(input,sizeof(input),"R2 variant=%u invalid/1200ms/old-sequence/1199ms",k);
         EQ(P04 "5 R2",input,k==3?ACK_NONE:ACK_R2_SCAN,r.out.ack_reason);
     }
     rig_init(&r); (void)fault_raise(&r.faults,FC_B01_ADC_ID,0); rig_ack(&r);
