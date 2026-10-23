@@ -79,7 +79,7 @@ static void test_newer_evidence(void)
         (void)snprintf(input,sizeof(input),"C3 %s: next validated cool N+3 after ACK",cause);
         YES(P04 "6.1 cool recovery",input,r.out.run_permission);
         YES(P04 "6.1 cool recovery",input,r.out.window_refresh);
-        EQ(P04 "6.1 cool recovery",input,1200,r.out.window_remaining_ms);
+        EQ(P04 "6.1 cool recovery",input,1500,r.out.window_remaining_ms);
         decision=outputs_step(&outputs,&r.out,r.in.now_ms,false,true);
         YES(P04 "6.1 cool recovery PWM",input,decision.pwm_enable);
     }
@@ -164,11 +164,11 @@ void test_protection(void)
     for(k=0;k<4;++k) {
         rig_init(&r);
         if(k==0) r.scan.scan_validated=false;
-        if(k==1) r.in.now_ms=1300; /* exactly 1200 ms old */
+        if(k==1) r.in.now_ms=1600; /* exactly 1500 ms old */
         if(k==2) r.scan.settings_seq=9;
-        if(k==3) r.in.now_ms=1299;
+        if(k==3) r.in.now_ms=1599;
         rig_ack(&r);
-        (void)snprintf(input,sizeof(input),"R2 variant=%u invalid/1200ms/old-sequence/1199ms",k);
+        (void)snprintf(input,sizeof(input),"R2 variant=%u invalid/1500ms/old-sequence/1499ms",k);
         EQ(P04 "5 R2",input,k==3?ACK_NONE:ACK_R2_SCAN,r.out.ack_reason);
     }
     rig_init(&r); (void)fault_raise(&r.faults,FC_B01_ADC_ID,0); rig_ack(&r);

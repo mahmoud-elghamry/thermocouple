@@ -83,7 +83,7 @@ checks must pass. Measured CPU/stack maxima and counts are in
 This is a measured path set with conservative MCAL bounds, not an exhaustive
 WCET proof for every possible input.
 
-Timing limits remain in `include/app/timing.h`: RUN and scan deadline 1200 ms,
+Timing limits remain in `include/app/timing.h`: RUN and scan deadline 1500 ms (owner 2026-10-24),
 loop 20 ms / 160000 cycles, observed ADC RDY 36..69 ms, service relay 1000 ms.
 `profile_avr.ps1 -CompileOnly` builds the simulator and calibrates MCAL quickly;
 `build.ps1` always runs the complete measured-clock gate.

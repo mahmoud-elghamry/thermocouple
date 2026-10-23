@@ -6,7 +6,7 @@ static void feedback_row(bool command, bool sense, bool alarm)
     unsigned i; char input[100];
     memset(&state,0,sizeof(state)); memset(&p,0,sizeof(p));
     /* 04 6.1 RUN window fixture; feedback assertions follow 04 6.2. */
-    p.run_permission=alarm?true:command; p.window_remaining_ms=1200;
+    p.run_permission=alarm?true:command; p.window_remaining_ms=1500;
     p.alarm_active=alarm?!command:true;
     for(i=0;i<sizeof(times)/sizeof(times[0]);++i) {
         bool mismatch=command==sense;
@@ -41,20 +41,20 @@ void test_windows_outputs(void)
     }
     rig_scan(&r,101);
     YES(P04 "6.1","new validated scan in RUN opens window",r.out.run_permission);
-    EQ(P04 "6.1","window length after new scan",1200,r.out.window_remaining_ms);
-    r.in.now_ms=1300; rig_step(&r);
-    YES(P04 "6.1","1199ms since refresh",r.out.run_permission);
-    r.in.now_ms=1301; rig_step(&r);
-    EQ(P04 "6.1 expiry / 09 S05/S26","1200ms since refresh",TRIPPED,r.state.mode);
-    YES(P04 "6.1 expiry G05","1200ms since refresh",fault_active(&r.faults,FC_G05_SCAN_DEADLINE));
-    NO(P04 "6.1 expiry","1200ms since refresh",r.out.run_permission);
-    fault_clear(&r.faults,FC_G05_SCAN_DEADLINE,0); rig_scan(&r,1351);
-    EQ(P04 "6.1 / 09 S25-S26","validated late scan at1250ms and fault cleared",TRIPPED,r.state.mode);
+    EQ(P04 "6.1","window length after new scan",1500,r.out.window_remaining_ms);
+    r.in.now_ms=1600; rig_step(&r);
+    YES(P04 "6.1","1499ms since refresh",r.out.run_permission);
+    r.in.now_ms=1601; rig_step(&r);
+    EQ(P04 "6.1 expiry / 09 S05/S26","1500ms since refresh",TRIPPED,r.state.mode);
+    YES(P04 "6.1 expiry G05","1500ms since refresh",fault_active(&r.faults,FC_G05_SCAN_DEADLINE));
+    NO(P04 "6.1 expiry","1500ms since refresh",r.out.run_permission);
+    fault_clear(&r.faults,FC_G05_SCAN_DEADLINE,0); rig_scan(&r,1651);
+    EQ(P04 "6.1 / 09 S25-S26","validated late scan at1550ms and fault cleared",TRIPPED,r.state.mode);
     NO(P04 "6.1 / 09 S26","late scan cannot reclose without ACK",r.out.run_permission);
     rig_ack(&r); EQ(P04 "6.1 ACK ordering","ACK after deadline trip",0,r.out.window_remaining_ms);
-    rig_scan(&r,1352); YES(P04 "6.1","next scan after fresh ACK",r.out.run_permission);
-    rig_init(&r); rig_ack(&r); r.in.now_ms=1300; rig_step(&r);
-    EQ(P04 "6.1 ACK grace timeout","no new scan within1200ms of ACK",TRIPPED,r.state.mode);
+    rig_scan(&r,1652); YES(P04 "6.1","next scan after fresh ACK",r.out.run_permission);
+    rig_init(&r); rig_ack(&r); r.in.now_ms=1600; rig_step(&r);
+    EQ(P04 "6.1 ACK grace timeout","no new scan within1500ms of ACK",TRIPPED,r.state.mode);
     for(i=0;i<4;++i) {
         rig_running(&r); r.in.now_ms=500;
         r.in.scan_complete=i!=0;
@@ -65,18 +65,18 @@ void test_windows_outputs(void)
         (void)snprintf(input,sizeof(input),"variant=%u no-completion/unvalidated/old-sequence/bad-flow",i);
         if(i!=3) NO(P04 "6.1 positive proof only",input,r.out.window_refresh);
         if(i==3) NO(P04 "6.1 flow check",input,r.out.run_permission);
-        r.in.scan_complete=false; r.in.now_ms=1301; rig_step(&r);
+        r.in.scan_complete=false; r.in.now_ms=1601; rig_step(&r);
         NO(P04 "6.1 no unauthorized extension",input,r.out.run_permission);
     }
     /* Expiry must be noticed BEFORE processing a scan that is already late. */
-    rig_running(&r); rig_scan(&r,1351);
-    EQ(P04 "6.1 late scan even without intervening loop","next call at1250ms with scan_complete",TRIPPED,r.state.mode);
+    rig_running(&r); rig_scan(&r,1651);
+    EQ(P04 "6.1 late scan even without intervening loop","next call at1550ms with scan_complete",TRIPPED,r.state.mode);
     rig_init(&r); r.in.now_ms=UINT32_MAX-401u; r.scan.completed_ms=r.in.now_ms;
     rig_ack(&r); rig_scan(&r,UINT32_MAX-400u);
-    r.in.now_ms=798; rig_step(&r);
-    YES(P04 "6.1 / 00 uint32 time","window1199ms across ms_tick wrap",r.out.run_permission);
-    r.in.now_ms=799; rig_step(&r);
-    EQ(P04 "6.1 / 00 uint32 time","window1200ms across ms_tick wrap",TRIPPED,r.state.mode);
+    r.in.now_ms=1098; rig_step(&r);
+    YES(P04 "6.1 / 00 uint32 time","window1499ms across ms_tick wrap",r.out.run_permission);
+    r.in.now_ms=1099; rig_step(&r);
+    EQ(P04 "6.1 / 00 uint32 time","window1500ms across ms_tick wrap",TRIPPED,r.state.mode);
     rig_running(&r); r.scan.meas[0].temp_dC=1000;
     (void)prot_on_result(&r.state,0,&r.scan.meas[0],&r.cfg,r.scan.scan_no,0);
     rig_step(&r); NO(P04 "1","slot over-temp, scan_complete=false",r.out.run_permission);
@@ -85,7 +85,7 @@ void test_windows_outputs(void)
     for(i=0;i<8;++i) feedback_row((i&1u)!=0,(i&2u)!=0,(i&4u)!=0);
     /* Recovering mismatch before100ms must reset its consecutive filter. */
     memset(&os,0,sizeof(os)); memset(&r.out,0,sizeof(r.out));
-    r.out.run_permission=true; r.out.window_remaining_ms=1200; r.out.alarm_active=true;
+    r.out.run_permission=true; r.out.window_remaining_ms=1500; r.out.alarm_active=true;
     (void)outputs_step(&os,&r.out,0,true,true);
     (void)outputs_step(&os,&r.out,60,true,true);
     (void)outputs_step(&os,&r.out,159,false,true);

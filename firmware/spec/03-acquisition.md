@@ -154,7 +154,8 @@ P5  write CHANNEL_s = image (disabled)
 The three banks (five on the 40-ch, plus the RTD ADC) run P1-P5 interleaved: P2 is issued to every bank within
 ~1 ms, so all banks convert in parallel and finish each slot within ~1 ms of each other. One scan:
 15 x (44.559 + ~1.5 ms overhead) = **~690 ms normal** at -5 % clock (C 9.7's ~700 ms screen); worst with
-slow polling 15 x ~70 ms = ~1050 ms (10.2); 1.2 s budget
+slow polling 15 x ~70 ms = ~1050 ms (10.2); measured gap between validated scans <= ~1.07 s with loop jitter and
+the REF self-test; 1.5 s deadline
 (GOAL, I-013) with 30 ms pump/relay release (C 8.5).
 
 The sequencer alternative (all 15 channels enabled, one start per scan) saves ~20 ms per scan but depends on
@@ -468,8 +469,8 @@ was validated (diagnostic slots 8-12 come after the TC slots in the same scan).
 2. 40-ch: RTD bank validated for scan n (section 8) and all 16 signatures (6 ADC + 10 TMP126) matched (section 9).
    8/24-ch: all signatures of its devices matched.
 3. REFOK read low in scan n outside a REFTEST window; no REFTEST failure pending (`02` 10).
-4. Scan n completed within **1200 ms** of its start (normal ~690 ms; worst 15 x ~70 ms = ~1050 ms) - else G05.
-   (The RUN window of 1200 ms in `04` 6.1 still opens RUN sooner if scans stop arriving.)
+4. Scan n completed within **1500 ms** of its start (normal ~690 ms; worst 15 x ~70 ms = ~1050 ms) - else G05.
+   (The RUN window of 1500 ms in `04` 6.1 still opens RUN sooner if scans stop arriving.)
 5. No island-loss condition (G14) and no full re-init pending.
 6. Fuse self-check passed at start-up (G15 not set).
 
@@ -487,7 +488,7 @@ Bank codes carry the bank letter (e.g. `B06 C`); channel codes the channel numbe
 |---|---|---|---|
 | G08 | Engine reference lost | REFOK high in a scan (outside self-test) | REFOK low in a validated scan (latch per `04`) |
 | G09 | REFTEST self-test failed | REFOK not high during REFTEST (`02` 10) | next self-test passes |
-| G05 | Scan deadline missed, or RUN window (1200 ms, `04` 6.1) expired in `RUN` | board scan not complete within 1200 ms, or window expiry | next validated board scan (the trip latch stays until ACK) |
+| G05 | Scan deadline missed, or RUN window (1500 ms, `04` 6.1) expired in `RUN` | board scan not complete within 1500 ms, or window expiry | next validated board scan (the trip latch stays until ACK) |
 | G14 | Island power lost | all banks fail CRC/ID in the same scan, or REFOK high together with bank faults on every bank | full re-init + validated board scan |
 | B13 | Device signature mismatch | any signature read back wrong (section 9) | re-init + validated board scan |
 | B14 | RTD bank fault (40-ch) | any RTD-bank check of section 8.3 except per-probe | validated RTD scan |

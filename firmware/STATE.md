@@ -22,7 +22,7 @@
   expiry at the 10-min REF self-test and event timestamps going backward at the ms wrap. **C4** made acceptance
   24-only. Claude re-ran all on a clean build: core 125511/0, acceptance 14361/14361, build.ps1 PASS (818 s), AVR
   worst 19.857/20 ms, stack 528/1536 B, soak PASS. **Astra F5/F6 re-check:** no S1; gap between validated scans
-  reached 1230 ms under allowed loop jitter (I-124), programming image/efuse checks. **F7** (limits unchanged) overlaps
+  reached 1230 ms under allowed loop jitter (I-124), programming image/efuse checks. **F7** (limits unchanged; owner later set 1500 ms, `0043` 10) overlaps
   the REF test with slots 10-12 and batches end-of-scan checks: AVR gaps 1035/954/863/906 ms under jitter, worst
   pass 19.586/20 ms, stack 539/1536 B, RAM 11328/14336 B, flash 73636 B; `program.ps1` checks image identity, SHA-256
   and boot CRC (41 mock checks). Astra F7 re-check: no S1; REF lockout after a transient G08 and image identity -> **F8**: REF retry stays pending,

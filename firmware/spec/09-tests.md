@@ -38,7 +38,7 @@ every table in `04` and `05` exercised; branch coverage reported (gcov) and ever
 | S02 | ramp one channel through alarm and trip SP | alarm at alarm SP, RUN off within one slot cycle of the crossing sample; first-out correct |
 | S03 | trip, then cool below trip SP but above trip SP - band; press ACK | refused R4; cool below; ACK accepted |
 | S04 | ACK held during power-up | never accepted until released and pressed again (R1) |
-| S05 | acquisition stalls (fake ADC stops answering) with timers running | RUN window expires <= 1200 ms; B05; watchdog reset if the flow check stops |
+| S05 | acquisition stalls (fake ADC stops answering) with timers running | RUN window expires <= 1500 ms; B05; watchdog reset if the flow check stops |
 | S06 | main loop hangs in one task | watchdog reset within 0.5 s; boot into START_LATCHED with G11 |
 | S07 | power cut at every byte of a settings save (loop over all positions) | after "reboot" the old or the new record is used, never neither, never a mix |
 | S08 | corrupt each settings field in EEPROM | CONFIG_LOCK, ACK refused |
@@ -59,7 +59,7 @@ every table in `04` and `05` exercised; branch coverage reported (gcov) and ever
 | S23 | settings committed mid-scan | the straddling scan does not count for ACK (R2) |
 | S24 | island power lost then restored | G14, full re-init, RUN only after ACK and a validated scan |
 | S25 | G05 deadline fault clears at the next scan | trip latch stays until ACK (no silent recovery to RUN) |
-| S26 | RUN window expires at 1200 ms, a validated scan arrives at 1250 ms | TRIPPED at 1200 ms; contact stays open until ACK |
+| S26 | RUN window expires at 1500 ms, a validated scan arrives at 1550 ms | TRIPPED at 1500 ms; contact stays open until ACK |
 | S27 | channel K -> OFF -> K, reset in between | baseline not accepted (epoch changed); LOCKED: CALIBRATE until re-learned |
 | S28 | blank board learns in service, then a channel is configured as J | that channel LOCKED: CALIBRATE until re-learned |
 

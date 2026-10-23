@@ -32,7 +32,7 @@ ERR_CRC, ERR_ID, ERR_READBACK, ERR_RANGE }`.
 | Loop period | <= 5 ms typical, <= 20 ms worst | `01` 2 |
 | `ui_task` | <= 1 ms | 8 LCD chars x ~50 us + formatting |
 | `modbus_task` | <= 1 ms per call, one frame | `07` 2 |
-| Scan cycle | ~690 ms normal, <= 1050 ms worst, deadline 1200 ms (G05) | `03` 3.1, 10.2 |
+| Scan cycle | ~690 ms normal, <= 1050 ms worst, gap <= ~1.07 s measured with jitter + REF test, deadline 1500 ms (G05) | `03` 3.1, 10.2 |
 | Crossing -> contact open | ~0.75 s normal, ~1.1 s worst estimate (requirement 2 s; measured T05) | `04` 6.3 |
 | Flash | <= 96 KB of 128 KB (raised from 64 KB 2026-10-23: F4 with UI + Modbus measured 72.9 KB; no boot loader, BOOTRST = 1; tables ~3 KB) | CALCULATIONS 9.8/10.8 |
 | RAM | <= 14 KB of 16 KB incl. 1.5 KB stack (raised from 12 KB 2026-10-23 for UI + Modbus, F1 measured 11.9 KB; F1: commit frame measured 1046 B + 384 B margin; F0 measured 8.0 KB: two scan copies, settings A/B images, fault registry; raised from 8 KB 2026-10-20) | `05` 7.3 + buffers |

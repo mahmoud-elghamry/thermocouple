@@ -288,7 +288,7 @@ Check on the bench: 2 kHz gate voltage at minimum 5 V (C 8.5 "Measure the gate a
 
 RUN deadline (0043 3.6, I-118): `run_deadline_ms` is reloaded **only** by the scan-completion path when a
 validated board scan is published and protection permits RUN; the Timer2 ISR decrements it and calls the stop
-sequence above when it reaches 0. Reload value **1200 ms** (decided, `04` 6.1; was 900 ms until 2026-10-23; re-checked against the measured scan time) (cycle ~700 ms, C 9.7; trip requirement 2 s,
+sequence above when it reaches 0. Reload value **1500 ms** (decided, `04` 6.1; 900 ms, then 1200 ms until the owner 2026-10-24 after Astra measured a 1230 ms gap between validated scans under loop jitter (I-124)) (cycle ~700 ms, C 9.7; trip requirement 2 s,
 GOAL). The ISR can only remove RUN, never start the pump. **OPEN-H4:** reload value to be fixed in `04` with
 the measured scan time.
 
@@ -492,7 +492,7 @@ and the time to default (tDO 8/12 in 6.10, unit not legible in the local text) -
 | H1 | CA-IS3761 output level with its input floating (MCU in reset) | English CA-IS3761 data sheet / bench |
 | H2 | Nexperia 74HC154 timing at 2 V (TI CD74HC154 used as bound) | Nexperia 74HC_HCT154 data sheet |
 | H3 | AD7124 DOUT edge on the real bus capacitance (read-path budget) | scope MISO at 2 MHz on the first boards; until then 1 MHz |
-| H4 | RUN deadline 1200 ms decided (`04` 6.1); re-check against the measured scan time (P15) | first boards |
+| H4 | RUN deadline 1500 ms decided (`04` 6.1); re-check against the measured scan time (P15) | first boards |
 | H5 | real WDT timeout (0.25 s typ chosen so it stays < 0.5 s) | measure hot and cold in service mode |
 | H6 | USBasp `-B` value through J501 / R405 | first programming session |
 | H7 | REFTEST waits (5 ms / 20 ms); interval N = 10 min decided | bench, I-120 cut FEED/SENSE |

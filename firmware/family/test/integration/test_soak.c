@@ -188,7 +188,8 @@ static void ack_when_clear(void) {
 static void trip_episode(bool fault) {
     uint8_t ch=(uint8_t)(random_next()%24u);
     if(fault) fake_pin(board()->refok,true); else temperature(ch,true);
-    run_ms(1200); CHECK(f0_mode()==TRIPPED && !timer_run_active());
+    /* Past the old window: its G05 is a new fault and refuses an ACK held at that moment (R1). */
+    run_ms(APP_RUN_WINDOW_MS+100u); CHECK(f0_mode()==TRIPPED && !timer_run_active());
     if(uptime_wrapped) CHECK(app_protection()->first.uptime_s>=UINT32_MAX/1000u);
     ack();
     /* R2 precedes R3 when an island fault has invalidated the completed scan. */

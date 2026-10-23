@@ -221,3 +221,10 @@ The 40-ch board is probably never built, so the firmware implements the 24-ch bo
 stay as the design record; the EEPROM map keeps its addresses; the 8-ch board stays a `board_cfg` extension point;
 J stays (it is a table). Rejected: keeping 40-ch code paths "for later" (RAM, test surface and review cost now for
 a board nobody plans to build).
+
+## 10. RUN window and scan deadline 1500 ms (owner 2026-10-24)
+
+Astra measured a 1230 ms gap between validated scans under allowed loop jitter (I-124). F7 brought the measured
+gap to <= ~1.07 s without touching the limits; the owner then raised `T_WIN` and the scan deadline (G05) from
+1200 to 1500 ms for bench margin. Trip within 2 s still holds: crossing -> open ~1.1 s worst, a stalled scan opens
+RUN within `T_WIN` + pump decay < 1.55 s. Rejected: keeping 1200 ms (11 % margin before any bench measurement).

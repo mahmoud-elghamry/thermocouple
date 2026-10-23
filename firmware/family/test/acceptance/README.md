@@ -96,11 +96,11 @@ test folder was opened, no implementation was changed, and C3 was not rerun.
 
 Expectations follow `git diff 660d0cb -- firmware/spec` and the current clauses:
 
-* `test_accept_protection.c`: 04 5 R2 accepts age1199 ms and rejects age1200 ms.
-* `test_accept_outputs.c`: 04 6.1 and 09 S05/S26 use a1200 ms RUN window,
-  check1199/1200 ms boundaries, place the late scan at1250 ms, and shift ACK
+* `test_accept_protection.c`: 04 5 R2 accepts age1499 ms and rejects age1500 ms (1200 ms until owner 2026-10-24).
+* `test_accept_outputs.c`: 04 6.1 and 09 S05/S26 use a1500 ms RUN window,
+  check1499/1500 ms boundaries, place the late scan at1550 ms, and shift ACK
   grace, recovery, unauthorized-refresh and uint32-wrap inputs accordingly.
-  Output-only fixtures also carry the specified1200 ms window; all04 6.2
+  Output-only fixtures also carry the specified1500 ms window; all04 6.2
   feedback assertions are unchanged.
 * 03 3.1/10.2 and04 6.3: worst simulated scan1050 ms, conservative crossing
   budget1093 ms; normal690 ms and the2000 ms requirement remain unchanged.
@@ -127,7 +127,7 @@ These are observations against production being changed in parallel; no producti
 source or other test folder was opened, no implementation fix was attempted, and
 the acceptance command was not rerun. This core link list has no ADC RDY-window,
 scan-duration detector or actual loop-period test; 03 3/10/11's69 ms RDY upper bound,
-1200 ms scan deadline and01 2's20 ms loop bound are not directly exercised here.
+1500 ms scan deadline and01 2's20 ms loop bound are not directly exercised here.
 `python docs/check_docs.py`: exit0, zero findings. Only acceptance files were edited.
 
 ## Historical observed result (2026-10-20, before the timing revision)
@@ -159,7 +159,7 @@ proof. ACK correctly rejects it (the separate R2 test passes); RUN refresh does 
 |---|---|
 | tables.c | 04 3.1 all conditions and threshold edges; 3.2 all modes/OFF; 3.3 hysteresis; 9 every fault/action row in both modes, C10/C11 via conditions; 01 5 unknown enums; 09 S21 bank independence |
 | test_accept_protection.c | 04 4 all five states versus no event, ACK, invalid settings/calibration, protection/name commit and immediate trip/fault; boot SERVICE precedence; corrupt state/complements; 4.1 first-out; 5 R1-R6 and refusal boundaries; 7.2 alarm latch |
-| test_accept_outputs.c | 04 1 immediate trip; 6.1 ACK ordering, validated-only refresh, flow, exact1200 ms expiry (09 S05/S26), late scan with/without intervening calls, no auto recovery, uint32 time wrap; 6.2 all four active-low rows for both relays, 60 ms settle, >100 ms continuous mismatch; 6.3 timing |
+| test_accept_outputs.c | 04 1 immediate trip; 6.1 ACK ordering, validated-only refresh, flow, exact1500 ms expiry (09 S05/S26), late scan with/without intervening calls, no auto recovery, uint32 time wrap; 6.2 all four active-low rows for both relays, 60 ms settle, >100 ms continuous mismatch; 6.3 timing |
 | test_accept_settings.c | 05 2 explicit independently packed layout/CRC; 3 each field invalid with repaired CRC, OFF canonical, 00 Targets 24-ch build/type rejection; 4 all A/B rows, sequence wrap and CONFIG_LOCK after rejected records; 5 protection change classification, clear setpoints, every epoch increment incl63->0; 6 tag/type/epoch, staged completeness and CRC; 09 S27 K->OFF->K baseline binding |
 | storage.c | 05 4-6 and 09 S07: reboot after EVERY operation, both inactive slots, settings and calibration, pre-existing valid older copy, sequence wrap, no mixed record, newest valid selection, retry/failure faults G02/G13 |
 | math_events.c | 03 7 all six listed NIST points, forward/inverse/CJ, 0.03+0.05 C bound, negative differential EMF, C08 floor/C02 range; 05 7 event packing/CRC, ring and sequence wrap, bad entries skipped |

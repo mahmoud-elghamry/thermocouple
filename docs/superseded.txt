@@ -29,3 +29,5 @@ Design target stays ~1 s: the 24-ch firmware estimate is ~0.75 s normal, ~0.9 s 
 T_WIN = 900 ms
 worst case <= 8 ms
 MAX_CHANNELS 43u /* 40-ch board: 40 TC + 3 PT100 */ | 0043 9 (2026-10-23): firmware is 24-ch only, MAX_CHANNELS 24, MAX_BANKS 3
+
+T_WIN = 1200 ms | 0043 10 (owner 2026-10-24): RUN window and scan deadline 1500 ms
