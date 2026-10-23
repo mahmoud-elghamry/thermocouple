@@ -14,7 +14,7 @@
   order, stack high-water); verified by Claude on a clean build 2026-10-23: core 125509/0, acceptance 14270/14270,
   integration 2762469 + F4 1378251, UI 702/586, Modbus 1527729, AVR worst 19.74/20 ms, measured scans
   854/891/1120 ms at 5/10/20 ms cadence (limit 1200), stack 562/1536 B, flash 73430 B, RAM 13783/14336 B.
-  **Uncommitted** (owner asleep; commits wait for him). `build.ps1` takes ~12 min (AVR profiler).
+  Committed with F6-F8 in `c00923d`; rebuild before programming (`program.ps1` refuses an image whose commit is not HEAD). `build.ps1` takes ~12 min (AVR profiler).
 * **Scope 2026-10-23 (`0043` 9): 24-ch only.** **F6** removed 40-ch/PT100/decoder code (RAM 12247 -> 9786 B static,
   11322/14336 B with stack), added a cppcheck 2.22 gate (0 findings), `family/program.ps1` (USBasp, fuses F7/C1/FC
   written then read back, flash verify, `-DryRun`; default image the CRC-patched `build/thermo24_f1.hex`), the
