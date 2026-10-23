@@ -107,7 +107,9 @@ Names only: the same procedure without the trip; the contact is not opened.
 the working copy, and the edit cannot be committed until they are entered again. Selecting OFF writes the
 canonical OFF encoding (2.2) with no re-entry. After the commit, results of
 the changed channels are discarded and ACK needs a complete validated scan under the new settings sequence
-(`04` 5 rule 3). A type change (any, incl. K -> OFF -> K) increments the channel's type epoch, so the old baseline no longer matches
+(`04` 5 rule 3). A committed type change (any, incl. K -> OFF -> K across commits) increments the channel's type epoch **once per
+commit**: the epoch is set at commit time from the active record (+1 when the committed type differs from the active
+type, else unchanged), never per edit inside one session; so the old baseline no longer matches
 its tag (6) and must be re-learned in A07 - across resets too, since both values are stored. When the epoch wraps
 (63 -> 0) the same commit also writes that channel's baseline as 'not learned' (calibration record, A/B), so a
 baseline 64 type changes old can never match again.
