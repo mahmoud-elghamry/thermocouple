@@ -5,6 +5,85 @@ static void set_mode(prot_state_t *s, prot_mode_t mode)
     s->mode=mode; s->mode_inv=(uint8_t)~(uint8_t)mode;
     s->permit=(uint8_t)(mode==RUN); s->permit_inv=(uint8_t)~s->permit;
 }
+static void newer_evidence_keeps_run_open(rig_t *r, outputs_t *outputs, const char *input)
+{
+    output_decision_t decision;
+    EQ(P04 "5 rule5 / 6.1 newer evidence",input,TRIPPED,r->state.mode);
+    NO(P04 "6.1 newer evidence",input,r->out.run_permission);
+    NO(P04 "6.1 newer evidence",input,r->out.window_refresh);
+    EQ(P04 "6.1 newer evidence",input,0,r->out.window_remaining_ms);
+    decision=outputs_step(outputs,&r->out,r->in.now_ms,true,true);
+    NO(P04 "6.1 newer evidence PWM",input,decision.pwm_enable);
+}
+static void test_newer_evidence(void)
+{
+    unsigned fault;
+    for(fault=0;fault<2;++fault) {
+        rig_t r; result_t newer; outputs_t outputs; output_decision_t decision;
+        char input[140]; const char *cause=fault?"OPEN":"HOT";
+        rig_running(&r); memset(&outputs,0,sizeof(outputs));
+        (void)snprintf(input,sizeof(input),"C3 %s: completed N cool, RUN granted",cause);
+        YES(P04 "6.1 newer evidence setup",input,r.out.run_permission);
+        decision=outputs_step(&outputs,&r.out,r.in.now_ms,false,false);
+        YES(P04 "6.1 newer evidence setup PWM",input,decision.pwm_enable);
+
+        /* N stays immutable and cool. Only the separate N+1 slot is newer:
+           04 3.3 and 5 rule5 cannot clear a cause using superseded cool data. */
+        newer=r.scan.meas[0]; newer.scan_no=r.scan.scan_no+1u;
+        newer.temp_dC=fault?600:1001;
+        newer.flags=fault?(MEAS_VALID|MEAS_OPEN):MEAS_VALID;
+        r.in.now_ms=200;
+        (void)prot_on_result(&r.state,0,&newer,&r.cfg,newer.scan_no,0);
+        (void)snprintf(input,sizeof(input),"C3 %s: immediate N+1 slot before completion",cause);
+        EQ(P04 "1 / 3.2 newer result trips",input,TRIPPED,r.state.mode);
+        rig_step(&r);
+        newer_evidence_keeps_run_open(&r,&outputs,input);
+
+        r.in.now_ms=250; rig_ack(&r);
+        (void)snprintf(input,sizeof(input),"C3 %s: ACK before N+1 complete, N still cool",cause);
+        EQ(P04 "3.3 / 5 rule5 newer evidence veto",input,ACK_R4_CHANNEL,r.out.ack_reason);
+        newer_evidence_keeps_run_open(&r,&outputs,input);
+
+        /* Publish N+1 with the same adverse result. A channel fault does not
+           invalidate the board scan (03 10.1), but it still vetoes RUN. */
+        r.scan.meas[0]=newer; rig_scan(&r,400);
+        (void)snprintf(input,sizeof(input),"C3 %s: validated N+1 contains adverse slot",cause);
+        newer_evidence_keeps_run_open(&r,&outputs,input);
+        r.in.now_ms=450; rig_ack(&r);
+        (void)snprintf(input,sizeof(input),"C3 %s: ACK after adverse N+1 completion",cause);
+        EQ(P04 "3.3 / 5 rule5 adverse completed scan",input,ACK_R4_CHANNEL,r.out.ack_reason);
+        newer_evidence_keeps_run_open(&r,&outputs,input);
+
+        /* Recovery is valid and below trip(1000)-band(100), including OPEN
+           cleared. Wait for its validated completion before requesting ACK. */
+        newer.scan_no=r.scan.scan_no+1u;
+        newer.temp_dC=899; newer.flags=MEAS_VALID; r.in.now_ms=500;
+        (void)prot_on_result(&r.state,0,&newer,&r.cfg,newer.scan_no,0);
+        rig_step(&r);
+        (void)snprintf(input,sizeof(input),"C3 %s: newer cool slot alone cannot restart",cause);
+        newer_evidence_keeps_run_open(&r,&outputs,input);
+        r.scan.meas[0]=newer; rig_scan(&r,600);
+        (void)snprintf(input,sizeof(input),"C3 %s: validated cool N+2 still needs ACK",cause);
+        newer_evidence_keeps_run_open(&r,&outputs,input);
+
+        r.in.now_ms=650; rig_ack(&r);
+        (void)snprintf(input,sizeof(input),"C3 %s: ACK after validated cool N+2",cause);
+        EQ(P04 "3.3 / 5 rule5 cool recovery",input,ACK_NONE,r.out.ack_reason);
+        EQ(P04 "5 accepted ACK",input,RUN,r.state.mode);
+        NO(P04 "6.1 ACK ordering after cool recovery",input,r.out.window_refresh);
+        EQ(P04 "6.1 ACK ordering after cool recovery",input,0,r.out.window_remaining_ms);
+        decision=outputs_step(&outputs,&r.out,r.in.now_ms,true,true);
+        NO(P04 "6.1 ACK ordering after cool recovery",input,decision.pwm_enable);
+
+        rig_scan(&r,700);
+        (void)snprintf(input,sizeof(input),"C3 %s: next validated cool N+3 after ACK",cause);
+        YES(P04 "6.1 cool recovery",input,r.out.run_permission);
+        YES(P04 "6.1 cool recovery",input,r.out.window_refresh);
+        EQ(P04 "6.1 cool recovery",input,1200,r.out.window_remaining_ms);
+        decision=outputs_step(&outputs,&r.out,r.in.now_ms,false,true);
+        YES(P04 "6.1 cool recovery PWM",input,decision.pwm_enable);
+    }
+}
 void test_protection(void)
 {
     rig_t r; unsigned m,k; char input[100];
@@ -137,4 +216,5 @@ void test_protection(void)
     YES(P04 "7.2","ACK one LSB above alarm reset band",r.out.alarm_active);
     r.scan.meas[0].temp_dC=700; rig_ack(&r);
     NO(P04 "7.2","ACK exactly alarm reset band",r.out.alarm_active);
+    test_newer_evidence();
 }

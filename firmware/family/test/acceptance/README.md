@@ -18,6 +18,40 @@ links exactly build_core.ps1's eleven production sources. The hardware output se
 is a no-op fake; no production source or existing test is modified. All test loops
 are bounded, arrays have fixed bounds, and tests allocate no dynamic memory.
 
+## Newer evidence vetoes ACK (2026-10-23, Lane C3)
+
+`test_accept_protection.c` adds two interleavings, one for a TRIP-mode channel
+over its setpoint and one for OPEN. Completed scan N stays immutable and cool
+while a separate N+1 result goes through the public immediate-result API.
+04 3.3 and 5 rule5 require R4 for a fresh ACK before N+1 completes; 04 6.1
+requires RUN permission, the window and PWM to stay off. Publishing validated
+N+1 with the adverse result must not open the window, and ACK remains refused.
+For each cause, a later valid result below trip minus band is published in
+validated N+2: the trip stays latched until fresh ACK, which is accepted with
+the window closed. Only the next validated cool scan N+3 starts PWM (04 6.1).
+Each assertion names its spec clause; no existing assertion was changed.
+
+The command above was run **once for C3**: exit1, **14,270 checks / 14,264
+passed / 6 failed**. The 88 new checks have82 passes and6 failures; all14,182
+pre-existing checks passed. MSVC /W4 /WX compilation and strict AVR production
+compilation passed, with no AddressSanitizer diagnostic. Every failure occurs
+at the fresh ACK before N+1 completes, while the completed N snapshot is cool:
+
+| Cause | Clause | Field | Expected | Actual |
+|---|---|---|---|---|
+| HOT | 04 3.3 / 5 rule5 | ack_reason | ACK_R4_CHANNEL=4 | ACK_NONE=0 |
+| HOT | 04 5 rule5 / 6.1 | mode | TRIPPED=3 | RUN=2 |
+| HOT | 04 6.1 | run_permission | 0 | 1 |
+| OPEN | 04 3.3 / 5 rule5 | ack_reason | ACK_R4_CHANNEL=4 | ACK_NONE=0 |
+| OPEN | 04 5 rule5 / 6.1 | mode | TRIPPED=3 | RUN=2 |
+| OPEN | 04 6.1 | run_permission | 0 | 1 |
+
+The window and PWM remain off in both cases despite the erroneous ACK/state/
+permission. Adverse N+1 completion and the validated-cool recovery checks pass.
+`output/test-results.txt` contains the full run. No production source or other
+test folder was opened, no implementation was changed, and C3 was not rerun.
+`python docs/check_docs.py`: exit0, zero findings.
+
 ## Timing revision and observed result (2026-10-23, Lane C2)
 
 Expectations follow `git diff 660d0cb -- firmware/spec` and the current clauses:
@@ -97,7 +131,7 @@ the first write and after final verification. Real EEPROM delays are not modeled
 Timing injects the spec's K100 C EMF (4.096 mV, CJ0 C) immediately after the prior
 channel slot, schedules the next result after690 or1050 ms (03 3.1/10.2), then runs real tc_math,
 channel/protection and output decisions at1 ms simulated steps. Expected core PWM-off is at
-690/1050 ms (the current worst-case run fails as recorded above). Adding the two5 ms processing allowances,30 ms pump decay and3 ms relay
+690/1050 ms (C2 failed; C3 passed, as recorded above). Adding the two5 ms processing allowances,30 ms pump decay and3 ms relay
 release gives **733 ms normal, 1093 ms worst**, below GOAL's2000 ms requirement (04 6.3).
 The scanner, electrical filter and mechanical contact are assumptions, not measured
 or linked here; this is a core end-to-end simulation conditional on those timings.
