@@ -9,15 +9,12 @@
   SIO_WR_N -> U405 ch C -> U411 74LVC1G125 -> R446 220R -> DOUT; R445 10k, R447 100k, C421, R439 10k;
   R443 removed. ESC kept: D501/D502 1N4148W pull UP and DOWN together (firmware: UP+DOWN = ESC).
   Otherwise the `0036` cost-down board: TMP126 x6, CA-IS3761HW x3, RS-485 fitted (`0036` D9).
-* Release: **`production/24ch-reva4-20261019-011858-c7a3f0`** (in the worktree; DRC errors/unconnected/
-  parity 0/0/0, refilled; pincaps 0 over incl. U411; BOM 96 lines, all with LCSC codes, DNP none).
-  Schematic: ERC 0 errors 0 warnings, netlist 0 mismatches. Silk: one label placed though not free
-  ("ENGINE REF: 1 FEED 2 SENSE", J401 - not touched by A4; check on the render).
-  ASSEMBLY-SPEC.pdf generated (`assembly_spec.py <release>`); schematic title REV A4, RS-485 "fitted".
-  Also in the release (2026-10-16, fork sessions): PURCHASING-24ch-reva4.zip, FOR-REVIEWER-24ch-reva4.zip,
-  POWER-ON-TEST.pdf/.zip and WHICH-FILE-WHERE.txt - both now written by `assembly_spec.py` (which file reaches
-  which party; JLC website gets only gerber/BOM/CPL + the test zip + the remark text in that file).
-  JLC cart 2026-10-16 (PCBA x5, $650.09) holds the OLD 231449 gerbers: re-upload this release before paying.
+* Release: **`production/24ch-reva4-20261023-094411-02daef`** (in the worktree; DRC errors/unconnected/parity
+  0/0/0 refilled; **warnings now gated** (`drc-warnings.rpt`): only 6 junction vias + 18 Description-field
+  mismatches. 2026-10-23: an outside kicad-review report showed 10 dangling tracks/5 vias hidden by the
+  errors-only DRC -> `gen/dangling.py` trimmed 7 overshoots (0.3-4.7 mm), removed leftover bits; BOM and
+  CPL-JLC identical to 011858. Zips, ASSEMBLY-SPEC, POWER-ON-TEST regenerated. 011858 -> `_OLD_DO_NOT_ORDER`.
+  JLC cart 2026-10-16 (PCBA x5, $650.09) holds OLD gerbers: upload THIS release (gerber, BOM, CPL-JLC) before paying.
   Full DRC incl. warnings: no hole-to-hole; only the 15 dangling-stub warnings A3 already had. Astra review 3:
   3 overlapping vias (A4) removed; 7 vias in/at pads (from A3) moved clear; 1 left (CS_CJ6 via grazes U405
   pad 15 by 0.075 mm - same net, no spot within 2.2 mm, accepted). Hole rules now error (main's drill row, 10-19).
