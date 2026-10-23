@@ -81,6 +81,21 @@ def drc_counts(out, pcb):
     return counts
 
 
+def drc_warnings(out, pcb):
+    """Second DRC pass with warnings (2026-10-23: dangling tracks hid behind --severity-error).
+    A dangling track is a release blocker (clean it with dangling.py); other warnings are listed."""
+    rpt = os.path.join(out, "drc-warnings.rpt")
+    run("pcb", "drc", "--schematic-parity", "--severity-all", "-o", rpt, pcb, out=rpt, ok=(0, 5))
+    kinds = defaultdict(int)
+    for k in re.findall(r"^\[([a-z_]+)\]", open(rpt, encoding="utf-8").read(), re.M):
+        kinds[k] += 1
+    summary = ", ".join(f"{k} {n}" for k, n in sorted(kinds.items())) or "none"
+    print("DRC warnings:", summary)
+    if kinds.get("track_dangling"):
+        raise SystemExit(f"{kinds['track_dangling']} dangling tracks - run gen/dangling.py; no fabrication files written")
+    return summary
+
+
 def bom_cpl(out, pcb, sch):
     xml = os.path.join(out, "netlist.xml")
     run("sch", "export", "netlist", "--format", "kicadxml", "-o", xml, sch, out=xml)
@@ -200,7 +215,7 @@ def git(*args):
     return r.stdout.strip() if r.returncode == 0 else "unknown"
 
 
-def write_manifest(out, snap, src_sha, counts, bom):
+def write_manifest(out, snap, src_sha, counts, bom, warnings):
     kv = subprocess.run([CLI, "version"], capture_output=True, text=True).stdout.strip() or "unknown"
     dirty = git("status", "--porcelain")
     lines = [f"MANIFEST {os.path.basename(out)}", f"created: {datetime.datetime.now():%Y-%m-%d %H:%M:%S}",
@@ -211,6 +226,7 @@ def write_manifest(out, snap, src_sha, counts, bom):
              f"board after DRC refill (source-snapshot/thermo24.kicad_pcb) sha256: "
              f"{guard.sha256(os.path.join(snap, 'thermo24.kicad_pcb'))}",
              f"DRC (errors, unconnected, parity; --severity-error, refilled zones): {counts}",
+             f"DRC warnings (drc-warnings.rpt; dangling tracks are a blocker): {warnings}",
              f"BOM lines: {bom[0]}; lines without LCSC code: {len(bom[1])}", "schematic set sha256:"]
     for f in sorted(os.listdir(snap)):
         if f.endswith(".kicad_sch"):
@@ -233,6 +249,7 @@ def release(out, name, src_sha):
     counts = drc_counts(out, pcb)
     if counts != (0, 0, 0):
         raise SystemExit(f"DRC not clean {counts} - no fabrication files written")
+    warnings = drc_warnings(out, pcb)
     kpy = os.environ.get("KICAD_PYTHON", r"C:\Program Files\KiCad\10.0\bin\python.exe")
     r = subprocess.run([kpy, os.path.join(HERE, "pincaps.py"), pcb], capture_output=True, text=True)
     with open(os.path.join(out, "pincaps.txt"), "w", encoding="utf-8") as f:
@@ -257,7 +274,7 @@ def release(out, name, src_sha):
         raise SystemExit("hardware/24ch/accessories.csv missing (I-116)")
     supplier_accessories(acc, os.path.join(out, "ACCESSORIES.csv"))
     write_order_notes(out, pcb, name)
-    write_manifest(out, snap, src_sha, counts, bom)
+    write_manifest(out, snap, src_sha, counts, bom, warnings)
 
 
 def main():
