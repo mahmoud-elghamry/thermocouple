@@ -97,7 +97,7 @@ for($n=0;$n -lt $names.Length;$n++) {
     }
 }
 $commands=$commands.Replace('IO_BREAKS',"5-$($breakNo-1)")
-$commands+="`n$ioCommands`nset `$io_depth=0`ndisable 5-$($breakNo-1)`ncontinue`nprintf `"PROFILE_ERRORS %u MIXED %u\n`",profile_errors,profile_mixed`nquit`n"
+$commands+="`n$ioCommands`nset `$io_depth=0`ndisable 5-$($breakNo-1)`ncontinue`nprintf `"PROFILE_ERRORS %u MIXED %u REARM %u\n`",profile_errors,profile_mixed,profile_rearm`nquit`n"
 [IO.File]::WriteAllText("$out/profile.gdb",$commands)
 python "$PSScriptRoot/run_gdb.py" $Gdb "$out/profile.gdb" "$out/profile.elf" "$out/cycles.log"
 if($LASTEXITCODE) { throw 'AVR simulator failed; inspect cycles.log' }

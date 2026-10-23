@@ -53,6 +53,41 @@ static void temperature(temp_dC_t t) {
     fake_ad_code(0,0,(uint32_t)code);
     fake_ad_code(0,14,(uint32_t)(code+343597));
 }
+static void newest_trip_ack(void) {
+    unsigned fault,i; uint32_t completed,number; fault_code_t cause;
+    for(fault=0;fault<2;fault++) {
+        running();
+        /* Start at CH1's next slot, with a cool validated snapshot still cached.
+         * C01 comes from the real scheduled burnout conversion on scan 8. */
+        for(i=0;i<7000;i++) {
+            if(scan_current()->scan_no!=scan_last()->scan_no &&
+               app_protection()->latest_scan[0]!=scan_current()->scan_no &&
+               (!fault || scan_current()->scan_no%8u==0)) break;
+            loop(1);
+        }
+        CHECK(i<7000 && timer_run_active()); completed=scan_last()->scan_no;
+        if(fault) fake_ad_code(0,14,0xFFFFFF); else temperature(1437);
+        for(i=0;i<1000 && f0_mode()==RUN;i++) loop(1);
+        CHECK(i<1000 && f0_mode()==TRIPPED && !timer_run_active());
+        cause=fault?FC_C01_OPEN:FC_C10_OVER_TRIP;
+        CHECK(app_protection()->first.code==cause);
+        if(!fault) CHECK(app_protection()->first.value_dC>=1436 && app_protection()->first.value_dC<=1437);
+        CHECK(scan_last()->scan_no==completed); number=scan_current()->scan_no;
+        /* An 8 ms loop is inside the 20 ms budget and leaves time for a fresh
+         * physical-key ACK during the final mutable-register verification. */
+        for(i=0;i<3;i++) { fake_advance(8); loop(1); }
+        fake_pin(board()->keys[3],false);
+        for(i=0;i<8;i++) { fake_advance(8); loop(1); CHECK(!timer_run_active()); }
+        CHECK(app_ack_reason()==ACK_R4_CHANNEL && f0_mode()==TRIPPED);
+        CHECK(scan_last()->scan_no==completed);
+        fake_pin(board()->keys[3],true);
+        for(i=0;i<1000 && scan_last()->scan_no!=number;i++) { loop(1); CHECK(!timer_run_active()); }
+        CHECK(i<1000 && scan_last()->scan_validated);
+        CHECK(f0_mode()==TRIPPED && !app_output()->window_refresh && !timer_run_active());
+        CHECK(app_protection()->first.code==cause);
+    }
+    printf("F1f newest hot/C01 result: key ACK refused before completion; PWM stays off\n");
+}
 static void safety(void) {
     unsigned phase; uint32_t worst=0,start,elapsed;
     boot(false); fake_pin(board()->keys[3],false);
@@ -344,7 +379,7 @@ void test_main(void) {
     model_enable();
     test_review();
     island_burst(); overflow_ack(); first_out_last_slot(); service_lost_report();
-    safety(); injected(); lifecycle(); configurations(); service_owner(); commits();
+    newest_trip_ack(); safety(); injected(); lifecycle(); configurations(); service_owner(); commits();
     printf("host modeled loop worst: %lu us (I/O timing; AVR CPU WCET requires bench)\n",(unsigned long)worst_us);
     printf("integration: %u checks PASS; S01-S06, S09-S12, S14, commit power cuts\n",checks);
 }

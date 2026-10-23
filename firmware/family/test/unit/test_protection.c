@@ -82,10 +82,44 @@ static void window_sequences(void)
     h.in.commit_done=false; h.scan.settings_seq=0; h_step(&h,4,true); CHECK(h.out.window_refresh);
     h.scan.settings_seq=UINT32_MAX; h_step(&h,5,true); CHECK(!h.out.window_refresh);
 }
+static void newest_trip_evidence(void)
+{
+    harness_t h; result_t bad,cool; unsigned fault,cached;
+    for(fault=0;fault<2;fault++) for(cached=0;cached<2;cached++) {
+        h_run(&h); h.in.scan_unchanged=cached!=0;
+        bad=sample(1437,2); if(fault) { bad.temp_dC=100; bad.flags=MEAS_OPEN; }
+        CHECK(prot_on_result(&h.state,0,&bad,&h.cfg,2,0));
+        CHECK(h.state.mode==TRIPPED && h.scan.scan_no==1);
+        h_ack(&h,100);
+        CHECK(h.out.ack_reason==ACK_R4_CHANNEL && h.out.refusal_channel==1);
+        CHECK(h.state.mode==TRIPPED && !h.out.run_permission);
+        CHECK(h.state.first.code==(fault?FC_C01_OPEN:FC_C10_OVER_TRIP));
+        h.scan.scan_no=2; h.scan.meas[0]=bad; h.in.results_evaluated=true;
+        h.in.scan_unchanged=false; h_step(&h,200,true);
+        CHECK(h.state.mode==TRIPPED && !h.out.window_refresh && !h.out.window_remaining_ms);
+        /* Genuine newest recovery permits ACK, but only a new cool completion
+         * may start PWM. Neither the hot completion nor its cache may do so. */
+        cool=sample(100,3); prot_on_result(&h.state,0,&cool,&h.cfg,3,0);
+        h.in.scan_unchanged=true; h_ack(&h,250); CHECK(h.state.mode==RUN);
+        CHECK(!h.out.window_remaining_ms);
+        h.in.scan_unchanged=false; h_step(&h,300,true);
+        CHECK(h.state.mode==TRIPPED && !h.out.window_refresh && !h.out.window_remaining_ms);
+        h.scan.scan_no=3; h.scan.meas[0]=cool; h_step(&h,350,true);
+        h_ack(&h,400); CHECK(h.state.mode==RUN && !h.out.window_remaining_ms);
+        h_step(&h,450,true); CHECK(h.out.window_refresh && h.out.window_remaining_ms);
+        /* A failed startup ACK records the newer cause and value, rather than
+         * fabricating first-out metadata from the older cool completion. */
+        h_init(&h); h_step(&h,0,true); h.in.scan_unchanged=cached!=0;
+        prot_on_result(&h.state,0,&bad,&h.cfg,2,0); CHECK(!h.state.first.valid);
+        h_ack(&h,100); CHECK(h.out.ack_reason==ACK_R4_CHANNEL);
+        CHECK(h.state.first.valid && h.state.first.code==(fault?FC_C01_OPEN:FC_C10_OVER_TRIP));
+        CHECK(h.state.first.value_dC==bad.temp_dC && h.state.first.threshold_dC==1000);
+    }
+}
 void test_protection(void)
 {
     harness_t h; result_t r; unsigned mode;
-    ack_rules(); off_faults(); window_sequences(); h_init(&h);
+    ack_rules(); off_faults(); window_sequences(); newest_trip_evidence(); h_init(&h);
     prot_init(&h.state,false,false,false); CHECK(h.state.mode==CONFIG_LOCK);
     h.in.settings_valid=false; h_ack(&h,1); CHECK(h.state.mode==CONFIG_LOCK);
     h.in.commit_begin=true; h.in.protection_change=true; h_step(&h,2,false); CHECK(h.state.mode==CONFIG_LOCK);

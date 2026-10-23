@@ -23,6 +23,7 @@ typedef struct {
     uint8_t alarm_latch[MAX_CHANNELS];
     uint8_t trip_seen[MAX_CHANNELS];
     uint32_t latest_scan[MAX_CHANNELS];
+    temp_dC_t latest_temp[MAX_CHANNELS]; /* first-out on a refused startup ACK */
     uint8_t latest_seen[(MAX_CHANNELS+7u)/8u];
     uint8_t alarm_clear[(MAX_CHANNELS+7u)/8u],trip_clear[(MAX_CHANNELS+7u)/8u];
     uint8_t completed_clear[(MAX_CHANNELS+7u)/8u];

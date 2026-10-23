@@ -4,6 +4,7 @@
 #include "app/ee_owner.h"
 #include "app/service.h"
 #include "services/scan.h"
+#include "services/tc_math.h"
 #include "drivers/keys.h"
 #include "drivers/lcd.h"
 #include "mcal/timer.h"
@@ -11,7 +12,7 @@
 #include "fake_hw.h"
 #include <string.h>
 volatile uint16_t profile_pass;
-volatile uint8_t profile_phase,profile_errors,profile_mixed;
+volatile uint8_t profile_phase,profile_errors,profile_mixed,profile_rearm;
 volatile uint32_t profile_delay;
 uint8_t profile_eeprom_read(uint16_t a) {
     if(a>=0x40 && a<0x640) return fake_eeprom[(a-0x40)%768];
@@ -36,7 +37,7 @@ static void passes(uint16_t n) {
             ((profile_phase==4 || profile_phase==5 || profile_phase==8) &&
              (profile_pass<120 || current!=previous || ee_owner_publish_pending())) ||
             (profile_phase==0 && profile_pass>=295 && profile_pass<850) || profile_phase==11 || (profile_phase==1 && profile_pass==58) ||
-            (profile_phase==6 && profile_pass==652);
+            (profile_phase==6 && profile_pass==652) || profile_phase==12 || profile_phase==13;
         fake_spi_bytes=fake_soft_bytes=profile_delay=0;
         if(measure) profile_begin();
         f0_task();
@@ -88,6 +89,48 @@ static void mixed(void) {
     if(preparing && ee_owner_busy() && ee_owner_phase()==STORE_PREPARE) profile_mixed|=8;
     if(profile_mixed!=15) ++profile_errors;
 }
+static void newest_trip_ack(bool fault) {
+    uint16_t wait; uint8_t i,shift=fault?3:0; uint32_t completed,number;
+    bool off=true; fault_code_t cause=fault?FC_C01_OPEN:FC_C10_OVER_TRIP;
+    fixture(); f0_init(); profile_phase=10; passes(3000);
+    fake_pin(board()->keys[3],false); passes(70);
+    fake_pin(board()->keys[3],true); passes(750);
+    for(wait=0;wait<7000;wait++) {
+        if(scan_current()->scan_no!=scan_last()->scan_no &&
+           app_protection()->latest_scan[0]!=scan_current()->scan_no &&
+           (!fault || scan_current()->scan_no%8u==0)) break;
+        passes(1);
+    }
+    if(wait==7000 || !timer_run_active()) { ++profile_errors; return; }
+    completed=scan_last()->scan_no;
+    /* K-type 143.7 C with 25 C CJ, through the fake ADC registers. */
+    if(fault) fake_ad_code(0,14,0xFFFFFF);
+    else {
+        emf_nV_t hot,cold; uint32_t code;
+        (void)tc_dC_to_emf(CH_TYPE_K,1437,&hot); (void)tc_dC_to_emf(CH_TYPE_K,250,&cold);
+        code=(uint32_t)(0x800000LL+(int64_t)(hot-cold)*32*8388608/2500000000LL);
+        fake_ad_code(0,0,code); fake_ad_code(0,14,code+343597);
+    }
+    for(wait=0;wait<1000 && f0_mode()==RUN;wait++) passes(1);
+    if(wait==1000 || f0_mode()!=TRIPPED || timer_run_active() || scan_last()->scan_no!=completed) {
+        ++profile_errors; return;
+    }
+    number=scan_current()->scan_no; profile_phase=fault?13:12;
+    for(i=0;i<3;i++) { key_time(8); passes(1); }
+    fake_pin(board()->keys[3],false);
+    for(i=0;i<8;i++) { key_time(8); passes(1); if(timer_run_active()) off=false; }
+    if(app_ack_reason()==ACK_R4_CHANNEL && f0_mode()==TRIPPED &&
+       scan_last()->scan_no==completed) profile_rearm|=(uint8_t)(1u<<shift);
+    fake_pin(board()->keys[3],true);
+    for(wait=0;wait<1000 && scan_last()->scan_no!=number;wait++) {
+        passes(1); if(timer_run_active()) off=false;
+    }
+    if(wait<1000 && scan_last()->scan_validated && f0_mode()==TRIPPED && off &&
+       !app_output()->window_refresh) profile_rearm|=(uint8_t)(2u<<shift);
+    if(app_protection()->first.code==cause && (fault ||
+       (app_protection()->first.value_dC>=1436 && app_protection()->first.value_dC<=1437)))
+        profile_rearm|=(uint8_t)(4u<<shift);
+}
 int main(void) {
     uint8_t ch; uint16_t wait;
     fixture();
@@ -116,5 +159,7 @@ int main(void) {
     (void)app_commit_settings(&cfg); profile_phase=8; passes(1800);
     mixed();
     { char frame[80]; memset(frame,'X',sizeof frame); lcd_frame(frame); profile_phase=11; passes(96); }
+    newest_trip_ack(false); newest_trip_ack(true);
+    if(profile_rearm!=63) ++profile_errors;
     profile_done();
 }

@@ -24,7 +24,25 @@ static inline void h_init(harness_t *h)
 static inline void h_step(harness_t *h, uint32_t now, bool complete)
 {
     h->in.now_ms=now; h->in.uptime_s=now/1000; h->in.scan_complete=complete;
-    if(complete) h->scan.completed_ms=now;
+    if(complete) {
+        /* Legacy scenarios edit a whole snapshot to represent a new completion.
+         * After an immediate N+1 result, publish that edited snapshot as N+2,
+         * rather than falsely claiming that scan N recovered the channel.
+         * Explicit results_evaluated cases preserve the supplied generations. */
+        if(!h->in.results_evaluated) {
+            uint8_t ch; uint32_t newest=h->scan.scan_no; bool coherent=true;
+            for(ch=0;ch<h->cfg.channel_count;ch++)
+                if((h->state.latest_seen[ch/8u]&(1u<<(ch%8u))) &&
+                   (int32_t)(h->state.latest_scan[ch]-newest)>0) newest=h->state.latest_scan[ch];
+            for(ch=0;ch<MAX_CHANNELS;ch++)
+                if(h->scan.meas[ch].scan_no!=h->scan.scan_no) coherent=false;
+            if(coherent && newest!=h->scan.scan_no) {
+                h->scan.scan_no=newest+1u;
+                for(ch=0;ch<MAX_CHANNELS;ch++) h->scan.meas[ch].scan_no=h->scan.scan_no;
+            }
+        }
+        h->scan.completed_ms=now;
+    }
     prot_step(&h->in,&h->state,&h->out);
     h->in.scan_complete=false;
 }

@@ -77,6 +77,7 @@ bool prot_on_result(prot_state_t *s, uint8_t ch, const result_t *r, const settin
     if((s->latest_seen[ch/8u]&(1u<<(ch%8u))) && (int32_t)(scan_no-s->latest_scan[ch])<0) return false;
     cond=chan_cond(r,&cfg->ch[ch],scan_no); act=chan_action(cond,cfg->ch[ch].mode);
     s->latest_scan[ch]=scan_no; s->latest_seen[ch/8u]|=(uint8_t)(1u<<(ch%8u));
+    s->latest_temp[ch]=r?r->temp_dC:TEMP_DC_INVALID;
     { uint8_t bit=(uint8_t)(1u<<(ch%8u)),byte=(uint8_t)(ch/8u);
       s->alarm_clear[byte]&=(uint8_t)~bit;
       if(reset_clear(r,&cfg->ch[ch],cond,false)) s->alarm_clear[byte]|=bit;
@@ -189,19 +190,27 @@ static void ack(const prot_in_t *in,prot_state_t *s,prot_out_t *out,bool cfg_ok,
     }
     cached=in->scan_unchanged && s->clear_valid && s->clear_scan==in->scan->scan_no &&
         s->clear_settings==in->settings->sequence;
-    for(ch=0;ch<in->settings->channel_count;++ch)
-        if(!(cached?
-             (s->completed_clear[ch/8u]&(1u<<(ch%8u)))!=0:
-             chan_trip_clear(&in->scan->meas[ch],&in->settings->ch[ch],in->scan->scan_no)) ||
-           (in->settings->ch[ch].type!=CH_TYPE_OFF && in->settings->ch[ch].mode==CH_MODE_TRIP && (active_channels[ch/8u]&(1u<<(ch%8u))))) {
+    for(ch=0;ch<in->settings->channel_count;++ch) {
+        const chan_cfg_t *c=&in->settings->ch[ch]; const result_t *r=&in->scan->meas[ch];
+        uint8_t bit=(uint8_t)(1u<<(ch%8u)),byte=(uint8_t)(ch/8u);
+        /* Immediate slot evidence supersedes the immutable completion cache,
+         * including faults which have no separate active registry entry. */
+        bool latest=(in->scan_unchanged && (s->latest_seen[byte]&bit)) || newer_result(s,ch,in->scan);
+        bool clear=latest?(s->trip_clear[byte]&bit)!=0:cached?
+            (s->completed_clear[byte]&bit)!=0:chan_trip_clear(r,c,in->scan->scan_no);
+        if(!clear || (c->type!=CH_TYPE_OFF && c->mode==CH_MODE_TRIP && (active_channels[byte]&bit))) {
             out->ack_reason=ACK_R4_CHANNEL; out->refusal_channel=(uint8_t)(ch+1u);
-            cond_t cond=chan_cond(&in->scan->meas[ch],&in->settings->ch[ch],in->scan->scan_no);
             fault_code_t code=channel_fault(in->faults,ch,false);
-            if(code!=FC_NONE || chan_action(cond,in->settings->ch[ch].mode)==ACT_TRIP)
-                first(s,code!=FC_NONE?code:chan_cause(&in->scan->meas[ch],cond),
-                      (uint8_t)(ch+1u),0,in->scan->meas[ch].temp_dC,in->settings->ch[ch].trip_dC,in->uptime_s);
+            if(code==FC_NONE) {
+                cond_t cond=chan_cond(r,c,in->scan->scan_no);
+                if(latest) code=(fault_code_t)s->trip_seen[ch];
+                else if(chan_action(cond,c->mode)==ACT_TRIP) code=chan_cause(r,cond);
+            }
+            if(code!=FC_NONE)
+                first(s,code,(uint8_t)(ch+1u),0,latest?s->latest_temp[ch]:r->temp_dC,c->trip_dC,in->uptime_s);
             return;
         }
+    }
     if(!cfg_ok || in->writing) { out->ack_reason=ACK_R5_SETTINGS; return; }
     if(!in->readback_off_ok) { out->ack_reason=ACK_R6_RELAY; return; }
     mode_set(s,RUN); memset(&s->first,0,sizeof(s->first));
@@ -265,8 +274,18 @@ void prot_step(const prot_in_t *in, prot_state_t *s, prot_out_t *out)
     if(in->scan_complete && cfg_ok && in->scan!=NULL) {
         s->clear_valid=true; s->clear_scan=in->scan->scan_no; s->clear_settings=in->settings->sequence;
         memcpy(s->completed_clear,s->trip_clear,sizeof s->completed_clear);
-        for(ch=0;ch<in->settings->channel_count;ch++)
+        for(ch=0;ch<in->settings->channel_count;ch++) {
             if(!(s->latest_seen[ch/8u]&(1u<<(ch%8u))) || s->latest_scan[ch]!=in->scan->scan_no) s->clear_valid=false;
+            /* Already-evaluated results may have tripped before a later ACK.
+             * Completion still has to prove no trip action before PWM renewal;
+             * reset-band eligibility is not the same as a live trip condition. */
+            if(s->mode==RUN) {
+                const result_t *r=&in->scan->meas[ch]; const chan_cfg_t *c=&in->settings->ch[ch];
+                cond_t cond=chan_cond(r,c,in->scan->scan_no);
+                if(chan_action(cond,c->mode)==ACT_TRIP)
+                    trip(s,chan_cause(r,cond),(uint8_t)(ch+1u),0,r->temp_dC,c->trip_dC,in->uptime_s);
+            }
+        }
     }
     if(cfg_ok && in->faults!=NULL) channel_masks(in->faults,active_channels,latched_channels);
     else { memset(active_channels,0xFF,sizeof active_channels); memset(latched_channels,0xFF,sizeof latched_channels); }

@@ -21,7 +21,7 @@ assert soft<=512 and interrupt<=250, "MCAL cycle budget exceeded"
 assert len(calibration[33])==3 and calibration[34]
 prep=max(c for _,c in calibration[34]); begin=max(c for _,c in calibration[33])
 assert prep<=8000 and begin<=8000, "Unbounded commit preparation"
-assert "PROFILE_ERRORS 0 MIXED 15" in text, "Combined-load evidence missing/failed"
+assert "PROFILE_ERRORS 0 MIXED 15 REARM 63" in text, "Combined-load/newest-result evidence missing/failed"
 
 # Conservative actual MCAL costs, including call/return and branch margin.
 # Soft SPI uses all-256-TX calibration; delay allows twice the requested time.
@@ -56,7 +56,7 @@ for line in text.splitlines():
         estimate=((application+bound)*5+3)//4+2048
         rows.append((estimate,application,bound,*values[:2]))
 assert rows and "profile_done" in text, "Incomplete simulator run"
-assert {0,1,2,3,4,5,6,8,9,11}<={r[3] for r in rows}
+assert {0,1,2,3,4,5,6,8,9,11,12,13}<={r[3] for r in rows}
 worst=max(rows); mixed=max(r for r in rows if r[3]==9)
 (root/"passes.csv").write_text("cycles,production_cpu,mcal_bound,phase,pass\n"+
     "\n".join(",".join(map(str,r)) for r in rows)+"\n")
@@ -64,6 +64,7 @@ print(f"AVR loop: {len(rows)} measured passes; worst={worst[0]} cycles / {worst[
       f"(phase {worst[3]}, pass {worst[4]})")
 print(f"Components: production={worst[1]}, MCAL bound={worst[2]}, reserve=25% + 2048 cycles")
 print(f"Combined commit/CJ/slot/ACK: {mixed[0]} cycles; evidence flags=15; functional errors=0")
+print("Newest hot/C01 result: AVR key ACK refused; validated completion keeps PWM off; evidence flags=63")
 print(f"Soft SPI: {soft} cycles/byte; Timer2 ISR: {interrupt} cycles (2049 samples)")
 print(f"Commit begin max: {begin} cycles; preparation step max: {prep} cycles "
       f"({len(calibration[34])} samples); target image checks=0 errors")

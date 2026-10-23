@@ -2,14 +2,14 @@
 
 **Read second, after AGENTS.md; then the product's own STATE.md; then all of ISSUES.md (P0 first).
 Hard limit: 60 lines, and so is every product STATE.md.**
-**Last updated:** 2026-10-14 (two lines of work, `0037` D5).
+**Last updated:** 2026-10-23 (family firmware F1f verification).
 
 ## The products (`0037`: one board family on the 24-ch architecture, one firmware)
 
 | Product | Folder | State file | Headline |
 |---|---|---|---|
 | 24-ch board REV A3 | `hardware/24ch/` | `hardware/24ch/STATE.md` | cost-down variant `0036`; RS-485 fitted again (owner 2026-10-14), release `4b1601`; NORI quote pending |
-| Firmware | `firmware/` | `firmware/STATE.md` | 8-ch REV A2 firmware passes; **24-ch firmware not written (I-100)** |
+| Firmware | `firmware/` | `firmware/STATE.md` | 8-ch REV A2 reference; family F0/F1 implemented, F1f ACK fix; hardware validation pending (I-100) |
 | 8-ch board | `hardware/8ch/` | `hardware/8ch/STATE.md` | REV A2 (MAX31856) is reference; new 8-ch from the 24-ch design not started |
 | 36-ch board | `hardware/36ch/` (not created) | - | owner request 2026-10-14; 5 banks, needs its own review first (`0037` D1) |
 | Simulation | `simulation/` | `firmware/STATE.md` | done in branch `firmware`: a Proteus demo needs the firmware first |
