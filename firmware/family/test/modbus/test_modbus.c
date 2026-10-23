@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+/* Internal streaming-map entry point also defends against malformed indices. */
+uint16_t mb_register(const mb_snapshot_t *s,uint16_t address);
 
 static unsigned long checks;
 #define CHECK(x) do { ++checks; if(!(x)) { printf("FAIL line %u: %s\n",(unsigned)__LINE__,#x); exit(1); } } while(0)
@@ -57,7 +59,7 @@ static void fixture(uint8_t channels) {
     uint8_t ch;
     memset(&cfg,0,sizeof cfg); memset(&scan,0,sizeof scan); memset(&prot,0,sizeof prot);
     memset(&faults,0,sizeof faults); memset(&status,0,sizeof status);
-    cfg.board_type=channels==43?40:channels; cfg.channel_count=channels; cfg.address=17;
+    cfg.board_type=channels; cfg.channel_count=channels; cfg.address=17;
     cfg.sequence=9; scan.settings_seq=9; scan.scan_no=0x12345678UL; scan.scan_validated=true;
     scan.completed_ms=100; status.now_ms=321; status.uptime_s=0xABCDEF01UL;
     status.power_cycles=0x12345678UL; status.version=0x0203; status.patch=4; status.schema=1;
@@ -104,9 +106,9 @@ static uint16_t expected(uint16_t a) {
     }
 }
 static void maps(void) {
-    uint8_t boards[]={8,24,43},r[8],out[256],fn,b;
+    uint8_t boards[]={24},r[8],out[256],fn,b;
     uint16_t a,n,value; mb_snapshot_t s;
-    for(b=0;b<3;b++) { fixture(boards[b]); s=snapshot();
+    for(b=0;b<sizeof boards;b++) { fixture(boards[b]); s=snapshot();
         for(fn=3;fn<=4;fn++) for(a=0;a<729;a++) {
             bool mapped=a<64 || (a>=100 && a<100+10*boards[b]) || (a>=600 && a<600+3*boards[b]);
             request(r,fn,a,1); memset(out,0xA5,sizeof out); n=mb_build(&s,r,8,out,sizeof out);
@@ -202,7 +204,7 @@ static void flood(void) {
 }
 static void bitmaps(void) {
     uint8_t r[8],out[256],code,ch; mb_snapshot_t s;
-    fixture(43); s=snapshot(); memset(&faults,0,sizeof faults);
+    fixture(24); s=snapshot(); memset(&faults,0,sizeof faults);
     for(code=1;code<FAULT_CODES;code++) {
         faults.active[code][11]=128; request(r,3,(uint16_t)(20+code/16),1);
         CHECK(mb_build(&s,r,8,out,256)==7);
@@ -210,7 +212,7 @@ static void bitmaps(void) {
         faults.active[code][11]=0;
     }
     memset(status.trip_latched,0,sizeof status.trip_latched);
-    for(ch=1;ch<43;ch++) {
+    for(ch=1;ch<MAX_CHANNELS;ch++) {
         status.trip_latched[ch/8]|=(uint8_t)(1u<<(ch%8)); s.status=status;
         request(r,3,(uint16_t)(28+ch/16),1); CHECK(mb_build(&s,r,8,out,256)==7);
         CHECK(((((uint16_t)out[3]<<8)|out[4])&(1u<<(ch%16)))!=0);
@@ -268,4 +270,12 @@ static void runtime(void) {
     now+=2000; task(); settle(); CHECK(transmissions==0);
     head=tail=0; end=frame(now+2000,600,0); now=end+2000; task(); settle(); CHECK(transmissions==1);
 }
-int main(void) { maps(); frames(); bitmaps(); timing(); runtime(); flood(); printf("Modbus: %lu checks PASS\n",checks); return 0; }
+static void defensive_registers(void) {
+    mb_snapshot_t s; uint32_t address;
+    fixture(24); s=snapshot();
+    for(address=64;address<=UINT16_MAX;address++) {
+        if((address>=100 && address<340) || (address>=600 && address<672)) continue;
+        CHECK(mb_register(&s,(uint16_t)address)==0);
+    }
+}
+int main(void) { defensive_registers(); maps(); frames(); bitmaps(); timing(); runtime(); flood(); printf("Modbus: %lu checks PASS\n",checks); return 0; }

@@ -61,12 +61,11 @@ bool cal_bindings_complete(const calibration_t *c,const settings_t *s)
 {
     uint8_t i,banks;
     if(!c || !s || s->channel_count>MAX_CHANNELS) return false;
-    banks=s->board_type==40?6u:(uint8_t)(s->channel_count/8u);
+    banks=(uint8_t)(s->channel_count/8u);
     if(c->bank_count!=banks) return false;
     for(i=0;i<banks;++i) if(c->ref_ppm[i]==CAL_MISSING) return false;
     for(i=0;i<s->channel_count;++i) if(s->ch[i].type!=CH_TYPE_OFF) {
-        /* PT100 calibration/tag format is not specified; fail closed until F0-40. */
-        if(s->ch[i].type==CH_TYPE_PT100 || c->baseline_nV[i]==CAL_MISSING ||
+        if(c->baseline_nV[i]==CAL_MISSING ||
            c->tag[i]!=(uint8_t)((s->ch[i].type_epoch<<2)|(uint8_t)s->ch[i].type)) return false;
     }
     return true;
@@ -76,7 +75,7 @@ res_t cal_learn(calibration_t *c, const settings_t *s, const int32_t baseline_nV
     uint8_t i;
     if(cal_validate(c)!=RES_OK || set_validate(s)!=RES_OK || baseline_nV==NULL) return RES_ERR_RANGE;
     for(i=0;i<s->channel_count;++i) if(s->ch[i].type!=CH_TYPE_OFF &&
-        (s->ch[i].type==CH_TYPE_PT100 || baseline_nV[i]<1500000 || baseline_nV[i]>10000000)) return RES_ERR_RANGE;
+        (baseline_nV[i]<1500000 || baseline_nV[i]>10000000)) return RES_ERR_RANGE;
     for(i=0;i<s->channel_count;++i) if(s->ch[i].type!=CH_TYPE_OFF) {
         c->baseline_nV[i]=baseline_nV[i];
         c->tag[i]=(uint8_t)((s->ch[i].type_epoch<<2)|(uint8_t)s->ch[i].type);

@@ -4,6 +4,9 @@
 #include "mcal/timer.h"
 #include <string.h>
 static ui_state_t state;
+#ifdef FAMILY_TEST
+const ui_state_t *ui_test_state(void) { return &state; }
+#endif
 static char frame[80];
 static uint8_t row;
 static settings_t *candidate;
@@ -27,6 +30,7 @@ bool ui_key(key_t key) {
 void ui_ack_result(ack_reason_t reason) {
     state.ack_seen=reason;state.activity_ms=tick_ms();
     if(reason>=ACK_R1_RELEASE && reason<=ACK_R6_RELAY) {
+        state.refusal_channel=app_output()->refusal_channel;
         state.message=(ui_message_t)(UM_R1+reason-ACK_R1_RELEASE);state.message_ms=tick_ms();
     }
 }
@@ -116,7 +120,7 @@ static void handle(key_t key,const ui_snapshot_t *s) {
         if(key==KEY_SET) { state.channel=(uint8_t)(state.page*6);state.screen=UI_SELECT; }
         if(key==KEY_SET_LONG) {
             if(state.transaction) { state.message=UM_BUSY;break; }
-            state.blank=fault_active(s->faults,FC_G01_SETTINGS_INVALID);
+            state.blank=!s->settings_valid;
             pin_start(false);
             if(state.locked && s->now_ms-state.lock_ms<60000u) state.message=UM_LOCKOUT;
         } break;
@@ -172,6 +176,7 @@ void ui_task(uint16_t budget_us) {
     if(budget_us<1000) return;
     s.settings=app_settings();s.protection=app_protection();s.output=app_output();
     s.faults=app_faults();s.scan=scan_last();s.now_ms=tick_ms();
+    s.settings_valid=app_settings_valid();
     s.trip_latched=app_trip_bitmap();
     if(!s.settings || !s.protection || !s.output || !s.faults || !s.scan ||
        s.settings->board_type!=24 || s.settings->channel_count!=UI_CHANNELS) return;

@@ -1,4 +1,6 @@
 #include "app/app.h"
+#include "app/ui.h"
+#include "app/app_view.h"
 #include "app/ack_input.h"
 #include "app/outputs_hw.h"
 #include "app/service.h"
@@ -10,6 +12,7 @@
 #include "drivers/relays.h"
 #include "services/scan.h"
 #include "mcal/timer.h"
+#include "mcal/gpio.h"
 #include "fake_hw.h"
 #include "model.h"
 #include <stdio.h>
@@ -96,11 +99,68 @@ static void cj_budget(void) {
     setup(false); start=scan_last()->scan_no;
     for(i=0;i<1600;i++) {
         bytes=fake_soft_bytes; hardware=fake_spi_bytes; f0_task();
-        CHECK(fake_spi_bytes-hardware<=64); /* Poll all banks, process one completion. */
-        CHECK(fake_soft_bytes-bytes<=12); /* One frame, including one CRC retry. */
+        /* F5 / 03 section 10.2: bounded batching replaces the former
+         * one-frame/one-DATA scheduling contract; the AVR gate covers CPU. */
+        /* F7 explicitly batches post-P5 checks (03 sections 3.2/5) and CJ
+         * frames (03 section 6.3). Wire bounds follow those batch sizes;
+         * the measured AVR gate still enforces the unchanged 20-ms CPU cap. */
+        CHECK(fake_spi_bytes-hardware<=128); /* Three DATA + seven checks in three banks. */
+        CHECK(fake_soft_bytes-bytes<=120); /* Two five-frame sensors, one CRC retry each. */
         fake_advance(1);
     }
     CHECK(scan_last()->scan_no>=start+2 && scan_last()->scan_validated);
+}
+static void cadence(void) {
+    static const unsigned pace[]={5,10,20,20}; unsigned p,i,n; uint32_t last; uint16_t worst;
+    settings_t cfg; calibration_t cal; uint8_t bytes[SETTINGS_SLOT_SIZE];
+    for(p=0;p<4;p++) {
+        setup(false); cfg=*app_settings(); memset(&cal,0,sizeof cal); cal.bank_count=3;
+        for(i=0;i<MAX_CHANNELS;i++) cal.baseline_nV[i]=CAL_MISSING;
+        for(i=0;i<24;i++) { cfg.ch[i]=cfg.ch[0]; cal.baseline_nV[i]=3200000;cal.tag[i]=1; }
+        CHECK(set_pack(&cfg,bytes)==RES_OK); memcpy(fake_eeprom+0x40,bytes,sizeof bytes);
+        CHECK(cal_pack(&cal,bytes)==RES_OK); memcpy(fake_eeprom+0x640,bytes,CAL_SLOT_SIZE);
+        f0_init();loop(3000);
+        /* 03 section 10.2: round 1.15 * 42.331 ms up to 49 ms. */
+        for(i=0;i<3;i++) fake_ad_ready((uint8_t)i,49);
+        model_tc_cost(p==3?4000:0);
+        last=scan_last()->scan_no; worst=0; n=0;
+        for(i=0;i<10000 && n<10;i++) {
+            uint32_t at=timer_now_us(),used;
+            f0_task(); used=timer_now_us()-at;
+            CHECK(used<=pace[p]*1000u);
+            if(scan_last()->scan_no!=last) {
+                last=scan_last()->scan_no;
+                CHECK(scan_last()->scan_validated);
+                CHECK(scan_diagnostics()->duration_ms<APP_SCAN_DEADLINE_MS);
+                if(scan_diagnostics()->duration_ms>worst) worst=scan_diagnostics()->duration_ms;
+                ++n;
+            }
+            if(used<pace[p]*1000u) delay_us((uint16_t)(pace[p]*1000u-used));
+            CHECK(!model_watchdog_reset());
+        }
+        CHECK(n==10 && !fault_active(app_faults(),FC_G05_SCAN_DEADLINE));
+        printf("F5 scan at %u ms cadence%s: worst %u ms, %u/10 validated\n",pace[p],p==3?" + 4ms/TC CPU":"",worst,n);
+        model_tc_cost(0);
+    }
+}
+static void newest_alarm(void) {
+    unsigned i; const ui_state_t *u;
+    setup(false);
+    ((prot_state_t *)app_protection())->alarm_latch[0]=1;
+    /* C11 is an alarm even on TRIP channels; C10 follows the configured mode. */
+    app_view_cause(FC_C11_OVER_ALARM,1,0);
+    for(i=0;i<32;i++) app_view_step();
+    u=ui_test_state(); CHECK(u->alarm_count==1 && u->alarm_channel==1 && u->alarm_code==FC_C11_OVER_ALARM);
+    ((prot_state_t *)app_protection())->alarm_latch[1]=1;
+    ((settings_t *)app_settings())->ch[1]=app_settings()->ch[0];
+    ((settings_t *)app_settings())->ch[1].mode=CH_MODE_ALARM_ONLY;
+    app_view_cause(FC_C10_OVER_TRIP,2,0);
+    for(i=0;i<32;i++) app_view_step();
+    CHECK(u->alarm_count==2 && u->alarm_channel==2 && u->alarm_code==FC_C10_OVER_TRIP);
+    CHECK(!(app_trip_bitmap()[0]&2u));
+    app_view_cause(FC_C11_OVER_ALARM,1,0);
+    for(i=0;i<32;i++) app_view_step();
+    CHECK(u->alarm_count==2 && u->alarm_channel==1 && u->alarm_code==FC_C11_OVER_ALARM);
 }
 static void blank(void) {
     fake_reset(); f0_init(); loop(3000); CHECK(f0_mode()==CONFIG_LOCK && !timer_run_active());
@@ -192,6 +252,6 @@ static void protection_cache(void) {
     }
 }
 void test_review(void) {
-    timestamp(); lcd_budget(); ready_stamp(); protection_cache(); cj_budget(); expiry(); service_abort(); blank(); validation_budget(); event_cursor(); adc_verifier();
+    cadence(); newest_alarm(); timestamp(); lcd_budget(); ready_stamp(); protection_cache(); cj_budget(); expiry(); service_abort(); blank(); validation_budget(); event_cursor(); adc_verifier();
     printf("Astra review: %u checks PASS\n",checks);
 }

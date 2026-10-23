@@ -76,10 +76,12 @@
 volatile uint8_t profile_kind;
 volatile uint16_t profile_arg;
 static uint8_t depth;
+extern volatile uint8_t profile_measuring;
+void profile_interrupt(uint8_t pins);
 __attribute__((noinline)) void profile_io_begin(void) { __asm__ volatile("nop"); }
 __attribute__((noinline)) void profile_io_end(void) { __asm__ volatile("nop"); }
 static void enter(uint8_t kind,uint16_t arg) {
-    if(depth++==0) { profile_kind=kind; profile_arg=arg; profile_io_begin(); }
+    if(depth++==0) { if(profile_measuring) profile_interrupt(inputs[PORT_D]); profile_kind=kind; profile_arg=arg; profile_io_begin(); }
 }
 static void leave(void) { if(--depth==0) profile_io_end(); }
 #define WRAPPER __attribute__((noinline,noclone,optimize("no-optimize-sibling-calls")))

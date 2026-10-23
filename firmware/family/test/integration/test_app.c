@@ -14,7 +14,7 @@
 #include <string.h>
 static unsigned checks;
 static uint32_t worst_us;
-#define CHECK(x) do { ++checks; if(!(x)) { printf("integration FAIL %d: %s mode=%u t=%lu\n",__LINE__,#x,f0_mode(),(unsigned long)tick_ms()); exit(1); } } while(0)
+#define CHECK(x) do { ++checks; if(!(x)) { printf("integration FAIL %d: %s mode=%u ack=%u cause=%u scan=%lu/%lu t=%lu\n",__LINE__,#x,f0_mode(),app_ack_reason(),app_protection()->first.code,(unsigned long)scan_current()->scan_no,(unsigned long)scan_last()->scan_no,(unsigned long)tick_ms()); exit(1); } } while(0)
 static void loop(unsigned n) {
     unsigned i; for(i=0;i<n;i++) {
         uint32_t elapsed; model_loop_begin(); f0_task(); elapsed=model_loop_us();
@@ -66,21 +66,26 @@ static void newest_trip_ack(void) {
             loop(1);
         }
         CHECK(i<7000 && timer_run_active()); completed=scan_last()->scan_no;
-        if(fault) fake_ad_code(0,14,0xFFFFFF); else temperature(1437);
+        /* F7 completes verification in three bounded passes. Retain the original F1f
+         * publication interleaving explicitly, rather than depending on the
+         * removed seven-pass delay. All ACK/PWM assertions remain unchanged. */
+        if(fault) { scan_test_hold_publish(true); fake_ad_code(0,14,0xFFFFFF); }
+        else temperature(1437);
         for(i=0;i<1000 && f0_mode()==RUN;i++) loop(1);
         CHECK(i<1000 && f0_mode()==TRIPPED && !timer_run_active());
         cause=fault?FC_C01_OPEN:FC_C10_OVER_TRIP;
         CHECK(app_protection()->first.code==cause);
         if(!fault) CHECK(app_protection()->first.value_dC>=1436 && app_protection()->first.value_dC<=1437);
         CHECK(scan_last()->scan_no==completed); number=scan_current()->scan_no;
-        /* An 8 ms loop is inside the 20 ms budget and leaves time for a fresh
-         * physical-key ACK during the final mutable-register verification. */
-        for(i=0;i<3;i++) { fake_advance(8); loop(1); }
-        fake_pin(board()->keys[3],false);
-        for(i=0;i<8;i++) { fake_advance(8); loop(1); CHECK(!timer_run_active()); }
+        /* 03 section 10.2 / F5: batching shortens final verification. Use
+         * sustained 20-ms passes for a fresh physical ACK before publication. */
+        fake_advance(19); loop(1); /* released-key rearm after the trip */
+        fake_pin(board()->keys[3],false); fake_advance(19); loop(1);
+        for(i=0;i<3;i++) { fake_advance(19); loop(1); CHECK(!timer_run_active()); }
         CHECK(app_ack_reason()==ACK_R4_CHANNEL && f0_mode()==TRIPPED);
         CHECK(scan_last()->scan_no==completed);
         fake_pin(board()->keys[3],true);
+        scan_test_hold_publish(false);
         for(i=0;i<1000 && scan_last()->scan_no!=number;i++) { loop(1); CHECK(!timer_run_active()); }
         CHECK(i<1000 && scan_last()->scan_validated);
         CHECK(f0_mode()==TRIPPED && !app_output()->window_refresh && !timer_run_active());
@@ -376,8 +381,10 @@ static void service_lost_report(void) {
 }
 void test_review(void);
 void test_f4(void);
+void test_gap(void);
 void test_main(void) {
     model_enable();
+    test_gap();
     test_review();
     island_burst(); overflow_ack(); first_out_last_slot(); service_lost_report();
     newest_trip_ack(); safety(); injected(); lifecycle(); configurations(); service_owner(); commits();

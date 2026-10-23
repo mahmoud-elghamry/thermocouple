@@ -1,4 +1,5 @@
 #include "services/scan.h"
+#include "app/timing.h"
 #include "drivers/ad7124.h"
 #include "drivers/tmp126.h"
 #include "drivers/iso_spi.h"
@@ -102,7 +103,9 @@ void test_scan(void) {
     boundaries(); setup(); next_scan(); fake_fuses[1]=0xD1; next_scan();
     CHECK(!scan_last()->scan_validated && fault_active(&faults,FC_G15_FUSES));
     fake_fuses[1]=0xC1; next_scan(); CHECK(!scan_last()->scan_validated); /* requires reset/reprogram */
-    setup(); next_scan(); scan_task(); fake_advance(1001); next_scan();
+    setup(); next_scan(); scan_task(); /* 03 section 10.2: delay beyond the explicit 1200-ms deadline,
+     * independent of how many scheduler passes remain after the stall. */
+    fake_advance(APP_SCAN_DEADLINE_MS+1u); next_scan();
     CHECK(!scan_last()->scan_validated && fault_active(&faults,FC_G05_SCAN_DEADLINE));
     setup(); fake_ref_follow=false; next_scan();
     CHECK(!scan_last()->scan_validated && fault_active(&faults,FC_G09_ENGREF_TEST));

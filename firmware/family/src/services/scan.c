@@ -17,12 +17,16 @@ static scan_diag_t diag;
 static const settings_t *cfg;
 static const calibration_t *cal;
 static fault_registry_t *registry;
-static uint32_t start,progress,wait_start,pending,last_ref;
-static uint8_t initialized,slot,done,cj_index,end_index;
+static uint32_t start,progress,wait_start,pending,last_ref,completed_at;
+static uint8_t initialized,slot,done,cj_index,end_index,ref_phase;
+static bool cj_tail,have_completion,ref_pending;
 static bool prior[MAX_BANKS],good[MAX_BANKS],verify_done[MAX_BANKS],reinit,transport[MAX_BANKS];
-static int32_t cj_mC[10];
-static bool cj_valid[10];
+static int32_t cj_mC[2u*MAX_BANKS];
+static bool cj_valid[2u*MAX_BANKS];
 static uint16_t cm_bad[MAX_BANKS];
+#ifdef FAMILY_TEST
+static bool hold_publish;
+#endif
 static void raise(fault_code_t f,uint8_t u) { if(registry && f!=FC_NONE) (void)fault_raise(registry,f,u); }
 static void bank_fault(uint8_t b,fault_code_t f) {
     if(f==FC_NONE) f=FC_B05_ADC_STALLED;
@@ -72,31 +76,41 @@ fault_code_t scan_limit(uint8_t s,uint32_t code,uint32_t partner,int32_t ref,
     return FC_NONE; /* All diagnostic windows provisional: 03 section 4. */
 }
 void scan_restart(void) {
-    phase=INIT_ADC; initialized=0; cj_index=end_index=0; reinit=false; diag.initialized=false;
+    phase=INIT_ADC; initialized=0; cj_index=end_index=ref_phase=0; reinit=false; diag.initialized=false;
+    have_completion=false;
+    ref_pending=true;
     diag.ref_test_ok=false; wait_start=tick_ms(); ad_reset_state(); cj_reset();
     memset(prior,0,sizeof prior); gpio_write(board()->reftest,false);
 }
 void scan_init(const settings_t *s,const calibration_t *c,fault_registry_t *r) {
+#ifdef FAMILY_TEST
+    hold_publish=false;
+#endif
     cfg=s; cal=c; registry=r; memset(&published,0,sizeof published); memset(&work,0,sizeof work);
     memset(cm_bad,0,sizeof cm_bad);
     memset(&diag,0,sizeof diag); pending=0; progress=tick_ms(); last_ref=tick_ms(); scan_restart();
 }
 static void publish(void) {
     uint8_t b,c; bool all=true,all_transport=true,all_fault=true;
+    uint32_t now=tick_ms(),interval=now-(have_completion?completed_at:start);
+    bool ref_lost=!ref_phase && gpio_read(board()->refok);
     work.scan_validated=true;
     for(b=0;b<board()->banks;b++) {
         work.bank[b]=good[b]?BANK_VALIDATED:BANK_FAULT; all&=good[b]; all_transport&=transport[b]; all_fault&=!good[b];
         prior[b]=good[b];
     }
-    if(all_transport || (gpio_read(board()->refok) && all_fault)) { raise(FC_G14_ISLAND_LOST,0); reinit=true; }
-    if(gpio_read(board()->refok)) { raise(FC_G08_ENGREF_LOST,0); all=false; }
-    diag.duration_ms=(uint16_t)(tick_ms()-start);
-    if(tick_ms()-start>APP_SCAN_DEADLINE_MS) { raise(FC_G05_SCAN_DEADLINE,0); all=false; }
+    if(all_transport || (ref_lost && all_fault)) { raise(FC_G14_ISLAND_LOST,0); reinit=true; }
+    /* A failed ADC can abort mid-pulse: 02 section 10 still suppresses the
+     * ordinary REFOK check inside the self-test/recovery window. */
+    if(ref_lost) { raise(FC_G08_ENGREF_LOST,0); all=false; }
+    /* P15 measures the interval that the RUN window must bridge. */
+    diag.duration_ms=(uint16_t)(interval>UINT16_MAX?UINT16_MAX:interval);
+    if(interval>APP_SCAN_DEADLINE_MS) { raise(FC_G05_SCAN_DEADLINE,0); all=false; }
     if(!fuses_ok()) { raise(FC_G15_FUSES,0); all=false; }
     if(registry && fault_active(registry,FC_G15_FUSES)) all=false;
-    work.scan_validated=all && diag.ref_test_ok && !reinit;
+    work.scan_validated=all && diag.ref_test_ok && !ref_phase && !reinit;
     for(b=0;b<board()->banks;b++) diag.cal_safe[b]&=diag.registers_ok[b] && !reinit;
-    work.completed_ms=tick_ms();
+    work.completed_ms=completed_at=now; have_completion=true;
     /* Bad bank diagnostics revoke current validity; channel failures do not invalidate its bank. */
     for(c=0;c<board()->channels;c++) if(!good[board()->channel[c].bank]) work.meas[c].flags&=0xFE;
     published=work;
@@ -117,30 +131,30 @@ static void channel_fault(uint8_t ch,fault_code_t f) {
     work.meas[ch].flags=(uint8_t)((work.meas[ch].flags&~MEAS_VALID)|flag);
     if(f!=FC_C03_COMMON_MODE) raise(f,ch); /* C03 registry unit is the physical input pin. */
 }
-static void result(uint8_t b,uint32_t code) {
-    uint8_t ch=(uint8_t)(8*b+slot),target=(uint8_t)(8*b+work.scan_no%8);
-    fault_code_t f=ad_fault(b),limit; int32_t base=CAL_MISSING,ref=CAL_MISSING;
-    diag.raw[b][slot]=code;
-    if(slot==8 && f!=FC_NONE) diag.cal_safe[b]=false;
+static void result(uint8_t b,uint8_t completed_slot,uint32_t code,fault_code_t f,bool bank_good) {
+    uint8_t ch=(uint8_t)(8*b+completed_slot),target=(uint8_t)(8*b+work.scan_no%8);
+    fault_code_t limit; int32_t base=CAL_MISSING,ref=CAL_MISSING;
+    diag.raw[b][completed_slot]=code;
+    if(completed_slot==8 && f!=FC_NONE) diag.cal_safe[b]=false;
     if(cal) { ref=cal->ref_ppm[b];
         if(cfg && cal->tag[target]==(uint8_t)((cfg->ch[target].type_epoch<<2)|cfg->ch[target].type)) base=cal->baseline_nV[target];
     }
     if(f>=FC_B01_ADC_ID && f<=FC_B15_ADC_RESET) bank_fault(b,f);
-    else if(f!=FC_NONE) channel_fault(slot<8?ch:slot==13?(uint8_t)(8*b+(work.scan_no%16)/2):target,f);
-    limit=scan_limit(slot,code,diag.raw[b][10],ref,base,diag.raw[b][work.scan_no%8]);
+    else if(f!=FC_NONE) channel_fault(completed_slot<8?ch:completed_slot==13?(uint8_t)(8*b+(work.scan_no%16)/2):target,f);
+    limit=scan_limit(completed_slot,code,diag.raw[b][10],ref,base,diag.raw[b][work.scan_no%8]);
     if(limit>=FC_B01_ADC_ID && limit<=FC_B15_ADC_RESET) bank_fault(b,limit);
     /* OFF has no learned baseline/tag (05 §6). Its burnout result cannot
      * lock a partially fitted board; REF calibration remains mandatory. */
-    if(slot==14 && cfg && cfg->ch[target].type==CH_TYPE_OFF) limit=FC_NONE;
+    if(completed_slot==14 && cfg && cfg->ch[target].type==CH_TYPE_OFF) limit=FC_NONE;
     if(limit==FC_G10_CALIBRATION) raise(limit,0);
-    if(slot<8) {
+    if(completed_slot<8) {
         result_t *m=&work.meas[ch];
         m->scan_no=work.scan_no; m->emf_nV=scan_emf(code,32); m->temp_dC=TEMP_DC_INVALID;
         /* Advisory CM/burn flags persist until their next scheduled check. */
         m->flags&=(MEAS_CM_FAIL|MEAS_OPEN|MEAS_SHORTED);
         if(limit!=FC_NONE) channel_fault(ch,limit);
         else if(f!=FC_NONE) channel_fault(ch,f);
-        else if(good[b] && cj_valid[2*b] && cj_valid[2*b+1]) {
+        else if(bank_good && cj_valid[2*b] && cj_valid[2*b+1]) {
             uint16_t w=board()->channel[ch].cj_weight_q8;
             int32_t cj=cj_mC[2*b]+(int32_t)(((cj_mC[2*b+1]-cj_mC[2*b])*(int32_t)w)/256);
             ch_type_t type=cfg?cfg->ch[ch].type:CH_TYPE_K;
@@ -154,7 +168,7 @@ static void result(uint8_t b,uint32_t code) {
             if(registry) fault_clear(registry,FC_C07_OVUV,ch);
         }
         pending|=1UL<<ch;
-    } else if(slot==13) {
+    } else if(completed_slot==13) {
         uint8_t input=(uint8_t)(work.scan_no%16);
         uint16_t bit=(uint16_t)(1u<<input);
         target=(uint8_t)(8*b+(work.scan_no%16)/2);
@@ -164,7 +178,7 @@ static void result(uint8_t b,uint32_t code) {
          * bits until each clears. Raw pin identity remains in scan_no % 16. */
         if(registry && !(cm_bad[b]&(uint16_t)(3u<<(2*(input/2))))) fault_clear(registry,FC_C03_COMMON_MODE,target);
         if(!(cm_bad[b]&(uint16_t)(3u<<(2*(input/2))))) work.meas[target].flags&=0xF7;
-    } else if(slot==14) {
+    } else if(completed_slot==14) {
         diag.burnout_nV[target]=scan_emf(code,32)-scan_emf(diag.raw[b][work.scan_no%8],32);
         if(limit==FC_C01_OPEN || limit==FC_C06_SHORTED) channel_fault(target,limit);
         else if(limit==FC_NONE && f==FC_NONE) { work.meas[target].flags&=0xED;
@@ -172,25 +186,67 @@ static void result(uint8_t b,uint32_t code) {
         }
     }
 }
-/* One current-scan CJ frame per pass. STATUS/RDY is still polled for every
- * bank; held DATA is processed after all six CJ records have been checked. */
+/* Two sensors per wait pass, starting alongside P2 of slot 0. At <=20 ms
+ * cadence all six records finish by first DATA, without holding a conversion.
+ * Leave one final frame for the DATA pass to bound the combined CPU load. */
 static void cj_task(void) {
-    uint8_t b; res_t r;
-    if(cj_index>=board()->cj_count) return;
-    r=cj_read_step(cj_index,&cj_mC[cj_index]); progress=tick_ms();
-    if(r==RES_BUSY) return;
-    diag.cj_status[cj_index]=r; cj_valid[cj_index]=r==RES_OK;
-    if(++cj_index!=board()->cj_count) return;
-    for(b=0;b<board()->banks;b++) {
-        int32_t diff=cj_mC[2*b]-cj_mC[2*b+1];
-        work.cj_dC[b][0]=(temp_dC_t)(cj_mC[2*b]/100); work.cj_dC[b][1]=(temp_dC_t)(cj_mC[2*b+1]/100);
-        if(!cj_valid[2*b] && !cj_valid[2*b+1]) bank_fault(b,FC_B10_CJ_BOTH);
-        else if(!cj_valid[2*b] || !cj_valid[2*b+1]) bank_fault(b,FC_B12_CJ_ONE);
-        else if(diff < -3000 || diff>3000) bank_fault(b,FC_B11_CJ_DIFF);
+    uint8_t b,i,j,frames; res_t r;
+    for(j=0;j<2;j++) {
+        if(cj_index>=board()->cj_count) return;
+        frames=5; r=RES_BUSY;
+        if(cj_index+1u==board()->cj_count) { frames=cj_tail?1:4; cj_tail=true; }
+        for(i=0;i<frames && r==RES_BUSY;i++) r=cj_read_step(cj_index,&cj_mC[cj_index]);
+        progress=tick_ms();
+        if(r==RES_BUSY) return;
+        diag.cj_status[cj_index]=r; cj_valid[cj_index]=r==RES_OK;
+        if(++cj_index!=board()->cj_count) continue;
+        for(b=0;b<board()->banks;b++) {
+            int32_t diff=cj_mC[2*b]-cj_mC[2*b+1];
+            work.cj_dC[b][0]=(temp_dC_t)(cj_mC[2*b]/100); work.cj_dC[b][1]=(temp_dC_t)(cj_mC[2*b+1]/100);
+            if(!cj_valid[2*b] && !cj_valid[2*b+1]) bank_fault(b,FC_B10_CJ_BOTH);
+            else if(!cj_valid[2*b] || !cj_valid[2*b+1]) bank_fault(b,FC_B12_CJ_ONE);
+            else if(diff < -3000 || diff>3000) bank_fault(b,FC_B11_CJ_DIFF);
+        }
     }
 }
+static void ref_begin(void) {
+    ref_pending=true;
+    if(gpio_read(board()->refok)) {
+        /* A broken-wire precheck is not a completed test. Retry once at
+         * slot 10 of the next scan, including after a failed startup precheck. */
+        raise(FC_G08_ENGREF_LOST,0); diag.ref_test_ok=false; return;
+    }
+    diag.ref_test_ok=false; gpio_write(board()->reftest,true); ref_phase=1; wait_start=tick_ms();
+}
+static void ref_task(void) {
+    if(ref_phase==1 && tick_ms()-wait_start>=5) {
+        diag.ref_test_ok=gpio_read(board()->refok);
+        if(!diag.ref_test_ok) raise(FC_G09_ENGREF_TEST,0);
+        gpio_write(board()->reftest,false); ref_phase=2; wait_start=tick_ms();
+    } else if(ref_phase==2 && tick_ms()-wait_start>=20) {
+        if(gpio_read(board()->refok)) { raise(FC_G08_ENGREF_LOST,0); diag.ref_test_ok=false; }
+        else { last_ref=tick_ms(); ref_pending=false; } /* Completed pass or G09. */
+        if(diag.ref_test_ok && registry) fault_clear(registry,FC_G09_ENGREF_TEST,0);
+        ref_phase=0;
+    }
+}
+static void start_slot(void) {
+    uint8_t b; res_t r;
+    if(slot==13 && ref_phase) { phase=START_SLOT; return; }
+    done=0;
+    for(b=0;b<board()->banks;b++) {
+        r=ad_start_slot(b,slot);
+        if(r!=RES_OK) { bank_fault(b,ad_fault(b)); transport[b]=r==RES_ERR_CRC || r==RES_ERR_ID; reinit=true; }
+    }
+    /* 02 section 10 pulls only REF_SENSE low. 03 section 3 slots 10-12
+     * select internal 20 mV / AVDD nodes, not external AIN/engine bias.
+     * Finish the pulse and recovery before slot 13 selects an external input. */
+    if(slot==10 && (ref_pending || tick_ms()-last_ref>=600000UL)) ref_begin();
+    progress=tick_ms(); end_index=0; phase=reinit?END_SCAN:POLL_SLOT;
+}
 void scan_task(void) {
-    uint8_t b; res_t r; uint32_t code=0; bool handled=false;
+    uint8_t b,i,j,completed=0,usable=0,completed_slot=slot; res_t r;
+    uint32_t code[MAX_BANKS]; fault_code_t cause[MAX_BANKS]; res_t ready[MAX_BANKS]; bool handled=false;
     switch(phase) {
     case INIT_ADC:
         for(b=0;b<board()->banks;b++) {
@@ -212,69 +268,83 @@ void scan_task(void) {
         break;
     case WAIT_CJ: if(tick_ms()-wait_start>=8) { diag.initialized=true; phase=REF_PRE; progress=tick_ms(); } break;
     case REF_PRE:
-        if(gpio_read(board()->refok)) { raise(FC_G08_ENGREF_LOST,0); diag.ref_test_ok=false; phase=BEGIN_SCAN; }
-        else { gpio_write(board()->reftest,true); phase=REF_HIGH; wait_start=tick_ms(); }
+        ref_begin(); phase=REF_HIGH;
         progress=tick_ms(); break;
     case REF_HIGH:
-        if(tick_ms()-wait_start>=5) { /* OPEN-H7: RC-estimated waits, 10 min interval */
-            diag.ref_test_ok=gpio_read(board()->refok);
-            if(!diag.ref_test_ok) raise(FC_G09_ENGREF_TEST,0);
-            gpio_write(board()->reftest,false); phase=REF_LOW; wait_start=tick_ms(); progress=tick_ms();
-        } break;
     case REF_LOW:
-        if(tick_ms()-wait_start>=20) {
-            if(gpio_read(board()->refok)) { raise(FC_G08_ENGREF_LOST,0); diag.ref_test_ok=false; }
-            if(diag.ref_test_ok && registry) fault_clear(registry,FC_G09_ENGREF_TEST,0);
-            last_ref=tick_ms(); diag.initialized=true; phase=BEGIN_SCAN; progress=tick_ms();
+        ref_task(); progress=tick_ms();
+        if(!ref_phase) {
+            diag.initialized=true; phase=BEGIN_SCAN;
+            goto begin_scan;
         } break;
     case BEGIN_SCAN:
-        if(tick_ms()-last_ref>=600000UL) { phase=REF_PRE; break; }
+begin_scan:
         start=tick_ms(); ++work.scan_no; work.scan_validated=false; work.settings_seq=cfg?cfg->sequence:0;
         for(b=0;b<board()->banks;b++) {
             good[b]=true; transport[b]=false; verify_done[b]=false; diag.cal_safe[b]=true; diag.registers_ok[b]=false;
         }
-        cj_index=end_index=0; phase=BEGIN_BANK; break;
+        cj_index=end_index=0; cj_tail=false; phase=BEGIN_BANK;
+        /* fall through: no idle pass between scan setup and conversion. */
     case BEGIN_BANK:
-        b=end_index++; ad_scan_begin(b,work.scan_no);
-        if(ad_fault(b)!=FC_NONE) { bank_fault(b,ad_fault(b)); reinit=true; }
-        if(end_index==board()->banks) { end_index=0; slot=0; done=0; phase=reinit?END_SCAN:START_SLOT; }
-        break;
-    case START_SLOT:
-        done=0;
         for(b=0;b<board()->banks;b++) {
-            r=ad_start_slot(b,slot);
-            if(r!=RES_OK) { bank_fault(b,ad_fault(b)); transport[b]=r==RES_ERR_CRC || r==RES_ERR_ID; reinit=true; }
+            ad_scan_begin(b,work.scan_no);
+            if(ad_fault(b)!=FC_NONE) { bank_fault(b,ad_fault(b)); reinit=true; }
         }
-        progress=tick_ms(); end_index=0; phase=reinit?END_SCAN:POLL_SLOT; break;
+        end_index=0; slot=0; done=0;
+        if(reinit) { phase=END_SCAN; break; }
+        start_slot(); if(!reinit) cj_task(); break;
+    case START_SLOT: ref_task(); start_slot(); break;
     case POLL_SLOT:
+        /* P3 precedes CJ traffic so a ready edge is stamped without CJ delay. */
+        for(b=0;b<board()->banks;b++) if(!(done&(1u<<b))) ready[b]=ad_ready(b);
+        ref_task();
         cj_task();
         for(b=0;b<board()->banks;b++) if(!(done&(1u<<b))) {
-            r=ad_ready(b); /* P3 for every bank, even when another DATA completes. */
-            if(r==RES_OK && !handled && cj_index==board()->cj_count) { r=ad_poll(b,&code); handled=true;
-                if(r==RES_OK) { result(b,code); done|=(uint8_t)(1u<<b); }
+            r=ready[b];
+            if(r==RES_OK && cj_index==board()->cj_count) { r=ad_poll(b,&code[b]); handled=true;
+                if(r==RES_OK) {
+                    cause[b]=ad_fault(b); if(good[b]) usable|=(uint8_t)(1u<<b); completed|=(uint8_t)(1u<<b); done|=(uint8_t)(1u<<b);
+                }
             }
             if(r!=RES_OK && r!=RES_BUSY) { bank_fault(b,ad_fault(b)); transport[b]=r==RES_ERR_CRC || r==RES_ERR_ID; reinit=true; done|=(uint8_t)(1u<<b); }
             progress=tick_ms();
         }
         if(!handled && !reinit) {
-            b=end_index++; if(end_index==board()->banks) end_index=0;
-            if(!verify_done[b]) { r=ad_verify(b);
+            /* Two fields per bank on wait passes: all 32 immutable fields
+             * finish even with only two wait passes per 60-ms slot. */
+            for(b=0;b<board()->banks;b++) for(j=0;j<2 && !verify_done[b] && !reinit;j++) {
+                r=ad_verify(b);
                 if(r==RES_OK) verify_done[b]=true;
                 else if(r!=RES_BUSY) { bank_fault(b,ad_fault(b)); reinit=true; }
             }
         }
-        if(reinit) { if(done==(1u<<board()->banks)-1u) { end_index=0; phase=END_SCAN; } break; }
-        if(done==(1u<<board()->banks)-1u) { end_index=0; if(++slot==15) phase=END_SCAN; else phase=START_SLOT; }
+        if(reinit) {
+            if(done==(1u<<board()->banks)-1u) { end_index=0; phase=END_SCAN; }
+        } else if(done==(1u<<board()->banks)-1u) {
+            end_index=0;
+            if(++slot==15) phase=END_SCAN; else start_slot();
+        }
+        /* Start parallel conversion before the three expensive TC transforms.
+         * Keep completed slot, fault and bank validity: starting clears driver state.
+         * This gives acquisition real CPU time, even at a 20-ms loop cadence. */
+        for(b=0;b<board()->banks;b++) if(completed&(1u<<b)) result(b,completed_slot,code[b],cause[b],(usable&(1u<<b))!=0);
+        if(phase==END_SCAN) goto end_scan;
         break;
     case END_SCAN:
-        if(!reinit) for(b=0;b<board()->banks;b++) {
+end_scan:
+        /* 03 sections 3.2/5: every mutable image only after the final P5,
+         * in this bounded batch. Never move these checks into a conversion. */
+        for(i=0;i<7 && end_index<19 && !reinit;i++,end_index++) for(b=0;b<board()->banks;b++) {
             r=ad_verify_mutable_part(b,end_index); diag.registers_ok[b]=r==RES_OK && verify_done[b];
             if(!diag.registers_ok[b]) {
                 bank_fault(b,ad_fault(b)); transport[b]=r==RES_ERR_CRC || r==RES_ERR_ID; reinit=true;
             }
             if(end_index==18 && good[b] && registry) { uint8_t f; for(f=FC_B01_ADC_ID;f<=FC_B15_ADC_RESET;f++) fault_clear(registry,(fault_code_t)f,b); }
         }
-        if(!reinit && ++end_index<19) { progress=tick_ms(); break; }
+        if(!reinit && end_index<19) { progress=tick_ms(); break; }
+#ifdef FAMILY_TEST
+        if(hold_publish && !reinit) { progress=tick_ms(); break; }
+#endif
         publish(); break;
     case RECOVER:
         if(tick_ms()-wait_start>=10) { scan_restart(); progress=tick_ms(); }
@@ -287,3 +357,7 @@ const scan_out_t *scan_current(void) { return &work; }
 const scan_diag_t *scan_diagnostics(void) { return &diag; }
 uint32_t scan_progress_ms(void) { return progress; }
 uint32_t scan_take_results(void) { uint32_t v=pending; pending=0; return v; }
+#ifdef FAMILY_TEST
+void scan_test_ref_due(void) { last_ref=tick_ms()-600000UL; }
+void scan_test_hold_publish(bool hold) { hold_publish=hold; }
+#endif

@@ -14,6 +14,10 @@
 #include "mcal/wdt.h"
 #include <string.h>
 static settings_t *settings,mailbox;
+#ifdef FAMILY_REGISTER_MODEL
+/* Reuse the real UI mailbox instead of allocating a duplicate simulator record. */
+settings_t *app_profile_candidate(void) { return &mailbox; }
+#endif
 static calibration_t *cal;
 static fault_registry_t *faults;
 static prot_state_t protection;
@@ -26,7 +30,7 @@ static uint16_t worst_loop;
 static ack_reason_t last_ack;
 static void observe_expiry(void) {
     if(timer_run_expired() && protection.mode==RUN) {
-        (void)prot_on_fault(&protection,faults,FC_G05_SCAN_DEADLINE,0,CH_MODE_TRIP,0,tick_ms()/1000u);
+        (void)prot_on_fault(&protection,faults,FC_G05_SCAN_DEADLINE,0,CH_MODE_TRIP,0,app_uptime_s());
         ack_input_cancel();
     }
 }
@@ -81,7 +85,7 @@ void app_init(settings_t *cfg,calibration_t *calibration,fault_registry_t *regis
               bool valid,bool service) {
     prot_in_t in;
     settings=cfg; cal=calibration; faults=registry; service_mode=service;
-    event_uptime=tick_ms()/1000u;
+    event_uptime=app_uptime_s();
     memset(&outputs,0,sizeof outputs); memset(&output,0,sizeof output);
     memset(seen_fault,0,sizeof seen_fault); memset(channel_cause,0,sizeof channel_cause);
     command_pending=window_watch=prior_validated=false; last_scan=0; worst_loop=0; last_ack=ACK_NONE;
@@ -103,6 +107,7 @@ res_t app_commit_settings(const settings_t *candidate) {
     if(candidate!=&mailbox) mailbox=*candidate;
     command_pending=true; save_wait=true; return RES_OK;
 }
+bool app_settings_valid(void) { return ee_owner_settings_valid(); }
 const settings_t *app_settings(void) { return settings; }
 const prot_state_t *app_protection(void) { return &protection; }
 const prot_out_t *app_output(void) { return &output; }
@@ -181,7 +186,7 @@ uint8_t app_step(bool flow_ok) {
     prot_in_t in; output_decision_t d; uint8_t done,seen=0; res_t r;
     prot_mode_t before;
     memset(&in,0,sizeof in);
-    event_uptime=tick_ms()/1000u;
+    event_uptime=app_uptime_s();
     trip_logged=first_this_pass=loss_this_pass=false;
     if(!service_mode && ui_take_pin_reset()) {
         if(command_pending || ee_owner_busy()) ui_store_result(RES_ERR_READBACK);
@@ -229,7 +234,7 @@ uint8_t app_step(bool flow_ok) {
             log_event(in.protection_change?EV_SETTINGS_CHANGED:EV_NAME_CHANGED,FC_NONE,0,0,0,0);
         }
         if(scan_last()->scan_no!=last_scan && scan_last()->scan_validated)
-            ee_owner_validated_scan(FC_NONE,tick_ms()/1000u);
+            ee_owner_validated_scan(FC_NONE,app_uptime_s());
         last_scan=scan_last()->scan_no;
         return 1;
     }
@@ -246,7 +251,7 @@ uint8_t app_step(bool flow_ok) {
     }
     immediate_faults();
     in.settings=settings; in.scan=scan_last(); in.faults=faults;
-    in.now_ms=tick_ms(); in.uptime_s=in.now_ms/1000u;
+    in.now_ms=tick_ms(); in.uptime_s=app_uptime_s();
     in.settings_valid=ee_owner_settings_valid(); in.calibration_valid=calibration_good;
     in.writing=ee_owner_busy(); in.flow_ok=flow_ok;
     in.scan_complete=in.scan->scan_no!=last_scan; last_scan=in.scan->scan_no;

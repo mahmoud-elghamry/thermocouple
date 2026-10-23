@@ -43,40 +43,71 @@ static uint32_t model_serial_now(void);
 #undef flow_check
 #undef timer_now_us
 static bool enabled,write_pending,expired,fail_eeprom,run_expired,expire_on_grant;
-static uint32_t clock_us,busy_until,last_feed,writes,settings_writes,loop_started;
+static bool fast_ticks;
+static uint8_t settle_ticks,last_inputs[4];
+/* Absolute host time must survive both the 71-minute us and 49-day ms wraps.
+ * Firmware interfaces deliberately expose only their real 32-bit epochs. */
+static uint64_t clock_us,busy_until,last_feed,loop_started;
+static uint32_t writes,settings_writes,boot_epoch;
 static uint16_t write_address;
 static uint8_t write_value,boot_cause=1;
-static void advance_us(uint32_t duration) {
-    uint32_t end=clock_us+duration;
+static void advance_us(uint64_t duration) {
+    uint64_t end=clock_us+duration;
+    if(fast_ticks && memcmp(last_inputs,inputs,sizeof inputs)) {
+        memcpy(last_inputs,inputs,sizeof inputs); settle_ticks=8;
+    }
     while(clock_us/1000u<end/1000u) {
+        if(fast_ticks && !settle_ticks) {
+            uint32_t ticks=(uint32_t)(end/1000u-clock_us/1000u);
+            if(!expired) {
+                uint64_t watchdog_tick=(last_feed+250999u)/1000u;
+                if(watchdog_tick-clock_us/1000u<ticks) ticks=(uint32_t)(watchdog_tick-clock_us/1000u);
+            }
+            if(remaining && ticks>remaining) ticks=remaining;
+            ms+=ticks;
+            us+=(uint64_t)ticks*1000u;
+            if(remaining && ticks>=remaining) { run_expired=true; timer_run_stop(); }
+            else if(remaining) remaining=(uint16_t)(remaining-ticks);
+            clock_us=(clock_us/1000u+ticks)*1000u;
+            if(!expired && clock_us-last_feed>=250000u) { expired=true; boot_cause=8; timer_run_stop(); }
+            continue;
+        }
         clock_us=(clock_us/1000u+1u)*1000u;
         timer_tick_isr(); keys_sample_isr();
+        if(settle_ticks) --settle_ticks;
         if(!expired && clock_us-last_feed>=250000u) { expired=true; boot_cause=8; timer_run_stop(); }
     }
     clock_us=end;
-    fake_uart_step(clock_us);
+    fake_uart_step((uint32_t)clock_us);
     if(write_pending && clock_us>=busy_until) {
         fake_eeprom[write_address]=write_value; write_pending=false;
     }
 }
 void model_enable(void) { enabled=true; }
-uint32_t timer_now_us(void) { return clock_us/50u*50u; }
+void model_boot_epoch(uint32_t value) { boot_epoch=value; }
+void model_fast_ticks(bool enable) { fast_ticks=enable; settle_ticks=8; memcpy(last_inputs,inputs,sizeof inputs); }
+void model_cpu_us(uint16_t duration) { base_delay_us(duration); if(enabled) advance_us(duration); }
+uint32_t timer_now_us(void) { return (uint32_t)(clock_us/50u*50u); }
 static uint32_t model_serial_now(void) { return timer_now_us(); }
 void model_expire_on_grant(void) { expire_on_grant=true; }
 bool model_watchdog_reset(void) { return expired; }
 uint32_t model_write_count(void) { return writes; }
 uint32_t model_settings_write_count(void) { return settings_writes; }
 void model_loop_begin(void) { loop_started=clock_us; }
-uint32_t model_loop_us(void) { return clock_us-loop_started; }
+uint32_t model_loop_us(void) { return (uint32_t)(clock_us-loop_started); }
 void model_eeprom_fail(bool fail) { fail_eeprom=fail; }
-void model_power_cut(void) { write_pending=false; boot_cause=1; timer_run_stop(); }
+void model_power_cut(void) {
+    write_pending=false; boot_cause=1; timer_run_stop();
+    gpio_write(board()->alarm,false); /* Both physical coils release on power loss. */
+}
 void fake_reset(void) {
-    base_reset(); clock_us=last_feed=writes=settings_writes=0; write_pending=expired=fail_eeprom=run_expired=expire_on_grant=false; boot_cause=1;
+    base_reset(); clock_us=last_feed=writes=settings_writes=0; boot_epoch=0; write_pending=expired=fail_eeprom=run_expired=expire_on_grant=false; boot_cause=1;
 }
 void timer_init(void) {
-    base_timer_init(); clock_us=last_feed=0; expired=run_expired=false;
+    base_timer_init(); ms=boot_epoch; clock_us=last_feed=(uint64_t)ms*1000u; expired=run_expired=false;
+    settle_ticks=8;
 }
-void fake_advance(uint32_t duration) { uint32_t i; if(enabled) advance_us(duration*1000u); else for(i=0;i<duration;i++) timer_tick_isr(); }
+void fake_advance(uint32_t duration) { uint32_t i; if(enabled) advance_us((uint64_t)duration*1000u); else for(i=0;i<duration;i++) timer_tick_isr(); }
 void timer_tick_isr(void) { bool armed=remaining!=0; base_timer_tick_isr(); if(armed && !remaining) run_expired=true; }
 bool timer_run_expired(void) { return run_expired; }
 void timer_run_ack_expiry(void) { if(!remaining && !pump) run_expired=false; }

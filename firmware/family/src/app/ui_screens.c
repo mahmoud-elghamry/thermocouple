@@ -42,7 +42,7 @@ static void status(const ui_state_t *u,const ui_snapshot_t *s,char *out) {
     const prot_state_t *p=s->protection; uint8_t ch,count=0,newest=0;
     if(p->mode==SERVICE) { ui_text(out,0,UI_STR("SERVICE MODE"));memcpy(out+16,u->service_step,4);return; }
     if(p->mode==CONFIG_LOCK) {
-        ui_text(out,0,fault_active(s->faults,FC_G01_SETTINGS_INVALID)?UI_STR("LOCKED: SETUP"):UI_STR("LOCKED: CALIBRATE"));return;
+        ui_text(out,0,!s->settings_valid?UI_STR("LOCKED: SETUP"):UI_STR("LOCKED: CALIBRATE"));return;
     }
     if(p->mode==TRIPPED) {
         ui_text(out,0,UI_STR("TRIP"));
@@ -104,7 +104,7 @@ static void home_row(const ui_state_t *u,const ui_snapshot_t *s,uint8_t row,char
         c=&s->settings->ch[ch];r=&s->scan->meas[ch];
         error=measurement(r,s->scan->scan_no);
         ui_number(out+offset,2,ch+1,true);out[offset+7]=type_letter((uint8_t)c->type);
-        if(fault_active(s->faults,FC_G01_SETTINGS_INVALID)) ui_text(out,offset+3,UI_STR("----"));
+        if(!s->settings_valid) ui_text(out,offset+3,UI_STR("----"));
         else if(c->type==CH_TYPE_OFF) { ui_text(out,offset+3,UI_STR("off "));marker='-'; }
         else {
             if(error) {
@@ -246,7 +246,7 @@ void ui_render_row(const ui_state_t *u,const ui_snapshot_t *s,uint8_t row,char o
     if(!u || !s || !s->settings || !s->protection || !s->output || !s->faults || !s->scan || row>3) return;
     if(row==3 && u->message!=UM_NONE) {
         ui_text(out,0,message_text(u->message));
-        if(u->message==UM_R4) ui_number(out+6,2,s->output->refusal_channel,true);
+        if(u->message==UM_R4) ui_number(out+6,2,u->refusal_channel,true);
         if(u->message==UM_R3) { uint8_t unit=0;fault_code_t code=fault_first_trip(s->faults,&unit);fault_text(out,9,code,unit); }
         return;
     }

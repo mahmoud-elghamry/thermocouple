@@ -1,7 +1,7 @@
 #ifndef FAMILY_BOARD_FAST_IO_H
 #define FAMILY_BOARD_FAST_IO_H
 /* Fixed-pin MCAL fast paths, matching board_cfg_24 and 02 sections 1.1-1.3.
- * B8/B40 keep the SPI pins; their fifth key is PD5. Future mappings can supply
+ * An 8-ch mapping can keep the SPI pins; their fifth key is PD5. Future mappings can supply
  * a build-selected header without changing the bit timing implementation. */
 #ifdef FAMILY_FAST_IO_HEADER
 #include FAMILY_FAST_IO_HEADER

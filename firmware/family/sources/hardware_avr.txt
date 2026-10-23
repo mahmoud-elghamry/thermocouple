@@ -38,3 +38,6 @@ src/app/modbus.c
 src/app/modbus_map.c
 src/app/mb_io.c
 src/app/app_view.c
+
+src/app/stack_monitor.c
+src/app/image_identity.c

@@ -130,7 +130,7 @@ static bool fresh_scan(const prot_in_t *in, bool current_settings)
     if(in->scan==NULL || in->settings==NULL || !in->scan->scan_validated ||
        (current_settings && in->scan->settings_seq!=in->settings->sequence) ||
        (uint32_t)(in->now_ms-in->scan->completed_ms)>=APP_SCAN_DEADLINE_MS) return false;
-    banks=in->settings->board_type==40?6u:(uint8_t)(in->settings->channel_count/8u);
+    banks=(uint8_t)(in->settings->channel_count/8u);
     for(i=0;i<banks;++i) if(in->scan->bank[i]!=BANK_VALIDATED) return false;
     return true;
 }
@@ -236,6 +236,8 @@ void prot_step(const prot_in_t *in, prot_state_t *s, prot_out_t *out)
     if(!s->pass_prepared || s->pass_cfg!=in->settings) (void)prot_begin_pass(s,in->settings);
     cfg_ok=in->settings_valid && s->pass_valid;
     cal_ok=in->calibration_valid;
+    /* Settings commissioning completes independently of service calibration. */
+    if(cfg_ok) fault_clear(in->faults,FC_G01_SETTINGS_INVALID,0);
     if(s->mode!=SERVICE && (!cfg_ok || !cal_ok)) {
         (void)fault_raise(in->faults,cfg_ok?FC_G10_CALIBRATION:FC_G01_SETTINGS_INVALID,0);
         mode_set(s,CONFIG_LOCK); s->ack_released=false;

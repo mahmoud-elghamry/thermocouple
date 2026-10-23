@@ -15,7 +15,7 @@ src/drivers/relays.c
 src/drivers/rs485.c
 src/services/scan.c
 src/services/fault.c
-src/services/tc_math.c
+test/stubs/tc_timed.c
 src/services/tc_tables.c
 src/app/service.c
 test/unit/test_service.c
@@ -24,6 +24,7 @@ src/services/settings_cal.c
 src/services/settings_store.c
 test/integration/test_app.c
 test/integration/test_review.c
+test/integration/test_gap.c
 src/app/main.c
 src/app/app.c
 src/app/ack_input.c
@@ -42,3 +43,6 @@ src/app/modbus_map.c
 src/app/mb_io.c
 src/app/app_view.c
 test/integration/test_f4.c
+
+src/app/stack_monitor.c
+src/app/image_identity.c

@@ -5,8 +5,8 @@ scope (probably never built) - drop what it costs; the 24-ch board must work wel
 (it is only a table). Do these in order, re-running the gates after each:
 
 1. **24-ch only.** Remove 40-ch / PT100 / address-decoder code paths and the board-type-40 branches. Shrink the
-   arrays to the 24-ch need: `MAX_CHANNELS` 24 and `MAX_BANKS` 3 (Claude has updated `include/common/types.h` and the
-   spec for this - see the commit before this run). Keep the 8-ch extension point only where it costs nothing
+   arrays to the 24-ch need: `MAX_CHANNELS` 24 and `MAX_BANKS` 3 (Claude has already changed `include/common/types.h`, so the build
+   is red until you finish; spec: `00` Targets, `0043` 9; F5 and these edits are verified but uncommitted). Keep the 8-ch extension point only where it costs nothing
    (`board_cfg` structure). Keep the EEPROM map addresses of `05` unchanged. Report the RAM saved.
 2. **cppcheck gate.** Cppcheck 2.22 is installed at `C:/Program Files/Cppcheck/cppcheck.exe`. Add it to
    `build.ps1` (`--enable=warning,portability,performance --std=c11 -Iinclude`, fail on any finding, inline
@@ -24,6 +24,19 @@ scope (probably never built) - drop what it costs; the 24-ch board must work wel
    Modbus traffic and power cuts at random points; checks every N simulated minutes that RAM-resident counters,
    queues, event ring, fault registry, stack high-water and timing stay bounded and that trip/ACK behaviour around
    the wrap is unchanged. Keep its run time reasonable (separate script if > 5 min; say how long).
+
+5. **Two review notes on F5 (Claude):** (a) `app_stack_paint` and `early_init` are both naked `.init3` code and
+   their order comes only from the link order. **In the F5 image it is wrong**: `avr-objdump -t
+   build/thermo24_f1.elf` shows `app_stack_paint` at 0x0e7a and `early_init` at 0x0e8c, so the ~4 KB paint loop
+   (~25000 cycles, ~3 ms) runs before S0 (`02` 7: S0 is the first code after reset: cli, wdr, MCUSR copy, WDT
+   0.25 s, JTD, PB3 low). Not dangerous today (3 ms < the 16 ms post-reset WDT, PB3 is high-Z at reset), but it
+   breaks the spec order. Fix so S0 always runs first (for example paint from the tail of `early_init`, or a
+   separate `.init` section placed after S0 but before `.init4` data/BSS init), and add a build gate that reads
+   the ELF symbol addresses and fails unless `early_init` comes first. (b) The worst pass is 19.74 ms of 20 incl. reserve;
+   removing the 40-ch paths should only lower it - report the new number.
+
+**Speed:** the AVR profiler takes ~11 min. Iterate with the host suites and `profile_avr.ps1 -CompileOnly`; run the
+full `build.ps1` (with the profiler) only once the code is final, and once more only if that run fails.
 
 Write rules as F5. Never `test/acceptance/`, `test/build_acceptance.ps1`. Done means: outputs deleted;
 `build.ps1` (incl. cppcheck, profiler), `test/build_core.ps1`, `test/build_acceptance.ps1` exit 0 (acceptance may

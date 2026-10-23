@@ -4,6 +4,7 @@
 #include "app/app.h"
 #include "app/ee_owner.h"
 #include "app/stack_budget.h"
+#include "app/stack_monitor.h"
 #include "app/ui.h"
 #include "app/modbus.h"
 #include "app/app_view.h"
@@ -177,13 +178,16 @@ void f0_task(void) {
     for(i=0;i<16;i++) if(stack_guard[i]!=0xA5) {
         relays_safe(); (void)fault_raise(&faults,FC_G04_INTERNAL,0); return;
     }
-    seen|=128;
+    app_stack_step(); seen|=128;
     if(tick_ms()-start>APP_LOOP_BUDGET_MS) { relays_safe(); (void)fault_raise(&faults,FC_G04_INTERNAL,0); return; }
     if(mode==SERVICE) svc_loop_time((uint16_t)(tick_ms()-start));
     if(boot==LOOP) app_loop_time((uint16_t)(tick_ms()-start));
     (void)flow_check(seen,255,progress);
 }
 uint8_t f0_mode(void) { return mode; }
+#ifdef FAMILY_REGISTER_MODEL
+bool profile_boot_ready(void) { return boot==LOOP; }
+#endif
 #ifndef FAMILY_TEST
 int main(void) { f0_init(); for(;;) f0_task(); }
 #endif

@@ -37,4 +37,7 @@ uint32_t ee_owner_cycles(void);
 res_t ee_owner_history(uint8_t age,uint8_t *count,event_t *event);
 /* Scratch writes also serialize with transactions/events; service-only. */
 res_t ee_owner_scratch(uint16_t address, uint8_t value);
+#ifdef FAMILY_TEST
+bool ee_owner_invariants(void); /* soak observes bounds without mutating owner */
+#endif
 #endif

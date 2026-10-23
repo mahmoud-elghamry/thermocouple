@@ -99,7 +99,13 @@ looks at MPN. Run this whenever `build.py` adds symbols.
 
 ```powershell
 pwsh -File firmware\family\build.ps1     # 24-ch family firmware; old 8-ch: firmware\8ch-legacy\build.ps1
+pwsh -File firmware\family\test\integration\soak.ps1   # 60-day simulated soak, ~10 min, separate gate
+pwsh -File firmware\family\program.ps1 -DryRun         # USBasp: fuses F7/C1/FC + read-back, flash + verify
 ```
+
+`build.ps1` takes ~13 min (AVR cycle profiler, cppcheck 2.22 at `C:/Program Files/Cppcheck`). `program.ps1`
+finds avrdude in PlatformIO or Proteus (`Tools/ARDUINO/.../avrdude.exe` 6.3), uses `-B 10` (100 kHz ISP for the
+factory 1 MHz clock) and prints one `PROGRAM PASS`/`PROGRAM FAIL` line; drop `-DryRun` with the USBasp connected.
 
 ## Visual check
 

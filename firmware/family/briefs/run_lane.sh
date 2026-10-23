@@ -9,11 +9,11 @@ W=/d/tasks/thermo/.claude/worktrees/24ch-rev-a4
 B=$W/firmware/family/briefs
 case "$1" in
   A) BRIEF=$B/lane-A-hardware-F0.md ;;  B) BRIEF=$B/lane-B-core.md ;;  C) BRIEF=$B/lane-C-acceptance.md ;;
-  B2) BRIEF=$B/lane-B2-fixes.md ;;      B3) BRIEF=$B/lane-B3-fix.md ;;  F1) BRIEF=$B/lane-F1-integration.md ;;  F1b) BRIEF=$B/lane-F1b-events.md ;;  F1c) BRIEF=$B/lane-F1c-astra.md ;;  F1d) BRIEF=$B/lane-F1d-cpu.md ;;  F1e) BRIEF=$B/lane-F1e-timing.md ;;  C2) BRIEF=$B/lane-C2-timing.md ;;  F1f) BRIEF=$B/lane-F1f-ackveto.md ;;  C3) BRIEF=$B/lane-C3-ackveto.md ;;  F2) BRIEF=$B/lane-F2-ui.md ;;  F3) BRIEF=$B/lane-F3-modbus.md ;;  F4) BRIEF=$B/lane-F4-integrate.md ;;  F5) BRIEF=$B/lane-F5-astra-full.md ;;
-  *) echo "usage: run_lane.sh A|B|C|B2|B3|F1|F1b|F1c|F1d|F1e|C2|F1f|C3|F2|F3|F4|F5 [resume]"; exit 2 ;;
+  B2) BRIEF=$B/lane-B2-fixes.md ;;      B3) BRIEF=$B/lane-B3-fix.md ;;  F1) BRIEF=$B/lane-F1-integration.md ;;  F1b) BRIEF=$B/lane-F1b-events.md ;;  F1c) BRIEF=$B/lane-F1c-astra.md ;;  F1d) BRIEF=$B/lane-F1d-cpu.md ;;  F1e) BRIEF=$B/lane-F1e-timing.md ;;  C2) BRIEF=$B/lane-C2-timing.md ;;  F1f) BRIEF=$B/lane-F1f-ackveto.md ;;  C3) BRIEF=$B/lane-C3-ackveto.md ;;  F2) BRIEF=$B/lane-F2-ui.md ;;  F3) BRIEF=$B/lane-F3-modbus.md ;;  F4) BRIEF=$B/lane-F4-integrate.md ;;  F5) BRIEF=$B/lane-F5-astra-full.md ;;  F6) BRIEF=$B/lane-F6-trim-tools.md ;;  F7) BRIEF=$B/lane-F7-gap.md ;;  F8) BRIEF=$B/lane-F8-ref-identity.md ;;  C4) BRIEF=$B/lane-C4-24only.md ;;
+  *) echo "usage: run_lane.sh A|B|C|B2|B3|F1|F1b|F1c|F1d|F1e|C2|F1f|C3|F2|F3|F4|F5|F6|C4|F7|F8 [resume]"; exit 2 ;;
 esac
 REP=$B/lane-$1-report.md; LOG=$B/lane-$1-run.log; THREAD=$B/lane-$1.thread
-case "$1" in B|B2|B3) GROUP=B ;; A|F1|F1b|F1c|F1d|F1e|F1f|F4|F5) GROUP=A ;; C|C2|C3) GROUP=C ;; *) GROUP=$1 ;; esac
+case "$1" in B|B2|B3) GROUP=B ;; A|F1|F1b|F1c|F1d|F1e|F1f|F4|F5|F6|F7|F8) GROUP=A ;; C|C2|C3|C4) GROUP=C ;; *) GROUP=$1 ;; esac
 LOCK=$B/.lock-$GROUP
 if [ "$2" = "resume" ] && [ ! -s "$THREAD" ]; then echo "refused: no saved thread in $THREAD"; exit 4; fi
 if ! mkdir "$LOCK" 2>/dev/null; then

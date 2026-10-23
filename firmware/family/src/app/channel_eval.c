@@ -4,7 +4,7 @@ cond_t chan_cond(const result_t *r, const chan_cfg_t *c, uint32_t scan_no)
 {
     if(c==NULL) return COND_FAULT;
     if(c->type==CH_TYPE_OFF) return COND_OFF;
-    if((c->type!=CH_TYPE_K && c->type!=CH_TYPE_J && c->type!=CH_TYPE_PT100) ||
+    if((c->type!=CH_TYPE_K && c->type!=CH_TYPE_J) ||
        (c->mode!=CH_MODE_TRIP && c->mode!=CH_MODE_ALARM_ONLY)) return COND_FAULT;
     if(r==NULL || r->scan_no!=scan_no || r->temp_dC==TEMP_DC_INVALID ||
        r->flags!=MEAS_VALID) return COND_FAULT;

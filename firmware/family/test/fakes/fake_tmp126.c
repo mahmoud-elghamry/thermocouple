@@ -1,9 +1,9 @@
 #include "fake_hw.h"
 #include "mcal/timer.h"
 #include <string.h>
-static uint16_t regs[10][13];
-static uint8_t sensor,pos,frame[6],response[6],bad[10];
-static uint32_t last[10];
+static uint16_t regs[2u*MAX_BANKS][13];
+static uint8_t sensor,pos,frame[6],response[6],bad[2u*MAX_BANKS];
+static uint32_t last[2u*MAX_BANKS];
 static uint16_t crc16(const uint8_t *p,uint8_t n) {
     uint32_t c=0xFFFF; uint8_t i,j;
     for(i=0;i<n;i++) { c^=(uint32_t)p[i]<<8; for(j=0;j<8;j++) c=(c&0x8000u)?(c<<1)^0x1021u:c<<1; c&=0xFFFF; }
@@ -11,7 +11,7 @@ static uint16_t crc16(const uint8_t *p,uint8_t n) {
 }
 void fake_tmp_reset(void) {
     uint8_t i; memset(regs,0,sizeof regs); memset(bad,0,sizeof bad); memset(last,0,sizeof last);
-    for(i=0;i<10;i++) { regs[i][0]=0x0C80; regs[i][2]=1; regs[i][3]=6; regs[i][12]=0x2126; }
+    for(i=0;i<2u*MAX_BANKS;i++) { regs[i][0]=0x0C80; regs[i][2]=1; regs[i][3]=6; regs[i][12]=0x2126; }
 }
 void fake_tmp_select(uint8_t j) { sensor=j; pos=0; memset(frame,0,sizeof frame); memset(response,0,sizeof response); }
 uint8_t fake_tmp_byte(uint8_t byte) {

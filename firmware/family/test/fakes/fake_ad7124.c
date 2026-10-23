@@ -6,7 +6,7 @@ typedef struct {
     uint16_t ready; uint8_t bad_crc,slot;
     bool crc,converting,por,forced_por,stuck,torn;
 } model_t;
-static model_t m[6];
+static model_t m[MAX_BANKS];
 static uint8_t bank,pos,reg,n,frame[8],answer[8];
 static bool read_frame;
 /* Independent bitwise polynomial reference. */
@@ -28,7 +28,7 @@ static void reset_one(uint8_t b) {
     d->code[12]=0x9C28F6; d->code[13]=0xC00000; d->code[14]=0x853E2D;
     d->ready=43; d->por=true;
 }
-void fake_ad_reset(void) { uint8_t b; for(b=0;b<6;b++) reset_one(b); }
+void fake_ad_reset(void) { uint8_t b; for(b=0;b<MAX_BANKS;b++) reset_one(b); }
 void fake_ad_select(uint8_t b) { bank=b; pos=0; n=0; memset(frame,0,sizeof frame); memset(answer,0,sizeof answer); }
 static uint8_t status(model_t *d) {
     bool busy=d->converting && tick_ms()-d->start<d->ready;

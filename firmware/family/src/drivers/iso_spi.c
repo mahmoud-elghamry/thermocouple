@@ -6,11 +6,19 @@ static uint8_t owner=0xFF;
 void iso_init(void) { owner=0xFF; gpio_write(board()->sio_wr_n,true); spi_init(); }
 uint8_t iso_owner(void) { return owner; }
 res_t iso_select(uint8_t d) {
+    pin_t select;
     if(owner!=0xFF) return RES_BUSY;
-    if(!((d<board()->banks) || (d>=ISO_CJ_BASE && d<ISO_CJ_BASE+board()->cj_count))) return RES_ERR_RANGE;
+    if(d<ISO_CJ_BASE) {
+        if(d>=board()->banks || d>=MAX_BANKS) return RES_ERR_RANGE;
+        select=board()->adc_cs[d];
+    } else {
+        uint8_t j=(uint8_t)(d-ISO_CJ_BASE);
+        if(j>=board()->cj_count || j>=2u*MAX_BANKS) return RES_ERR_RANGE;
+        select=board()->cj_cs[j];
+    }
     gpio_write(board()->sio_wr_n,true); gpio_write(PIN(PORT_B,7),true);
     if(d>=ISO_CJ_BASE) spi_enable(false);
-    owner=d; gpio_write(d<ISO_CJ_BASE?board()->adc_cs[d]:board()->cj_cs[d-ISO_CJ_BASE],false);
+    owner=d; gpio_write(select,false);
     delay_us(1); return RES_OK;
 }
 void iso_deselect(void) {

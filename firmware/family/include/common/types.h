@@ -26,7 +26,7 @@ typedef int32_t emf_nV_t;
 typedef enum { CH_TYPE_OFF = 0, CH_TYPE_K = 1, CH_TYPE_J = 2, CH_TYPE_PT100 = 3 } ch_type_t;
 typedef enum { CH_MODE_TRIP = 0, CH_MODE_ALARM_ONLY = 1 } ch_mode_t;
 
-#define MAX_CHANNELS 43u /* 40-ch board: 40 TC + 3 PT100 */
-#define MAX_BANKS 6u     /* 5 TC banks + RTD ADC on the 40-ch */
+#define MAX_CHANNELS 24u /* 24-ch board only (00 Targets, owner 2026-10-23) */
+#define MAX_BANKS 3u     /* banks A-C */
 
 #endif

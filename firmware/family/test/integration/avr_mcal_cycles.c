@@ -24,10 +24,27 @@ int main(void) {
         if(rx!=255 || (PORTB&0x9Fu)!=0x9Fu) ++cycle_errors;
     }
     PINB=0; if(spi_soft_xfer(0)!=0) ++cycle_errors; PINB=255;
-    cycle_kind=2; cycle_begin(); gpio_write(PIN(PORT_D,7),true); cycle_end();
-    cycle_kind=3; cycle_begin(); (void)gpio_read(PIN(PORT_D,7)); cycle_end();
+    /* Exhaust all pin/value paths, including both invalid-pin guards. */
+    for(i=0;i<34;i++) for(j=0;j<2;j++) {
+        uint8_t p=(uint8_t)(i<32?i:i==32?32:255),port,k,expected;
+        volatile uint8_t *out[4]={&PORTA,&PORTB,&PORTC,&PORTD};
+        PORTA=PORTB=PORTC=PORTD=0xa5;
+        cycle_value=p;cycle_kind=2;cycle_begin();gpio_write(p,j!=0);cycle_end();
+        for(port=0;port<4;port++) {
+            expected=0xa5;
+            if(p<32 && p/8u==port) {
+                k=(uint8_t)(1u<<(p&7u));
+                expected=j?(uint8_t)(expected|k):(uint8_t)(expected&~k);
+            }
+            if(*out[port]!=expected) ++cycle_errors;
+        }
+        PINA=PINB=PINC=PIND=j?255:0;
+        cycle_kind=3;cycle_begin();bool high=gpio_read(p);cycle_end();
+        if(high!=(j!=0 && p<32)) ++cycle_errors;
+    }
     cycle_kind=4; cycle_begin(); gpio_mask(PORT_A,255,255); cycle_end();
-    cycle_kind=5; cycle_begin(); delay_us(49); cycle_end();
+    cycle_value=49;cycle_kind=5; cycle_begin(); delay_us(49); cycle_end();
+    cycle_value=1;cycle_kind=5;cycle_begin();delay_us(1);cycle_end();
     cycle_kind=11; cycle_begin(); (void)tick_ms(); cycle_end();
     cycle_kind=13; cycle_begin(); (void)timer_run_start_at(APP_RUN_WINDOW_MS,tick_ms()); cycle_end();
     cycle_kind=15; cycle_begin(); (void)timer_run_remaining(); cycle_end();

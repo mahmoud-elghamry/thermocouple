@@ -107,6 +107,13 @@ static void test_commission_recovery(void) {
     for(i=1;i<24;i++) CHECK(fake_candidate.ch[i].type==CH_TYPE_OFF && fake_candidate.ch[i].band_C==2);
     fake_finish(RES_OK); fault_clear(&fake_faults,FC_G01_SETTINGS_INVALID,0);
     (void)fault_raise(&fake_faults,FC_G10_CALIBRATION,0); fake_pump(); CHECK(has("LOCKED: CALIBRATE"));
+    /* Settings validity, not even a stale G01 diagnostic, selects the editor. */
+    (void)fault_raise(&fake_faults,FC_G01_SETTINGS_INVALID,0);
+    fake_pump();CHECK(has("LOCKED: CALIBRATE"));
+    fake_key(KEY_SET_LONG); pin(0); CHECK(has("WRONG PIN"));
+    pin(0x1234); CHECK(ui_current_screen()==UI_SETUP);
+    fake_key(KEY_SET); fake_key(KEY_SET); CHECK(has("K"));
+    fake_key(KEY_ESC); fake_key(KEY_ESC); CHECK(fake_commits==1);
     fake_reset(false); ui_pin_recovery(); fake_pump(); CHECK(has("PIN RESET?"));
     fake_key(KEY_SET); CHECK(ui_take_pin_reset()); CHECK(!ui_take_pin_reset()); CHECK(fake_commits==0);
     ui_store_result(RES_OK); fake_pump(); CHECK(has("SAVED OK"));
@@ -128,9 +135,14 @@ static void test_messages_and_edges(void) {
         "R4 CH 03 HOT/FAULT","R5 SETTINGS","R6 RELAY CHECK"};
     fake_reset(false);fake_output.refusal_channel=3;(void)fault_raise(&fake_faults,FC_G03_FLASH_CRC,0);
     for(i=0;i<6;i++) {
-        fake_ack((ack_reason_t)(ACK_R1_RELEASE+i));fake_pump();CHECK(has(messages[i]));
+        fake_output.refusal_channel=3; fake_ack((ack_reason_t)(ACK_R1_RELEASE+i));
+        fake_output.refusal_channel=0;fake_pump();CHECK(has(messages[i]));
+        if(i==ACK_R4_CHANNEL-ACK_R1_RELEASE) {
+            fake_ack(ACK_NONE);fake_pump();CHECK(has(messages[i]));
+        }
         fake_ms+=3001;fake_pump();CHECK(!has(messages[i]));
-        fake_ack((ack_reason_t)(ACK_R1_RELEASE+i));fake_pump();CHECK(has(messages[i]));
+        fake_output.refusal_channel=3; fake_ack((ack_reason_t)(ACK_R1_RELEASE+i));
+        fake_output.refusal_channel=0;fake_pump();CHECK(has(messages[i]));
     }
     fake_reset(false);setup();field(UF_TRIP);fake_key(KEY_DOWN);fake_key(KEY_SET);confirm();
     CHECK(ui_key(KEY_SET));ui_task(999);CHECK(fake_commits==0);ui_task(1000); /* begin preparation */
@@ -145,7 +157,7 @@ static void test_messages_and_edges(void) {
 static void test_display_values(void) {
     ui_state_t u;ui_snapshot_t s;char f[81];uint32_t scans[]={0,99999,100000,25000000,12800000,UINT32_MAX};unsigned i;
     fake_reset(false);memset(&u,0,sizeof u);memset(&s,0,sizeof s);
-    s.settings=&fake_settings;s.protection=&fake_protection;s.output=&fake_output;s.scan=&fake_scan;s.faults=&fake_faults;
+    s.settings_valid=true;s.settings=&fake_settings;s.protection=&fake_protection;s.output=&fake_output;s.scan=&fake_scan;s.faults=&fake_faults;
     for(i=0;i<sizeof scans/sizeof scans[0];i++) {
         char wanted[7];fake_scan.scan_no=scans[i];ui_render(&u,&s,f);f[80]=0;
         (void)snprintf(wanted,sizeof wanted,"#%05lu",(unsigned long)(scans[i]%100000));CHECK(strstr(f,wanted)!=NULL);
@@ -164,7 +176,7 @@ static void test_display_values(void) {
       const char *labels[]={"OPEN","RANGE","CM FAIL","SHORTED","OV/UV","COLD","----"};
       for(i=0;i<7;i++) { fake_scan.meas[0].flags=flags[i];ui_render(&u,&s,f);f[80]=0;CHECK(strstr(f,labels[i])!=NULL); }
     }
-    u.screen=UI_HOME;fake_protection.mode=CONFIG_LOCK;
+    u.screen=UI_HOME;s.settings_valid=false;fake_protection.mode=CONFIG_LOCK;
     (void)fault_raise(&fake_faults,FC_G01_SETTINGS_INVALID,0);(void)fault_raise(&fake_faults,FC_G10_CALIBRATION,0);
     ui_render(&u,&s,f);CHECK(memcmp(f,"LOCKED: SETUP",12)==0);
     fake_protection.mode=SERVICE;ui_render(&u,&s,f);CHECK(memcmp(f,"SERVICE MODE",12)==0);
@@ -222,7 +234,7 @@ static void test_editor_boundaries(void) {
 static void test_pure_screens(void) {
     ui_state_t u; ui_snapshot_t s; char guarded[82]; unsigned mode,row,ch;
     fake_reset(false); memset(&u,0,sizeof u); memset(&s,0,sizeof s);
-    s.settings=&fake_settings; s.protection=&fake_protection; s.output=&fake_output;
+    s.settings_valid=true;s.settings=&fake_settings; s.protection=&fake_protection; s.output=&fake_output;
     s.scan=&fake_scan; s.faults=&fake_faults; s.now_ms=fake_ms;
     for(mode=0;mode<=UI_RECOVER;mode++) { u.screen=(ui_screen_t)mode;
         for(row=0;row<4;row++) { memset(guarded,'~',sizeof guarded); ui_render_row(&u,&s,(uint8_t)row,guarded+1);

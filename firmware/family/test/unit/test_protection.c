@@ -1,6 +1,15 @@
 #include "prot_fixture.h"
 static void ack_rules(void)
 {
+    /* 05 section 5 / 06 section 6: first durable settings save is independent
+     * of calibration; retaining G01 would re-enable blank-board editing. */
+    harness_t commissioned;
+    h_init(&commissioned); commissioned.in.calibration_valid=false;
+    fault_raise(&commissioned.faults,FC_G01_SETTINGS_INVALID,0);
+    commissioned.in.commit_done=true; h_step(&commissioned,1,false);
+    CHECK(!fault_active(&commissioned.faults,FC_G01_SETTINGS_INVALID));
+    CHECK(fault_active(&commissioned.faults,FC_G10_CALIBRATION));
+    CHECK(commissioned.state.mode==CONFIG_LOCK && !commissioned.out.run_permission);
     harness_t h;
     h_init(&h); h.in.ack=true; h_step(&h,0,true); CHECK(h.out.ack_reason==ACK_R1_RELEASE);
     h_init(&h); h.in.ack_held_ms=49; h_ack(&h,1); CHECK(h.out.ack_reason==ACK_R1_RELEASE);

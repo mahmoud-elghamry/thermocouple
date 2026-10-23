@@ -1,4 +1,8 @@
 #include "app/service.h"
+#include "app/app_view.h"
+#include "app/image_identity.h"
+#include "app/stack_monitor.h"
+#include "app/stack_budget.h"
 #include "app/timing.h"
 #include "app/ee_owner.h"
 #include "services/scan.h"
@@ -20,9 +24,6 @@
 #include <avr/pgmspace.h>
 /* Report format strings stay in flash, rather than consuming the SRAM budget. */
 #define snprintf(out,size,fmt,...) snprintf_P((out),(size),PSTR(fmt),__VA_ARGS__)
-#endif
-#ifndef FAMILY_BUILD_HASH
-#define FAMILY_BUILD_HASH "local"
 #endif
 typedef enum { PASSIVE, PROMPT, CONFIRM, ACTIVE, RELEASE, CAL_COLLECT, CAL_SAVE, FINISH, REPORT_END, FINISHED,
                CRC_BEFORE, CRC_AFTER } state_t;
@@ -86,9 +87,13 @@ static void passive(void) {
     if(pstep>=6 && s->scan_no==0 && (d->initialized || tick_ms()-started<500)) return;
     if(pstep==13 && d->initialized && s->scan_no<8) return;
     switch(pstep) {
-    case 1:
-        (void)snprintf(line,sizeof line,"P01 BOARD %u v0.1.0 %s OK",board()->channels,FAMILY_BUILD_HASH);
+    case 1: {
+        image_identity_t id;app_identity_read(&id);
+        (void)snprintf(line,sizeof line,"P01 BOARD %u v%u.%u.%u %s %s MCU %02X%02X%02X OK",
+            (unsigned)id.board,(unsigned)id.major,(unsigned)id.minor,(unsigned)id.patch,
+            id.commit,id.dirty?"DIRTY":"CLEAN",id.mcu[0],id.mcu[1],id.mcu[2]);
         display(line); (void)rs485_line(line); ++n_ok; ++pstep; return;
+    }
     case 2:
         fuses_read(f); (void)snprintf(line,sizeof line,"P02 FUSES %02X-%02X-%02X %s",f[0],f[1],f[2],fuses_ok()?"OK":"FAIL");
         display(line); (void)rs485_line(line); if(fuses_ok()) ++n_ok; else ++n_fail; ++pstep; return;
@@ -112,7 +117,7 @@ static void passive(void) {
         raw=d->raw[item/2][item%2?11:9]; value=(long)(scan_emf(raw,item%2?1:32)/1000);
         if(item%2 && value>0) value=(long)((int64_t)scan_emf(d->raw[item/2][10],32)*1000/value);
         ok=scan_limit(item%2?11:9,raw,d->raw[item/2][10],0,0,0)==FC_NONE;break;
-    case 11:count=board()->cj_count; (void)snprintf(name,sizeof name,"CJ%u",item+1);value=s->cj_dC[item/2][item%2];
+    case 11:count=board()->cj_count; (void)snprintf(name,sizeof name,"CJ%u",(unsigned)item+1u);value=s->cj_dC[item/2][item%2];
         ok=d->cj_status[item]==RES_OK && value>=0 && value<=700;
         (void)snprintf(line,sizeof line,"P11 %s %04X %lddC %s",name,cj_last_id(item),value,ok?"OK":"FAIL");
         send_detail(ok); if(++item==count) { item=0; ++pstep; } return;
@@ -124,16 +129,18 @@ static void passive(void) {
         ok=(flags&MEAS_VALID)!=0 && scan_limit(0,raw,0,0,0,0)==FC_NONE &&
             d->cj_status[2*(item/8)]==RES_OK && d->cj_status[2*(item/8)+1]==RES_OK &&
             s->scan_no!=0 && s->meas[item].scan_no==s->scan_no && d->cal_safe[item/8];
-        (void)snprintf(line,sizeof line,"P12 CH%02u %lduV %ddC K %s %s",item+1,value,temp,
+        (void)snprintf(line,sizeof line,"P12 CH%02u %lduV %ddC K %s %s",(unsigned)item+1u,value,temp,
             (ok || !settings_good || settings->ch[item].type==CH_TYPE_OFF)?"OK":"FAIL",ok?"":"OPEN_OR_INVALID");
         send_detail(ok || !settings_good || settings->ch[item].type==CH_TYPE_OFF);
         if(++item==count) { item=0; ++pstep; } return;
     }
-    case 13:count=board()->channels; (void)snprintf(name,sizeof name,"CH%02u_BURN",item+1);value=d->burnout_nV[item];
+    case 13:count=board()->channels; (void)snprintf(name,sizeof name,"CH%02u_BURN",(unsigned)item+1u);value=d->burnout_nV[item];
         ok=(value>=1500000 && value<=10000000) || !settings_good || settings->ch[item].type==CH_TYPE_OFF;break;
     case 14:strcpy(name,"ENGREF");value=gpio_read(board()->refok);ok=value==0 && d->ref_test_ok;break;
     case 15:strcpy(name,"SCAN");value=d->duration_ms;ok=value<=750;break;
-    case 16:strcpy(name,"LOOP");value=worst;ok=value<=APP_LOOP_BUDGET_MS;break;
+    case 16:
+        if(item==0) { strcpy(name,"LOOP");value=worst;ok=value<=APP_LOOP_BUDGET_MS;count=2;break; }
+        strcpy(name,"STACK_BYTES");value=app_stack_highwater();ok=value<APP_STACK_BYTES;count=2;break;
     case 17:
         (void)snprintf(line,sizeof line,"P17 EVENTS_LOST %lu OK",(unsigned long)ee_owner_events_lost());
         send_detail(true); ++pstep; return;
@@ -213,7 +220,7 @@ static void save_cal(void) {
     } else if(!ee_owner_busy()) {
         if(!ee_owner_cal_saved()) report("CALIBRATION",0,false,"EEPROM");
         else {
-            event_t e; memset(&e,0,sizeof e); e.type=EV_CALIBRATION; e.uptime_s=tick_ms()/1000u;
+            event_t e; memset(&e,0,sizeof e); e.type=EV_CALIBRATION; e.uptime_s=app_uptime_s();
             (void)ee_owner_log(&e);
             report("CALIBRATION",(long)active_cal->sequence,true,"");
         }

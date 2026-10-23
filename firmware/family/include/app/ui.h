@@ -76,13 +76,16 @@ typedef struct {
     ack_reason_t ack_seen;
     prot_mode_t previous_mode;
     uint8_t page, channel, item, position, digit, attempts, address, baud;
-    uint8_t diff, event_age, event_count, entry_mask;
+    uint8_t diff, event_age, event_count, entry_mask, refusal_channel;
     uint8_t alarm_count, alarm_channel, alarm_unit;
     fault_code_t alarm_code;
     bool session, blank, pin_second, protection_change, reset_pending;
     bool recovering, event_valid, locked, transaction, alarm_snapshot, event_requested;
     char edit_name[6], service_step[4];
 } ui_state_t;
+#ifdef FAMILY_TEST
+const ui_state_t *ui_test_state(void);
+#endif
 typedef struct {
     const settings_t *settings;
     const prot_state_t *protection;
@@ -90,6 +93,7 @@ typedef struct {
     const fault_registry_t *faults;
     const scan_out_t *scan;
     uint32_t now_ms;
+    bool settings_valid;
     const uint8_t *trip_latched; /* optional pure-renderer input */
 } ui_snapshot_t;
 /* Pure: write exactly 20/80 space-padded characters, no terminating NUL. */

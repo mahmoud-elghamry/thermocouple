@@ -1,4 +1,5 @@
 #include "app/service.h"
+#include "app/image_identity.h"
 #include "drivers/keys.h"
 #include "drivers/rs485.h"
 #include "drivers/iso_spi.h"
@@ -29,6 +30,14 @@ void test_service(void) {
     scan_init(NULL,&cal,&faults); svc_init(&cfg,&cal,false,false,false,2,true);
     loop(12000); CHECK(svc_active_step()==1); CHECK(!timer_run_active());
     CHECK(strstr(fake_uart_log,"P01 BOARD")!=NULL); CHECK(strstr(fake_uart_log,"P16 LOOP")!=NULL);
+    {
+        image_identity_t id;char expected[100];app_identity_read(&id);
+        CHECK(sizeof id==APP_IDENTITY_BYTES && !memcmp(id.magic,APP_IDENTITY_MAGIC,8));
+        (void)snprintf(expected,sizeof expected,"P01 BOARD %u v%u.%u.%u %s %s MCU %02X%02X%02X OK",
+            id.board,id.major,id.minor,id.patch,id.commit,id.dirty?"DIRTY":"CLEAN",id.mcu[0],id.mcu[1],id.mcu[2]);
+        CHECK(strstr(fake_uart_log,expected)!=NULL);
+    }
+    CHECK(strstr(fake_uart_log,"P16 STACK_BYTES 0 OK")!=NULL);
     confirm(); /* A01: every requested key must also be released. */
     for(i=0;i<4;i++) {
         fake_pin(board()->keys[i],false); loop(220); CHECK(svc_active_step()==1);

@@ -104,15 +104,19 @@ static uint16_t global(const mb_snapshot_t *s,uint8_t a) {
         return 0;
     }
 }
+static bool range(const mb_snapshot_t *s,uint16_t start,uint16_t count);
 uint16_t mb_register(const mb_snapshot_t *s,uint16_t a) {
     uint8_t ch,offset; const chan_cfg_t *c; const result_t *r;
+    if(!s || !s->settings || s->settings->channel_count>MAX_CHANNELS || !range(s,a,1)) return 0;
     if(a<64) return global(s,(uint8_t)a);
     if(a>=600) {
         ch=(uint8_t)((a-600)/3); offset=(uint8_t)(2*((a-600)%3));
+        if(ch>=MAX_CHANNELS) return 0;
         return (uint16_t)((uint16_t)(uint8_t)s->settings->ch[ch].name[offset]<<8)|
             (uint8_t)s->settings->ch[ch].name[offset+1];
     }
     ch=(uint8_t)((a-100)/10); offset=(uint8_t)((a-100)%10);
+    if(ch>=MAX_CHANNELS) return 0;
     c=&s->settings->ch[ch]; r=&s->scan->meas[ch];
     switch(offset) {
     case 0: return c->type!=CH_TYPE_OFF && fresh(s,ch)?(uint16_t)r->temp_dC:0x8000;
@@ -132,8 +136,8 @@ uint16_t mb_register(const mb_snapshot_t *s,uint16_t a) {
 static bool range(const mb_snapshot_t *s,uint16_t start,uint16_t count) {
     uint32_t end=(uint32_t)start+count;
     return (start<64 && end<=64) ||
-        (start>=100 && start<530 && end<=100u+10u*s->settings->channel_count) ||
-        (start>=600 && start<729 && end<=600u+3u*s->settings->channel_count);
+        (start>=100 && start<100u+10u*MAX_CHANNELS && end<=100u+10u*s->settings->channel_count) ||
+        (start>=600 && start<600u+3u*MAX_CHANNELS && end<=600u+3u*s->settings->channel_count);
 }
 /* Internal core shared with shell, which already checked streaming RX CRC. */
 uint16_t mb_prepare(const mb_snapshot_t *s,const uint8_t *r,uint16_t n,uint8_t *out,uint16_t cap,uint16_t *start_out) {

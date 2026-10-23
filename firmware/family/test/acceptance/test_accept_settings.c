@@ -27,6 +27,22 @@ static void settings_layout(const settings_t *s,uint8_t *p)
     }
     fix_crc(p,16u+16u*s->channel_count);
 }
+static void rejected_record_stays_locked(res_t status,const char *input)
+{
+    rig_t r; outputs_t outputs; output_decision_t decision;
+    bool valid=status==RES_OK;
+    NO(P05 "2.1-3 / 00-overview.md Targets reject unsupported record",input,valid);
+    EQ(P05 "4 no valid copy (other slot blank)",input,-1,set_select(valid,10,false,0));
+    rig_init(&r); prot_init(&r.state,valid,true,false); r.in.settings_valid=valid;
+    EQ(P05 "4 / 04-protection.md 4 invalid settings boot",input,CONFIG_LOCK,r.state.mode);
+    rig_ack(&r);
+    EQ(P05 "4 ACK cannot clear CONFIG_LOCK",input,CONFIG_LOCK,r.state.mode);
+    NO(P05 "4 RUN never granted",input,r.out.run_permission);
+    NO(P05 "4 / 04-protection.md 6.1 invalid settings",input,r.out.window_refresh);
+    memset(&outputs,0,sizeof(outputs));
+    decision=outputs_step(&outputs,&r.out,r.in.now_ms,true,true);
+    NO(P05 "4 / 04-protection.md 6.1 invalid settings PWM",input,decision.pwm_enable);
+}
 void test_settings(void)
 {
     settings_t s,b,decoded; calibration_t cal,cal2; uint8_t p[768],q[768],cp[256];
@@ -174,14 +190,39 @@ void test_settings(void)
         YES(P05 "6 partial learning","one fitted input carries not-learned marker",cal_learn(&cal,&s,learned)!=RES_OK);
         EQ(P05 "6 partial learning","nothing stored if one fitted fails",0,memcmp(&cal,&before,sizeof(cal)));
     }
-    b=s;b.board_type=8;b.channel_count=8;
-    EQ(P05 "3 build identity","8ch valid record",RES_OK,set_validate(&b));
-    b.board_type=40;b.channel_count=43;
-    EQ(P05 "3 build identity","40ch valid record with RTDs OFF",RES_OK,set_validate(&b));
-    b.ch[40]=b.ch[0];b.ch[40].type=CH_TYPE_PT100;b.ch[40].probe_limit_dC=4000;
-    EQ(P05 "3 PT100 placement","40ch input41 PT100",RES_OK,set_validate(&b));
-    calibration_fixture(&cal,&b);cal.bank_count=6;
-    NO(P05 "6 PT100 incomplete in v1","40ch fitted PT100 always G10",cal_complete(&cal,&b));
-    b.ch[40].type=CH_TYPE_K;
-    YES(P05 "3 TC never on RTD input","K on40ch input41",set_validate(&b)!=RES_OK);
+    {
+        /* 00 Targets / 05 2.1 bytes3-4, 3: only board24/count24 is this build.
+           Unsupported identities are negative inputs, never larger RAM arrays. */
+        static const struct { uint8_t board,channels; } wrong_build[]={
+            {8,24},{40,24},{255,24},{24,8},{24,23},{24,25},{24,43},{8,8},{40,43}
+        };
+        for(i=0;i<sizeof(wrong_build)/sizeof(wrong_build[0]);++i) {
+            b=s; b.board_type=wrong_build[i].board; b.channel_count=wrong_build[i].channels;
+            (void)snprintf(input,sizeof(input),"C4 board=%u count=%u; build24/24",
+                           (unsigned)b.board_type,(unsigned)b.channel_count);
+            YES(P05 "2.1 bytes3-4 / 3 / 00-overview.md Targets",input,set_validate(&b)!=RES_OK);
+            /* Build the rejected wire record directly in the768-byte slot.
+               At most43 blocks (706 bytes with CRC); copy only the valid
+               CH1 block and canonical OFF CH2 block, never index ch beyond23. */
+            memset(q,0,sizeof(q)); memcpy(q,p,16);
+            q[3]=b.board_type; q[4]=b.channel_count;
+            for(j=0;j<b.channel_count;++j)
+                memcpy(q+16u+16u*j,p+16u+(j==0?0u:16u),16);
+            fix_crc(q,16u+16u*b.channel_count);
+            rejected_record_stays_locked(set_unpack(q,24,24,&decoded),input);
+        }
+    }
+    {
+        /* 05 2.2 assigns raw3 to historical PT100; 00 Targets allows only
+           OFF/K/J. Use the raw value without depending on a removed enum. */
+        static const uint8_t unsupported_types[]={3,4,255};
+        for(i=0;i<sizeof(unsupported_types)/sizeof(unsupported_types[0]);++i) {
+            b=s; b.ch[0].type=(ch_type_t)unsupported_types[i];
+            (void)snprintf(input,sizeof(input),"C4 CH1 raw type=%u outside OFF/K/J",
+                           (unsigned)unsupported_types[i]);
+            YES(P05 "2.2 type / 3 / 00-overview.md Targets",input,set_validate(&b)!=RES_OK);
+            memcpy(q,p,sizeof(q)); q[16]=unsupported_types[i]; fix_crc(q,400);
+            rejected_record_stays_locked(set_unpack(q,24,24,&decoded),input);
+        }
+    }
 }

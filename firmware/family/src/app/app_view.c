@@ -1,4 +1,5 @@
 #include "app/app_view.h"
+#include "app/channel_eval.h"
 #include "app/ui.h"
 #include "app/ee_owner.h"
 #include "services/scan.h"
@@ -15,7 +16,13 @@ static uint8_t cursor,count,newest_ch,newest_unit;
 static fault_code_t newest;
 static uint32_t last_ms,seconds,revision;
 static uint16_t fraction;
-uint32_t app_uptime_s(void) { return seconds; }
+uint32_t app_uptime_s(void) {
+    uint32_t now=tick_ms(),elapsed=now-last_ms;
+    last_ms=now;
+    if(elapsed<1000u-fraction) fraction=(uint16_t)(fraction+elapsed);
+    else { elapsed+=fraction; seconds+=elapsed/1000u; fraction=(uint16_t)(elapsed%1000u); }
+    return seconds;
+}
 const uint8_t *app_trip_bitmap(void) { return trip; }
 void app_view_ack(void) {
     uint8_t i;
@@ -37,7 +44,7 @@ void app_view_result(uint8_t ch,const result_t *r,act_t action) {
     if(maximum[ch]==TEMP_DC_INVALID || r->temp_dC>maximum[ch]) maximum[ch]=r->temp_dC;
 }
 void app_view_cause(fault_code_t code,uint8_t channel,uint8_t unit) {
-    uint8_t id,i; ch_mode_t mode=CH_MODE_TRIP;
+    uint8_t id,i; ch_mode_t mode=CH_MODE_TRIP; act_t action;
     if(channel && channel<=MAX_CHANNELS) {
         id=(uint8_t)(channel-1u); mode=app_settings()->ch[id].mode;
         if(app_settings()->ch[id].type==CH_TYPE_OFF) return;
@@ -45,10 +52,13 @@ void app_view_cause(fault_code_t code,uint8_t channel,uint8_t unit) {
     else if(code>=FC_B01_ADC_ID && code<=FC_B15_ADC_RESET && unit<MAX_BANKS)
         id=(uint8_t)(MAX_CHANNELS+15u+(code-FC_B01_ADC_ID)*MAX_BANKS+unit);
     else return;
-    if(fault_action(code,mode)==ACT_NONE) return;
+    /* Temperature causes are evaluated conditions, not registry faults. */
+    action=channel && (code==FC_C10_OVER_TRIP || code==FC_C11_OVER_ALARM)?
+        chan_action(code==FC_C10_OVER_TRIP?COND_OVER_TRIP:COND_OVER_ALARM,mode):fault_action(code,mode);
+    if(action==ACT_NONE) return;
     if(channel) {
         channel_cause[id]=(uint8_t)code;
-        if(fault_action(code,mode)==ACT_TRIP) trip[id/8u]|=(uint8_t)(1u<<(id%8u));
+        if(action==ACT_TRIP) trip[id/8u]|=(uint8_t)(1u<<(id%8u));
     }
     for(i=0;i<CAUSES && order[i]!=id;i++) { }
     if(i<CAUSES) { memmove(order+1,order,i); order[0]=id; }
@@ -67,9 +77,9 @@ static bool present(uint8_t id,fault_code_t *code,uint8_t *ch,uint8_t *unit) {
     return fault_action(*code,CH_MODE_TRIP)!=ACT_NONE && fault_latched_at(app_faults(),*code,*unit);
 }
 void app_view_step(void) {
-    uint8_t i,ch=ui_channel(),age; uint32_t now=tick_ms(),elapsed=now-last_ms+fraction;
+    uint8_t i,ch=ui_channel(),age;
     const scan_out_t *s=scan_last(); const fault_registry_t *f=app_faults();
-    last_ms=now; seconds+=elapsed/1000u; fraction=(uint16_t)(elapsed%1000u);
+    (void)app_uptime_s();
     if(revision!=f->active_revision) { cursor=0; revision=f->active_revision; }
     if(!cursor) { count=0; newest=FC_NONE; newest_ch=newest_unit=0; }
     for(i=0;i<8 && cursor<CAUSES;i++,cursor++) {
@@ -92,7 +102,7 @@ void app_view_step(void) {
     }
 }
 void mb_io_status(mb_status_t *s) {
-    s->now_ms=tick_ms(); s->uptime_s=seconds; s->power_cycles=ee_owner_cycles();
+    s->now_ms=tick_ms(); s->uptime_s=app_uptime_s(); s->power_cycles=ee_owner_cycles();
     s->version=FW_BUILD_VERSION; s->patch=FW_BUILD_PATCH; s->schema=SETTINGS_SCHEMA_VERSION;
     s->run_driven=relay_run_sense(); s->alarm_driven=relay_alarm_sense();
     memcpy(s->trip_latched,trip,sizeof trip);

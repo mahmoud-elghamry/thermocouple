@@ -25,7 +25,7 @@ static void record_rules(void)
     BAD(ch[0].alarm_dC,-1); BAD(ch[0].alarm_dC,1000); BAD(ch[0].trip_dC,0);
     BAD(ch[0].trip_dC,12001); BAD(ch[0].probe_limit_dC,13721);
     BAD(ch[0].band_C,1); BAD(ch[0].band_C,51); BAD(ch[0].type_epoch,64);
-    BAD(ch[0].type,CH_TYPE_PT100); BAD(ch[0].type,CH_TYPE_OFF);
+    BAD(ch[0].type,(ch_type_t)3); BAD(ch[0].type,CH_TYPE_OFF);
     BAD(ch[1].mode,CH_MODE_ALARM_ONLY); BAD(ch[1].alarm_dC,1); BAD(ch[1].trip_dC,1);
     BAD(ch[1].probe_limit_dC,1); BAD(ch[1].band_C,3);
 #undef BAD
@@ -35,16 +35,20 @@ static void record_rules(void)
     bad.ch[0].type_epoch=63; CHECK(set_change_type(&bad.ch[0],CH_TYPE_J)==RES_OK);
     CHECK(bad.ch[0].type_epoch==0 && bad.ch[0].trip_dC==0 && bad.ch[0].probe_limit_dC==0);
     CHECK(set_validate(&bad)!=RES_OK); /* actual limits must be re-entered */
+    /* 00 Targets / 0043 section 9: historical identities must fail before
+     * indexing the now 24-entry arrays; raw type 3 is no longer supported. */
     bad=s; bad.board_type=40; bad.channel_count=43;
-    bad.ch[40]=s.ch[0]; bad.ch[40].type=CH_TYPE_PT100; bad.ch[40].probe_limit_dC=4000;
-    CHECK(set_validate(&bad)==RES_OK);
-    bad.ch[40].type=CH_TYPE_K; CHECK(set_validate(&bad)!=RES_OK);
+    CHECK(set_validate(&bad)==RES_ERR_RANGE);
+    CHECK(set_pack(&bad,corrupt)==RES_ERR_RANGE);
+    CHECK(set_change_type(&s.ch[0],(ch_type_t)3)==RES_ERR_RANGE);
     bad=s; bad.board_type=8; bad.channel_count=8; bad.address=247; bad.baud=1; bad.pin_bcd=0x9999;
     bad.ch[0].name[0]=' '; bad.ch[0].name[5]='~'; bad.ch[0].type_epoch=63;
     bad.ch[0].band_C=50; bad.ch[0].alarm_dC=0; bad.ch[0].trip_dC=1;
-    CHECK(set_pack(&bad,corrupt)==RES_OK && set_unpack(corrupt,8,8,&out)==RES_OK);
+    CHECK(set_pack(&bad,corrupt)==RES_ERR_RANGE);
+    bad.board_type=24; bad.channel_count=24;
+    CHECK(set_pack(&bad,corrupt)==RES_OK && set_unpack(corrupt,24,24,&out)==RES_OK);
     bad=s; bad.board_type=40; bad.channel_count=43;
-    CHECK(set_pack(&bad,corrupt)==RES_OK && set_unpack(corrupt,40,43,&out)==RES_OK);
+    CHECK(set_pack(&bad,corrupt)==RES_ERR_RANGE && set_unpack(corrupt,40,43,&out)==RES_ERR_RANGE);
     CHECK(corrupt[706]==0 && corrupt[767]==0);
     CHECK(set_crc16((const uint8_t *)"123456789",9)==0x29B1);
     CHECK(set_select(true,1,true,2)==1); CHECK(set_select(true,2,true,1)==0);

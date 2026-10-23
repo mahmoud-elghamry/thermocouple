@@ -3,8 +3,8 @@
 #include "drivers/iso_spi.h"
 #include "board/board_cfg.h"
 #include <string.h>
-static uint8_t age[10];
-static uint16_t last_id[10];
+static uint8_t age[2u*MAX_BANKS];
+static uint16_t last_id[2u*MAX_BANKS];
 static uint8_t reading,read_step;
 static uint16_t sample[5];
 uint16_t cj_crc16(const uint8_t *p,uint8_t n) {
@@ -13,7 +13,7 @@ uint16_t cj_crc16(const uint8_t *p,uint8_t n) {
     return c;
 }
 void cj_reset(void) { memset(age,0,sizeof age); memset(last_id,0,sizeof last_id); read_step=0; }
-uint16_t cj_last_id(uint8_t j) { return j<10?last_id[j]:0; }
+uint16_t cj_last_id(uint8_t j) { return j<2u*MAX_BANKS?last_id[j]:0; }
 static uint16_t signature(uint8_t j) { return (uint16_t)(0xC000u+0x40u*j); }
 static res_t frame(uint8_t j,uint16_t cmd,uint16_t *v) {
     uint8_t bytes[4],k; uint16_t dummy,crc; res_t r;

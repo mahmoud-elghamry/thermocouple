@@ -1,6 +1,6 @@
 #ifndef FAMILY_STACK_BUDGET_H
 #define FAMILY_STACK_BUDGET_H
-/* avr-gcc -Os settings_commit frame = 1046 B, before its callers/interrupts.
- * Shared with build.ps1's RAM and frame gates; total budget remains 12 KiB. */
+/* Shared production RAM reservation and measured AVR high-water gate.
+ * 10 section 2: static RAM plus this stack allowance must fit 14 KiB. */
 #define APP_STACK_BYTES 1536u
 #endif

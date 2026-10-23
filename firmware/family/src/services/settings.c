@@ -32,9 +32,7 @@ res_t set_validate_part(const settings_t *s,uint8_t first,uint8_t count,bool *fi
 {
     uint8_t i,end=(uint8_t)(first+count);
     if(s==NULL || fitted==NULL || first>s->channel_count || count>s->channel_count-first) return RES_ERR_RANGE;
-    if(!((s->board_type==8 && s->channel_count==8) ||
-         (s->board_type==24 && s->channel_count==24) ||
-         (s->board_type==40 && s->channel_count==43))) return RES_ERR_RANGE;
+    if(s->board_type!=24 || s->channel_count!=MAX_CHANNELS) return RES_ERR_RANGE;
     if(s->address<1 || s->address>247 || s->baud>1) return RES_ERR_RANGE;
     for(i=0;i<4;++i) if(((s->pin_bcd>>(4u*i))&15u)>9u) return RES_ERR_RANGE;
     for(i=first;i<end;++i) {
@@ -50,10 +48,8 @@ res_t set_validate_part(const settings_t *s,uint8_t first,uint8_t count,bool *fi
             continue;
         case CH_TYPE_K: max=13720; break;
         case CH_TYPE_J: max=12000; break;
-        case CH_TYPE_PT100: max=4000; break;
         default: return RES_ERR_RANGE;
         }
-        if((i>=40)!=(c->type==CH_TYPE_PT100)) return RES_ERR_RANGE;
         if(c->band_C<2 || c->band_C>50 || c->alarm_dC<0 || c->alarm_dC>=c->trip_dC ||
            c->trip_dC>c->probe_limit_dC || c->probe_limit_dC>max) return RES_ERR_RANGE;
         *fitted=true;
@@ -139,7 +135,7 @@ bool set_protection_changed(const settings_t *a, const settings_t *b)
 }
 res_t set_change_type(chan_cfg_t *c, ch_type_t type)
 {
-    if(c==NULL || (unsigned)type>CH_TYPE_PT100 || c->type_epoch>63) return RES_ERR_RANGE;
+    if(c==NULL || (unsigned)type>CH_TYPE_J || c->type_epoch>63) return RES_ERR_RANGE;
     if(type==c->type) return RES_OK;
     c->type=type; c->type_epoch=(uint8_t)((c->type_epoch+1u)&63u);
     c->alarm_dC=0; c->trip_dC=0; c->probe_limit_dC=0;

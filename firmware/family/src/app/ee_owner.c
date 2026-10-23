@@ -18,6 +18,17 @@ static uint32_t history_mask;
 static events_t ring;
 static event_t queue[QUEUE_SIZE];
 static ee_op_t operation;
+#ifdef FAMILY_TEST
+bool ee_owner_invariants(void) {
+    return head<QUEUE_SIZE && tail<QUEUE_SIZE && count<=QUEUE_SIZE &&
+        load_slot<=EVENT_SLOTS && next_slot<EVENT_SLOTS &&
+        (!event_pending || (event_slot<EVENT_SLOTS && event_index<16)) &&
+        (!counter_pending || (counter_slot<2 && counter_index<8)) &&
+        store.phase<=STORE_PREPARE && store.length<=SETTINGS_SLOT_SIZE &&
+        (!store.pending || (store.index<=store.length && store.base+store.length<=0x840)) &&
+        (operation.kind==EE_NONE || operation.address<4096);
+}
+#endif
 static uint32_t read32(uint16_t address) {
     uint8_t i; uint32_t v=0;
     for(i=0;i<4;i++) v|=(uint32_t)ee_read((uint16_t)(address+i))<<(8*i);

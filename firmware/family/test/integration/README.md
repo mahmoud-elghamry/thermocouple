@@ -74,38 +74,52 @@ not load that section's flash LMA. Neither workaround changes instruction bytes.
 The profiler aliases EEPROM A/B fixture slots to fit SRAM; power-cut correctness
 belongs to the independent full-EEPROM host suite, not this timing harness.
 Raw cycles, per-pass estimates and calibration results are in `build/profile/`.
-The gate reserves 25% + 2048 cycles for interrupts. It measures 1782 full
-passes across boot, held ACK, healthy scans, a 24-channel fault burst, names and
-protection saves, service, epoch wrap, a changed LCD frame, and a deliberately
-combined preparation step + current CJ frame + ADC completion + real queued ACK.
-The combined case requires all four evidence bits, and all target functional
-checks must pass. This is a measured path set with conservative MCAL bounds,
-not an exhaustive WCET proof for every possible input.
+The gate reserves 25% + 2048 cycles for interrupts. Its passes cover boot,
+held ACK, healthy scans, a 24-channel fault burst, names/protection saves,
+service, epoch wrap, LCD, UI editing, and combined commit + CJ + DATA + ACK +
+Modbus garbage. All six combined evidence bits and newest-hot/C01 safety
+checks must pass. Measured CPU/stack maxima and counts are in
+`build/profile/summary.txt`; the full run takes about 12-15 minutes here.
+This is a measured path set with conservative MCAL bounds, not an exhaustive
+WCET proof for every possible input.
 
-F1e timing values live only in `include/app/timing.h`: RUN window 1200 ms,
-scan freshness/deadline 1200 ms, loop limit 20 ms (160000 cycles at 8 MHz),
-ADC observed RDY 36..69 ms. The service relay exercise remains 1000 ms.
-The profiler reads that same header for its cycle gate. `build.ps1` runs the
-profiler automatically; `-HostOnly` runs just the native suites. The standalone
-profiler command is `powershell -NoProfile -ExecutionPolicy Bypass -File
-firmware/family/test/integration/profile_avr.ps1`. A run takes about one minute
-on this machine, so it remains in the normal build gate.
+Timing limits remain in `include/app/timing.h`: RUN and scan deadline 1200 ms,
+loop 20 ms / 160000 cycles, observed ADC RDY 36..69 ms, service relay 1000 ms.
+`profile_avr.ps1 -CompileOnly` builds the simulator and calibrates MCAL quickly;
+`build.ps1` always runs the complete measured-clock gate.
 
-Latest measured maximum: 102017 cycles / 12.752 ms including reserve, during
-boot. The combined case measures 91317 cycles. Actual target calibration:
-soft SPI 431 cycles/byte, Timer2 ISR <=216 cycles over 2049 samples, async commit
-begin <=2640 cycles, preparation step <=1901 cycles over 190 samples. Both
-legacy synchronous commit APIs retain their original complete-image contract;
-the real EEPROM owner uses bounded preparation and immutable mailboxes.
+F7 removes serial acquisition overhead. ADC slot 0 starts before CJ work;
+two checked sensors per wait pass complete the current-scan CJ records by
+first DATA. Static readbacks remain in conversion waits. All 19 mutable
+readbacks run in three bounded batches (7/7/5), starting after the final P5, as required by 03 sections 3.2/5.
+The periodic REF pulse overlaps only slots 10-12: internal 20 mV and AVDD
+nodes (03 section 3), while REFTEST pulls REF_SENSE low (02 section 10).
+The >=5 ms high and >=20 ms low waits remain; external slot 13 cannot start
+until recovery completes. Every required register/CJ check remains.
 
-CPU reductions retained from F1d include direct fixed-pin software SPI and key
-sampling; one checked CJ frame per pass; one conversion completion per pass
-while every pending bank's STATUS is still polled; retained first-RDY timing
-before delayed held-DATA reads; bounded commit preparation; notification-only
-changed-code hints; protection evidence caches; nibble CRC tables; bounded LCD
-updates. Protection always reads authoritative fault bitmaps. The ADC/scan,
-LCD and service changes are the permitted integration exceptions: they bound
-loop work, preserve acquisition timing evidence, and report the shared limit.
+P15 `duration_ms` now measures publication-to-publication, including REF;
+the first scan after initialization/recovery reports acquisition time because
+there is no previous completion in that acquisition epoch. Tests assert exact
+equality to completion timestamps. Host and soak exercise 24 scans for each
+20/8/20/20, 20/1/20/1, 19/20/3 and fixed-seed random 1..20 ms pattern with REF
+due. The AVR profiler repeats eight scans/pattern, lengthening each target to
+its measured pass cost. All passes must stay <=20 ms, completions <=1100 ms,
+and healthy RUN must remain uninterrupted. Already elapsed modeled clock time
+is subtracted from padding, so simulated time is charged once.
+
+The F1f C01 regression uses a test-only publication barrier to retain the
+original ACK-before-completion interleaving after the seven verification
+passes were reduced to three. Its refusal/first-out/PWM assertions are unchanged.
+Cooling fixtures wait for any TC/burnout step mismatch to clear at the owning
+channel's scheduled recheck (03 section 4.1), rather than relying on scan phase.
+
+`build.ps1` writes `thermo24_f1.hex.json`: production format, board/MCU,
+byte count, CRC16 and HEX SHA-256. `program.ps1`, including DryRun, validates
+that metadata, the entire Intel HEX record structure/extent, and the stored
+boot CRC at 0x1FFFE before any avrdude operation. It requires Python 3 (standard
+library only). Programmer mocks reject profiler, legacy, unpatched, tampered,
+missing-metadata, wrong-CRC and bad-record images without invoking avrdude.
+Low/high fuses compare exactly; efuse uses `(value & 7) == 4` (02 section 7).
 
 The simulator instruments every RET of opaque MCAL wrappers. Explicit code
 pointer casts avoid AVR GDB's data-space and 16-bit signed-offset ambiguity.
@@ -118,3 +132,31 @@ No acceptance file, acceptance build script, or common header is changed by
 this lane. Timing expectations in core fixtures and scenarios retain their
 boundary meaning with values from the shared header. Native integration still
 sweeps 405 settings power-cut boundaries and checks both old and new records.
+
+F8 retains a pending REF attempt when the precheck or low recovery sees G08.
+Only a completed test with restored REFOK (pass or G09) updates the ten-minute
+interval. Slot 10 makes at most one retry per scan. Host and AVR cases hold
+REFOK high for five seconds, then require the first completion after a full
+successful pulse/recovery to validate; RUN stays latched off until a fresh key
+ACK. A separate held-high case must never validate. The AVR gate requires all
+five sticky evidence bits and a recovery time below three seconds.
+
+Production identity is now embedded at `APP_IDENTITY_ADDRESS` (0x1FF80),
+64 bytes: eight-byte magic, board, MCU signature, three version bytes, dirty
+flag, twelve-digit commit plus NUL, and reserved zero bytes. The header
+`include/app/image_identity.h` owns the map. Build obtains HEAD and dirty state
+using read-only git commands and checks the linked record address/size.
+CRC16 covers two ordered programmed spans: code/data, followed by the identity;
+unprogrammed flash holes remain excluded. Its stored word stays at 0x1FFFE.
+The real boot-CRC host test changes each identity byte and checks failure,
+while retaining the 128-byte step bound. Service P01 reads that same record.
+
+Sidecars use `thermo-production-v2`, and their identity must equal the record
+inside the HEX. The validator also rejects payloads smaller than the MCU's
+140-byte vector table. Default programming requires embedded commit == this
+repository's current HEAD; DIRTY is allowed and printed in the final PASS line.
+`program.ps1 -Release <path>`, optionally with `-DryRun`, is the owner's explicit
+approval of that particular release HEX plus its adjacent sidecar. It bypasses
+only the HEAD comparison. Identity, board/MCU, CRC and hash checks still apply;
+if `-Image` is also supplied it must resolve to the same file. Release paths,
+like Image paths, are relative to the family directory unless absolute.

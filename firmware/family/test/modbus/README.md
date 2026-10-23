@@ -11,7 +11,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File firmware/family/test/build_m
 ```
 
 Host: **1,527,729 checks**, MSVC `/W4 /WX` + ASan. Includes both functions, every
-mapped register on 8/24/43-channel snapshots, every function rejection, exceptions,
+mapped register on 24-channel snapshots (00 Targets / 0043 section 9), every function rejection, exceptions,
 CRC, malformed/address/broadcast/overflow cases, gap boundaries, timestamp wrap,
 133-byte maximum, TX-buffer ownership, source-change cancellation, age saturation,
 and 687.5 seconds of logical 19200-baud 8N2 garbage plus recovery.

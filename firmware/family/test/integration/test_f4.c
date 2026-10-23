@@ -28,6 +28,15 @@ static void key(key_t k) {
 static void times(key_t k,unsigned n) { while(n--) key(k); }
 static void pin(uint16_t value) { int shift; for(shift=12;shift>=0;shift-=4) { times(KEY_UP,(value>>shift)&15u); key(KEY_SET); } }
 static void ack(void) { fake_pin(board()->keys[3],false); loop(70); fake_pin(board()->keys[3],true); loop(20); }
+static void cool_settle(void) {
+    unsigned i;
+    fake_ad_code(0,0,0x800000); fake_ad_code(0,14,0x853E2D); loop(1500);
+    /* 03 section 4.1: a step between TC and burnout can latch C01/C06.
+     * F7 changes that alignment. Wait for its owning-channel check (8 scans),
+     * preserving every trip/ACK assertion instead of relying on phase luck. */
+    for(i=0;i<8000 && (fault_active(app_faults(),FC_C01_OPEN) || fault_active(app_faults(),FC_C06_SHORTED));i++) loop(1);
+    CHECK(i<8000 && scan_last()->scan_validated);
+}
 static void commissioning(void) {
     unsigned i;
     fake_reset(); f0_init(); loop(3000); CHECK(f0_mode()==CONFIG_LOCK);
@@ -40,6 +49,13 @@ static void commissioning(void) {
     CHECK(ee_owner_settings_valid() && app_settings()->pin_bcd==0x1111);
     CHECK(app_settings()->ch[0].type==CH_TYPE_K && app_settings()->ch[0].trip_dC==600);
     CHECK(f0_mode()==CONFIG_LOCK); /* 06 section 6: calibration is a service operation. */
+    CHECK(!fault_active(app_faults(),FC_G01_SETTINGS_INVALID));
+    CHECK(fault_active(app_faults(),FC_G10_CALIBRATION));
+    key(KEY_SET_LONG); pin(0); CHECK(ui_current_screen()==UI_PIN);
+    pin(0x1111); CHECK(ui_current_screen()==UI_SETUP);
+    key(KEY_SET); key(KEY_SET);
+    CHECK(ui_test_state()->work[0].type==CH_TYPE_K && ui_test_state()->work[0].trip==600);
+    key(KEY_ESC); key(KEY_ESC); key(KEY_ESC); CHECK(ui_current_screen()==UI_HOME);
     fake_pin(board()->keys[2],false); f0_init(); loop(12000);
     fake_pin(board()->keys[2],true); loop(1000); CHECK(f0_mode()==SERVICE);
     for(i=0;i<5;i++) { CHECK(svc_active_step()==i+1); key(KEY_ESC); loop(250); }
@@ -74,7 +90,7 @@ static void communication(void) {
     for(load=0;load<2;load++) {
         uint32_t number;
         if(load) {
-            fake_ad_code(0,0,0x800000); fake_ad_code(0,14,0x853E2D); loop(1500); ack(); loop(750);
+            cool_settle(); ack(); loop(750);
             for(i=0;i<600000;i++) {
                 fake_uart_receive((uint8_t)i,0); fake_uart_receive((uint8_t)~i,0);
                 loop(1); CHECK(timer_run_active());
@@ -101,7 +117,7 @@ static void communication(void) {
 }
 static void saves(void) {
     uint32_t seq; uint8_t reply[133];
-    fake_ad_code(0,0,0x800000); fake_ad_code(0,14,0x853E2D); loop(1500);
+    cool_settle();
     (void)request(28,1,reply); CHECK(word(reply,0)&1u); /* persists after recovery, before ACK */
     ack(); loop(750); CHECK(timer_run_active());
     (void)request(28,1,reply); CHECK(word(reply,0)==0);

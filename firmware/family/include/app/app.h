@@ -9,6 +9,7 @@ void app_init(settings_t *settings, calibration_t *cal, fault_registry_t *faults
 uint8_t app_step(bool flow_ok);
 res_t app_commit_settings(const settings_t *candidate); /* one-slot mailbox */
 const settings_t *app_settings(void);
+bool app_settings_valid(void);
 const prot_state_t *app_protection(void);
 const prot_out_t *app_output(void);
 const fault_registry_t *app_faults(void);

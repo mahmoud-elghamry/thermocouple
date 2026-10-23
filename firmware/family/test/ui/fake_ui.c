@@ -13,6 +13,8 @@ res_t fake_commit_result;
 char fake_frame[80];
 bool fake_repeat;
 static ack_reason_t reason;
+static bool settings_valid;
+bool app_settings_valid(void) { return settings_valid; }
 const settings_t *app_settings(void) { return &fake_settings; }
 const prot_state_t *app_protection(void) { return &fake_protection; }
 const prot_out_t *app_output(void) { return &fake_output; }
@@ -42,7 +44,7 @@ static void pass(void) {
 void fake_pump(void) { unsigned i; for(i=0;i<48;i++) { pass(); fake_ms++; } }
 void fake_key(key_t k) { (void)ui_key(k); pass(); fake_ms++; fake_pump(); }
 void fake_finish(res_t r) {
-    if(r==RES_OK) { fake_settings=fake_candidate; fake_settings.sequence++; }
+    if(r==RES_OK) { fake_settings=fake_candidate; fake_settings.sequence++; settings_valid=true; }
     ui_store_result(r); fake_pump();
 }
 void fake_reset(bool blank) {
@@ -67,5 +69,5 @@ void fake_reset(bool blank) {
         if(blank) { memset(c,0,sizeof *c); }
     }
     if(blank) (void)fault_raise(&fake_faults,FC_G01_SETTINGS_INVALID,0);
-    reason=ACK_NONE; ui_init(); ui_bind_candidate(&fake_candidate); fake_pump();
+    settings_valid=!blank; reason=ACK_NONE; ui_init(); ui_bind_candidate(&fake_candidate); fake_pump();
 }

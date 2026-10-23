@@ -464,7 +464,10 @@ RS-485 is never in the trip path (0031 D7).
   3. REFOK must read **high**; else **G09** (comparator, isolator or REFOK path stuck low).
   4. REFTEST = 0; wait **>= 20 ms** (recharge through R421 10k + feed 2 x 4.99k into 100 nF: tau ~2 ms).
   5. REFOK must read **low** again; else G08.
-  During steps 2-5 the scan does not evaluate REFOK. **OPEN-H7:** both waits from RC estimates; confirm on the
+  During steps 2-5 the scan does not evaluate REFOK. The periodic test runs inside a scan, started with slot 10
+  and overlapping only the internal-node slots 10-12 (`03` 3); slot 13 (external input) starts only after step 5
+  (F7, 2026-10-23: keeps the gap between validated scans <= ~1.04 s measured with loop jitter, I-124). The
+  start-up test (S14) runs before the first scan. **OPEN-H7:** both waits from RC estimates; confirm on the
   bench (I-120 cut FEED / cut SENSE).
 
 ## 11. Power loss and island loss

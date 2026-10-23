@@ -35,7 +35,7 @@ static res_t settings_commit(set_store_t *st, const settings_t *candidate,
         }
     } else if(active_slot!=2) return RES_ERR_RANGE;
     if(wraps) {
-        uint8_t banks=candidate->board_type==40?6u:(uint8_t)(candidate->channel_count/8u);
+        uint8_t banks=(uint8_t)(candidate->channel_count/8u);
         if(cal_slot>1 || cal_validate(cal)!=RES_OK || cal->bank_count!=banks) return RES_ERR_RANGE;
         /* A settings verification failure may leave its copy boot-selectable.
          * Never overwrite the verified cleared calibration using a stale slot
@@ -144,14 +144,14 @@ static void prepare_step(set_store_t *s)
     case PREP_CAL_CHECK:
         if(s->prep_wrap || s->prep_cal_only) {
             if(cal_validate(cal)!=RES_OK || (s->prep_wrap &&
-               (s->prep_cal_slot>1 || cal->bank_count!=(cfg->board_type==40?6u:cfg->channel_count/8u) ||
+               (s->prep_cal_slot>1 || cal->bank_count!=(cfg->channel_count/8u) ||
                 (s->calibration_slot_known && s->prep_cal_slot!=s->calibration_active_slot)))) {
                 prepare_fail(s); return;
             }
         }
         s->prep_stage=PREP_ZERO; s->prep_position=0; return;
     case PREP_ZERO:
-        out=s->prep_position<SETTINGS_SLOT_SIZE?s->image+s->prep_position:s->wrap_cal_image+s->prep_position-SETTINGS_SLOT_SIZE;
+        out=s->prep_position<SETTINGS_SLOT_SIZE?s->image+s->prep_position:s->wrap_cal_image+(s->prep_position-SETTINGS_SLOT_SIZE);
         memset(out,0,64); s->prep_position+=64;
         if(s->prep_position<(s->prep_wrap?SETTINGS_SLOT_SIZE+CAL_SLOT_SIZE:SETTINGS_SLOT_SIZE)) return;
         s->prep_cursor=0; s->prep_stage=s->prep_cal_only?PREP_CAL:PREP_SETTINGS; return;

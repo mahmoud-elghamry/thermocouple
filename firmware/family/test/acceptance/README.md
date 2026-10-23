@@ -18,6 +18,46 @@ links exactly build_core.ps1's eleven production sources. The hardware output se
 is a no-op fake; no production source or existing test is modified. All test loops
 are bounded, arrays have fixed bounds, and tests allocate no dynamic memory.
 
+## 24-ch-only acceptance (2026-10-23, Lane C4)
+
+00 Targets and decision0043 section9 make only board24/count24 normative.
+`test_accept_settings.c` replaces the 8/40-ch valid-record and PT100-placement
+checks, including out-of-bounds `ch[40]` and bank_count6, with negative cases:
+board/count8/24,40/24,255/24,24/8,24/23,24/25,24/43,8/8,40/43 must fail
+RAM validation and wire-record decoding (05 2.1 bytes3-4, 3). The wire inputs
+have independently correct CRCs at their declared lengths; even the rejected
+43-channel records use only raw slot bytes, never a channel-array index above23.
+Raw channel types3 (historical PT100 from05 2.2),4 and255 must also fail; no
+CH_TYPE_PT100 constant is needed. Each rejected wire record, paired with a
+blank other slot, must select no record, boot CONFIG_LOCK and stay locked with
+RUN/window/PWM off after fresh ACK (05 4, 04 4/6.1).
+
+The whole acceptance-folder audit found no other larger-board array access,
+bank D/E use or channel/bank loop to fix. MAX_CHANNELS loops now cover24; REF
+loops cover3. Literal5/6 loops cover states/protection fields, not banks.
+EEPROM offsets and249-byte calibration records remain per05 and00 Targets.
+Fault-table tests still check the stable04 fault codes; they instantiate no
+RTD input or decoder. All assertions outside the replaced block are unchanged.
+
+The command above was run **once for C4**, exit1. MSVC /W4 /WX compilation and
+strict AVR production compilation passed. Host execution **aborted before TOTAL**
+with one AddressSanitizer stack-buffer-overflow (READ of size1), so completed
+check/pass/fail counts are unavailable. The replacement contains96 assertions
+in place of5; that is a source count, not a completed execution count.
+
+Failure: 05 2.1/3 and00 Targets require wrong-build RAM input to return a status
+other than RES_OK. Instead, the call at `test_accept_settings.c:203` aborted.
+The sanitizer stack reports `set_validate_part` (`settings.c:44`), called by
+`set_validate` (`settings.c:66`), then this test. These locations come solely
+from the run's diagnostic; no production source was opened. The diagnostic
+does not show the matrix index, so no specific row is claimed as the culprit.
+No individual assertion failure was emitted before the abort.
+
+`output/test-results.txt` currently contains a14270-check summary without the
+C4 changes; it is not evidence for this aborted invocation. The sanitizer
+diagnostic was emitted on stderr in the command output. No rerun or production
+fix was attempted. `python docs/check_docs.py`: exit0, zero findings.
+
 ## Newer evidence vetoes ACK (2026-10-23, Lane C3)
 
 `test_accept_protection.c` adds two interleavings, one for a TRIP-mode channel
@@ -120,7 +160,7 @@ proof. ACK correctly rejects it (the separate R2 test passes); RUN refresh does 
 | tables.c | 04 3.1 all conditions and threshold edges; 3.2 all modes/OFF; 3.3 hysteresis; 9 every fault/action row in both modes, C10/C11 via conditions; 01 5 unknown enums; 09 S21 bank independence |
 | test_accept_protection.c | 04 4 all five states versus no event, ACK, invalid settings/calibration, protection/name commit and immediate trip/fault; boot SERVICE precedence; corrupt state/complements; 4.1 first-out; 5 R1-R6 and refusal boundaries; 7.2 alarm latch |
 | test_accept_outputs.c | 04 1 immediate trip; 6.1 ACK ordering, validated-only refresh, flow, exact1200 ms expiry (09 S05/S26), late scan with/without intervening calls, no auto recovery, uint32 time wrap; 6.2 all four active-low rows for both relays, 60 ms settle, >100 ms continuous mismatch; 6.3 timing |
-| test_accept_settings.c | 05 2 explicit independently packed layout/CRC; 3 each field invalid with repaired CRC, OFF canonical, board/PT100 constraints; 4 all A/B rows and sequence wrap; 5 protection change classification, clear setpoints, every epoch increment incl63->0; 6 tag/type/epoch, staged completeness and CRC; 09 S27 K->OFF->K baseline binding |
+| test_accept_settings.c | 05 2 explicit independently packed layout/CRC; 3 each field invalid with repaired CRC, OFF canonical, 00 Targets 24-ch build/type rejection; 4 all A/B rows, sequence wrap and CONFIG_LOCK after rejected records; 5 protection change classification, clear setpoints, every epoch increment incl63->0; 6 tag/type/epoch, staged completeness and CRC; 09 S27 K->OFF->K baseline binding |
 | storage.c | 05 4-6 and 09 S07: reboot after EVERY operation, both inactive slots, settings and calibration, pre-existing valid older copy, sequence wrap, no mixed record, newest valid selection, retry/failure faults G02/G13 |
 | math_events.c | 03 7 all six listed NIST points, forward/inverse/CJ, 0.03+0.05 C bound, negative differential EMF, C08 floor/C02 range; 05 7 event packing/CRC, ring and sequence wrap, bad entries skipped |
 
