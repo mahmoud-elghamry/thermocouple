@@ -1,4 +1,5 @@
 #include "app/outputs.h"
+#include "app/timing.h"
 #include <stddef.h>
 static bool mismatch(rb_state_t *s, bool command, bool sense_high, uint32_t now)
 {
@@ -15,7 +16,7 @@ output_decision_t outputs_step(outputs_t *s, const prot_out_t *p, uint32_t now_m
 {
     output_decision_t d={false,false,FC_NONE,FC_NONE};
     if(s==NULL || p==NULL) { d.run_fault=FC_G04_INTERNAL; return d; }
-    if(p->window_remaining_ms>900u) { d.run_fault=FC_G04_INTERNAL; return d; }
+    if(p->window_remaining_ms>APP_RUN_WINDOW_MS) { d.run_fault=FC_G04_INTERNAL; return d; }
     d.pwm_enable=p->run_permission && p->window_remaining_ms>0;
     d.alarm_energise=p->run_permission && !p->alarm_active;
     if(mismatch(&s->run,d.pwm_enable,run_sense_high,now_ms)) d.run_fault=FC_G06_RUN_FEEDBACK;

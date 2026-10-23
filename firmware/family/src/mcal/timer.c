@@ -1,4 +1,5 @@
 #include "mcal/timer.h"
+#include "app/timing.h"
 #include "mcal/gpio.h"
 #include "drivers/keys.h"
 #include <avr/io.h>
@@ -23,8 +24,8 @@ bool timer_run_start_at(uint16_t d,uint32_t evaluated) {
     bool started=false;
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
         uint32_t age=ms-evaluated;
-        if(d && d<=1000 && age>=d) expired=true;
-        if(!expired && d && d<=1000 && age<d) {
+        if(d && d<=APP_RUN_WINDOW_MS && age>=d) expired=true;
+        if(!expired && d && d<=APP_RUN_WINDOW_MS && age<d) {
             deadline=(uint16_t)(d-age); TCNT0=0; OCR0A=249; TCCR0A=0x42; TCCR0B=2; started=true;
         } else timer_run_stop();
     }
@@ -35,7 +36,7 @@ bool timer_run_expired(void) { return expired; }
 void timer_run_ack_expiry(void) { ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { if(!deadline && !TCCR0B) expired=false; } }
 uint16_t timer_run_remaining(void) { uint16_t v; ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { v=deadline; } return v; }
 bool timer_run_active(void) { return timer_run_remaining()!=0 && TCCR0B!=0; }
-void timer_run_static_high(void) { timer_run_stop(); ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { if(!expired) { PORTB|=8; deadline=1000; } } }
+void timer_run_static_high(void) { timer_run_stop(); ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { if(!expired) { PORTB|=8; deadline=APP_SERVICE_RELAY_MS; } } }
 static inline void tick_isr_core(void) {
     ++ms;
     if(deadline && --deadline==0) {

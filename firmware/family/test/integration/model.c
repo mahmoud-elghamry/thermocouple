@@ -8,6 +8,7 @@
 #include "mcal/wdt.h"
 #include "drivers/keys.h"
 #include "model.h"
+#include "app/timing.h"
 #define fake_reset base_reset
 #define fake_advance base_advance
 #define timer_init base_timer_init
@@ -79,9 +80,12 @@ bool timer_run_start_at(uint16_t d,uint32_t evaluated) {
         expire_on_grant=false; base_timer_run_start(1); advance_us(1000);
     }
     age=tick_ms()-evaluated;
-    if(d && d<=1000 && age>=d) run_expired=true;
-    if(run_expired || !d || d>1000 || age>=d) { timer_run_stop(); return false; }
-    base_timer_run_start((uint16_t)(d-age)); return true;
+    if(d && d<=APP_RUN_WINDOW_MS && age>=d) run_expired=true;
+    if(run_expired || !d || d>APP_RUN_WINDOW_MS || age>=d) { timer_run_stop(); return false; }
+    /* The legacy fake deliberately retains its old 1000-ms ceiling. This
+     * integration clock owns the updated deadline rather than changing it. */
+    remaining=(uint16_t)(d-age); pump=remaining!=0;
+    fake_pin(board()->run_sense,!pump); return true;
 }
 void timer_run_start(uint16_t d) { (void)timer_run_start_at(d,tick_ms()); }
 void delay_us(uint16_t duration) { base_delay_us(duration); if(enabled) advance_us(duration); }

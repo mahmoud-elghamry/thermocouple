@@ -1,3 +1,4 @@
+#include "app/timing.h"
 #ifndef CORE_TEST_H
 #define CORE_TEST_H
 #include <stdio.h>

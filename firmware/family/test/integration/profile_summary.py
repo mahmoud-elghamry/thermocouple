@@ -4,6 +4,10 @@ import re
 import sys
 
 root=Path(sys.argv[1])
+header=(Path(__file__).resolve().parents[2]/"include/app/timing.h").read_text()
+def limit(name):
+    return int(re.search(r"#define\s+"+name+r"\s+(\d+)",header)[1])
+cycle_budget=limit("APP_LOOP_BUDGET_MS")*limit("APP_AVR_CYCLES_PER_MS")
 text=(root/"cycles.log").read_text()
 mcal=(root/"mcal.log").read_text()
 calibration={}
@@ -63,5 +67,5 @@ print(f"Combined commit/CJ/slot/ACK: {mixed[0]} cycles; evidence flags=15; funct
 print(f"Soft SPI: {soft} cycles/byte; Timer2 ISR: {interrupt} cycles (2049 samples)")
 print(f"Commit begin max: {begin} cycles; preparation step max: {prep} cycles "
       f"({len(calibration[34])} samples); target image checks=0 errors")
-assert worst[0]<=64000, f"64000-cycle loop budget EXCEEDED: {worst[0]}"
-print("AVR timing gate: PASS (<=64000 cycles including reserve)")
+assert worst[0]<=cycle_budget, f"{cycle_budget}-cycle loop budget EXCEEDED: {worst[0]}"
+print(f"AVR timing gate: PASS (<={cycle_budget} cycles including reserve)")

@@ -1,4 +1,5 @@
 #include "app/service.h"
+#include "app/timing.h"
 #include "app/ee_owner.h"
 #include "services/scan.h"
 #include "services/tc_math.h"
@@ -131,7 +132,7 @@ static void passive(void) {
         ok=(value>=1500000 && value<=10000000) || !settings_good || settings->ch[item].type==CH_TYPE_OFF;break;
     case 14:strcpy(name,"ENGREF");value=gpio_read(board()->refok);ok=value==0 && d->ref_test_ok;break;
     case 15:strcpy(name,"SCAN");value=d->duration_ms;ok=value<=750;break;
-    case 16:strcpy(name,"LOOP");value=worst;ok=value<=8;break;
+    case 16:strcpy(name,"LOOP");value=worst;ok=value<=APP_LOOP_BUDGET_MS;break;
     case 17:
         (void)snprintf(line,sizeof line,"P17 EVENTS_LOST %lu OK",(unsigned long)ee_owner_events_lost());
         send_detail(true); ++pstep; return;
@@ -234,7 +235,7 @@ void svc_task(void) {
         else if(key==KEY_SET) {
             started=tick_ms(); test_ok=true; item=0; key_index=0; drop_ms=UINT16_MAX; state=ACTIVE;
             if(astep==2) relay_alarm(true);
-            if(astep==3) { timer_run_ack_expiry(); timer_run_start(1000); }
+            if(astep==3) { timer_run_ack_expiry(); timer_run_start(APP_SERVICE_RELAY_MS); }
             if(astep==4) { timer_run_ack_expiry(); timer_run_static_high(); }
             if(astep==5) { crc_pos=0x40; crc_work=0xFFFF; ee_index=0; state=CRC_BEFORE; }
             if(astep==6) cal_start();
@@ -268,13 +269,13 @@ void svc_task(void) {
                 if(++key_index==5) next_active(); else { item=0; started=tick_ms(); }
             }
         } else if(astep==2 || astep==3 || astep==4) {
-            if(dt>=100 && dt<1000) {
+            if(dt>=100 && dt<APP_SERVICE_RELAY_MS) {
                 if(astep==2 && !relay_alarm_sense()) test_ok=false;
                 if(astep==3 && !relay_run_sense()) test_ok=false;
                 if(astep==4 && relay_run_sense()) test_ok=false;
             }
-            if(dt>=1000 && item==0) { relays_safe(); item=1; }
-            if(item && !relay_run_sense() && drop_ms==UINT16_MAX) drop_ms=(uint16_t)(dt-1000);
+            if(dt>=APP_SERVICE_RELAY_MS && item==0) { relays_safe(); item=1; }
+            if(item && !relay_run_sense() && drop_ms==UINT16_MAX) drop_ms=(uint16_t)(dt-APP_SERVICE_RELAY_MS);
             if(item && dt>=1100) {
                 test_ok&=!relay_run_sense() && !relay_alarm_sense();
                 report(astep==2?"ALARM":astep==3?"RUN":"RUN_STATIC",drop_ms,test_ok,"ms"); next_active();

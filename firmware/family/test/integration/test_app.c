@@ -1,4 +1,5 @@
 #include "app/app.h"
+#include "app/timing.h"
 #include "app/ee_owner.h"
 #include "app/service.h"
 #include "services/scan.h"
@@ -18,7 +19,7 @@ static void loop(unsigned n) {
     unsigned i; for(i=0;i<n;i++) {
         uint32_t elapsed; model_loop_begin(); f0_task(); elapsed=model_loop_us();
         if(elapsed>worst_us) worst_us=elapsed;
-        CHECK(elapsed<=8000); CHECK(!model_watchdog_reset()); fake_advance(1);
+        CHECK(elapsed<=1000u*APP_LOOP_BUDGET_MS); CHECK(!model_watchdog_reset()); fake_advance(1);
     }
 }
 static settings_t cfg;
@@ -74,11 +75,11 @@ static void safety(void) {
     temperature(990); loop(1500); ack(); CHECK(f0_mode()==TRIPPED); CHECK(app_ack_reason()==ACK_R4_CHANNEL);
     temperature(950); loop(1500); ack(); CHECK(f0_mode()==RUN); CHECK(!timer_run_active()); loop(750); CHECK(timer_run_active());
     running(); fake_ad_ready(0,60000); start=tick_ms();
-    for(elapsed=0;elapsed<901 && timer_run_active();elapsed++) loop(1);
+    for(elapsed=0;elapsed<=APP_RUN_WINDOW_MS && timer_run_active();elapsed++) loop(1);
     CHECK(!timer_run_active()); CHECK(f0_mode()==TRIPPED);
-    CHECK(tick_ms()-start<=900);
+    CHECK(tick_ms()-start<=APP_RUN_WINDOW_MS);
     printf("S05 stalled-ADC-to-PWM-off: %lu ms\n",(unsigned long)(tick_ms()-start));
-    loop(1000);
+    loop(APP_RUN_WINDOW_MS);
     CHECK(fault_latched_at(app_faults(),FC_B05_ADC_STALLED,0));
     CHECK(fault_latched_at(app_faults(),FC_G05_SCAN_DEADLINE,0));
 }

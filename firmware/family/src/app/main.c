@@ -1,4 +1,5 @@
 #include "app/service.h"
+#include "app/timing.h"
 #include "app/protection.h"
 #include "app/app.h"
 #include "app/ee_owner.h"
@@ -160,7 +161,7 @@ void f0_task(void) {
         relays_safe(); (void)fault_raise(&faults,FC_G04_INTERNAL,0); return;
     }
     seen|=128;
-    if(tick_ms()-start>8) { relays_safe(); (void)fault_raise(&faults,FC_G04_INTERNAL,0); return; }
+    if(tick_ms()-start>APP_LOOP_BUDGET_MS) { relays_safe(); (void)fault_raise(&faults,FC_G04_INTERNAL,0); return; }
     if(mode==SERVICE) svc_loop_time((uint16_t)(tick_ms()-start));
     if(boot==LOOP) app_loop_time((uint16_t)(tick_ms()-start));
     (void)flow_check(seen,255,progress);

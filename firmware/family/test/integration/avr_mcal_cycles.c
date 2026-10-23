@@ -3,6 +3,7 @@
 #include "mcal/gpio.h"
 #include "mcal/spi.h"
 #include "mcal/timer.h"
+#include "app/timing.h"
 #include "drivers/keys.h"
 #include <avr/io.h>
 volatile uint8_t cycle_kind,cycle_value;
@@ -27,7 +28,7 @@ int main(void) {
     cycle_kind=4; cycle_begin(); gpio_mask(PORT_A,255,255); cycle_end();
     cycle_kind=5; cycle_begin(); delay_us(49); cycle_end();
     cycle_kind=11; cycle_begin(); (void)tick_ms(); cycle_end();
-    cycle_kind=13; cycle_begin(); (void)timer_run_start_at(900,tick_ms()); cycle_end();
+    cycle_kind=13; cycle_begin(); (void)timer_run_start_at(APP_RUN_WINDOW_MS,tick_ms()); cycle_end();
     cycle_kind=15; cycle_begin(); (void)timer_run_remaining(); cycle_end();
     cycle_kind=16; cycle_begin(); (void)timer_run_active(); cycle_end();
     for(i=0;i<256;i++) {
@@ -38,6 +39,6 @@ int main(void) {
     timer_run_ack_expiry(); timer_run_start(1);
     cycle_kind=32; cycle_begin(); TIMER2_COMPA_vect(); cycle_end();
     if(!timer_run_expired() || timer_run_active() || (PORTB&8u)) ++cycle_errors;
-    if(timer_run_start_at(900,tick_ms())) ++cycle_errors;
+    if(timer_run_start_at(APP_RUN_WINDOW_MS,tick_ms())) ++cycle_errors;
     store_cycles(); cycle_done();
 }

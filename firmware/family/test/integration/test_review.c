@@ -55,7 +55,7 @@ static void expiry(void) {
     unsigned i;
     setup(false); ack(); loop(750); CHECK(timer_run_active());
     timer_run_start(1); fake_advance(1); CHECK(!timer_run_active());
-    outputs_hw_apply(true,true,900); CHECK(!timer_run_active());
+    outputs_hw_apply(true,true,APP_RUN_WINDOW_MS); CHECK(!timer_run_active());
     loop(1); CHECK(f0_mode()==TRIPPED && fault_latched_at(app_faults(),FC_G05_SCAN_DEADLINE,0));
     loop(1500); CHECK(!timer_run_active()); ack(); CHECK(f0_mode()==RUN); loop(750); CHECK(timer_run_active());
     model_expire_on_grant(); loop(750);

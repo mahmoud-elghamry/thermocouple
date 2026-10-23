@@ -6,7 +6,7 @@ void test_outputs(void)
     outputs_t s; prot_out_t p; output_decision_t d; unsigned cmd, sense;
     for(cmd=0;cmd<2;++cmd) for(sense=0;sense<2;++sense) {
         memset(&s,0,sizeof(s)); memset(&p,0,sizeof(p));
-        p.run_permission=(cmd!=0); p.window_remaining_ms=900; p.alarm_active=(cmd==0);
+        p.run_permission=(cmd!=0); p.window_remaining_ms=APP_RUN_WINDOW_MS; p.alarm_active=(cmd==0);
         d=outputs_step(&s,&p,0,sense!=0,sense!=0);
         CHECK(d.run_fault==FC_NONE && d.alarm_fault==FC_NONE);
         d=outputs_step(&s,&p,59,sense!=0,sense!=0); CHECK(d.run_fault==FC_NONE);
@@ -21,6 +21,6 @@ void test_outputs(void)
     p.window_remaining_ms=1; d=outputs_step(&s,&p,1,false,true); CHECK(d.pwm_enable);
     p.window_remaining_ms=0; d=outputs_step(&s,&p,2,true,true); CHECK(!d.pwm_enable);
     out_task(&d,0);
-    p.window_remaining_ms=901; d=outputs_step(&s,&p,3,true,true);
+    p.window_remaining_ms=APP_RUN_WINDOW_MS+1u; d=outputs_step(&s,&p,3,true,true);
     CHECK(!d.pwm_enable && !d.alarm_energise && d.run_fault==FC_G04_INTERNAL);
 }

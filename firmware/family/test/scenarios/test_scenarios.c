@@ -65,7 +65,7 @@ void test_scenarios(void)
     harness_t h; result_t r; unsigned before, i;
     before=failures; h_init(&h); h_step(&h,0,true); CHECK(h.state.mode==START_LATCHED && !h.out.run_permission);
     h_ack(&h,1); CHECK(h.state.mode==RUN && h.out.window_remaining_ms==0);
-    h_step(&h,2,true); CHECK(h.out.run_permission && h.out.window_remaining_ms==900); report(1,before);
+    h_step(&h,2,true); CHECK(h.out.run_permission && h.out.window_remaining_ms==APP_RUN_WINDOW_MS); report(1,before);
     before=failures; h_run(&h);
     for(i=790;i<=1000;i+=10) { r=sample((temp_dC_t)i,2); prot_on_result(&h.state,0,&r,&h.cfg,2,1); }
     CHECK(h.state.mode==TRIPPED && h.state.first.channel==1 && h.state.first.value_dC==1000); report(2,before);
@@ -75,7 +75,7 @@ void test_scenarios(void)
     before=failures; h_init(&h); h.in.ack=true;
     for(i=0;i<500;i+=5) h_step(&h,i,true);
     CHECK(h.state.mode==START_LATCHED); h.in.ack=false; h_ack(&h,501); CHECK(h.state.mode==RUN); report(4,before);
-    before=failures; h_run(&h); h_step(&h,902,false);
+    before=failures; h_run(&h); h_step(&h,APP_RUN_WINDOW_MS+2u,false);
     CHECK(h.state.mode==TRIPPED && h.state.first.code==FC_G05_SCAN_DEADLINE);
     prot_on_fault(&h.state,&h.faults,FC_B05_ADC_STALLED,0,CH_MODE_TRIP,0,1); CHECK(fault_active(&h.faults,FC_B05_ADC_STALLED));
     report(5,before);
@@ -99,7 +99,7 @@ void test_scenarios(void)
     for(i=0;i<2;++i) {
         outputs_t o; prot_out_t p; output_decision_t d;
         memset(&o,0,sizeof(o)); memset(&p,0,sizeof(p)); h_run(&h);
-        p.run_permission=i!=0; p.window_remaining_ms=900; p.alarm_active=true;
+        p.run_permission=i!=0; p.window_remaining_ms=APP_RUN_WINDOW_MS; p.alarm_active=true;
         (void)outputs_step(&o,&p,0,i!=0,true); (void)outputs_step(&o,&p,60,i!=0,true);
         d=outputs_step(&o,&p,161,i!=0,true); CHECK(d.run_fault==FC_G06_RUN_FEEDBACK);
         prot_on_fault(&h.state,&h.faults,d.run_fault,0,CH_MODE_TRIP,0,1); CHECK(h.state.mode==TRIPPED);
@@ -140,7 +140,7 @@ void test_scenarios(void)
     h.in.commit_done=false; h_ack(&h,5); CHECK(h.out.ack_reason==ACK_R2_SCAN); report(23,before);
     { const fault_code_t code=FC_G14_ISLAND_LOST; fault_scenario(24,&code,1); }
     { const fault_code_t code=FC_G05_SCAN_DEADLINE; fault_scenario(25,&code,1); }
-    before=failures; h_run(&h); h_step(&h,902,false); h_step(&h,952,true);
+    before=failures; h_run(&h); h_step(&h,APP_RUN_WINDOW_MS+2u,false); h_step(&h,APP_RUN_WINDOW_MS+52u,true);
     CHECK(h.state.mode==TRIPPED && !h.out.run_permission); report(26,before);
     epoch_scenarios();
 }

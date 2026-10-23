@@ -1,7 +1,7 @@
 #include "app/protection.h"
 #include "services/events.h"
 #include <string.h>
-#define WINDOW_MS 900u
+#include "app/timing.h"
 #define EVENT_BIT(e) ((uint16_t)(1u<<((e)-1u)))
 static void mode_set(prot_state_t *s, prot_mode_t mode)
 {
@@ -128,7 +128,7 @@ static bool fresh_scan(const prot_in_t *in, bool current_settings)
     uint8_t i, banks;
     if(in->scan==NULL || in->settings==NULL || !in->scan->scan_validated ||
        (current_settings && in->scan->settings_seq!=in->settings->sequence) ||
-       (uint32_t)(in->now_ms-in->scan->completed_ms)>=1000u) return false;
+       (uint32_t)(in->now_ms-in->scan->completed_ms)>=APP_SCAN_DEADLINE_MS) return false;
     banks=in->settings->board_type==40?6u:(uint8_t)(in->settings->channel_count/8u);
     for(i=0;i<banks;++i) if(in->scan->bank[i]!=BANK_VALIDATED) return false;
     return true;
@@ -249,7 +249,7 @@ void prot_step(const prot_in_t *in, prot_state_t *s, prot_out_t *out)
         out->event_mask|=EVENT_BIT(in->protection_change?EV_SETTINGS_CHANGED:EV_NAME_CHANGED);
     }
     /* Expiry is handled BEFORE accepting a late scan. */
-    if(s->mode==RUN && (uint32_t)(in->now_ms-s->window_started_ms)>=WINDOW_MS) {
+    if(s->mode==RUN && (uint32_t)(in->now_ms-s->window_started_ms)>=APP_RUN_WINDOW_MS) {
         (void)prot_on_fault(s,in->faults,FC_G05_SCAN_DEADLINE,0,CH_MODE_TRIP,0,in->uptime_s);
     }
     cause=first_fault(in->faults,&unit);
@@ -297,8 +297,8 @@ void prot_step(const prot_in_t *in, prot_state_t *s, prot_out_t *out)
     }
     out->run_permission=prot_integrity(s) && s->mode==RUN && cfg_ok && cal_ok &&
         cause==FC_NONE && in->flow_ok;
-    if(out->run_permission && s->window_valid && (uint32_t)(in->now_ms-s->window_started_ms)<WINDOW_MS)
-        out->window_remaining_ms=(uint16_t)(WINDOW_MS-(uint32_t)(in->now_ms-s->window_started_ms));
+    if(out->run_permission && s->window_valid && (uint32_t)(in->now_ms-s->window_started_ms)<APP_RUN_WINDOW_MS)
+        out->window_remaining_ms=(uint16_t)(APP_RUN_WINDOW_MS-(uint32_t)(in->now_ms-s->window_started_ms));
     out->alarm_active=s->mode!=RUN || !cfg_ok || !cal_ok || !in->flow_ok || fault_global_alarm_latched(in->faults);
     if(cfg_ok) for(ch=0;ch<in->settings->channel_count;++ch)
         if(in->settings->ch[ch].type!=CH_TYPE_OFF &&

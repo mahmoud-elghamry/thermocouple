@@ -1,3 +1,4 @@
+#include "app/timing.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "board/board_cfg.h"
@@ -57,10 +58,10 @@ static void driver_faults(void) {
     reset_driver(); init_bank(0); ad_scan_begin(0,0); CHECK(ad_start_slot(0,0)==RES_OK);
     fake_ad_por(0,true); fake_advance(43); CHECK(ad_poll(0,&code)==RES_ERR_READBACK); CHECK(ad_fault(0)==FC_B15_ADC_RESET);
     reset_driver(); init_bank(0); ad_scan_begin(0,0); CHECK(ad_start_slot(0,0)==RES_OK);
-    fake_ad_ready(0,1000); fake_advance(57); CHECK(ad_poll(0,&code)==RES_ERR_TIMEOUT);
+    fake_ad_ready(0,1000); fake_advance(APP_ADC_RDY_MAX_MS); CHECK(ad_poll(0,&code)==RES_ERR_TIMEOUT);
     reset_driver(); init_bank(0); ad_scan_begin(0,0); CHECK(ad_start_slot(0,0)==RES_OK);
     fake_ad_channel(0,1); fake_advance(43); CHECK(ad_poll(0,&code)==RES_ERR_READBACK); CHECK(ad_fault(0)==FC_B05_ADC_STALLED);
-    for(i=36;i<=57;i+=21) {
+    for(i=APP_ADC_RDY_MIN_MS;i<=APP_ADC_RDY_MAX_MS;i+=APP_ADC_RDY_MAX_MS-APP_ADC_RDY_MIN_MS) {
         reset_driver(); init_bank(0); ad_scan_begin(0,0); fake_ad_ready(0,(uint16_t)i);
         CHECK(ad_start_slot(0,0)==RES_OK); fake_advance(i); CHECK(ad_poll(0,&code)==RES_OK);
     }
@@ -93,7 +94,7 @@ int main(void) {
     CHECK(ee_write_byte(0xF00,0xA5)==RES_OK && ee_read(0xF00)==0xA5);
     CHECK(!flow_check(3,7,tick_ms())); CHECK(flow_check(7,7,tick_ms()));
     fake_advance(101); CHECK(!flow_check(7,7,0));
-    timer_run_start(900); fake_advance(899); CHECK(timer_run_active());
+    timer_run_start(APP_RUN_WINDOW_MS); fake_advance(APP_RUN_WINDOW_MS-1u); CHECK(timer_run_active());
     fake_advance(1); CHECK(!timer_run_active());
     init_bank(0);
     fake_ad_crc(0,1); CHECK(ad_read(0,5,&code)==RES_OK);
@@ -117,8 +118,8 @@ int main(void) {
     fake_tmp_reg(0,12,0xFFFF); CHECK(cj_read(0,&temp)==RES_ERR_ID);
     fake_tmp_reg(0,12,0x2126); fake_tmp_reg(0,5,0); CHECK(cj_read(0,&temp)==RES_ERR_READBACK);
     for(i=0;i<2;i++) { fake_reset(); gpio_init(); iso_init(); ad_reset_state();
-        init_bank(0); fake_ad_ready(0,i ? 58:35); ad_scan_begin(0,0);
-        CHECK(ad_start_slot(0,0)==RES_OK); fake_advance(i ? 58:35);
+        init_bank(0); fake_ad_ready(0,i ? APP_ADC_RDY_MAX_MS+1u:APP_ADC_RDY_MIN_MS-1u); ad_scan_begin(0,0);
+        CHECK(ad_start_slot(0,0)==RES_OK); fake_advance(i ? APP_ADC_RDY_MAX_MS+1u:APP_ADC_RDY_MIN_MS-1u);
         r=ad_poll(0,&code); CHECK(r!=RES_OK && r!=RES_BUSY);
     }
     error_matrix(); driver_faults();

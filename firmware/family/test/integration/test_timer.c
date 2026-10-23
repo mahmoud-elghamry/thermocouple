@@ -1,5 +1,6 @@
 /* Compile the production ISR, not the integration clock's timer model. */
 #include "mcal/timer.h"
+#include "app/timing.h"
 #include <avr/io.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,12 +14,18 @@ int main(void) {
     timer_init(); CHECK(!timer_run_expired()); timer_run_start(2);
     TIMER2_COMPA_vect(); CHECK(timer_run_active() && timer_run_remaining()==1);
     TIMER2_COMPA_vect(); CHECK(!timer_run_active() && timer_run_expired() && !TCCR0B && !(PORTB&8));
-    timer_run_stop(); timer_run_start(900); CHECK(!timer_run_active() && timer_run_expired());
+    timer_run_stop(); timer_run_start(APP_RUN_WINDOW_MS); CHECK(!timer_run_active() && timer_run_expired());
     timer_run_static_high(); CHECK(!(PORTB&8) && timer_run_expired());
     timer_run_ack_expiry(); CHECK(!timer_run_expired());
     CHECK(timer_run_start_at(10,0) && timer_run_remaining()==8);
     timer_run_ack_expiry(); CHECK(timer_run_active());
     timer_run_stop(); CHECK(!timer_run_start_at(2,0) && timer_run_expired());
     timer_run_ack_expiry(); CHECK(timer_run_start_at(10,0));
-    CHECK(samples==2); printf("Timer ISR: %u checks PASS\n",checks); return 0;
+    timer_init(); CHECK(timer_run_start_at(APP_RUN_WINDOW_MS,tick_ms()));
+    { unsigned i; for(i=0;i<APP_RUN_WINDOW_MS-1u;i++) TIMER2_COMPA_vect(); }
+    CHECK(timer_run_active() && timer_run_remaining()==1);
+    TIMER2_COMPA_vect(); CHECK(timer_run_expired() && !timer_run_active());
+    timer_run_ack_expiry(); CHECK(!timer_run_start_at(APP_RUN_WINDOW_MS+1u,tick_ms()));
+    timer_run_static_high(); CHECK(timer_run_remaining()==APP_SERVICE_RELAY_MS);
+    CHECK(samples==2+APP_RUN_WINDOW_MS); printf("Timer ISR: %u checks PASS\n",checks); return 0;
 }

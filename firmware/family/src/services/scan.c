@@ -91,7 +91,7 @@ static void publish(void) {
     if(all_transport || (gpio_read(board()->refok) && all_fault)) { raise(FC_G14_ISLAND_LOST,0); reinit=true; }
     if(gpio_read(board()->refok)) { raise(FC_G08_ENGREF_LOST,0); all=false; }
     diag.duration_ms=(uint16_t)(tick_ms()-start);
-    if(tick_ms()-start>1000) { raise(FC_G05_SCAN_DEADLINE,0); all=false; }
+    if(tick_ms()-start>APP_SCAN_DEADLINE_MS) { raise(FC_G05_SCAN_DEADLINE,0); all=false; }
     if(!fuses_ok()) { raise(FC_G15_FUSES,0); all=false; }
     if(registry && fault_active(registry,FC_G15_FUSES)) all=false;
     work.scan_validated=all && diag.ref_test_ok && !reinit;

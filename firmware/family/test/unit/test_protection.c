@@ -6,14 +6,14 @@ static void ack_rules(void)
     h_init(&h); h.in.ack_held_ms=49; h_ack(&h,1); CHECK(h.out.ack_reason==ACK_R1_RELEASE);
     h_init(&h); h.in.ack_age_ms=501; h_ack(&h,1); CHECK(h.out.ack_reason==ACK_R1_RELEASE);
     h_init(&h); h.scan.scan_validated=false; h_ack(&h,1); CHECK(h.out.ack_reason==ACK_R2_SCAN);
-    h_init(&h); h_ack(&h,1000); CHECK(h.out.ack_reason==ACK_R2_SCAN);
+    h_init(&h); h_ack(&h,APP_SCAN_DEADLINE_MS); CHECK(h.out.ack_reason==ACK_R2_SCAN);
     h_init(&h); h.scan.settings_seq--; h_ack(&h,1); CHECK(h.out.ack_reason==ACK_R2_SCAN);
     h_init(&h); fault_raise(&h.faults,FC_B06_REF,1); h_ack(&h,1); CHECK(h.out.ack_reason==ACK_R3_FAULT);
     h_init(&h); h.scan.meas[0].temp_dC=981; h_ack(&h,1); CHECK(h.out.ack_reason==ACK_R4_CHANNEL);
     h_init(&h); h.in.writing=true; h_ack(&h,1); CHECK(h.out.ack_reason==ACK_R5_SETTINGS);
     h_init(&h); h.in.readback_off_ok=false; h_ack(&h,1); CHECK(h.out.ack_reason==ACK_R6_RELAY);
     h_init(&h); h.scan.meas[0].temp_dC=980; h_ack(&h,1); CHECK(h.state.mode==RUN);
-    h_init(&h); h.in.ack_age_ms=500; h_ack(&h,999); CHECK(h.state.mode==RUN);
+    h_init(&h); h.in.ack_age_ms=500; h_ack(&h,APP_SCAN_DEADLINE_MS-1u); CHECK(h.state.mode==RUN);
     h_init(&h); h.scan.bank[0]=(bank_status_t)99; h_ack(&h,1); CHECK(h.out.ack_reason==ACK_R2_SCAN);
     h_init(&h); h.cfg.ch[0].mode=CH_MODE_ALARM_ONLY; h.scan.meas[0].flags=MEAS_OPEN;
     h_ack(&h,1); CHECK(h.state.mode==RUN && h.out.alarm_active);
@@ -52,18 +52,18 @@ static void window_sequences(void)
         h_run(&h); ++h.cfg.sequence;
         if(tag) h.scan.settings_seq=h.cfg.sequence;
         h_step(&h,500,true); CHECK(!h.out.window_refresh);
-        h_step(&h,902,false); CHECK(h.state.mode==TRIPPED && !h.out.run_permission);
+        h_step(&h,APP_RUN_WINDOW_MS+2u,false); CHECK(h.state.mode==TRIPPED && !h.out.run_permission);
     }
     /* 04 section 6.1: the names-only exception covers only the sequence just
      * replaced. A scan older than a missed save must not move the deadline. */
     h_run(&h); ++h.cfg.sequence; h_step(&h,3,false);
     ++h.cfg.sequence; h.in.commit_done=true; h_step(&h,4,true); CHECK(!h.out.window_refresh);
-    CHECK(h.state.window_started_ms==2 && h.out.window_remaining_ms==898);
+    CHECK(h.state.window_started_ms==2 && h.out.window_remaining_ms==APP_RUN_WINDOW_MS-2u);
     /* 04 section 6.1 permits the just-replaced tag; after an unseen save the
      * implementation safely requires new-sequence proof instead (05 section 5
      * increments once per save). Keep this stricter refusal explicit. */
     h.in.commit_done=false; ++h.scan.settings_seq; h_step(&h,5,true); CHECK(!h.out.window_refresh);
-    CHECK(h.state.window_started_ms==2 && h.out.window_remaining_ms==897);
+    CHECK(h.state.window_started_ms==2 && h.out.window_remaining_ms==APP_RUN_WINDOW_MS-3u);
     h.scan.settings_seq=h.cfg.sequence; h_step(&h,6,true); CHECK(h.out.window_refresh);
     /* A names-only commit admits exactly the replaced sequence, until new proof. */
     h_run(&h); ++h.cfg.sequence; h.in.commit_done=true;
@@ -117,10 +117,10 @@ void test_protection(void)
     CHECK(h.state.mode==TRIPPED && fault_active(&h.faults,FC_G04_INTERNAL));
     h_run(&h); h.state.permit_inv^=1; h_step(&h,3,false); CHECK(h.state.mode==TRIPPED);
     h_run(&h); h.state.mode_inv^=1; h_step(&h,3,false); CHECK(h.state.mode==TRIPPED);
-    h_run(&h); h_step(&h,902,false);
+    h_run(&h); h_step(&h,APP_RUN_WINDOW_MS+2u,false);
     CHECK(h.state.mode==TRIPPED && h.state.first.code==FC_G05_SCAN_DEADLINE);
-    h_step(&h,950,true); CHECK(h.state.mode==TRIPPED && !h.out.run_permission);
-    h_run(&h); h_step(&h,901,false); CHECK(h.state.mode==RUN && h.out.window_remaining_ms==1);
+    h_step(&h,APP_RUN_WINDOW_MS+50u,true); CHECK(h.state.mode==TRIPPED && !h.out.run_permission);
+    h_run(&h); h_step(&h,APP_RUN_WINDOW_MS+1u,false); CHECK(h.state.mode==RUN && h.out.window_remaining_ms==1);
     h_run(&h); h.in.flow_ok=false; h_step(&h,3,false); CHECK(!h.out.run_permission);
     /* Alarm latch clears only on fresh ACK after reset-band clearance. */
     h_run(&h); h.scan.meas[0].temp_dC=800; h_step(&h,3,true); CHECK(h.out.alarm_active);
@@ -142,8 +142,8 @@ void test_protection(void)
     h.scan.meas[0]=r; h_ack(&h,1); CHECK(h.state.first.valid && h.state.first.code==FC_C10_OVER_TRIP);
     /* Unsigned elapsed-time arithmetic works across ms_tick rollover. */
     h_run(&h); h.state.window_started_ms=UINT32_MAX-100u;
-    h_step(&h,798,false); CHECK(h.state.mode==RUN && h.out.window_remaining_ms==1);
-    h_step(&h,799,false); CHECK(h.state.mode==TRIPPED);
+    h_step(&h,APP_RUN_WINDOW_MS-102u,false); CHECK(h.state.mode==RUN && h.out.window_remaining_ms==1);
+    h_step(&h,APP_RUN_WINDOW_MS-101u,false); CHECK(h.state.mode==TRIPPED);
     /* A queued press cannot grant RUN on the same loop as a protection edit. */
     h_run(&h); h.in.ack_key_released=true; h_step(&h,3,false);
     h.in.ack_key_released=false; h.in.ack=true; h.in.commit_begin=true; h.in.protection_change=true;

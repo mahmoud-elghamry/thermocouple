@@ -1,4 +1,5 @@
 #include "app/app.h"
+#include "app/timing.h"
 #include "app/ack_input.h"
 #include "app/ee_owner.h"
 #include "app/outputs.h"
@@ -218,12 +219,12 @@ uint8_t app_step(bool flow_ok) {
     observe_expiry(); immediate_results();
     /* Keep the last granted scan's freshness deadline even if B05 opens RUN
      * earlier. A stalled acquisition still records G05 after that window. */
-    if(window_watch && tick_ms()-window_at>=900u) {
+    if(window_watch && tick_ms()-window_at>=APP_RUN_WINDOW_MS) {
         (void)fault_raise(faults,FC_G05_SCAN_DEADLINE,0); window_watch=false;
     }
     immediate_faults();
     in.settings=settings; in.scan=scan_last(); in.faults=faults;
-    in.now_ms=tick_ms(); in.uptime_s=event_uptime;
+    in.now_ms=tick_ms(); in.uptime_s=in.now_ms/1000u;
     in.settings_valid=ee_owner_settings_valid(); in.calibration_valid=calibration_good;
     in.writing=ee_owner_busy(); in.flow_ok=flow_ok;
     in.scan_complete=in.scan->scan_no!=last_scan; last_scan=in.scan->scan_no;

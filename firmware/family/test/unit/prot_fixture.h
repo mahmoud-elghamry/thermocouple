@@ -36,6 +36,6 @@ static inline void h_ack(harness_t *h, uint32_t now)
 static inline void h_run(harness_t *h)
 {
     h_init(h); h_step(h,0,true); h_ack(h,1); h_step(h,2,true);
-    CHECK(h->state.mode==RUN && h->out.run_permission && h->out.window_remaining_ms==900);
+    CHECK(h->state.mode==RUN && h->out.run_permission && h->out.window_remaining_ms==APP_RUN_WINDOW_MS);
 }
 #endif

@@ -74,36 +74,47 @@ not load that section's flash LMA. Neither workaround changes instruction bytes.
 The profiler aliases EEPROM A/B fixture slots to fit SRAM; power-cut correctness
 belongs to the independent full-EEPROM host suite, not this timing harness.
 Raw cycles, per-pass estimates and calibration results are in `build/profile/`.
-The sampled full-pass estimate reserves 25% + 2048 cycles for interrupts and is
-not an exhaustive WCET proof. It exceeds the 64000-cycle (8 ms) budget.
-The final sampled maximum is 334015 cycles / 41.752 ms, with epoch-wrap commit
-and CJ read in the same pass: 159463 production CPU cycles + 106110 MCAL bound,
-then the interrupt reserve. Pure epoch-wrap commit alone is 109606 cycles /
-13.7007 ms. The calibration measures Timer2 ISR execution at 716 cycles.
+The gate reserves 25% + 2048 cycles for interrupts. It measures 1782 full
+passes across boot, held ACK, healthy scans, a 24-channel fault burst, names and
+protection saves, service, epoch wrap, a changed LCD frame, and a deliberately
+combined preparation step + current CJ frame + ADC completion + real queued ACK.
+The combined case requires all four evidence bits, and all target functional
+checks must pass. This is a measured path set with conservative MCAL bounds,
+not an exhaustive WCET proof for every possible input.
 
-S3 remains blocked by protected sources: `set_commit_with_cal()` alone measures
-76044 cycles (9.5055 ms), and `src/mcal/spi.c` software SPI measures 3234 cycles
-per byte (97020 cycles / 12.1275 ms for a normal 30-byte CJ read). Both violate
-`01` section 2 before other loop work. Neither protected file was changed.
-Allowed CPU reductions include byte searches, one validation per pass, an
-incremental event-ring recovery/cached cursor, bounded service EEPROM CRC work,
-incremental mutable ADC verification, and removal of LCD modulo division.
+F1e timing values live only in `include/app/timing.h`: RUN window 1200 ms,
+scan freshness/deadline 1200 ms, loop limit 20 ms (160000 cycles at 8 MHz),
+ADC observed RDY 36..69 ms. The service relay exercise remains 1000 ms.
+The profiler reads that same header for its cycle gate. `build.ps1` runs the
+profiler automatically; `-HostOnly` runs just the native suites. The standalone
+profiler command is `powershell -NoProfile -ExecutionPolicy Bypass -File
+firmware/family/test/integration/profile_avr.ps1`. A run takes about one minute
+on this machine, so it remains in the normal build gate.
 
-Production file inventory (relative to `firmware/family`):
+Latest measured maximum: 102017 cycles / 12.752 ms including reserve, during
+boot. The combined case measures 91317 cycles. Actual target calibration:
+soft SPI 431 cycles/byte, Timer2 ISR <=216 cycles over 2049 samples, async commit
+begin <=2640 cycles, preparation step <=1901 cycles over 190 samples. Both
+legacy synchronous commit APIs retain their original complete-image contract;
+the real EEPROM owner uses bounded preparation and immutable mailboxes.
 
-- `src/app/{main,app,protection,ack_input,ee_owner,service}.c`;
-  `include/app/{protection,outputs_hw,acquisition_budget}.h`.
-- `src/drivers/{keys,relays,ad7124,lcd}.c`, `include/drivers/keys.h`;
-  `src/mcal/timer.c`, `include/mcal/timer.h`;
-  `src/services/{fault,scan}.c`, `include/services/fault.h`.
-- Small permitted integration exceptions: relay handoff checks expiry atomically;
-  service adds press abort and chunks EEPROM CRC; ADC/scan split the final mutable
-  verification without weakening its checks, retaining ID/transport classification;
-  LCD cursor increment avoids repeated AVR division.
+CPU reductions retained from F1d include direct fixed-pin software SPI and key
+sampling; one checked CJ frame per pass; one conversion completion per pass
+while every pending bank's STATUS is still polled; retained first-RDY timing
+before delayed held-DATA reads; bounded commit preparation; notification-only
+changed-code hints; protection evidence caches; nibble CRC tables; bounded LCD
+updates. Protection always reads authoritative fault bitmaps. The ADC/scan,
+LCD and service changes are the permitted integration exceptions: they bound
+loop work, preserve acquisition timing evidence, and report the shared limit.
 
-Support changes: `build.ps1`, `sources/hardware_host.txt`,
-`test/unit/{test_peripherals,test_protection}.c`,
-`test/integration/{README.md,model.c,model.h,test_app.c,test_review.c,test_timer.c,
-avr_profile.c,avr_mcal_wrap.c,avr_mcal_cycles.c,profile_avr.ps1,profile_summary.py}`,
-and `test/stubs/{settings_counted.c,avr/io.h,avr/interrupt.h,util/atomic.h}`.
-No acceptance, common-header, settings/event/TC-core source was edited.
+The simulator instruments every RET of opaque MCAL wrappers. Explicit code
+pointer casts avoid AVR GDB's data-space and 16-bit signed-offset ambiguity.
+Each measured pass checks balanced exits and exact hardware/software SPI byte
+counts. `run_gdb.py` keeps cycle evidence while discarding repeated section
+inventories. Target SPI/key checks, prepared-image comparisons, and mixed-load
+checks all require zero errors before the cycle-budget gate can pass.
+
+No acceptance file, acceptance build script, or common header is changed by
+this lane. Timing expectations in core fixtures and scenarios retain their
+boundary meaning with values from the shared header. Native integration still
+sweeps 405 settings power-cut boundaries and checks both old and new records.

@@ -238,8 +238,8 @@ res_t ad_ready(uint8_t b) {
     r=ad_read(b,0,&s); if(r!=RES_OK) return r;
     if(s&0x10u) { a[b].fault=FC_B15_ADC_RESET; return RES_ERR_READBACK; }
     dt=tick_ms()-a[b].started;
-    if(s&0x80u) { if(dt<57) return RES_BUSY; a[b].fault=FC_B05_ADC_STALLED; return RES_ERR_TIMEOUT; }
-    if(dt<36 || dt>57) { a[b].fault=FC_B05_ADC_STALLED; return RES_ERR_TIMEOUT; }
+    if(s&0x80u) { if(dt<APP_ADC_RDY_MAX_MS) return RES_BUSY; a[b].fault=FC_B05_ADC_STALLED; return RES_ERR_TIMEOUT; }
+    if(dt<APP_ADC_RDY_MIN_MS || dt>APP_ADC_RDY_MAX_MS) { a[b].fault=FC_B05_ADC_STALLED; return RES_ERR_TIMEOUT; }
     a[b].ready=true; a[b].ready_status=(uint8_t)s; a[b].ready_dt=(uint16_t)dt;
     return RES_OK;
 }

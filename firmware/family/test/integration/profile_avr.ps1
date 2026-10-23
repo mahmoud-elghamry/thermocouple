@@ -15,16 +15,18 @@ $fake=$fake.Replace('us+=delay;','us+=delay; profile_delay+=delay;')
 $fake=$fake.Replace('return a<4096?fake_eeprom[a]:0xFF;','return profile_eeprom_read(a);')
 $fake=$fake.Replace('fake_eeprom[a]=v;','profile_eeprom_write(a,v);')
 $fake=$fake.Replace('if(uart_len>=sizeof fake_uart_log-1) return false;','if(uart_len>=sizeof fake_uart_log-1) uart_len=0;')
+$fake="#include `"app/timing.h`"`n"+$fake.Replace('remaining=d<=1000?d:0','remaining=d<=APP_RUN_WINDOW_MS?d:0')
 $fake=$fake.Replace('static bool pump;','static bool pump,expired;')
 $fake=$fake.Replace('remaining=0; pump=false; }','remaining=0; pump=false; expired=false; }')
 $fake=$fake.Replace('if(remaining && --remaining==0) timer_run_stop();','if(remaining && --remaining==0) { expired=true; timer_run_stop(); }')
 $fake += @'
+#include "app/timing.h"
 bool timer_run_expired(void) { return expired; }
 void timer_run_ack_expiry(void) { if(!remaining && !pump) expired=false; }
 bool timer_run_start_at(uint16_t d,uint32_t at) {
     uint32_t age=tick_ms()-at;
-    if(d && age>=d) expired=true;
-    if(expired || age>=d) { timer_run_stop(); return false; }
+    if(d && d<=APP_RUN_WINDOW_MS && age>=d) expired=true;
+    if(expired || !d || d>APP_RUN_WINDOW_MS || age>=d) { timer_run_stop(); return false; }
     timer_run_start((uint16_t)(d-age)); return true;
 }
 '@
@@ -35,7 +37,7 @@ $sources+=@("$root/test/fakes/fake_ad7124.c","$root/test/fakes/fake_tmp126.c","$
 # infer fake-only constant returns/side effects. Production MCAL is opaque too.
 & "$bin/avr-gcc.exe" '-std=c11' '-g' '-Os' '-fshort-enums' '-Wall' '-Wextra' '-Werror' '-mmcu=atmega1284p' '-DF_CPU=8000000UL' '-DFAMILY_TEST' '-DFAMILY_REGISTER_MODEL' "-I$out" "-I$root/include" '-c' "$PSScriptRoot/avr_mcal_wrap.c" '-o' "$out/mcal_wrap.o"
 if($LASTEXITCODE) { throw 'MCAL seam compilation failed' }
-& "$bin/avr-gcc.exe" '-std=c11' '-g' '-Os' '-fshort-enums' '-Wall' '-Wextra' '-Werror' '-mmcu=atmega1284p' '-DF_CPU=8000000UL' '-DFAMILY_TEST' '-DFAMILY_REGISTER_MODEL' "-I$out" "-I$root/include" '-ffunction-sections' '-fdata-sections' '-Wl,--gc-sections' '-flto' @sources "$out/mcal_wrap.o" '-o' "$out/profile.elf"
+& "$bin/avr-gcc.exe" '-std=c11' '-g' '-Os' '-fshort-enums' '-Wall' '-Wextra' '-Werror' '-mmcu=atmega1284p' '-DF_CPU=8000000UL' '-DFAMILY_TEST' '-DFAMILY_REGISTER_MODEL' "-I$out" "-I$root/include" '-ffunction-sections' '-fdata-sections' '-Wl,--gc-sections' @sources "$out/mcal_wrap.o" '-o' "$out/profile.elf"
 if($LASTEXITCODE) { throw 'AVR profile compilation failed' }
 & "$bin/avr-size.exe" '-C' '--mcu=atmega1284p' "$out/profile.elf"
 & "$bin/avr-objdump.exe" '-d' "$out/profile.elf" | Out-File "$out/disassembly.txt" -Encoding ascii
@@ -79,20 +81,18 @@ $returns=@()
 foreach($line in Get-Content "$out/disassembly.txt") {
     if($line -match '^\s*([0-9a-f]+):.*\bret\s*$') { $returns += [Convert]::ToInt32($Matches[1],16) }
 }
-$anchor=$symbols | Where-Object { $_ -match '\sprofile_begin$' }
-$anchorAddress=[Convert]::ToInt32(($anchor.Trim() -split '\s+')[0],16)
 $ioCommands=''; $breakNo=5
 for($n=0;$n -lt $names.Length;$n++) {
     $symbol=$symbols | Where-Object { $_ -match ('\s'+$names[$n]+'$') }
     if(-not $symbol) { continue }
     $words=$symbol.Trim() -split '\s+'
     $address=[Convert]::ToInt32($words[0],16); $size=[Convert]::ToInt32($words[1],16)
-    $ioCommands+="break *(profile_begin+$($address-$anchorAddress))`ncommands`nsilent`nif `$io_depth==0`nprintf `"IO_BEGIN $($n+1) %u\n`", (unsigned int)`$r24+256*(unsigned int)`$r25`ninfo target`nend`nset `$io_depth=`$io_depth+1`ncontinue`nend`n"
+    $ioCommands+="break *((void(*)(void))$address)`ncommands`nsilent`nif `$io_depth==0`nprintf `"IO_BEGIN $($n+1) %u\n`", (unsigned int)`$r24+256*(unsigned int)`$r25`ninfo target`nend`nset `$io_depth=`$io_depth+1`ncontinue`nend`n"
     $breakNo++
     $functionReturns=@($returns | Where-Object { $_ -ge $address -and $_ -lt $address+$size })
     if(-not $functionReturns.Length) { throw "Wrapper $($names[$n]) has no RET" }
     foreach($ret in $functionReturns) {
-        $ioCommands+="break *(profile_begin+$($ret-$anchorAddress))`ncommands`nsilent`nset `$io_depth=`$io_depth-1`nif `$io_depth==0`nprintf `"IO_END\n`"`ninfo target`nend`ncontinue`nend`n"
+        $ioCommands+="break *((void(*)(void))$ret)`ncommands`nsilent`nset `$io_depth=`$io_depth-1`nif `$io_depth==0`nprintf `"IO_END\n`"`ninfo target`nend`ncontinue`nend`n"
         $breakNo++
     }
 }
