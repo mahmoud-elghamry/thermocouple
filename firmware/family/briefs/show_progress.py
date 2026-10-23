@@ -1,7 +1,7 @@
 """Follow a Codex --json run log and print a short readable view (agent messages, commands, results).
 
 Only reads the log; Codex never writes through this script, so a crash here cannot affect the run.
-Usage: python show_progress.py <run.log> <stop-file>   (exits once <stop-file> exists and the log is drained)
+Usage: python show_progress.py <run.log> <stop-file> [NAME]   (exits once <stop-file> exists and the log is drained)
 """
 import json
 import os
@@ -10,7 +10,7 @@ import sys
 import time
 
 
-def show(line):
+def show(line, name="SOL"):
     try:
         ev = json.loads(line)
     except ValueError:
@@ -20,10 +20,10 @@ def show(line):
     if ev.get("type") == "thread.started":
         print(f"[session {ev.get('thread_id')}]")
     elif kind == "agent_message" and ev.get("type") == "item.completed":
-        print(f"\nSOL: {item.get('text', '').strip()}\n")
+        print(f"\n{name}: {item.get('text', '').strip()}\n")
     elif kind == "command_execution" and ev.get("type") == "item.started":
         cmd = " ".join(item.get("command", "").split())
-        cmd = re.sub(r'^"[^"]*powershell\.exe" -Command ', "ps> ", cmd)
+        cmd = re.sub(r'^"[^"]*powershell\.exe"( -\w+)* -Command ', "ps> ", cmd)
         print(f"  $ {cmd[:160]}")
     elif kind == "command_execution" and ev.get("type") == "item.completed":
         code = item.get("exit_code")
@@ -38,6 +38,7 @@ def show(line):
 
 def main():
     log, stop = sys.argv[1], sys.argv[2]
+    name = sys.argv[3] if len(sys.argv) > 3 else "SOL"
     while not os.path.exists(log):
         if os.path.exists(stop):
             return
@@ -46,7 +47,7 @@ def main():
         while True:
             line = f.readline()
             if line:
-                show(line)
+                show(line, name)
                 sys.stdout.flush()
             elif os.path.exists(stop):
                 return
