@@ -2,3 +2,4 @@ build/
 briefs/*.thread
 briefs/.lock-*
 briefs/*.log.*
+briefs/*.stop
