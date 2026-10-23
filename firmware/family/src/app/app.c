@@ -5,6 +5,8 @@
 #include "app/outputs.h"
 #include "app/outputs_hw.h"
 #include "app/service.h"
+#include "app/ui.h"
+#include "app/app_view.h"
 #include "services/scan.h"
 #include "services/events.h"
 #include "drivers/relays.h"
@@ -18,7 +20,7 @@ static prot_state_t protection;
 static prot_out_t output;
 static outputs_t outputs;
 static bool command_pending,service_mode,window_watch,calibration_good,prior_validated;
-static bool trip_logged,first_logged,first_this_pass,loss_this_pass;
+static bool trip_logged,first_logged,first_this_pass,loss_this_pass,save_wait,pin_reset;
 static uint32_t last_scan,window_at,event_uptime,seen_revision;
 static uint16_t worst_loop;
 static ack_reason_t last_ack;
@@ -31,6 +33,8 @@ static void observe_expiry(void) {
 static uint8_t seen_fault[FAULT_CODES][FAULT_BYTES],channel_cause[MAX_CHANNELS];
 static void enqueue_event(event_type_t type,fault_code_t code,uint8_t channel,uint8_t unit,
                       temp_dC_t value,temp_dC_t threshold,uint32_t uptime_s) {
+    if(type==EV_TRIP || type==EV_ALARM || type==EV_FAULT)
+        app_view_cause(code,channel,(uint8_t)(code>=FC_B01_ADC_ID && code<=FC_B15_ADC_RESET?unit-1u:unit));
     event_t *e=ee_owner_event();
     if(type==EV_TRIP) trip_logged=true;
     if(!e) {
@@ -43,6 +47,7 @@ static void enqueue_event(event_type_t type,fault_code_t code,uint8_t channel,ui
 /* Registry fault pairs have zero measurement/threshold and one pass timestamp.
  * Avoid two large-argument event calls and temporary records per channel. */
 static void enqueue_fault(event_type_t type,fault_code_t code,uint8_t channel,uint8_t unit) {
+    app_view_cause(code,channel,(uint8_t)(code>=FC_B01_ADC_ID && code<=FC_B15_ADC_RESET?unit-1u:unit));
     event_t *e=ee_owner_event();
     if(type==EV_TRIP) trip_logged=true;
     if(!e) {
@@ -87,14 +92,16 @@ void app_init(settings_t *cfg,calibration_t *calibration,fault_registry_t *regis
     memset(&in,0,sizeof in); in.settings=settings; in.faults=faults;
     in.settings_valid=valid; in.calibration_valid=calibration_good;
     in.now_ms=tick_ms(); in.flow_ok=true; prot_step(&in,&protection,&output);
-    ack_input_init();
+    ack_input_init(); save_wait=pin_reset=false;
+    app_view_init(); ui_init(); ui_bind_candidate(&mailbox);
     if(service) log_event(EV_SERVICE_ENTRY,FC_NONE,0,0,0,0);
 }
 res_t app_commit_settings(const settings_t *candidate) {
     if(!settings || !candidate || candidate->board_type!=settings->board_type ||
        candidate->channel_count!=settings->channel_count || set_validate(candidate)!=RES_OK) return RES_ERR_RANGE;
     if(command_pending || ee_owner_busy()) return RES_BUSY;
-    mailbox=*candidate; command_pending=true; return RES_OK;
+    if(candidate!=&mailbox) mailbox=*candidate;
+    command_pending=true; save_wait=true; return RES_OK;
 }
 const settings_t *app_settings(void) { return settings; }
 const prot_state_t *app_protection(void) { return &protection; }
@@ -113,6 +120,7 @@ static void immediate_results(void) {
         fault_code_t code=chan_cause(r,condition); act_t action=chan_action(condition,c->mode);
         prot_mode_t before=protection.mode;
         (void)prot_on_result(&protection,ch,r,settings,scan->scan_no,event_uptime);
+        app_view_result(ch,r,action);
         if(action!=ACT_NONE && channel_cause[ch]!=(uint8_t)code) {
             log_event(action==ACT_TRIP?EV_TRIP:EV_ALARM,code,(uint8_t)(ch+1),0,r->temp_dC,
                       action==ACT_TRIP?c->trip_dC:c->alarm_dC);
@@ -175,11 +183,25 @@ uint8_t app_step(bool flow_ok) {
     memset(&in,0,sizeof in);
     event_uptime=tick_ms()/1000u;
     trip_logged=first_this_pass=loss_this_pass=false;
+    if(!service_mode && ui_take_pin_reset()) {
+        if(command_pending || ee_owner_busy()) ui_store_result(RES_ERR_READBACK);
+        else {
+            prot_init(&protection,ee_owner_settings_valid(),calibration_good,false); ack_input_cancel();
+            if(!ee_owner_settings_valid()) { /* Blank-board PIN is already 0000. */
+                log_event(EV_PIN_RESET,FC_NONE,0,0,0,0); ui_store_result(RES_OK);
+            } else { mailbox=*settings; mailbox.pin_bcd=0; command_pending=save_wait=pin_reset=true; }
+        }
+    }
     if(command_pending) {
         r=ee_owner_settings(&mailbox);
-        if(r!=RES_BUSY) { command_pending=false; if(r!=RES_OK) last_ack=ACK_R5_SETTINGS; }
+        if(r!=RES_BUSY) { command_pending=false; if(r!=RES_OK) { last_ack=ACK_R5_SETTINGS; save_wait=false; ui_store_result(r); } }
     }
     done=ee_owner_take_done();
+    if(save_wait && !command_pending && !ee_owner_busy()) {
+        save_wait=false; ui_store_result(done==1?RES_OK:RES_ERR_READBACK);
+        if(done==1 && pin_reset) log_event(EV_PIN_RESET,FC_NONE,0,0,0,0);
+        pin_reset=false;
+    }
     if(done) calibration_good=ee_owner_settings_valid() && cal_bindings_complete(cal,settings);
     (void)prot_begin_pass(&protection,settings);
     in.commit_begin=ee_owner_take_begin(); in.commit_done=done!=0;
@@ -236,6 +258,7 @@ uint8_t app_step(bool flow_ok) {
     prot_step(&in,&protection,&output);
     seen|=1;
     if(output.event_mask&(1u<<(EV_ACK-1))) {
+        app_view_ack();
         if(before!=RUN) timer_run_ack_expiry();
         first_logged=false;
         ee_owner_ack_events();
@@ -248,7 +271,7 @@ uint8_t app_step(bool flow_ok) {
     log_first_trip();
     if(in.scan_complete && in.scan->scan_validated) window_watch=false;
     if(output.window_refresh) { window_watch=true; window_at=in.now_ms; }
-    if(in.ack) last_ack=output.ack_reason;
+    if(in.ack) { last_ack=output.ack_reason; ui_ack_result(last_ack); }
     if(before==RUN && protection.mode!=RUN) ack_input_cancel();
     d=outputs_step(&outputs,&output,tick_ms(),!relay_run_sense(),!relay_alarm_sense());
     observe_expiry();

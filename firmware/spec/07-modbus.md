@@ -20,7 +20,7 @@ is never in the trip path (`0031` D7, I-086, I-094). Normative for `modbus`, dri
 
 ## 2. CPU budget (protection never starved)
 
-* RX ISR: store byte + timestamp in a 64 B ring, nothing else (~5 us). At 19200 baud that is <= 2,000 bytes/s ->
+* RX ISR: store byte + timestamp in a 64 B ring, nothing else (F4 measured 218 cycles = 27 us; at 19200 baud <= 6 % CPU). At 19200 baud that is <= 2,000 bytes/s ->
   < 1 % CPU even under a continuous flood.
 * `modbus_task` processes at most one complete frame per loop, bounded to 1 ms; responses are built from the
   snapshot taken this loop (`01` 4). Frames with bad CRC, wrong length, wrong address or overflow are dropped

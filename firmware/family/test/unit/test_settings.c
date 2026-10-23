@@ -150,9 +150,13 @@ static void commit_rules(void)
         if(op.kind==EE_READ) value=(uint8_t)(ee[op.address]^(st.retries==0?1u:0u));
     }
     CHECK(st.phase==STORE_DONE && st.retries==1 && st.fault==FC_NONE);
-    b=a; b.ch[0].type=CH_TYPE_J; CHECK(set_commit(&st,&b,&a,0)!=RES_OK);
-    b.ch[0].type_epoch=1; CHECK(set_commit(&st,&b,&a,0)==RES_OK);
-    b=a; b.ch[0].type_epoch=1; CHECK(set_commit(&st,&b,&a,0)!=RES_OK);
+    /* 05 section 5: candidate epoch is canonicalized against active, once. */
+    set_store_init(&st);
+    b=a; b.ch[0].type=CH_TYPE_J; CHECK(set_commit(&st,&b,&a,0)==RES_OK);
+    CHECK(st.image[29]==1);
+    set_store_init(&st); b.ch[0].type_epoch=1; CHECK(set_commit(&st,&b,&a,0)==RES_OK);
+    set_store_init(&st); b=a; b.ch[0].type_epoch=1; CHECK(set_commit(&st,&b,&a,0)==RES_OK);
+    CHECK(st.image[29]==0);
     b=a; CHECK(set_commit(&st,&b,&a,2)!=RES_OK);
 }
 static void wrap_reboot(const uint8_t ee[4096], bool off, bool multiple)

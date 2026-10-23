@@ -3,6 +3,9 @@
 #include "common/types.h"
 void timer_init(void);
 uint32_t tick_ms(void);
+uint32_t timer_now_us(void); /* Timer1, extended by ms; quantised to 50 us */
+uint32_t timer_capture_isr(void); /* raw Timer1 + low ms, IRQ context only */
+uint32_t timer_expand_capture(uint32_t capture); /* main, queue age <65 seconds */
 void timer_tick_isr(void);
 /* Atomic deadline, 0..1000 ms. ISR can only stop RUN. */
 void timer_run_start(uint16_t deadline_ms);

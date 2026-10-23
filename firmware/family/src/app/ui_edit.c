@@ -85,7 +85,7 @@ void ui_edit_key(ui_state_t *u,key_t key) {
     switch(u->field) {
     case UF_TYPE:
         if((w->type&3u)!=(uint8_t)u->edit_value) {
-            w->type=(uint8_t)u->edit_value; w->epoch=(uint8_t)((w->epoch+1u)&63u);
+            w->type=(uint8_t)u->edit_value; /* 05 section 5: epoch belongs to commit. */
             w->alarm=w->trip=w->limit=0;
             if(!w->type) { w->mode=0; w->band=2; }
             else { w->type|=0x70u; if(w->band<2) w->band=2; }
@@ -177,7 +177,8 @@ res_t ui_prepare(ui_state_t *u,const settings_t *s,settings_t *candidate) {
             if(w->type&0x70u) { u->message=UM_REENTER;return RES_ERR_RANGE; }
             c->type=(ch_type_t)w->type; c->mode=(ch_mode_t)w->mode; memcpy(c->name,w->name,6);
             c->alarm_dC=w->alarm; c->trip_dC=w->trip; c->probe_limit_dC=w->limit;
-            c->band_C=w->band; c->type_epoch=w->epoch;
+            c->band_C=w->band;
+            c->type_epoch=u->blank?0:(uint8_t)((s->ch[i].type_epoch+(c->type!=s->ch[i].type?1u:0u))&63u);
             if(c->type!=CH_TYPE_OFF && c->alarm_dC>=c->trip_dC) { u->message=UM_ORDER;return RES_ERR_RANGE; }
             if(c->type!=CH_TYPE_OFF && c->probe_limit_dC<1000) { u->message=UM_RANGE;return RES_ERR_RANGE; }
         }

@@ -31,13 +31,15 @@ bool timer_run_start_at(uint16_t d,uint32_t at) {
 }
 '@
 [IO.File]::WriteAllText("$out/fake_mcal.c",$fake)
+[IO.File]::WriteAllText("$out/fake_ad7124.c",(Get-Content "$root/test/fakes/fake_ad7124.c" -Raw).Replace('m[6]','m[3]').Replace('b<6;b++','b<3;b++'))
+[IO.File]::WriteAllText("$out/fake_tmp126.c",(Get-Content "$root/test/fakes/fake_tmp126.c" -Raw).Replace('[10]','[6]').Replace('i<10;i++','i<6;i++'))
 $sources=Get-Content "$root/sources/hardware_avr.txt" | Where-Object { $_ -and $_ -notmatch '^src/mcal/' } | ForEach-Object { "$root/$_" }
-$sources+=@("$root/test/fakes/fake_ad7124.c","$root/test/fakes/fake_tmp126.c","$PSScriptRoot/avr_profile.c")
+$sources+=@("$out/fake_ad7124.c","$out/fake_tmp126.c","$PSScriptRoot/avr_profile.c")
 # No LTO through the register-model seam: application optimisation must not
 # infer fake-only constant returns/side effects. Production MCAL is opaque too.
 & "$bin/avr-gcc.exe" '-std=c11' '-g' '-Os' '-fshort-enums' '-Wall' '-Wextra' '-Werror' '-mmcu=atmega1284p' '-DF_CPU=8000000UL' '-DFAMILY_TEST' '-DFAMILY_REGISTER_MODEL' "-I$out" "-I$root/include" '-c' "$PSScriptRoot/avr_mcal_wrap.c" '-o' "$out/mcal_wrap.o"
 if($LASTEXITCODE) { throw 'MCAL seam compilation failed' }
-& "$bin/avr-gcc.exe" '-std=c11' '-g' '-Os' '-fshort-enums' '-Wall' '-Wextra' '-Werror' '-mmcu=atmega1284p' '-DF_CPU=8000000UL' '-DFAMILY_TEST' '-DFAMILY_REGISTER_MODEL' "-I$out" "-I$root/include" '-ffunction-sections' '-fdata-sections' '-Wl,--gc-sections' @sources "$out/mcal_wrap.o" '-o' "$out/profile.elf"
+& "$bin/avr-gcc.exe" '-std=c11' '-g' '-Os' '-flto' '-mcall-prologues' '-fshort-enums' '-Wall' '-Wextra' '-Werror' '-mmcu=atmega1284p' '-DF_CPU=8000000UL' '-DFAMILY_TEST' '-DFAMILY_REGISTER_MODEL' "-I$out" "-I$root/include" '-ffunction-sections' '-fdata-sections' '-Wl,--relax,--gc-sections' @sources "$out/mcal_wrap.o" '-o' "$out/profile.elf"
 if($LASTEXITCODE) { throw 'AVR profile compilation failed' }
 & "$bin/avr-size.exe" '-C' '--mcu=atmega1284p' "$out/profile.elf"
 & "$bin/avr-objdump.exe" '-d' "$out/profile.elf" | Out-File "$out/disassembly.txt" -Encoding ascii
@@ -73,15 +75,29 @@ disable IO_BREAKS
 continue
 end
 break profile_done
+break profile_task_begin
+commands
+silent
+printf "TASK_BEGIN %u\n",profile_task_kind
+info target
+continue
+end
+break profile_task_end
+commands
+silent
+printf "TASK_END\n"
+info target
+continue
+end
 '@
 $commands=$commands.Replace('DATA_FILE',("$out/data.bin" -replace '\\','/'))
-$names=@('gpio_init','gpio_write','gpio_read','gpio_mask','delay_us','spi_init','spi_enable','spi_xfer','spi_soft_xfer','timer_init','tick_ms','timer_run_start','timer_run_start_at','timer_run_stop','timer_run_remaining','timer_run_active','timer_run_expired','timer_run_ack_expiry','timer_run_static_high','wdt_feed','reset_cause','fuses_read','fuses_ok','flow_check','ee_read','ee_ready','ee_write_byte','uart_init','uart_put','uart_get','uart_tx_complete')
+$names=@('gpio_init','gpio_write','gpio_read','gpio_mask','delay_us','spi_init','spi_enable','spi_xfer','spi_soft_xfer','timer_init','tick_ms','timer_run_start','timer_run_start_at','timer_run_stop','timer_run_remaining','timer_run_active','timer_run_expired','timer_run_ack_expiry','timer_run_static_high','wdt_feed','reset_cause','fuses_read','fuses_ok','flow_check','ee_read','ee_ready','ee_write_byte','uart_init','uart_put','uart_get','uart_tx_complete','timer_now_us','uart_configure_rtu','uart_rx_sample','uart_binary_start','uart_binary_busy')
 $symbols=& "$bin/avr-nm.exe" '-S' '--defined-only' "$out/profile.elf"
 $returns=@()
 foreach($line in Get-Content "$out/disassembly.txt") {
     if($line -match '^\s*([0-9a-f]+):.*\bret\s*$') { $returns += [Convert]::ToInt32($Matches[1],16) }
 }
-$ioCommands=''; $breakNo=5
+$ioCommands=''; $breakNo=7
 for($n=0;$n -lt $names.Length;$n++) {
     $symbol=$symbols | Where-Object { $_ -match ('\s'+$names[$n]+'$') }
     if(-not $symbol) { continue }
@@ -96,13 +112,13 @@ for($n=0;$n -lt $names.Length;$n++) {
         $breakNo++
     }
 }
-$commands=$commands.Replace('IO_BREAKS',"5-$($breakNo-1)")
-$commands+="`n$ioCommands`nset `$io_depth=0`ndisable 5-$($breakNo-1)`ncontinue`nprintf `"PROFILE_ERRORS %u MIXED %u REARM %u\n`",profile_errors,profile_mixed,profile_rearm`nquit`n"
+$commands=$commands.Replace('IO_BREAKS',"7-$($breakNo-1)")
+$commands+="`n$ioCommands`nset `$io_depth=0`ndisable 7-$($breakNo-1)`ncontinue`nprintf `"PROFILE_ERRORS %u MIXED %u REARM %u\n`",profile_errors,profile_mixed,profile_rearm`nquit`n"
 [IO.File]::WriteAllText("$out/profile.gdb",$commands)
 python "$PSScriptRoot/run_gdb.py" $Gdb "$out/profile.gdb" "$out/profile.elf" "$out/cycles.log"
 if($LASTEXITCODE) { throw 'AVR simulator failed; inspect cycles.log' }
 # Calibrate the actual GPIO/software-SPI/timer implementations, without fakes.
-& "$bin/avr-gcc.exe" '-std=c11' '-g' '-Os' '-fshort-enums' '-Wall' '-Wextra' '-Werror' '-mmcu=atmega1284p' '-DF_CPU=8000000UL' "-I$root/include" "$root/src/mcal/gpio.c" "$root/src/mcal/timer.c" "$root/src/mcal/spi.c" "$root/src/drivers/keys.c" "$root/src/board/board_cfg_24.c" "$PSScriptRoot/avr_mcal_cycles.c" "$PSScriptRoot/avr_store_cycles.c" "$root/src/services/settings.c" "$root/src/services/settings_cal.c" "$root/src/services/settings_store.c" '-o' "$out/mcal.elf"
+& "$bin/avr-gcc.exe" '-std=c11' '-g' '-Os' '-mcall-prologues' '-fshort-enums' '-Wall' '-Wextra' '-Werror' '-mmcu=atmega1284p' '-DF_CPU=8000000UL' "-I$root/include" '-Wl,--relax' "$root/src/mcal/uart.c" "$PSScriptRoot/avr_uart_cycles.c" "$root/src/mcal/gpio.c" "$root/src/mcal/timer.c" "$root/src/mcal/spi.c" "$root/src/drivers/keys.c" "$root/src/board/board_cfg_24.c" "$PSScriptRoot/avr_mcal_cycles.c" "$PSScriptRoot/avr_store_cycles.c" "$root/src/services/settings.c" "$root/src/services/settings_cal.c" "$root/src/services/settings_store.c" '-o' "$out/mcal.elf"
 if($LASTEXITCODE) { throw 'MCAL calibration compilation failed' }
 & "$bin/avr-objcopy.exe" '-O' 'binary' '-j' '.data' "$out/mcal.elf" "$out/mcal_data.bin"
 $elf=[IO.File]::ReadAllBytes("$out/mcal.elf"); $elf[36]=($elf[36] -band 128) -bor 5

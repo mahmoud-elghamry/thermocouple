@@ -50,6 +50,7 @@ void ui_alarm_snapshot(uint8_t count, fault_code_t code, uint8_t channel, uint8_
 typedef enum { UI_HOME, UI_SELECT, UI_DETAIL, UI_EVENTS, UI_PIN, UI_SETUP,
     UI_CHANNELS_MENU, UI_FIELDS, UI_EDIT, UI_COMMS, UI_NEW_PIN, UI_CONFIRM,
     UI_SAVING, UI_RECOVER } ui_screen_t;
+ui_screen_t ui_current_screen(void);
 typedef enum { UF_TYPE, UF_MODE, UF_NAME, UF_ALARM, UF_TRIP, UF_BAND,
     UF_LIMIT, UF_ADDRESS, UF_BAUD, UF_PIN } ui_field_t;
 typedef enum { UM_NONE, UM_BAD_PIN, UM_LOCKOUT, UM_PIN_MISMATCH, UM_NEW_PIN,
@@ -89,6 +90,7 @@ typedef struct {
     const fault_registry_t *faults;
     const scan_out_t *scan;
     uint32_t now_ms;
+    const uint8_t *trip_latched; /* optional pure-renderer input */
 } ui_snapshot_t;
 /* Pure: write exactly 20/80 space-padded characters, no terminating NUL. */
 void ui_render_row(const ui_state_t *u, const ui_snapshot_t *s, uint8_t row, char out[20]);

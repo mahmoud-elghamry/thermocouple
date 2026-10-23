@@ -34,6 +34,7 @@ bool ee_owner_info_fault(void); /* G13 sources: save failure, I/O, event loss */
 void ee_owner_ack_events(void); /* call ONLY for an accepted ACK; drain required */
 void ee_owner_validated_scan(fault_code_t reset_code, uint32_t uptime_s);
 uint32_t ee_owner_cycles(void);
+res_t ee_owner_history(uint8_t age,uint8_t *count,event_t *event);
 /* Scratch writes also serialize with transactions/events; service-only. */
 res_t ee_owner_scratch(uint16_t address, uint8_t value);
 #endif

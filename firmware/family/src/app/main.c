@@ -4,6 +4,10 @@
 #include "app/app.h"
 #include "app/ee_owner.h"
 #include "app/stack_budget.h"
+#include "app/ui.h"
+#include "app/modbus.h"
+#include "app/app_view.h"
+#include "app/profile_hooks.h"
 #include "services/scan.h"
 #include "services/fault.h"
 #include "drivers/iso_spi.h"
@@ -17,12 +21,14 @@
 #include "mcal/eeprom.h"
 #include "mcal/flash_crc.h"
 #include <string.h>
-#ifdef __AVR__
+#if defined(__AVR__) && !defined(FAMILY_REGISTER_MODEL)
 #include <avr/interrupt.h>
 #include <avr/io.h>
 #define stack_guard ((volatile uint8_t *)(RAMEND-APP_STACK_BYTES))
 #else
-static uint8_t stack_guard[16];
+/* Host/simulator register models have additional test-only storage. Production
+ * SRAM/stack placement is gated on the real image, independently of that RAM. */
+static volatile uint8_t stack_guard[16];
 #endif
 typedef enum { BOOT_LCD, BOOT_FLASH, LOAD_SETTINGS_A, LOAD_SETTINGS_B, RELOAD_SETTINGS_A,
                LOAD_CAL_A, LOAD_CAL_B, RELOAD_CAL_A, BEGIN_ACQ, LOOP } boot_t;
@@ -35,7 +41,7 @@ static uint16_t load_pos;
 static uint32_t boot_progress,boot_time;
 static uint32_t sequence_a;
 static bool cal_a_valid;
-static bool a_valid,b_valid,set_valid,cal_valid,flash_valid,service_entry;
+static bool a_valid,b_valid,set_valid,cal_valid,flash_valid,service_entry,pin_recovery;
 static uint8_t cal_slot,settings_slot,mode;
 static void load_bytes(uint16_t base,uint16_t length) {
     uint8_t i;
@@ -47,7 +53,7 @@ void f0_init(void) {
     gpio_init(); relays_safe(); fault_init(&faults); keys_init();
     if(!fuses_ok()) (void)fault_raise(&faults,FC_G15_FUSES,0);
     timer_init();
-#ifdef __AVR__
+#if defined(__AVR__) && !defined(FAMILY_REGISTER_MODEL)
     sei();
 #endif
     iso_init(); rs485_init(); lcd_init(); flash_crc_begin();
@@ -55,7 +61,7 @@ void f0_init(void) {
     memset(&active,0,sizeof active);
     memset(&calibration,0,sizeof calibration);
     boot=BOOT_LCD; mode=START_LATCHED; boot_time=boot_progress=tick_ms();
-    a_valid=b_valid=set_valid=cal_valid=flash_valid=service_entry=false;
+    a_valid=b_valid=set_valid=cal_valid=flash_valid=service_entry=pin_recovery=false;
     cal_slot=settings_slot=2; load_pos=0;
     bytes=ee_owner_boot_image();
 }
@@ -65,6 +71,7 @@ static void boot_step(void) {
     case BOOT_LCD:
         /* Power-up gestures: ACK+SET reserved for F2 recovery, never an ACK. */
         if(tick_ms()-boot_time>=300) {
+            pin_recovery=(keys_held()&12u)==12u;
             service_entry=(keys_held()&12u)==4u; keys_rearm(); boot=BOOT_FLASH;
         }
         boot_progress=tick_ms(); break;
@@ -127,7 +134,8 @@ static void boot_step(void) {
         load_bytes(0x640,CAL_SLOT_SIZE);
         if(load_pos==CAL_SLOT_SIZE) {
             cal_slot=0; cal_valid=cal_unpack(bytes,board()->banks,&calibration)==RES_OK && set_valid && cal_complete(&calibration,&active);
-            if(!cal_valid) (void)fault_raise(&faults,FC_G10_CALIBRATION,0); boot=BEGIN_ACQ;
+            if(!cal_valid) (void)fault_raise(&faults,FC_G10_CALIBRATION,0);
+            boot=BEGIN_ACQ;
         } break;
     case BEGIN_ACQ:
         mode=service_entry?SERVICE:((set_valid && cal_valid)?START_LATCHED:CONFIG_LOCK);
@@ -137,6 +145,8 @@ static void boot_step(void) {
             memcpy(frame,mode==CONFIG_LOCK?"LOCKED: CALIBRATE  ":"START: ACK REQUIRED",19); lcd_frame(frame); }
         ee_owner_init(&active,&calibration,settings_slot,cal_slot,set_valid);
         app_init(&active,&calibration,&faults,set_valid,service_entry);
+        if(pin_recovery) ui_pin_recovery();
+        if(!service_entry) mb_init();
         keys_rearm(); boot=LOOP; break;
     default: relays_safe(); boot=BEGIN_ACQ; break;
     }
@@ -152,7 +162,14 @@ void f0_task(void) {
         mode=(uint8_t)app_protection()->mode;
         if(mode==SERVICE) { svc_task(); seen|=8; }
     } else { relays_safe(); seen|=12; }
-    lcd_task(); seen|=16; rs485_task(); seen|=32;
+    if(boot==LOOP && flash_valid && mode!=SERVICE) {
+        PROFILE_TASK_BEGIN(3); app_view_step(); PROFILE_TASK_END();
+        PROFILE_TASK_BEGIN(1); ui_task(1000); PROFILE_TASK_END();
+    }
+    lcd_task(); seen|=16;
+    if(mode==SERVICE) rs485_task();
+    else if(boot==LOOP && flash_valid) { PROFILE_TASK_BEGIN(2); mb_task(1000); PROFILE_TASK_END(); }
+    seen|=32;
     /* SERVICE steps the same EEPROM owner itself (also used by standalone
      * service driver tests). Normal mode executes exactly one owner step here. */
     if(boot==LOOP && mode!=SERVICE && flash_valid) ee_owner_step();

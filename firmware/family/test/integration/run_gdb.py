@@ -13,7 +13,7 @@ with Path(log).open("w") as out:
         if time.monotonic()-start>480:
             proc.kill(); raise SystemExit("AVR simulator exceeded 480 seconds")
         s=line.strip()
-        if s.startswith(("BEGIN ","END","IO_","# cycles","MCAL_ERRORS","PROFILE_ERRORS")) or \
+        if s.startswith(("BEGIN ","END","IO_","TASK_","# cycles","MCAL_ERRORS","PROFILE_ERRORS")) or \
            any(x in s for x in ("profile_done","cycle_done","Error","error","No symbol","No registers")):
             out.write(s+"\n")
     result=proc.wait()

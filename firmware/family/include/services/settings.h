@@ -5,6 +5,7 @@
 #include <stddef.h>
 
 #define SETTINGS_SLOT_SIZE 768u
+#define SETTINGS_SCHEMA_VERSION 1u
 #define CAL_SLOT_SIZE 256u
 #define CAL_MISSING INT32_MAX
 typedef struct {
@@ -43,7 +44,8 @@ res_t set_unpack(const uint8_t in[SETTINGS_SLOT_SIZE], uint8_t board_type,
 /* -1 neither valid, 0 A, 1 B; equal/half-range sequences deterministically prefer A. */
 int set_select(bool a_valid, uint32_t a_seq, bool b_valid, uint32_t b_seq);
 bool set_protection_changed(const settings_t *a, const settings_t *b);
-/* Edit helper: increments epoch on a change, clears limits; OFF is canonical. */
+/* Edit helper: provisional epoch increment, clears limits; OFF is canonical.
+ * Commit derives the final epoch once against the active record (05 section 5). */
 res_t set_change_type(chan_cfg_t *c, ch_type_t type);
 res_t cal_validate(const calibration_t *c);
 res_t cal_pack(const calibration_t *c, uint8_t out[CAL_SLOT_SIZE]);

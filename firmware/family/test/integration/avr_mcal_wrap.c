@@ -27,6 +27,11 @@
 #define ee_read base_ee_read
 #define ee_ready base_ee_ready
 #define ee_write_byte base_ee_write_byte
+#define timer_now_us base_timer_now_us
+#define uart_configure_rtu base_uart_configure_rtu
+#define uart_rx_sample base_uart_rx_sample
+#define uart_binary_start base_uart_binary_start
+#define uart_binary_busy base_uart_binary_busy
 #define uart_init base_uart_init
 #define uart_put base_uart_put
 #define uart_get base_uart_get
@@ -59,6 +64,11 @@
 #undef ee_read
 #undef ee_ready
 #undef ee_write_byte
+#undef timer_now_us
+#undef uart_configure_rtu
+#undef uart_rx_sample
+#undef uart_binary_start
+#undef uart_binary_busy
 #undef uart_init
 #undef uart_put
 #undef uart_get
@@ -73,8 +83,10 @@ static void enter(uint8_t kind,uint16_t arg) {
 }
 static void leave(void) { if(--depth==0) profile_io_end(); }
 #define WRAPPER __attribute__((noinline,noclone,optimize("no-optimize-sibling-calls")))
-#define RET(t,n,a,c,k,p) WRAPPER t n a { t result; enter(k,p); result=base_##n c; leave(); return result; }
-#define VOID(n,a,c,k,p) WRAPPER void n a { enter(k,p); base_##n c; leave(); }
+/* A linker-relaxed CALL/RET can become a jump and bypass the RET breakpoint.
+ * Keep an instruction between leave and return, including void wrappers. */
+#define RET(t,n,a,c,k,p) WRAPPER t n a { t result; enter(k,p); result=base_##n c; leave(); __asm__ volatile("nop":::"memory"); return result; }
+#define VOID(n,a,c,k,p) WRAPPER void n a { enter(k,p); base_##n c; leave(); __asm__ volatile("nop":::"memory"); }
 VOID(gpio_init,(void),(),1,0)
 VOID(gpio_write,(pin_t p,bool h),(p,h),2,p)
 RET(bool,gpio_read,(pin_t p),(p),3,p)
@@ -106,3 +118,9 @@ VOID(uart_init,(void),(),28,0)
 RET(bool,uart_put,(uint8_t b),(b),29,0)
 RET(bool,uart_get,(uint8_t *b),(b),30,0)
 RET(bool,uart_tx_complete,(void),(),31,0)
+
+RET(uint32_t,timer_now_us,(void),(),32,0)
+VOID(uart_configure_rtu,(uint8_t b),(b),33,0)
+RET(bool,uart_rx_sample,(uart_sample_t *s),(s),34,0)
+RET(bool,uart_binary_start,(const uint8_t *p,uint16_t n),(p,n),35,0)
+RET(bool,uart_binary_busy,(void),(),36,0)

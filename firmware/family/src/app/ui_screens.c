@@ -120,7 +120,7 @@ static void home_row(const ui_state_t *u,const ui_snapshot_t *s,uint8_t row,char
                 }
                 marker='?';
             } else ui_number(out+offset+3,4,ui_whole(r->temp_dC),false);
-            if(s->protection->trip_seen[ch]) marker='#';
+            if(s->trip_latched?(s->trip_latched[ch/8u]&(1u<<(ch%8u)))!=0:s->protection->trip_seen[ch]!=0) marker='#';
             else if(marker!='?' && s->protection->alarm_latch[ch]) marker='!';
             else if(marker==' ' && c->mode==CH_MODE_ALARM_ONLY) marker='a';
         }

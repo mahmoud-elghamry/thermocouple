@@ -1,4 +1,5 @@
 #include "fake_ui.h"
+const uint8_t *app_trip_bitmap(void) { return NULL; }
 #include "mcal/timer.h"
 #include <string.h>
 settings_t fake_settings, fake_candidate;

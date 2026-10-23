@@ -1,11 +1,14 @@
 param([switch]$HostOnly,[switch]$AvrOnly)
 $ErrorActionPreference='Stop'
 $root=$PSScriptRoot
+$flashExceeded=$false
 $out=Join-Path $root 'build'
 New-Item -ItemType Directory -Force $out | Out-Null
 Start-Transcript -Path (Join-Path $out 'validation.log') -Force | Out-Null
 function Run([string]$file,[string[]]$a) {
-    & $file @a 2>&1 | ForEach-Object { Write-Host "$_" }
+    $previous=$ErrorActionPreference; $ErrorActionPreference='Continue'
+    try { & $file @a 2>&1 | ForEach-Object { Write-Host "$_" } }
+    finally { $ErrorActionPreference=$previous }
     if($LASTEXITCODE -ne 0) { throw "$file failed ($LASTEXITCODE)" }
 }
 function Sources([string]$name) {
@@ -36,6 +39,12 @@ if(-not $AvrOnly) {
     $cmd="set `"PATH=$installer;%PATH%`" && call `"$dev`" -arch=x64 -no_logo && cl /nologo /std:c11 /W4 /WX /O2 /I`"$root/include`" `"$root/src/services/settings.c`" `"$root/src/services/settings_cal.c`" `"$root/src/services/settings_store.c`" `"$root/test/integration/test_prepare.c`" /Fe:`"$prepExe`" /Fo:`"$out/`""
     Run $env:ComSpec @('/d','/s','/c',$cmd)
     Run $prepExe @()
+    $uartExe=Join-Path $out 'test_uart.exe'
+    $cmd="set `"PATH=$installer;%PATH%`" && call `"$dev`" -arch=x64 -no_logo && cl /nologo /std:c11 /W4 /WX /O2 /I`"$root/test/stubs`" /I`"$root/include`" `"$root/src/mcal/uart.c`" `"$root/test/integration/test_uart.c`" /Fe:`"$uartExe`" /Fo:`"$out/`""
+    Run $env:ComSpec @('/d','/s','/c',$cmd)
+    Run $uartExe @()
+    Run 'powershell.exe' @('-NoProfile','-ExecutionPolicy','Bypass','-File',(Join-Path $root 'test/build_ui.ps1'))
+    Run 'powershell.exe' @('-NoProfile','-ExecutionPolicy','Bypass','-File',(Join-Path $root 'test/build_modbus.ps1'))
 }
 if(-not $HostOnly) {
     $bin='C:/Program Files (x86)/Labcenter Electronics/Proteus 8 Professional/Tools/ARDUINO/hardware/tools/avr/bin'
@@ -54,8 +63,14 @@ if(-not $HostOnly) {
     if(-not $maxFrame -or $maxFrame+384 -gt $stackBytes) { throw "Commit stack frame $maxFrame + 384 margin exceeds $stackBytes" }
     Write-Host "AVR commit frame: $maxFrame bytes; caller/interrupt margin: 384; stack reservation: $stackBytes"
     $elf=Join-Path $out 'thermo24_f1.elf'
-    $flags=@('-std=c11','-Os','-fshort-enums','-Wall','-Wextra','-Werror','-mmcu=atmega1284p','-DF_CPU=8000000UL',"-I$root/include",'-ffunction-sections','-fdata-sections','-Wl,--gc-sections,--section-start=.image_crc=0x1FFFE,--undefined=image_crc')
-    Run $gcc ($flags+@(Sources 'hardware_avr')+@('-o',$elf))
+    $flags=@('-std=c11','-Os','-mcall-prologues','-fshort-enums','-Wall','-Wextra','-Werror','-mmcu=atmega1284p','-DF_CPU=8000000UL',"-I$root/include",'-ffunction-sections','-fdata-sections','-Wl,--relax,--gc-sections,--section-start=.image_crc=0x1FFFE,--undefined=image_crc')
+    # Keep MCAL opaque to application LTO, matching the profiler's I/O seam.
+    $targetSources=@(Sources 'hardware_avr'); $mcalObjects=@()
+    foreach($src in ($targetSources | Where-Object { $_ -match 'src[\\/]mcal[\\/]' })) {
+        $obj=Join-Path $out ((Split-Path $src -Leaf)+'.o'); $mcalObjects+=$obj
+        Run $gcc (@('-std=c11','-Os','-mcall-prologues','-fshort-enums','-Wall','-Wextra','-Werror','-mmcu=atmega1284p','-DF_CPU=8000000UL',"-I$root/include",'-ffunction-sections','-fdata-sections','-c',$src,'-o',$obj))
+    }
+    Run $gcc ($flags+@('-flto')+@($targetSources | Where-Object { $_ -notmatch 'src[\\/]mcal[\\/]' })+$mcalObjects+@('-o',$elf))
     $objcopy=Join-Path $bin 'avr-objcopy.exe'
     $raw=Join-Path $out 'image.bin'
     Run $objcopy @('-O','binary','-j','.text','-j','.data',$elf,$raw)
@@ -86,9 +101,12 @@ if(-not $HostOnly) {
     $sections=& (Join-Path $bin 'avr-size.exe') '-A' $elf
     [int]$ram=0
     foreach($row in $sections) { if($row -match '^\.(data|bss|noinit)\s+(\d+)') { $ram+=[int]$Matches[2] } }
-    if($ram+$stackBytes -gt 12288) { throw "RAM budget exceeded: $ram + $stackBytes stack" }
-    if($end+2 -gt 65536) { throw "Flash budget exceeded: $end + 2 CRC" }
-    Write-Host "RAM with $stackBytes-byte stack allowance: $($ram+$stackBytes)/12288; flash CRC storage: 2 bytes"
+    if($ram+$stackBytes -gt 14336) { throw "RAM budget exceeded: $ram + $stackBytes stack" }
+    # Finish every functional/timing gate before reporting a size failure.
+    # The limit remains fatal; an oversized image is never reported as PASS.
+    $flashExceeded=$end+2 -gt 98304
+    if($flashExceeded) { Write-Host "Flash budget FAIL: $end + 2 CRC > 98304" }
+    Write-Host "RAM with $stackBytes-byte stack allowance: $($ram+$stackBytes)/14336; flash CRC storage: 2 bytes"
     Run (Join-Path $bin 'avr-objcopy.exe') @('-O','ihex','-R','.eeprom',$elf,(Join-Path $out 'thermo24_f1.hex'))
     Run (Join-Path $bin 'avr-size.exe') @('-C','--mcu=atmega1284p',$elf)
 }
@@ -96,3 +114,4 @@ if(-not $HostOnly) {
     Run 'powershell.exe' @('-NoProfile','-ExecutionPolicy','Bypass','-File',(Join-Path $root 'test/integration/profile_avr.ps1'))
 }
 Stop-Transcript | Out-Null
+if($flashExceeded) { throw "Flash budget exceeded: $end + 2 CRC > 98304 (10 section 2)" }

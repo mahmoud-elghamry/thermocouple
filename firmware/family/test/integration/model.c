@@ -9,6 +9,8 @@
 #include "drivers/keys.h"
 #include "model.h"
 #include "app/timing.h"
+static uint32_t model_serial_now(void);
+#define FAKE_UART_NOW() model_serial_now()
 #define fake_reset base_reset
 #define fake_advance base_advance
 #define timer_init base_timer_init
@@ -23,6 +25,7 @@
 #define wdt_feed base_wdt_feed
 #define reset_cause base_reset_cause
 #define flow_check base_flow_check
+#define timer_now_us base_timer_now_us
 #include "../fakes/fake_mcal.c"
 #undef fake_reset
 #undef fake_advance
@@ -38,6 +41,7 @@
 #undef wdt_feed
 #undef reset_cause
 #undef flow_check
+#undef timer_now_us
 static bool enabled,write_pending,expired,fail_eeprom,run_expired,expire_on_grant;
 static uint32_t clock_us,busy_until,last_feed,writes,settings_writes,loop_started;
 static uint16_t write_address;
@@ -50,11 +54,14 @@ static void advance_us(uint32_t duration) {
         if(!expired && clock_us-last_feed>=250000u) { expired=true; boot_cause=8; timer_run_stop(); }
     }
     clock_us=end;
+    fake_uart_step(clock_us);
     if(write_pending && clock_us>=busy_until) {
         fake_eeprom[write_address]=write_value; write_pending=false;
     }
 }
 void model_enable(void) { enabled=true; }
+uint32_t timer_now_us(void) { return clock_us/50u*50u; }
+static uint32_t model_serial_now(void) { return timer_now_us(); }
 void model_expire_on_grant(void) { expire_on_grant=true; }
 bool model_watchdog_reset(void) { return expired; }
 uint32_t model_write_count(void) { return writes; }

@@ -70,7 +70,7 @@ res_t set_pack_part(const settings_t *s,uint8_t *out,uint8_t first,uint8_t count
     uint8_t i;
     if(s==NULL || out==NULL || s->channel_count>MAX_CHANNELS || first>s->channel_count || count>s->channel_count-first) return RES_ERR_RANGE;
     if(first==0) {
-        put16(out,0x5354); out[2]=1; out[3]=s->board_type; out[4]=s->channel_count;
+        put16(out,0x5354); out[2]=SETTINGS_SCHEMA_VERSION; out[3]=s->board_type; out[4]=s->channel_count;
         put32(out+6,s->sequence); out[10]=s->address; out[11]=s->baud; put16(out+12,s->pin_bcd);
     }
     for(i=first;i<(uint8_t)(first+count);i++) {
@@ -86,7 +86,7 @@ res_t set_pack(const settings_t *s, uint8_t out[SETTINGS_SLOT_SIZE])
     uint8_t i; uint16_t end;
     if(out==NULL || set_validate(s)!=RES_OK) return RES_ERR_RANGE;
     memset(out,0,SETTINGS_SLOT_SIZE);
-    put16(out,0x5354); out[2]=1; out[3]=s->board_type; out[4]=s->channel_count;
+    put16(out,0x5354); out[2]=SETTINGS_SCHEMA_VERSION; out[3]=s->board_type; out[4]=s->channel_count;
     put32(out+6,s->sequence); out[10]=s->address; out[11]=s->baud; put16(out+12,s->pin_bcd);
     for(i=0;i<s->channel_count;++i) {
         const chan_cfg_t *c=&s->ch[i]; uint8_t *p=out+16u+16u*i;
@@ -103,7 +103,7 @@ res_t set_unpack(const uint8_t in[SETTINGS_SLOT_SIZE], uint8_t board_type,
     uint8_t i; uint16_t end;
     if(in==NULL || s==NULL || channel_count>MAX_CHANNELS) return RES_ERR_RANGE;
     memset(s,0,sizeof(*s));
-    if(get16(in)!=0x5354 || in[2]!=1 || in[3]!=board_type || in[4]!=channel_count ||
+    if(get16(in)!=0x5354 || in[2]!=SETTINGS_SCHEMA_VERSION || in[3]!=board_type || in[4]!=channel_count ||
        in[5]!=0 || in[14]!=0 || in[15]!=0) return RES_ERR_RANGE;
     end=(uint16_t)(16u+16u*channel_count);
     if(get16(in+end)!=set_crc16(in,end)) return RES_ERR_CRC;
@@ -133,7 +133,7 @@ bool set_protection_changed(const settings_t *a, const settings_t *b)
         const chan_cfg_t *x=&a->ch[i], *y=&b->ch[i];
         if(x->type!=y->type || x->mode!=y->mode || x->alarm_dC!=y->alarm_dC ||
            x->trip_dC!=y->trip_dC || x->band_C!=y->band_C ||
-           x->probe_limit_dC!=y->probe_limit_dC || x->type_epoch!=y->type_epoch) return true;
+           x->probe_limit_dC!=y->probe_limit_dC) return true; /* epoch is derived, 05 section 5 */
     }
     return false;
 }

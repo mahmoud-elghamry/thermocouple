@@ -31,7 +31,6 @@ static res_t settings_commit(set_store_t *st, const settings_t *candidate,
         for(i=0;i<active->channel_count;++i) {
             uint8_t expected=active->ch[i].type_epoch;
             if(active->ch[i].type!=candidate->ch[i].type) expected=(uint8_t)((expected+1u)&63u);
-            if(candidate->ch[i].type_epoch!=expected) return RES_ERR_RANGE;
             if(active->ch[i].type_epoch==63 && expected==0) wraps=true;
         }
     } else if(active_slot!=2) return RES_ERR_RANGE;
@@ -44,12 +43,14 @@ static res_t settings_commit(set_store_t *st, const settings_t *candidate,
         if(st->calibration_slot_known && cal_slot!=st->calibration_active_slot) return RES_ERR_RANGE;
         next_cal=*cal; next_cal.sequence=cal->sequence+1u;
         for(i=0;i<active->channel_count;++i)
-            if(active->ch[i].type_epoch==63 && candidate->ch[i].type_epoch==0) {
+            if(active->ch[i].type_epoch==63 && active->ch[i].type!=candidate->ch[i].type) {
                 next_cal.baseline_nV[i]=CAL_MISSING; next_cal.tag[i]=0;
             }
         if(cal_pack(&next_cal,st->wrap_cal_image)!=RES_OK) return RES_ERR_RANGE;
     }
     next=*candidate; next.sequence=active?active->sequence+1u:0;
+    if(active) for(i=0;i<active->channel_count;i++)
+        next.ch[i].type_epoch=(uint8_t)((active->ch[i].type_epoch+(next.ch[i].type!=active->ch[i].type?1u:0u))&63u);
     if(set_pack(&next,st->image)!=RES_OK) return RES_ERR_RANGE;
     begin(st,active_slot,(uint16_t)(18u+16u*next.channel_count),false,set_protection_changed(active,&next));
     if(wraps) {
@@ -133,7 +134,6 @@ static void prepare_step(set_store_t *s)
             for(i=s->prep_cursor;i<end;i++) {
                 uint8_t expected=old->ch[i].type_epoch;
                 if(old->ch[i].type!=cfg->ch[i].type) expected=(uint8_t)((expected+1u)&63u);
-                if(expected!=cfg->ch[i].type_epoch) { prepare_fail(s); return; }
                 if(old->ch[i].type_epoch==63 && expected==0) {
                     s->prep_wrap=true; s->prep_wrap_mask[i/8u]|=(uint8_t)(1u<<(i%8u));
                 }
@@ -158,6 +158,8 @@ static void prepare_step(set_store_t *s)
     case PREP_SETTINGS:
         n=(uint8_t)(cfg->channel_count-s->prep_cursor); if(n>4) n=4;
         if(set_pack_part(cfg,s->image,s->prep_cursor,n)!=RES_OK) { prepare_fail(s); return; }
+        if(old) for(i=s->prep_cursor;i<(uint8_t)(s->prep_cursor+n);i++)
+            s->image[16u+16u*i+13u]=(uint8_t)((old->ch[i].type_epoch+(cfg->ch[i].type!=old->ch[i].type?1u:0u))&63u);
         if(s->prep_cursor==0) put32(s->image+6,s->prep_sequence);
         s->prep_cursor=(uint8_t)(s->prep_cursor+n);
         if(s->prep_cursor<cfg->channel_count) return;

@@ -11,6 +11,11 @@ extern uint32_t fake_feeds, fake_bus_errors, fake_spi_bytes, fake_soft_bytes;
 extern uint8_t fake_eeprom[4096];
 extern char fake_uart_log[16384];
 extern bool fake_uart_complete;
+void fake_uart_receive(uint8_t byte,uint8_t errors);
+void fake_uart_clear(void);
+uint16_t fake_uart_tx_size(void);
+uint8_t fake_uart_rx_count(void);
+void fake_uart_step(uint32_t now_us);
 extern bool fake_ref_follow;
 extern uint8_t fake_fuses[3];
 /* Register-level models at the MCAL seam (real drivers are linked). */

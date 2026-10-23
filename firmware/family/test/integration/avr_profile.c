@@ -7,11 +7,13 @@
 #include "services/tc_math.h"
 #include "drivers/keys.h"
 #include "drivers/lcd.h"
+#include "app/ui.h"
 #include "mcal/timer.h"
 #include "mcal/flash_crc.h"
 #include "fake_hw.h"
 #include <string.h>
 volatile uint16_t profile_pass;
+volatile uint8_t profile_measuring,profile_task_kind;
 volatile uint8_t profile_phase,profile_errors,profile_mixed,profile_rearm;
 volatile uint32_t profile_delay;
 uint8_t profile_eeprom_read(uint16_t a) {
@@ -26,9 +28,11 @@ void profile_eeprom_write(uint16_t a,uint8_t v) {
 void flash_crc_begin(void) { }
 res_t flash_crc(void) { return RES_OK; }
 uint16_t flash_crc_value(void) { return 0; }
-__attribute__((noinline)) void profile_begin(void) { __asm__ volatile("nop"); }
-__attribute__((noinline)) void profile_end(void) { __asm__ volatile("nop"); }
-__attribute__((noinline)) void profile_done(void) { for(;;) __asm__ volatile("nop"); }
+__attribute__((noinline,noclone,used)) void profile_begin(void) { profile_measuring=1; __asm__ volatile("nop":::"memory"); }
+__attribute__((noinline,noclone,used)) void profile_end(void) { profile_measuring=0; __asm__ volatile("nop":::"memory"); }
+__attribute__((noinline,noclone,used)) void profile_task_begin(void) { __asm__ volatile("nop":::"memory"); }
+__attribute__((noinline,noclone,used)) void profile_task_end(void) { __asm__ volatile("nop":::"memory"); }
+__attribute__((noinline,noclone,used)) void profile_done(void) { for(;;) __asm__ volatile("nop":::"memory"); }
 static void passes(uint16_t n) {
     static store_phase_t previous;
     for(profile_pass=0;profile_pass<n;profile_pass++) {
@@ -37,7 +41,7 @@ static void passes(uint16_t n) {
             ((profile_phase==4 || profile_phase==5 || profile_phase==8) &&
              (profile_pass<120 || current!=previous || ee_owner_publish_pending())) ||
             (profile_phase==0 && profile_pass>=295 && profile_pass<850) || profile_phase==11 || (profile_phase==1 && profile_pass==58) ||
-            (profile_phase==6 && profile_pass==652) || profile_phase==12 || profile_phase==13;
+            (profile_phase==6 && profile_pass==652) || profile_phase==12 || profile_phase==13 || profile_phase==14;
         fake_spi_bytes=fake_soft_bytes=profile_delay=0;
         if(measure) profile_begin();
         f0_task();
@@ -69,6 +73,9 @@ static void key_time(uint8_t n) {
 static void mixed(void) {
     uint16_t wait; uint8_t frames=0; uint32_t number,previous; bool preparing;
     fixture(); f0_init(); profile_phase=10; passes(3000);
+    (void)ui_key(KEY_SET_LONG); passes(1);
+    for(wait=0;wait<4;wait++) { (void)ui_key(KEY_SET); passes(1); }
+    (void)ui_key(KEY_SET); passes(1); (void)ui_key(KEY_SET); passes(1);
     number=scan_current()->scan_no;
     for(wait=0;wait<1600 && scan_current()->scan_no==number;wait++) passes(1);
     cfg=*app_settings(); cfg.ch[0].name[0]='M';
@@ -80,6 +87,7 @@ static void mixed(void) {
     preparing=ee_owner_busy() && ee_owner_phase()==STORE_PREPARE;
     fake_pin(board()->keys[3],false); key_time(8); key_time(50);
     previous=app_protection()->latest_scan[0];
+    for(wait=0;wait<16;wait++) fake_uart_receive((uint8_t)wait,0);
     fake_spi_bytes=fake_soft_bytes=profile_delay=0; profile_phase=9; profile_pass=0;
     profile_begin(); f0_task(); profile_end();
     if(fake_soft_bytes==6) profile_mixed|=1;
@@ -87,7 +95,9 @@ static void mixed(void) {
        app_protection()->latest_scan[0]==scan_current()->scan_no) profile_mixed|=2;
     if(app_ack_reason()==ACK_R5_SETTINGS) profile_mixed|=4;
     if(preparing && ee_owner_busy() && ee_owner_phase()==STORE_PREPARE) profile_mixed|=8;
-    if(profile_mixed!=15) ++profile_errors;
+    if(ui_current_screen()==UI_FIELDS) profile_mixed|=16;
+    if(fake_uart_rx_count()==8) profile_mixed|=32;
+    if(profile_mixed!=63) ++profile_errors;
 }
 static void newest_trip_ack(bool fault) {
     uint16_t wait; uint8_t i,shift=fault?3:0; uint32_t completed,number;
@@ -131,6 +141,18 @@ static void newest_trip_ack(bool fault) {
        (app_protection()->first.value_dC>=1436 && app_protection()->first.value_dC<=1437)))
         profile_rearm|=(uint8_t)(4u<<shift);
 }
+static void ui_save_profile(void) {
+    uint8_t i;
+    fixture(); f0_init(); profile_phase=10; passes(3000); profile_phase=14;
+    (void)ui_key(KEY_SET_LONG); passes(1);
+    for(i=0;i<6;i++) { (void)ui_key(KEY_SET); passes(1); } /* PIN, CHANNELS, CH1 */
+    for(i=0;i<2;i++) { (void)ui_key(KEY_DOWN); passes(1); }
+    (void)ui_key(KEY_SET); passes(1); (void)ui_key(KEY_UP); passes(1);
+    for(i=0;i<6;i++) { (void)ui_key(KEY_SET); passes(1); }
+    (void)ui_key(KEY_ESC); passes(1); (void)ui_key(KEY_ESC); passes(1);
+    (void)ui_key(KEY_SET); passes(160);
+    if(ui_current_screen()!=UI_SAVING || !ee_owner_busy()) ++profile_errors;
+}
 int main(void) {
     uint8_t ch; uint16_t wait;
     fixture();
@@ -161,5 +183,6 @@ int main(void) {
     { char frame[80]; memset(frame,'X',sizeof frame); lcd_frame(frame); profile_phase=11; passes(96); }
     newest_trip_ack(false); newest_trip_ack(true);
     if(profile_rearm!=63) ++profile_errors;
+    ui_save_profile();
     profile_done();
 }

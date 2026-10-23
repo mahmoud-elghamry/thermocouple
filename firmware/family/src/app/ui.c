@@ -7,6 +7,7 @@ static ui_state_t state;
 static char frame[80];
 static uint8_t row;
 static settings_t *candidate;
+ui_screen_t ui_current_screen(void) { return state.screen; }
 static void home(void) {
     state.screen=UI_HOME; state.session=false; state.pending=KEY_NONE;
     state.recovering=false; state.minimum=state.maximum=state.cj=TEMP_DC_INVALID;
@@ -171,6 +172,7 @@ void ui_task(uint16_t budget_us) {
     if(budget_us<1000) return;
     s.settings=app_settings();s.protection=app_protection();s.output=app_output();
     s.faults=app_faults();s.scan=scan_last();s.now_ms=tick_ms();
+    s.trip_latched=app_trip_bitmap();
     if(!s.settings || !s.protection || !s.output || !s.faults || !s.scan ||
        s.settings->board_type!=24 || s.settings->channel_count!=UI_CHANNELS) return;
     if(s.protection->mode==TRIPPED && state.previous_mode!=TRIPPED) {

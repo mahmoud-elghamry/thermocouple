@@ -29,3 +29,12 @@ src/app/protection.c
 src/app/channel_eval.c
 src/app/outputs.c
 src/services/events.c
+
+src/app/ui.c
+src/app/ui_edit.c
+src/app/ui_screens.c
+src/app/ui_format.c
+src/app/modbus.c
+src/app/modbus_map.c
+src/app/mb_io.c
+src/app/app_view.c

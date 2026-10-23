@@ -12,6 +12,7 @@ const settings_t *app_settings(void);
 const prot_state_t *app_protection(void);
 const prot_out_t *app_output(void);
 const fault_registry_t *app_faults(void);
+const uint8_t *app_trip_bitmap(void); /* immutable view until next app pass */
 ack_reason_t app_ack_reason(void); /* most recent command outcome */
 uint16_t app_worst_loop_ms(void);
 void app_loop_time(uint16_t ms);

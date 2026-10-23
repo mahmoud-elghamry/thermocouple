@@ -375,11 +375,13 @@ static void service_lost_report(void) {
     CHECK(strstr(fake_uart_log,"P17 EVENTS_LOST 1 OK")!=NULL);
 }
 void test_review(void);
+void test_f4(void);
 void test_main(void) {
     model_enable();
     test_review();
     island_burst(); overflow_ack(); first_out_last_slot(); service_lost_report();
     newest_trip_ack(); safety(); injected(); lifecycle(); configurations(); service_owner(); commits();
+    test_f4();
     printf("host modeled loop worst: %lu us (I/O timing; AVR CPU WCET requires bench)\n",(unsigned long)worst_us);
     printf("integration: %u checks PASS; S01-S06, S09-S12, S14, commit power cuts\n",checks);
 }

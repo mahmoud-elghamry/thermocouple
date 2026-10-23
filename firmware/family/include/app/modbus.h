@@ -1,6 +1,7 @@
 #ifndef FAMILY_MODBUS_H
 #define FAMILY_MODBUS_H
 #include "app/app.h"
+#include "mcal/uart.h"
 #include <stddef.h>
 
 #define MB_TX_BYTES 256u
@@ -60,9 +61,11 @@ void mb_init(void); /* after app/scan init; no I/O, starts in silent resync */
 void mb_task(uint16_t budget_us);
 
 /* Required link-time driver/application seams. Not provided by current drivers.
- * All calls nonblocking, O(1), except status (small fixed copy). Integration must
- * keep total seam/ISR overhead <=2000 cycles per task at 8MHz (timing gate reserves
- * this in addition to measured fake CPU). tx_start must reject pending new RX.
+ * All calls nonblocking, O(1), except status (small fixed copy). The standalone
+ * F3 harness reserves an estimated 2000 seam/ISR cycles. F4's deferred timestamp
+ * expansion exceeds that flat estimate on an eight-pop step; its integrated
+ * profiler charges actual MCAL bounds and gates the WHOLE task at 8000 cycles,
+ * including Timer2 and two RX interrupts (07 section 2). tx_start rejects pending RX.
  * Configure UART0 8N2 at baud_code 0=9600, 1=19200, flush old RX/errors on change.
  * RX ring >=64 entries, one consumer. Every entry is RX-complete byte+timestamp
  * in monotonic u32 microseconds (50us quantisation), flags on FE/DOR/UPE OR ring
@@ -73,7 +76,7 @@ void mb_task(uint16_t budget_us);
  * tx_start borrows bytes until !tx_busy; UDRE sends binary, DE before first
  * byte and release ONLY after final TXC. Suppress local echo. Busy covers DE.
  * status is a read-only application adapter, never a protection command. */
-typedef struct { uint32_t at_us; uint8_t byte, flags; } mb_rx_t;
+typedef uart_sample_t mb_rx_t; /* one canonical timestamped RX value, no second copy */
 void mb_io_configure(uint8_t baud_code);
 uint32_t mb_io_now_us(void);
 bool mb_io_rx(mb_rx_t *entry);

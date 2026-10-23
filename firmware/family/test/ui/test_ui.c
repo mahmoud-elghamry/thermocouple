@@ -198,17 +198,18 @@ static void test_editor_boundaries(void) {
     ui_state_t u;settings_t c;unsigned n;res_t r;
     fake_reset(false);memset(&u,0,sizeof u);ui_begin(&u,&fake_settings,false);u.field=UF_TYPE;
     ui_edit_begin(&u);ui_edit_key(&u,KEY_DOWN);ui_edit_key(&u,KEY_SET);
-    CHECK(u.work[0].type==CH_TYPE_OFF && u.work[0].epoch==1 && u.work[0].band==2);
+    /* 05 section 5: edits preserve the base epoch; commit derives it once. */
+    CHECK(u.work[0].type==CH_TYPE_OFF && u.work[0].epoch==0 && u.work[0].band==2);
     ui_edit_begin(&u);ui_edit_key(&u,KEY_UP);ui_edit_key(&u,KEY_SET);
-    CHECK((u.work[0].type&3u)==CH_TYPE_K && (u.work[0].type&0x70u)==0x70u && u.work[0].epoch==2);
+    CHECK((u.work[0].type&3u)==CH_TYPE_K && (u.work[0].type&0x70u)==0x70u && u.work[0].epoch==0);
     u.field=UF_ALARM;ui_edit_begin(&u);ui_edit_key(&u,KEY_SET); /* explicit zero is a valid re-entry */
     u.field=UF_TRIP;ui_edit_begin(&u);ui_edit_key(&u,KEY_UP);ui_edit_key(&u,KEY_SET);
     u.field=UF_LIMIT;ui_edit_begin(&u);ui_edit_key(&u,KEY_UP);ui_edit_key(&u,KEY_SET);
     u.entry_mask=u.position=0;r=RES_BUSY;
     for(n=0;n<64 && r==RES_BUSY;n++) r=ui_prepare(&u,&fake_settings,&c);
-    CHECK(r==RES_OK && c.ch[0].type_epoch==2 && set_validate(&c)==RES_OK);
+    CHECK(r==RES_OK && c.ch[0].type_epoch==0 && set_validate(&c)==RES_OK);
     u.work[0].epoch=63;u.field=UF_TYPE;ui_edit_begin(&u);ui_edit_key(&u,KEY_UP);ui_edit_key(&u,KEY_SET);
-    CHECK(u.work[0].epoch==0 && (u.work[0].type&3u)==CH_TYPE_J);
+    CHECK(u.work[0].epoch==63 && (u.work[0].type&3u)==CH_TYPE_J);
     u.field=UF_BAND;ui_edit_begin(&u);for(n=0;n<100;n++) ui_edit_key(&u,KEY_UP);CHECK(u.edit_value==50);
     for(n=0;n<100;n++) ui_edit_key(&u,KEY_DOWN);CHECK(u.edit_value==2);
     u.field=UF_ADDRESS;ui_edit_begin(&u);for(n=0;n<300;n++) ui_edit_key(&u,KEY_UP);CHECK(u.edit_value==247);
@@ -236,6 +237,9 @@ static void test_pure_screens(void) {
     fake_protection.mode=START_LATCHED; ui_render(&u,&s,guarded+1); CHECK(memcmp(guarded+1,"START: ACK REQUIRED",18)==0);
     fake_protection.mode=SERVICE; memcpy(u.service_step,"P016",4); ui_render(&u,&s,guarded+1); CHECK(memcmp(guarded+1,"SERVICE MODE",12)==0);
     fake_protection.mode=RUN; (void)fault_raise(&fake_faults,FC_B12_CJ_ONE,0); ui_render(&u,&s,guarded+1); CHECK(memcmp(guarded+1,"RUN  DEGRADED CJ",16)==0);
+    { uint8_t latched[(MAX_CHANNELS+7u)/8u]={1};
+      u.page=0; s.trip_latched=latched; fake_protection.trip_seen[0]=0;
+      ui_render(&u,&s,guarded+1); CHECK(guarded[29]=='#'); /* recovered trip remains latched */ }
 }
 int main(void) {
     test_navigation(); test_pin(); test_edits(); test_type_and_invalid(); test_comms_and_results();

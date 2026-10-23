@@ -43,5 +43,19 @@ int main(void) {
     for(i=0;i<200 && st.phase==STORE_PREPARE;i++) {
         set_store_step(&st,true,true,0,&op); CHECK(op.kind==EE_NONE);
     }
-    CHECK(st.phase==STORE_FAILED); printf("Store preparation: %u checks PASS\n",checks); return 0;
+    CHECK(st.phase==STORE_FAILED);
+    /* 05 section 5 (2026-10-23): derive epochs once from the ACTIVE record,
+     * independent of repeated editor changes or candidate epoch values. */
+    cfg.ch[0].type_epoch=5;
+    for(i=0;i<2;i++) {
+        settings_t loaded;
+        next=cfg; next.ch[0].type_epoch=17;
+        if(i) next.ch[0].type=CH_TYPE_J;
+        set_store_init(&reference); set_store_init(&st);
+        CHECK(set_commit_with_cal(&reference,&next,&cfg,0,&cal,0)==RES_OK);
+        CHECK(set_prepare_with_cal(&st,&next,&cfg,0,&cal,0)==RES_OK); prepare();
+        CHECK(set_unpack(st.image,24,24,&loaded)==RES_OK);
+        CHECK(loaded.ch[0].type_epoch==(i?6:5));
+    }
+    printf("Store preparation: %u checks PASS\n",checks); return 0;
 }

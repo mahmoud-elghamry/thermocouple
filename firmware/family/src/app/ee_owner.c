@@ -14,6 +14,7 @@ static uint8_t load_slot,next_slot;
 static uint16_t next_sequence;
 static bool ring_valid;
 static uint32_t cycles,events_lost;
+static uint32_t history_mask;
 static events_t ring;
 static event_t queue[QUEUE_SIZE];
 static ee_op_t operation;
@@ -30,7 +31,7 @@ void ee_owner_init(settings_t *cfg,calibration_t *cal,uint8_t ss,uint8_t cs,bool
     counted=counter_pending=event_pending=internal_error=bg_fault=false; io_ok=true;
     loss_alarm=false; events_lost=0;
     memset(&operation,0,sizeof operation); set_store_init(&store);
-    load_slot=next_slot=0; next_sequence=0; ring_valid=false;
+    load_slot=next_slot=0; next_sequence=0; ring_valid=false; history_mask=0;
     a=read32(0x10); b=read32(0x18);
     av=(a^read32(0x14))==UINT32_MAX; bv=(b^read32(0x1C))==UINT32_MAX;
     counter_slot=(uint8_t)(bv && (!av || (b!=a && (uint32_t)(b-a)<0x80000000UL)));
@@ -54,6 +55,19 @@ uint32_t ee_owner_events_lost(void) { return events_lost; }
 bool ee_owner_events_drained(void) { return load_slot==EVENT_SLOTS && count==0 && !event_pending && ee_ready(); }
 void ee_owner_ack_events(void) { if(ee_owner_events_drained()) loss_alarm=false; }
 uint32_t ee_owner_cycles(void) { return cycles; }
+res_t ee_owner_history(uint8_t age,uint8_t *n,event_t *e) {
+    uint8_t i,slot,selected=255,found=0;
+    if(!n || !e) return RES_ERR_RANGE;
+    *n=0;
+    if(age>=EVENT_SLOTS) return RES_ERR_RANGE;
+    if(load_slot<EVENT_SLOTS || !ee_ready()) return RES_BUSY;
+    for(i=0;i<EVENT_SLOTS;i++) {
+        slot=(uint8_t)((next_slot+EVENT_SLOTS-1u-i)%EVENT_SLOTS);
+        if(history_mask&(1UL<<slot)) { if(found==age) selected=slot; ++found; }
+    }
+    *n=found;
+    return selected==255?RES_ERR_RANGE:ev_unpack(ring.slot[selected],e);
+}
 static bool background_busy(void) { return load_slot<EVENT_SLOTS || counter_pending || event_pending; }
 res_t ee_owner_settings(const settings_t *candidate) {
     res_t r;
@@ -111,6 +125,8 @@ static void publish(void) {
         cal_slot=store.active_slot; cal_saved=true; done=2;
     } else {
         *active=*store.prep_candidate; active->sequence=store.prep_sequence;
+        /* Publish exactly the canonical epochs compared by the byte machine. */
+        for(ch=0;ch<active->channel_count;ch++) active->ch[ch].type_epoch=store.image[16u+16u*ch+13u];
         settings_slot=store.active_slot; settings_ok=true; done=1;
     }
 }
@@ -120,6 +136,7 @@ void ee_owner_step(void) {
     if(load_slot<EVENT_SLOTS) {
         uint8_t i; event_t e;
         for(i=0;i<16;i++) ring.slot[load_slot][i]=ee_read((uint16_t)(0x840+16*load_slot+i));
+        if(ev_unpack(ring.slot[load_slot],&e)==RES_OK) history_mask|=1UL<<load_slot;
         if(ev_unpack(ring.slot[load_slot],&e)==RES_OK &&
            (!ring_valid || ((uint16_t)(e.sequence-(uint16_t)(next_sequence-1u))!=0 &&
                             (uint16_t)(e.sequence-(uint16_t)(next_sequence-1u))<0x8000u))) {
@@ -147,13 +164,14 @@ void ee_owner_step(void) {
     if(!event_pending && count) {
         queue[tail].sequence=next_sequence;
         if(ev_pack(&queue[tail],ring.slot[next_slot])!=RES_OK) { internal_error=true; return; }
+        history_mask&=~(1UL<<next_slot);
         event_slot=next_slot; ++next_sequence; next_slot=(uint8_t)((next_slot+1u)%EVENT_SLOTS);
         event_index=0; event_pending=true;
         tail=(uint8_t)((tail+1u)%QUEUE_SIZE); --count;
     }
     if(event_pending) {
         r=ee_write_byte((uint16_t)(0x840+16*event_slot+event_index),ring.slot[event_slot][event_index]);
-        if(r==RES_OK) { bg_fault=false; if(++event_index==16) event_pending=false; }
+        if(r==RES_OK) { bg_fault=false; if(++event_index==16) { event_pending=false; history_mask|=1UL<<event_slot; } }
         else bg_fault=true;
     }
 }

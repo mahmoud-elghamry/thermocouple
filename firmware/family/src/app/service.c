@@ -40,7 +40,8 @@ uint8_t *svc_boot_image(void) { return ee_owner_boot_image(); }
 static void display(const char *s) {
     char frame[80]; size_t n=strlen(s); memset(frame,' ',80);
     (void)snprintf(frame,21,"SERVICE MODE %c%02u",astep?'A':'P',astep?astep:pstep);
-    if(n>60) n=60; memcpy(frame+20,s,n); lcd_frame(frame);
+    if(n>60) n=60;
+    memcpy(frame+20,s,n); lcd_frame(frame);
 }
 static void report(const char *name,long value,bool ok,const char *reason) {
     (void)snprintf(line,sizeof line,"%c%02u %s %ld %s %s",astep?'A':'P',astep?astep:pstep,name,value,ok?"OK":"FAIL",reason);
@@ -167,7 +168,8 @@ static void cal_start(void) {
 }
 static void collect_cal(void) {
     uint8_t c; const scan_diag_t *d=scan_diagnostics(); const scan_out_t *s=scan_last();
-    if(s->scan_no==last_scan) return; last_scan=s->scan_no;
+    if(s->scan_no==last_scan) return;
+    last_scan=s->scan_no;
     for(c=0;c<(astep==6?board()->banks:board()->channels);c++) {
         uint8_t bank=astep==6?c:(uint8_t)(c/8);
         if(!d->cal_safe[bank]) {
@@ -185,7 +187,8 @@ static void collect_cal(void) {
     for(c=0;c<(astep==6?board()->banks:board()->channels);c++) {
         if(astep==6) {
             int32_t ppm=(int32_t)(((int64_t)sums[c]/16)*1000000/6990507)-1000000;
-            if(ppm < -10000 || ppm>10000) test_ok=false; candidate.ref_ppm[c]=ppm;
+            if(ppm < -10000 || ppm>10000) test_ok=false;
+            candidate.ref_ppm[c]=ppm;
         } else if(confirmed&(1UL<<c)) {
             int32_t baseline=(int32_t)(sums[c]/8);
             if(settings_good && settings->ch[c].type==CH_TYPE_OFF) {

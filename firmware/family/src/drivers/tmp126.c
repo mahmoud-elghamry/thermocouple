@@ -41,7 +41,8 @@ static res_t frame(uint8_t j,uint16_t cmd,uint16_t *v) {
 res_t cj_init(uint8_t j) {
     uint16_t v=4; res_t r=frame(j,0x0003,&v); /* OPEN-Q12: configuration write without CRC */
     if(r==RES_OK) r=frame(j,0x4503,&v);
-    if(r!=RES_OK) return r; if(v!=4) return RES_ERR_READBACK;
+    if(r!=RES_OK) return r;
+    if(v!=4) return RES_ERR_READBACK;
     v=signature(j); r=frame(j,0x4405,&v);
     if(r==RES_OK) r=frame(j,0x4505,&v);
     if(r!=RES_OK) return r;

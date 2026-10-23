@@ -13,6 +13,7 @@ __attribute__((noinline)) void cycle_end(void) { __asm__ volatile("nop"); }
 __attribute__((noinline)) void cycle_done(void) { for(;;) __asm__ volatile("nop"); }
 void TIMER2_COMPA_vect(void);
 void store_cycles(void);
+void uart_cycles(void);
 int main(void) {
     uint16_t i; uint8_t j; gpio_init(); timer_init(); keys_init();
     PINA=PINB=PINC=PIND=255;
@@ -40,5 +41,5 @@ int main(void) {
     cycle_kind=32; cycle_begin(); TIMER2_COMPA_vect(); cycle_end();
     if(!timer_run_expired() || timer_run_active() || (PORTB&8u)) ++cycle_errors;
     if(timer_run_start_at(APP_RUN_WINDOW_MS,tick_ms())) ++cycle_errors;
-    store_cycles(); cycle_done();
+    uart_cycles(); store_cycles(); cycle_done();
 }
