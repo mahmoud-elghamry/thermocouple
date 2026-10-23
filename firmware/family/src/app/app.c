@@ -223,7 +223,7 @@ uint8_t app_step(bool flow_ok) {
     }
     immediate_faults();
     in.settings=settings; in.scan=scan_last(); in.faults=faults;
-    in.now_ms=tick_ms(); in.uptime_s=in.now_ms/1000u;
+    in.now_ms=tick_ms(); in.uptime_s=event_uptime;
     in.settings_valid=ee_owner_settings_valid(); in.calibration_valid=calibration_good;
     in.writing=ee_owner_busy(); in.flow_ok=flow_ok;
     in.scan_complete=in.scan->scan_no!=last_scan; last_scan=in.scan->scan_no;

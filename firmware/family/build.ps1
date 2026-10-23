@@ -55,7 +55,17 @@ if(-not $HostOnly) {
     Write-Host "AVR commit frame: $maxFrame bytes; caller/interrupt margin: 384; stack reservation: $stackBytes"
     $elf=Join-Path $out 'thermo24_f1.elf'
     $flags=@('-std=c11','-Os','-fshort-enums','-Wall','-Wextra','-Werror','-mmcu=atmega1284p','-DF_CPU=8000000UL',"-I$root/include",'-ffunction-sections','-fdata-sections','-Wl,--gc-sections,--section-start=.image_crc=0x1FFFE,--undefined=image_crc')
-    Run $gcc ($flags+@(Sources 'hardware_avr')+@('-o',$elf))
+    $application=@(); $mcalObjects=@()
+    foreach($source in @(Sources 'hardware_avr')) {
+        if($source -match '[\\/]src[\\/]mcal[\\/]') {
+            $object=Join-Path $out (([IO.Path]::GetFileNameWithoutExtension($source))+'_mcal.o')
+            Run $gcc @('-std=c11','-Os','-fshort-enums','-Wall','-Wextra','-Werror','-mmcu=atmega1284p','-DF_CPU=8000000UL',"-I$root/include",'-ffunction-sections','-fdata-sections','-c',$source,'-o',$object)
+            $mcalObjects+=$object
+        } else { $application+=$source }
+    }
+    # Whole-application optimisation, with opaque MCAL calls matching the
+    # profiler's separately compiled register-model seam.
+    Run $gcc ($flags+@('-flto')+$application+$mcalObjects+@('-o',$elf))
     $objcopy=Join-Path $bin 'avr-objcopy.exe'
     $raw=Join-Path $out 'image.bin'
     Run $objcopy @('-O','binary','-j','.text','-j','.data',$elf,$raw)

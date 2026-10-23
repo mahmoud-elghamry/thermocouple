@@ -103,7 +103,7 @@ An `ACK` command from `ui` is accepted only if **all** hold; otherwise it is ref
 |---|---|---|
 | 1 | state is `START_LATCHED` or `TRIPPED` (in `RUN`, ACK only clears cleared alarms, 7.2) | - |
 | 2 | the key press is fresh: ACK was seen released after boot, after the last trip and after any power-up gesture, held >= 50 ms (`06` 2); a queued ACK expires after 500 ms or on any trip or settings change | `R1 RELEASE ACK KEY` |
-| 3 | the latest board scan is validated, completed less than 1000 ms ago, and was evaluated under the **current** settings sequence (a scan straddling a settings switch does not count) | `R2 WAIT FOR SCAN` |
+| 3 | the latest board scan is validated, completed less than 1200 ms ago, and was evaluated under the **current** settings sequence (a scan straddling a settings switch does not count) | `R2 WAIT FOR SCAN` |
 | 4 | no trip-action global/bank fault is active (section 9) | `R3 FAULT Gnn/Bnn` |
 | 5 | every TRIP-mode fitted channel is clear per 3.3 | `R4 CH nn HOT/FAULT` |
 | 6 | settings valid and not being written | `R5 SETTINGS` |
@@ -116,7 +116,7 @@ Accepted ACK in `START_LATCHED`/`TRIPPED`: go to `RUN`; also clear every alarm l
 ### 6.1 Conditions to keep RUN closed (all at once)
 
 1. state == `RUN` (stored as value + complement; both must agree);
-2. a **RUN window** is open: it is (re)opened to `T_WIN = 900 ms` only by a validated board scan processed in
+2. a **RUN window** is open: it is (re)opened to `T_WIN = 1200 ms` only by a validated board scan processed in
    state `RUN` with no trip action; it is never extended by anything else;
 3. no trip fault active;
 4. flow check of `01` 2.3 passing (otherwise the watchdog resets the MCU anyway).
@@ -136,9 +136,9 @@ tagged with the sequence just replaced is also accepted, until the first scan wi
 sequence that changed without a commit seen by protection refreshes nothing (the window expires -> G05).
 **OFF channels:** channel faults (C01-C09) on a channel set to OFF are ignored for alarm, trip and ACK alike.
 
-`T_WIN` = 900 ms > one normal scan cycle (~690 ms, `03`) and > the worst slow scan (~870 ms) of `03` 10.2; set from the scan time
+`T_WIN` = 1200 ms > one normal scan cycle (~690 ms, `03`) and > the worst slow scan (~1050 ms) of `03` 10.2 (900 ms until 2026-10-23, raised so the loop budget is not tight: owner, limits like Murphy); set from the scan time
 measured on the first boards (service step P15) and recorded. A stalled scan opens RUN within `T_WIN` + pump decay
-(< 0.95 s), so even a stall at the moment of a real over-temperature still meets the ~1 s design target (requirement 2 s). Over-temperature
+(< 1.25 s), so even a stall at the moment of a real over-temperature meets the 2 s requirement. Over-temperature
 seen in a result does not wait for the window: it opens RUN immediately (section 1).
 
 ### 6.2 Read-back
@@ -159,13 +159,13 @@ The same scheme for ALARM_SENSE (PC7) -> G07.
 
 | Step | Time |
 |---|---|
-| crossing happens just after the channel's slot started; next conversion of this channel | <= one scan cycle: ~690 ms normal, ~870 ms worst (`03` 3.1, 10.2) |
+| crossing happens just after the channel's slot started; next conversion of this channel | <= one scan cycle: ~690 ms normal, ~1050 ms worst (`03` 3.1, 10.2) |
 | that conversion (single-cycle settled) | included above |
 | read, CRC, conversion, `eval_channel` -> trip | < 5 ms |
 | `outputs` stops PWM (same loop) | < 5 ms |
 | charge-pump decay to relay drop-out | 15-30 ms (`CALCULATIONS` 8.5) |
 | G6K release time | <= 3 ms (datasheet max) |
-| **total** | **~0.75 s normal, ~0.9 s worst estimate** incl. the filter allowance of `CALCULATIONS` 9.7 (requirement 2 s, GOAL; target ~1 s; to be measured, I-013) |
+| **total** | **~0.75 s normal, ~1.1 s worst estimate** incl. the filter allowance of `CALCULATIONS` 9.7 (requirement 2 s, GOAL; to be measured, I-013) |
 
 Open-thermocouple detection is slower by design: burnout is checked on one channel per scan (each channel about
 every 6 s, `03`). An open TC also drives the reading to a rail (`RANGE`), which trips at the next conversion.

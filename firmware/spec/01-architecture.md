@@ -33,7 +33,7 @@ reset -> boot (2.1) -> loop forever:
 
 * Every task is a state machine that does a bounded amount of work and returns. No `while (!ready)` loops on
   hardware; waits are states with a timeout measured in `ms_tick`.
-* Target loop period <= 5 ms, **worst case <= 8 ms** - enforced by the per-task budgets (ui 1 ms, modbus 1 ms,
+* Target loop period <= 5 ms, **worst case <= 20 ms** (owner 2026-10-23: limits like Murphy, no self-imposed tightness) - enforced by the per-task budgets (ui 1 ms, modbus 1 ms,
   store one EEPROM step) and measured in service step P16 (budget table in `10-phases.md`). The AD7124 conversion
   (~42 ms per slot at 25 SPS) is much longer than a loop, so polling its ready flag each loop costs nothing.
 * **ISRs are minimal**: 1 ms timer (increments `ms_tick`, samples keys, counts down the RUN deadline and stops

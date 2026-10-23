@@ -44,8 +44,8 @@ one line per item. The last line is `END <n_ok> OK <n_fail> FAIL`.
 | P12 | `CH<nn>` per channel | uV, C, type | fresh valid result, or `OPEN` with reason if nothing connected (FAIL only for fitted channels) |
 | P13 | `CH<nn>_BURN` per channel | burnout reading | in window / open detected as expected |
 | P14 | `ENGREF` | REFOK level, REFTEST result | REFOK active with FEED-SENSE connected; self-test passes |
-| P15 | `SCAN` | ms per board scan (normal, idle UI/Modbus) | <= 750 ms on the bench (normal ~690); the worst-case budget is 870 ms (`03` 10.2) |
-| P16 | `LOOP` | worst loop ms | <= 8 ms |
+| P15 | `SCAN` | ms per board scan (normal, idle UI/Modbus) | <= 750 ms on the bench (normal ~690); the worst-case budget is 1050 ms (`03` 10.2) |
+| P16 | `LOOP` | worst loop ms | <= 20 ms |
 
 ## 4. Interactive and active steps
 

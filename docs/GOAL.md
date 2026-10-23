@@ -60,8 +60,9 @@ That rationale must be rechecked if channel assignment spans different machines.
 ## Response time
 
 The trip must happen within **2 s** of the setpoint being crossed (owner 2026-10-20: the same as the
-market reference, Murphy TDXM-DC, which scans and trips within 2 s; a sheathed probe itself takes seconds).
-Design target stays ~1 s: the 24-ch firmware estimate is ~0.75 s normal, ~0.9 s worst (`firmware/spec/04` 6.3). The 24-ch
+market reference, Murphy TDXM-DC: "Scans all channels in 2 seconds", tripped set points "detected within two
+seconds" - fwmurphy.com/product/tdxm, checked 2026-10-23; a sheathed probe itself takes seconds). No tighter
+self-imposed target (owner 2026-10-23): the 24-ch firmware estimate is ~0.75 s normal, ~1.1 s worst (`firmware/spec/04` 6.3). The 24-ch
 scan is ~0.62 s for 14 slots (I-119); contact timing is measured at the bench
 (I-013, I-120). Communication is not in the shutdown path. Watchdog timing:
 I-097, I-118.

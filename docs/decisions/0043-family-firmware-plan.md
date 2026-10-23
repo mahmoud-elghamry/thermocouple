@@ -36,7 +36,7 @@ operator offsets (section 8), more than one PIN level.
 | Reset band | 2..50 C | 5 C | used for trip reset and alarm clear |
 | Probe limit | per channel, entered at commissioning | type's table max | bounds both SPs (`0038`) |
 
-No temperature is ever invented (I-100). No trip delay: every validated result is compared at once (GOAL 2 s, target ~1 s,
+No temperature is ever invented (I-100). No trip delay: every validated result is compared at once (GOAL 2 s,
 I-013).
 
 ### 2.2 Global
@@ -192,7 +192,7 @@ Modules: `board_cfg`, `iso_spi`, `ad7124`, `tmp126`, `rtd` (40-ch), `scan`, `tc_
 | Phase | Content | Gate |
 |---|---|---|
 | F0 | ATmega1284P programming + fuses + early watchdog; board_cfg, iso_spi, ad7124, tmp126, scan with all diagnostic slots, tc_math; minimal outputs (RUN off/latched, read-back), calibration storage, 20x4 diagnostic display; service mode | host tests; cold start and watchdog-reset start on the bench; service report all OK on the first boards |
-| F1 | channel_eval, protection (3.1-3.6), settings A/B, events | table-driven host tests of every rule in 3; fault injection: stalled acquisition with timers running, held keys, power cut during save, partial island power, aliasing (40-ch); bench: trip <= 2 s (target ~1 s), ACK rules; Astra review before engine use |
+| F1 | channel_eval, protection (3.1-3.6), settings A/B, events | table-driven host tests of every rule in 3; fault injection: stalled acquisition with timers running, held keys, power cut during save, partial island power, aliasing (40-ch); bench: trip <= 2 s, ACK rules; Astra review before engine use |
 | F2 | ui screens, setup menus, PIN | bench walk-through by the owner's technician |
 | F3 | Modbus read-only map (fn 3/4; signed 0.1 C, validity/age, type, mode, faults, actual RUN, first-out; all writes rejected), flood/malformed-frame test | Modbus poll test; I-120 matrix |
 
