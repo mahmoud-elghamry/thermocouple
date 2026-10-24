@@ -101,7 +101,10 @@ looks at MPN. Run this whenever `build.py` adds symbols.
 pwsh -File firmware\family\build.ps1     # 24-ch family firmware; old 8-ch: firmware\8ch-legacy\build.ps1
 pwsh -File firmware\family\test\integration\soak.ps1   # 60-day simulated soak, ~10 min, separate gate
 pwsh -File firmware\family\program.ps1 -DryRun         # USBasp: fuses F7/C1/FC + read-back, flash + verify
+pwsh -File firmware\family\read_report.ps1 -Board 01  # service report (SET held at power-up) -> production/bench/
 ```
+
+Installation drawing, terminal table, channel map and bench-day steps: `hardware/24ch/install-guide/index.html`.
 
 `build.ps1` takes ~17 min (all tests + AVR cycle profiler, cppcheck 2.22 at `C:/Program Files/Cppcheck`): run it
 after every code change. **Image only, ~30 s:** `pwsh -File firmware\family\build.ps1 -AvrOnly -CompileOnly` (cppcheck,

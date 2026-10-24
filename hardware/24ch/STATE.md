@@ -36,7 +36,7 @@
 0. Owner reviews A4 (branch `24ch-rev-a4`) and merges; on merge sweep the TMP126 SIO-edge issue row (on `main`).
 1. New quotes for A4: JLCPCB and NORI (I-078, I-123); owner decides where to order.
 2. When the order is placed: review the assembler's placement preview (pin-1 of every polarised part).
-3. Installation drawing for the technician (I-085), wiring numbering, heat test per channel.
+3. Installation drawing + bench guide done 2026-10-24: `install-guide/index.html` (published as an artifact); channel map filled on site.
 4. Firmware (`firmware/STATE.md`, `0041` firmware requirements); bench P2 when boards arrive (I-120, I-101,
    I-105, I-114, I-004, I-013).
 
