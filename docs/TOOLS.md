@@ -51,7 +51,7 @@ $cli = 'C:\Program Files\KiCad\10.0\bin\kicad-cli.exe'
 $env:KICAD_CLI = $cli
 $env:KICAD10_FOOTPRINT_DIR = 'C:\Program Files\KiCad\10.0\share\kicad\footprints'
 
-python sch_layoutuild.py --in-place       # schematic: base 05d6abd + sch_layout/ (own ERC + netlist gate)
+python sch_layout\build.py --in-place       # schematic: base 05d6abd + sch_layout/ (own ERC + netlist gate)
 & $cli sch erc --output erc-report.rpt --severity-error --severity-warning thermocouple_8ch.kicad_sch
 & $cli sch export netlist --output thermocouple_8ch.net thermocouple_8ch.kicad_sch
 python apply_rules.py                        # net classes + .kicad_dru into the project
@@ -143,7 +143,7 @@ New-Item -ItemType Directory -Path $out | Out-Null     # fails if it exists: new
 ```
 
 The technician's kit (every through-hole part plus what is not on the board;
-`0027`): `<KiCad python> hardware\8ch\kit_list.py <release>	echnician_kit.csv 3`.
+`0027`): `<KiCad python> hardware\8ch\kit_list.py <release>\technician_kit.csv 3`.
 
 Copy `docs/STATE.md`'s check numbers into the release folder as well. A
 fabrication package without the report it passed is not a package.
@@ -278,7 +278,7 @@ is confirmed by the table above.
 `pdftotext` ships with Git for Windows - no separate poppler install needed.
 
 ```powershell
-& "C:\Program Files\Git\mingw64in\pdftotext.exe" -f 12 -l 14 docs
+& "C:\Program Files\Git\mingw64\bin\pdftotext.exe" -f 12 -l 14 docs
 eference\datasheets\ATmega32A.pdf -
 ```
 
@@ -291,10 +291,9 @@ unreadable. Version here is 4.00 (Xpdf build), verified 2026-09-13.
 The `emc` skill consumes the `kicad` skill's analyser JSON, so run those first:
 
 ```powershell
-python $env:USERPROFILE\.claude\skills\kicad\scriptsnalyze_schematic.py thermocouple_8ch.kicad_sch --analysis-dir ..\..\docs
-eferencenalysispython $env:USERPROFILE\.claude\skills\kicad\scriptsnalyze_pcb.py thermocouple_8ch.kicad_pcb --full --analysis-dir ..\..\docs
-eferencenalysispython $env:USERPROFILE\.claude\skills\emc\scriptsnalyze_emc.py --analysis-dir docs
-eferencenalysis\ --text
+python $env:USERPROFILE\.claude\skills\kicad\scripts\analyze_schematic.py thermocouple_8ch.kicad_sch --analysis-dir ..\..\docs\reference\analysis
+python $env:USERPROFILE\.claude\skills\kicad\scripts\analyze_pcb.py thermocouple_8ch.kicad_pcb --full --analysis-dir ..\..\docs\reference\analysis
+python $env:USERPROFILE\.claude\skills\emc\scripts\analyze_emc.py --analysis-dir docs\reference\analysis\ --text
 ```
 
 Set `PYTHONIOENCODING=utf-8` first or the text report dies on an arrow
@@ -346,7 +345,7 @@ to a `claude/*` branch before the session ends; `git push` is in `ask`, not
 
 ## Konnect - editing through a running KiCad
 
-`docs/decisions/0013`. A single binary at `D:	ools\konnect\konnect.exe`,
+`docs/decisions/0013`. A single binary at `D:\tools\konnect\konnect.exe`,
 registered at **user scope** - `~/.claude.json` for Claude Code,
 `~/.codex/config.toml` for Codex - so both find it in every project. The
 project's `.mcp.json` declares **no** servers: naming it in both places is a
@@ -508,7 +507,7 @@ named parts and drops only their own-net tracks; then `finish.py dangling`, `fin
 * pcbnew python: `via.GetWidth()` without a layer raises a modal assert dialog that hangs the script -
   use `GetWidth(pcbnew.F_Cu)`. After `board.Remove(zone)` the zone list is stale: read first, remove last.
 * Delete tracks "touching a pad" by the pad's **own net** only - another net's segment can end under a pad.
-* Paths with backslashes written through a bash heredoc can turn ``/`` into control characters; check
+* Paths with backslashes written through a bash heredoc can turn `\b`/`\a` into control characters; check
   with `python -m py_compile` and a grep for control characters.
 
 ## Family boards (`hardware/family/`, `hardware/8ch-new/`, `hardware/40ch/`) - 2026-10-14

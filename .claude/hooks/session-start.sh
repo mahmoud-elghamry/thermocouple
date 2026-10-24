@@ -6,7 +6,7 @@
 # workstation, or any local Linux box, it exits at once and changes nothing.
 #
 # What a cloud session gets:
-#   avr-gcc + host cc      make -C firmware all test   (build.ps1 needs MSVC)
+#   avr-gcc + host cc      make -C firmware/8ch-legacy all test   (legacy 8-ch; family build.ps1 needs MSVC)
 #   kicad-cli (KiCad 10)   ERC / DRC / netlist, via kicad-tool
 #   kicad-tool             uv tool, from mash/kicad-skills (never pip kiutils)
 #   pwsh                   hardware/8ch/validate.ps1 / run_all.ps1
@@ -165,7 +165,7 @@ for t in avr-gcc cc make python pwsh kicad-cli kicad-tool konnect; do
 done
 have kicad-cli && ! kicad10 && missing="$missing kicad-cli(not-10)"
 echo "Thermo cloud setup (.claude/hooks/session-start.sh):"
-echo "  firmware:  make -C firmware all test      (build.ps1 is Windows/MSVC only)"
+echo "  firmware:  make -C firmware/8ch-legacy all test   (legacy 8-ch; firmware/family is Windows/MSVC only)"
 echo "  hardware:  pwsh -File hardware/8ch/validate.ps1"
 echo "  not here:  run_all.ps1 -Regenerate, KiCad GUI, Proteus"
 if [ -n "$missing" ]; then

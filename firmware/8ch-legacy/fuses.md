@@ -16,7 +16,7 @@ Issues: `I-015`, `I-032`, `I-016`.
 | High | `0x99` | **`0xD1`** |
 | Lock | `0xFF` | `0xFF` for prototypes — see below |
 
-Program them with `firmware/program.ps1`, which reads them back and fails if
+Program them with `firmware/8ch-legacy/program.ps1`, which reads them back and fails if
 they do not match.
 
 ---

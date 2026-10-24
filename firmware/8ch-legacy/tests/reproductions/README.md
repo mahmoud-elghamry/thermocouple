@@ -3,7 +3,7 @@
 These source files preserve I-073 and I-074 outside ignored `production/`.
 They include the current real application source using relative paths. They
 are diagnostic reproductions, **not additional passing release gates** and
-are deliberately not linked by `firmware/build.ps1` or the Makefile yet.
+are deliberately not linked by `firmware/8ch-legacy/build.ps1` or the Makefile yet.
 When fixing the issues, integrate the relevant cases into the normal tests
 without retaining duplicate test plumbing indefinitely.
 
@@ -20,7 +20,7 @@ Loop ticks are simulated iterations, not measured physical milliseconds.
 ## Windows reproduction
 
 Run from the repository root in PowerShell with the same installed Visual
-Studio C build tools used by `firmware/build.ps1`. No AVR programmer or
+Studio C build tools used by `firmware/8ch-legacy/build.ps1`. No AVR programmer or
 physical board is involved. This is the compile/run sequence exercised in
 the review; inspect each executable's exit code using the table above.
 
@@ -30,10 +30,10 @@ $vsInstall = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Com
 $vsDevCmd = Join-Path $vsInstall 'Common7\Tools\VsDevCmd.bat'
 $reproOutput = Join-Path (Get-Location) 'production\review-20260929\preserved-reproductions'
 New-Item -ItemType Directory -Path $reproOutput -Force | Out-Null
-$common = 'firmware\src\app\protection.c firmware\src\app\sensor_monitor.c firmware\src\app\settings.c'
+$common = 'firmware\8ch-legacy\src\app\protection.c firmware\8ch-legacy\src\app\sensor_monitor.c firmware\8ch-legacy\src\app\settings.c'
 foreach ($case in @('repro_save_ack', 'repro_boot')) {
-    $extra = if ($case -eq 'repro_boot') { 'firmware\src\hal\temperature_max31856_bank.c firmware\src\hal\tc_decode.c' } else { '' }
-    $compile = "call `"$vsDevCmd`" -arch=x64 -no_logo && cl /nologo /std:c11 /W4 /WX /Ifirmware\tests\host_mocks /Ifirmware\include firmware\tests\reproductions\$case.c $common $extra /Fe:`"$reproOutput\$case.exe`" /Fo:`"$reproOutput\\`""
+    $extra = if ($case -eq 'repro_boot') { 'firmware\8ch-legacy\src\hal\temperature_max31856_bank.c firmware\8ch-legacy\src\hal\tc_decode.c' } else { '' }
+    $compile = "call `"$vsDevCmd`" -arch=x64 -no_logo && cl /nologo /std:c11 /W4 /WX /Ifirmware\8ch-legacy\tests\host_mocks /Ifirmware\8ch-legacy\include firmware\8ch-legacy\tests\reproductions\$case.c $common $extra /Fe:`"$reproOutput\$case.exe`" /Fo:`"$reproOutput\\`""
     & $env:ComSpec /d /s /c $compile
     if ($LASTEXITCODE -ne 0) { throw "Compilation failed for $case" }
     & "$reproOutput\$case.exe"

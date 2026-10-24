@@ -10,7 +10,10 @@ product (Astra R-10, I-117). This catches the mechanical part of that drift:
    issue is both open and closed;
 3. every decision number named in an entry document has a file;
 4. every decision file has a Status line;
-5. no phrase listed in docs/superseded.txt appears in an entry document.
+5. no phrase listed in docs/superseded.txt appears in an entry document;
+6. (2026-10-24, Sol audit) no control characters in entry documents, TOOLS.md and the family STATE
+   (a backslash path written through a shell heredoc turns into one); every issue row has 4 cells;
+   no I-number has two closed rows.
 A new product's STATE.md is added to PRODUCT_STATE (0037 D4).
 
 Run: python docs/check_docs.py   (exit 0 = clean; 1 = findings printed)
@@ -26,6 +29,7 @@ ENTRY = ["AGENTS.md", "README.md", "docs/GOAL.md", "docs/STATE.md", "docs/ISSUES
          "hardware/24ch/README.md"] + PRODUCT_STATE
 LIMITS = {"AGENTS.md": 150, "docs/STATE.md": 60, "docs/GOAL.md": 120, **{s: 60 for s in PRODUCT_STATE}}
 ROW = re.compile(r"^\| (I-\d{3}) \|", re.M)
+CTRL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
 
 
 def read(rel):
@@ -40,8 +44,19 @@ def main():
         if n > limit:
             bad.append(f"{rel}: {n} lines, limit {limit}")
 
+    for rel in ENTRY + ["docs/TOOLS.md", "hardware/family/STATE.md", "docs/ISSUES-closed.md"]:
+        for n, line in enumerate(read(rel).splitlines(), 1):
+            if CTRL.search(line):
+                bad.append(f"{rel}:{n}: control character {CTRL.search(line).group()!r}")
+    for n, line in enumerate(read("docs/ISSUES.md").splitlines(), 1):
+        if ROW.match(line) and len(re.split(r"(?<!\\)\|", line.strip())) - 2 != 4:
+            bad.append(f"docs/ISSUES.md:{n}: issue row does not have 4 cells")
+
     open_ids = ROW.findall(read("docs/ISSUES.md"))
-    closed_ids = set(ROW.findall(read("docs/ISSUES-closed.md")))
+    closed_list = ROW.findall(read("docs/ISSUES-closed.md"))
+    for i in sorted({x for x in closed_list if closed_list.count(x) > 1}):
+        bad.append(f"docs/ISSUES-closed.md: {i} has more than one row")
+    closed_ids = set(closed_list)
     for i in sorted({x for x in open_ids if open_ids.count(x) > 1}):
         bad.append(f"docs/ISSUES.md: {i} has more than one row")
     for i in sorted(set(open_ids) & closed_ids):

@@ -1,6 +1,7 @@
 # 0043 - Family firmware plan (8/24/40-ch): features, safety logic, menus, phases
 
-* Status: **proposed, rev 2** (plan only, no code). Rev 1 2026-10-20; rev 2 the same day after Astra review 4
+* Status: **accepted and implemented for the 24-ch only** (F0-F8 in `firmware/family/`; scope cut in 9; the
+  8/40-ch wording below is the original plan). Originally proposed, rev 2. Rev 1 2026-10-20; rev 2 the same day after Astra review 4
   (`production/review-20261015-a4/ASTRA-4-firmware-plan-report.md`, local): 11 blockers and 10 "should" folded
   in. **Section 8 table approved by the owner 2026-10-20.** Detailed specification: `firmware/spec/` rev 5
   (commit dc6c509) after Astra reviews 5, 6 and 7 (all findings fixed; review 7 found only two narrow F0 items,

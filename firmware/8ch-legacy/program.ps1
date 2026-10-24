@@ -1,7 +1,7 @@
 # Program a THERMO-8CH unit: fuses first, then flash, both verified.
 #
-#   powershell -File firmware\program.ps1
-#   powershell -File firmware\program.ps1 -Programmer avrisp2 -Port COM3
+#   powershell -File firmware\8ch-legacy\program.ps1
+#   powershell -File firmware\8ch-legacy\program.ps1 -Programmer avrisp2 -Port COM3
 #
 # WHICH IMAGE MATTERS. build/ holds four, and two of them drive PB3 with
 # OPPOSITE meanings:
@@ -19,7 +19,7 @@
 # before touching the programmer) any image other than thermo_8ch_max31856.hex
 # unless -AllowUnapprovedImage is passed (I-082).
 #
-# Fuse values and the reasoning behind them: firmware/fuses.md
+# Fuse values and the reasoning behind them: firmware/8ch-legacy/fuses.md
 
 [CmdletBinding()]
 param(
@@ -160,7 +160,7 @@ if (-not (Test-Path -LiteralPath $imagePath)) {
 Image not found: $imagePath
 
 Build it first:
-  powershell -File firmware\build.ps1
+  powershell -File firmware\8ch-legacy\build.ps1
 
 Nothing was changed on the unit.
 "@

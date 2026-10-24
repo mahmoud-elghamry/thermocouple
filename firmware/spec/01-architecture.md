@@ -173,7 +173,7 @@ presence. It is `const` data selected by `BOARD`. Code outside `board_cfg` loops
 ```
 firmware/family/      (new tree; the 8-ch REV A2 code is in firmware/8ch-legacy/ as reference)
   ../spec/              this specification (firmware/spec)
-  src/board/            board_cfg_8.c board_cfg_24.c board_cfg_40.c
+  src/board/            board_cfg_24.c (board_cfg_8.c, board_cfg_40.c and drivers/rtd planned, not written - 00 Targets)
   src/mcal/             gpio spi uart timer wdt eeprom flash_crc
   src/drivers/          iso_spi ad7124 tmp126 rtd lcd keys relays rs485
   src/services/         scan tc_math tc_tables settings events fault

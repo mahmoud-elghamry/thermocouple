@@ -27,7 +27,7 @@ old one-engine/one-probe-per-cylinder mapping to all 24 channels.
 | | |
 |---|---|
 | The machine | Earlier basis: one eight-cylinder engine, no VFD. Common series shutdown for all 24 confirmed; physical sensor/engine mapping remains unconfirmed |
-| The sensors | K-type today, J also accepted per channel (`0038`); probably grounded-junction (owner, 2026-10-07), not verified. Earlier basis: cylinder bodies; exact model and 24-channel mapping unconfirmed |
+| The sensors | K-type today, J also accepted per channel (`0038`); the probes in hand are insulated (owner 2026-10-15, I-101; grounded/mixed stay supported), how it was checked to go on the installation drawing. Earlier basis: cylinder bodies; exact model and 24-channel mapping unconfirmed |
 | The unit | Same panel or nearby; shielded twisted extension cable of the probe's type (KX for K, JX for J, `0038` D3), roughly 50 m basis accepted (`0029`); exact cable/termination to be specified |
 | Vibration and heat | Existing basis is a separate panel; moving acquisition onto/near the engine requires a fresh environmental assessment |
 | The 24 V supply | Engine battery per accepted decision `0016`; surge qualification remains open (I-028/I-077) |
@@ -40,15 +40,15 @@ That rationale must be rechecked if channel assignment spans different machines.
 
 | # | Requirement | Status |
 |---|---|---|
-| R-1 | Read 24 thermocouples, type K or J per channel, grounded, insulated or mixed | J is firmware only (`0038`). One board REV A3, 3x AD7124-8 (`0031`, `0032`): schematic and routed board exist, layout repairs open (`docs/ISSUES.md` P0); not built or tested |
-| R-2 | Open the common potential-free dry-contact circuit when any channel exceeds its own setpoint | Trip relay G6K-2F-Y, both NO poles in series (`0032` rev 3); signal loads only, 30 VDC / 1 A (I-092); per-channel limits are 24-ch firmware (I-100); I-081 accepted limit |
-| R-3 | Energised to run — power loss, reset or fault must stop the machine | Relay held only by a heartbeat from completed scans (I-118); single-fault limits in I-081 |
-| R-4 | Show readings, channel limits and state locally | 20x4 LCD on standoffs on the board, five buttons plus a header for panel buttons (`0031` D4, `0034` D2); per-channel editing is firmware (I-100) |
-| R-5 | Latch startup/reset/trip until manual ACK with valid, cool channels | Owner reconfirmed 2026-10-07 (`0029`, I-089 closed); per-channel reset checks pending I-100; I-073 fixed |
-| R-6 | Detect a broken sensor (each channel checked about every 4 s) | **Open sensor trips by default**; "alarm only" is a deliberate, saved per-channel setting the display shows (owner 2026-10-09, `0034` D1; replaces `0031` D5's open default). Wire-to-wire or wire-to-sheath shorts can read plausibly on any two-wire front end; see `I-011` |
+| R-1 | Read 24 thermocouples, type K or J per channel, grounded, insulated or mixed | J is firmware only (`0038`, implemented). One board REV A4, 3x AD7124-8 (`0031`, `0032`, `0041`): release `24ch-reva4-20261023-094411-02daef` DRC 0/0/0; quotes open (I-078); not built or tested |
+| R-2 | Open the common potential-free dry-contact circuit when any channel exceeds its own setpoint | Trip relay G6K-2F-Y, both NO poles in series (`0032` rev 3); signal loads only, 30 VDC / 1 A (I-092); per-channel limits in the 24-ch family firmware (I-100, bench pending); I-081 accepted limit |
+| R-3 | Energised to run — power loss, reset or fault must stop the machine | Relay held only by a heartbeat from completed, validated scans (I-118, implemented; bench pending); single-fault limits in I-081 |
+| R-4 | Show readings, channel limits and state locally | 20x4 LCD and buttons on the panel door, 16-wire cable to J503 (`0042`, replaces the board-mounted LCD of `0031` D4); per-channel editing implemented (I-100) |
+| R-5 | Latch startup/reset/trip until manual ACK with valid, cool channels | Owner reconfirmed 2026-10-07 (`0029`, I-089 closed); per-channel reset checks implemented in the 24-ch firmware (I-100, bench pending); I-073 fixed |
+| R-6 | Detect a broken sensor (each channel's burnout check once every 8 scans, about 5.6 s) | **Open sensor trips by default**; "alarm only" is a deliberate, saved per-channel setting the display shows (owner 2026-10-09, `0034` D1; replaces `0031` D5's open default). Wire-to-wire or wire-to-sheath shorts can read plausibly on any two-wire front end; see `I-011` |
 | R-7 | Survive an engine installation and 50 m cable runs | **not proven — needs measurement** |
 | R-8 | Each channel has its own operator-settable persistent setpoint; values chosen at commissioning | Accepted 2026-10-07 (`0029`); done in the family firmware for the 24-ch (host/simulator tested, bench pending); 8ch-new/40ch firmware not written; the 8-ch REV A2 firmware has one shared limit (I-100) |
-| R-9 | Communication with a PLC/SCADA master | Isolated RS-485 / Modbus RTU fitted on the board (`0031` D7, I-094; owner 2026-10-14 keeps it fitted, reversing `0036` D2); protocol not written; never in the trip path (I-086) |
+| R-9 | Communication with a PLC/SCADA master | Isolated RS-485 / Modbus RTU fitted on the board (`0031` D7, I-094; owner 2026-10-14 keeps it fitted, reversing `0036` D2); read-only Modbus implemented (I-086, bench poll test pending); never in the trip path |
 
 ## What it must not do
 
@@ -64,7 +64,7 @@ The trip must happen within **2 s** of the setpoint being crossed (owner 2026-10
 market reference, Murphy TDXM-DC: "Scans all channels in 2 seconds", tripped set points "detected within two
 seconds" - fwmurphy.com/product/tdxm, checked 2026-10-23; a sheathed probe itself takes seconds). No tighter
 self-imposed target (owner 2026-10-23): the 24-ch firmware estimate is ~0.75 s normal, ~1.1 s worst (`firmware/spec/04` 6.3). The 24-ch
-scan is ~0.62 s for 14 slots (I-119); contact timing is measured at the bench
+scan is ~0.70 s for 15 slots (`firmware/spec/03` 3); contact timing is measured at the bench
 (I-013, I-120). Communication is not in the shutdown path. Watchdog timing:
 I-097, I-118.
 
@@ -91,5 +91,5 @@ Still to be confirmed before the unit is trusted:
 
 - Measure the potential between the sensor sheaths and the panel ground with the
   engine running and while cranking (`I-004`).
-- Verify the probable grounded junction against its actual model/continuity;
+- Verify the insulated junction of the probes in hand against their model/continuity (I-101);
   ungrounded probes can also measure temperature (`0029`, I-026).

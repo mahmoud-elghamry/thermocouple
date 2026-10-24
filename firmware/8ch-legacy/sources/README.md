@@ -1,6 +1,6 @@
 # Source lists
 
-One file per link unit, one source path per line, relative to `firmware/src/`.
+One file per link unit, one source path per line, relative to `firmware/8ch-legacy/src/`.
 
 Both build systems read these files instead of carrying their own copy of the
 list. Before this, `Makefile` and `build.ps1` each held a hand-maintained set

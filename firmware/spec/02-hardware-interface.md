@@ -333,7 +333,7 @@ RAM. Section 8 S0 does it in `.init3`.
 | **lfuse** | **`0xF7`** | CKDIV8 1, CKOUT 1, SUT1 1, SUT0 1, CKSEL3..0 0111 |
 | **hfuse** | **`0xC1`** | OCDEN 1, JTAGEN 1, SPIEN 0, WDTON 0, EESAVE 0, BOOTSZ1 0, BOOTSZ0 0, BOOTRST 1 |
 | **efuse** | **`0xFC`** | bits 7-3 unused (1), BODLEVEL2..0 = 100 |
-| lock | `0xFF` | prototypes; production lock is an owner decision (keep readable for field diagnosis, as `firmware/fuses.md` argues) |
+| lock | `0xFF` | prototypes; production lock is an owner decision (keep readable for field diagnosis, as `firmware/8ch-legacy/fuses.md` argues) |
 
 Low fuse (AVR Table 27-5):
 

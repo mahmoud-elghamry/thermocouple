@@ -15,7 +15,8 @@
 # two of these images drive PB3 with OPPOSITE meanings: the eight-channel image
 # asserts it to permit running, the legacy single-channel image asserts it on
 # over-temperature. Flashing the wrong stale file inverts the safety function
-# with no visible symptom (I-031). Build them: firmware/build.ps1.
+# with no visible symptom (I-031). Build them: firmware/8ch-legacy/build.ps1
+# (old 8-ch images) or firmware/family/build.ps1 (24-ch; its own .gitignore).
 firmware/8ch-legacy/build/
 
 # --- KiCad ---------------------------------------------------------------------

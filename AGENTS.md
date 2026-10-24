@@ -122,14 +122,12 @@ check `padcheck.py` before any long router run. The short version:
 
 ```powershell
 pwsh -File hardware\8ch\run_all.ps1      # validate a snapshot; source hardware stays unchanged
-```
-
-```powershell
-pwsh -File firmware\family\build.ps1   # 24-ch family firmware: build + all host tests + AVR profiler
+pwsh -File firmware\family\build.ps1   # 24-ch family firmware: build, host tests, AVR profiler; then
+pwsh -File firmware\family\test\build_core.ps1; pwsh -File firmware\family\test\build_acceptance.ps1
 ```
 
 Both must be run before claiming anything about the current state. In a cloud
-(Linux) session use `make -C firmware all test` and
+(Linux) session use `make -C firmware/8ch-legacy all test` (legacy 8-ch only) and
 `pwsh -File hardware/8ch/validate.ps1`; see `docs/TOOLS.md`, "Cloud sessions".
 `run_all.ps1 -Regenerate` rewrites and re-routes the whole board. The owner
 lifted the REV A0 freeze on 2026-09-15 (`docs/decisions/0014`), so it is

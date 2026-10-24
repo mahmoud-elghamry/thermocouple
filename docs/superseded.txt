@@ -11,7 +11,7 @@ autonomous modules | 0031: one 24-channel board
 blocks ordering the module | 0031: one 24-channel board
 all 8 inputs per module | 0031: one 24-channel board
 8 operator-adjustable | 0031: 24 channels, 24 limits
-LCD off-board | 0031 D4: 20x4 LCD on standoffs on the board
+LCD on standoffs on the board | 0042: 20x4 LCD and buttons on the panel door (24-ch)
 16x2 | 0031 D4: 20x4 LCD
 Modbus RTU is deferred | 0031 D7: isolated RS-485/Modbus fitted
 RS-485/Modbus RTU is a candidate | 0031 D7: isolated RS-485/Modbus fitted

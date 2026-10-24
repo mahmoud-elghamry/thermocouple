@@ -25,7 +25,9 @@ All files are written by one author (Claude) so names, codes and patterns agree;
 
 * MCU ATmega1284P, 8 MHz crystal, 128 KB flash, 16 KB RAM, 4 KB EEPROM. avr-gcc, C11, no dynamic memory, no
   floating point in the protection path (integer fixed point).
-* One source tree; `BOARD=8|24|40` at build time selects `board_cfg`. One binary per board type.
+* Planned: one source tree, `BOARD=8|24|40` at build time selects `board_cfg`, one binary per board type.
+  **Not built yet:** the build always uses `board_cfg_24.c`; an 8-ch port also needs settings, UI bounds and
+  image identity parameterised (Sol audit 2026-10-24); `FAMILY_CHANNELS` / `FAMILY_FAST_IO_HEADER` are only fast-I/O hooks.
 * **Implemented scope: the 24-ch board only (owner 2026-10-23: the 40-ch board is probably never built).** The
   firmware carries no 40-ch, PT100 (`rtd`) or 74HC154 decoder code; arrays are sized `MAX_CHANNELS` 24,
   `MAX_BANKS` 3. The 40-ch sections of these files (`02` 1.3 and 2.3, `03` 8, PT100 rows of `05`) stay as the
