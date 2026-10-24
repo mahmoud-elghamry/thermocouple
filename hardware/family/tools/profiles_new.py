@@ -10,6 +10,7 @@ _SHARED = ('plane_nets', 'plane_domains', 'contact_nets', 'chassis_net', 'high_c
 
 def _pin_checks(adcs, isolators):
     return [c for c in _P24['pin_checks'] if c[0] in ('U601', 'U501')] + [
+        ('U411', '5', 3.0, '74LVC1G125 VCC (gated SIO driver)')] + [
         (u, pin, 3.0, what) for u in isolators for pin, what in (('1', 'ISO7761 VCC1'), ('16', 'ISO7761 VCC2'))] + [
         (u, pin, lim, what) for u in adcs for pin, lim, what in (
             ('26', 'plane', 'AD7124 AVDD'), ('2', 'plane', 'AD7124 IOVDD'),

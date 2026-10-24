@@ -19,8 +19,8 @@ ROOT = HERE.parents[2]
 @contextlib.contextmanager
 def scratch_folder():
     # Windows sandbox rejects Python 3.11 TemporaryDirectory's private ACL.
-    folder = HERE.parent / 'tools-test' / ('guard-test-' + uuid.uuid4().hex)
-    folder.mkdir()
+    folder = ROOT / 'hardware/8ch-new/output/coord/profile-tests' / ('guard-test-' + uuid.uuid4().hex)
+    folder.mkdir(parents=True)
     try:
         yield folder
     finally:
@@ -48,7 +48,8 @@ class ProfilesTests(unittest.TestCase):
                               env=settings, capture_output=True, text=True)
 
     def test_selection_and_unknown_geometry(self):
-        for key, project, refs in (('24', 'thermo24', 3), ('8', 'thermo8', 1), ('40', 'thermo40', 5)):
+        for key, project, refs in (('24', 'thermo24', 3), ('8', 'thermo8', 1),
+                                   ('8l', 'thermo8', 1), ('40', 'thermo40', 5)):
             r = self.probe(('--board', key, 'lock'))
             self.assertEqual(r.returncode, 0, r.stderr)
             p = json.loads(r.stdout.splitlines()[0])
@@ -61,6 +62,9 @@ class ProfilesTests(unittest.TestCase):
                 self.assertEqual(p['adc_refs'], ['U101', 'U201', 'U301', 'U801', 'U901'])
             elif key == '8':
                 self.assertEqual((p['width'], p['height']), (130.0, 137.0))
+                self.assertIsNone(p['rtd_adc'])
+            elif key == '8l':
+                self.assertEqual((p['width'], p['height']), (150.0, 154.0))
                 self.assertIsNone(p['rtd_adc'])
 
     def test_confirmed_profiles(self):
@@ -82,10 +86,17 @@ class ProfilesTests(unittest.TestCase):
             self.assertTrue(callable(p8['assembly_html']))
             self.assertTrue(callable(p8['order_notes']))
         self.assertEqual(p8['plane_nets'], profiles.PROFILES['24']['plane_nets'])
-        self.assertEqual(len(p8['pin_checks']), 4 + 4 + 4 + 5)
+        self.assertEqual(len(p8['pin_checks']), 4 + 4 + 4 + 5 + 1)
+        for key in ('8', '8l', '40'):
+            checks = [c for c in profiles.PROFILES[key]['pin_checks'] if c[:2] == ('U411', '5')]
+            self.assertEqual(len(checks), 1, key)
+            self.assertEqual(checks[0][2], 3.0)
+            self.assertEqual(profiles.PROFILES[key]['sio_driver_ref'], 'U411')
+        self.assertTrue(profiles.PROFILES['24']['silk']['label_by_net'])
 
     def test_environment_and_copy_precedence(self):
-        r = self.probe(('--board=8', '--pcb', str(HERE.parent / 'tools-test' / 'copy.kicad_pcb'), 'via', 'C1', '2'),
+        r = self.probe(('--board=8', '--pcb', str(ROOT / 'hardware/8ch-new/output/coord/profile-tests/copy.kicad_pcb'),
+                        'via', 'C1', '2'),
                        {'THERMO_BOARD': '40', 'THERMO8_BOARD': 'unused.kicad_pcb'})
         self.assertEqual(r.returncode, 0, r.stderr)
         p = json.loads(r.stdout.splitlines()[0])
@@ -141,6 +152,50 @@ class ProfilesTests(unittest.TestCase):
                      if isinstance(n, ast.Assign) and isinstance(n.targets[0], ast.Name) and n.targets[0].id == 'CHECK')
         self.assertEqual(eval(compile(ast.Expression(check), 'CHECK', 'eval')), p['pin_checks'])
         self.assertNotIn('pcbnew', sys.modules)
+
+    def test_24_terminal_labels_follow_donor_net_mapping(self):
+        sys.path.insert(0, str(HERE))
+        import profiles
+        self.assertTrue(profiles.PROFILES['24']['silk']['label_by_net'])
+        silk = HERE / 'silk.py'
+        tree = ast.parse(silk.read_text(encoding='utf-8'))
+        names = [n for n in tree.body if isinstance(n, ast.Assign) and
+                 any(isinstance(t, ast.Name) and t.id == 'NET_LABELS' for t in n.targets)]
+        names += [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'net_label']
+        scope = {}
+        exec(compile(ast.Module(body=names, type_ignores=[]), str(silk), 'exec'), scope)
+        for net, expected in (('+24V_RAW', '+24V'), ('GND', '0V'), ('CHASSIS', 'CHAS'),
+                              ('TRIP_COM', 'C'), ('TRIP_NO', 'NO'), ('ALM_NC', 'NC')):
+            self.assertEqual(scope['net_label'](net), expected)
+        donor = (ROOT / 'hardware/24ch/gen/silk.py').read_text(encoding='utf-8')
+        for net, expected in (('+24V_RAW', '+24V'), ('CHASSIS', 'CHAS'),
+                              ('_COM', 'C'), ('_NO', 'NO'), ('_NC', 'NC')):
+            self.assertIn(f'("{net}", "{expected}")', donor)
+
+    def test_family_project_hole_severities_and_relay_zone_guard(self):
+        for board in ('8ch-new', '8ch-2l', '40ch'):
+            src = (ROOT / 'hardware' / board / 'gen/rules.py').read_text(encoding='utf-8')
+            self.assertLess(len(src.splitlines()), 300, board)
+            funcs = [n for n in ast.parse(src).body if isinstance(n, ast.FunctionDef)
+                     and n.name in ('write_project', 'write_dru', 'pair')]
+            project = {'net_settings': {'classes': [{}]}, 'board': {'design_settings': {'rules': {}}}}
+            writer = io.StringIO()
+            def memory_open(path, mode='r', **kwargs):
+                return io.StringIO(json.dumps(project)) if mode == 'r' else writer
+            space = {'json': json, 'open': memory_open, 'PRO': 'fixture.kicad_pro',
+                     'DRU': 'fixture.kicad_dru', 'CLASSES': {'Default': (0.2, 0.2, 0.6, 0.3),
+                      'Island': (0.2, 0.2, 0.6, 0.3), 'Contact': (0.2, 0.2, 0.6, 0.3),
+                      'RS485': (0.2, 0.2, 0.6, 0.3), 'Chassis': (0.2, 0.2, 0.6, 0.3)}}
+            exec(compile(ast.Module(body=funcs, type_ignores=[]), board, 'exec'), space)
+            space['write_project']({})
+            saved = json.loads(writer.getvalue())['board']['design_settings']
+            self.assertEqual(saved.get('rule_severities', {}).get('hole_to_hole'), 'error', board)
+            self.assertEqual(saved['rule_severities']['holes_co_located'], 'error', board)
+            self.assertNotIn('hole_to_hole', saved['rules'])
+            writer = io.StringIO()
+            space['write_dru']()
+            relay = writer.getvalue().split('(rule "relay_area"', 1)[1].split('(rule "relay_own_pins"', 1)[0]
+            self.assertIn("A.Type != 'Zone' && B.Type != 'Zone'", relay, board)
 
     def test_guard_refusals(self):
         sys.path.insert(0, str(HERE))
@@ -218,5 +273,4 @@ class ProfilesTests(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    (HERE.parent / 'tools-test').mkdir(exist_ok=True)
     unittest.main(argv=[sys.argv[0]], verbosity=2)

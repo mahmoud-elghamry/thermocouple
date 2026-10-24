@@ -1,19 +1,20 @@
-# Run outside Codex's sandbox. All outputs stay beneath this worktree's family/out/.
+# Circuit gate; generated files and logs stay in the coordination scratch area.
 [CmdletBinding()]
 param(
-    [string]$Release = 'D:\tasks\thermo\production\24ch-reva3-20261014-072946-4b1601',
+    [string]$Release = 'production/24ch-reva4-20261023-094411-02daef',
     [string]$Python = 'python',
     [string]$PriceCache = ''
 )
 $ErrorActionPreference = 'Stop'
 $repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..'))
+if (-not [IO.Path]::IsPathRooted($Release)) { $Release = [IO.Path]::GetFullPath((Join-Path $repo $Release)) }
 $cli = 'C:\Program Files\KiCad\10.0\bin\kicad-cli.exe'
 # No pcbnew step is needed; KiCad's python.exe is deliberately not used.
 $results = [ordered]@{}
 $oldCli = $env:KICAD_CLI
 $oldOut = $env:THERMO24_SCH_OUT
 $oldBytecode = $env:PYTHONDONTWRITEBYTECODE
-$run = Join-Path $repo ('hardware\family\out\gate-' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff'))
+$run = Join-Path $repo ('hardware\8ch-new\output\coord\family-gates\gate-' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff'))
 
 function Get-HardwareHashes {
     $hashes = @{}
@@ -47,16 +48,19 @@ try {
     if ($Python -eq 'C:\Program Files\KiCad\10.0\bin\python.exe') {
         throw 'Use ordinary Python: this circuit gate does not need pcbnew.'
     }
-    New-Item -ItemType Directory -Path $run -ErrorAction Stop | Out-Null
+    New-Item -ItemType Directory -Path $run -Force -ErrorAction Stop | Out-Null
     $before = Get-HardwareHashes
     $env:KICAD_CLI = $cli
     $env:PYTHONDONTWRITEBYTECODE = '1'
     $out24 = Join-Path $run '24'
     $out8 = Join-Path $run '8'
+    $out40 = Join-Path $run '40'
     $original = Join-Path $run 'original24'
     $build = Join-Path $PSScriptRoot 'build.py'
     $compare = Join-Path $PSScriptRoot 'compare_release.py'
     $null = Invoke-Step 'pure-python' @((Join-Path $PSScriptRoot 'test_family.py'))
+    $null = Invoke-Step 'profiles-and-8l' @((Join-Path $repo 'hardware\family\tools\test_profiles.py'))
+    $null = Invoke-Step 'release-text-and-8l' @((Join-Path $repo 'hardware\family\tools\test_docs_new.py'))
     $env:THERMO24_SCH_OUT = $original
     $null = Invoke-Step 'original-build24' @((Join-Path $repo 'hardware\24ch\gen\build.py'))
     $env:THERMO24_SCH_OUT = $oldOut
@@ -68,12 +72,14 @@ try {
     $familyEqual = Invoke-Step 'family-compare' @($compare, $out24, $Release)
     if ($familyEqual -and $originalEqual) {
         $null = Invoke-Step 'family-build8' @($build, '8', '--out', $out8)
+        $null = Invoke-Step 'family-build40' @($build, '40', '--out', $out40)
         $null = Invoke-Step 'fault-proof' @((Join-Path $PSScriptRoot 'fault_proof.py'), (Join-Path $run 'faults'), $Release)
         $costArgs = @((Join-Path $PSScriptRoot 'cost.py'), (Join-Path $out8 'thermo8.xml'))
         if ($PriceCache) { $costArgs += @('--cache', $PriceCache) }
         $null = Invoke-Step 'offline-cost8' $costArgs
     } else {
         $results['family-build8'] = $false
+        $results['family-build40'] = $false
         $results['fault-proof'] = $false
         Write-Host 'STOP: release equivalence was not established. Gate B and fault proof skipped; no comparison rules changed.'
     }

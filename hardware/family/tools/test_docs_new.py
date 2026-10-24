@@ -42,6 +42,23 @@ def strings(value):
 
 
 class DocsTests(unittest.TestCase):
+    def test_8l_text_uses_two_layer_revision_and_eight_channel_parts(self):
+        import docs_new
+        space = profile_defs()
+        p = space['Profile'](key='8l', assembly=None, assembly_html=None, order_notes=None,
+                             exposed_pad_text=None, release_prefix=None, width=None, height=None)
+        docs_new.apply({'8l': p}, space['P24'])
+        html = p['assembly_html']('release-8l', '',
+                                  dict(lines=1, parts=1, smd=1, tht='', n_tht=0), table)
+        notes = p['order_notes'](None, 'release-8l', lambda _: '150 x 154 mm')
+        self.assertIn('REV B0-2L', html)
+        self.assertIn('2 layers', html)
+        self.assertIn('all 8 thermocouple channels', html)
+        self.assertIn('U101', html)
+        self.assertNotIn('U201', html)
+        self.assertIn('8ch-revb0-2l', p['release_prefix'])
+        self.assertIn('2 layers', notes)
+
     def test_original24_text_preserved_except_revision(self):
         golden = json.loads(GOLDEN.read_text(encoding='utf-8'))
         p = profile_defs()['P24']

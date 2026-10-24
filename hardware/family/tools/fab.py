@@ -1,5 +1,5 @@
-"""Fabrication outputs for the 24-ch board into a NEW folder
-production/24ch-reva3-<YYYYMMDD-HHMMSS>-<sha256 of the board, 6 hex>/ (never reused).
+"""Fabrication outputs for the selected family profile into a NEW folder
+production/<profile-prefix>-<YYYYMMDD-HHMMSS>-<board sha256, 6 hex>/ (never reused).
 
 The source board is only read. A snapshot (board, .kicad_pro, .kicad_dru, schematic set)
 is copied into <release>/source-snapshot/; DRC (--schematic-parity --refill-zones
@@ -24,6 +24,7 @@ import xml.etree.ElementTree as ET
 from collections import defaultdict
 
 import guard
+from release_checks import copper_layers
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 HW = str(P["work_folder"])
@@ -33,7 +34,23 @@ PCB = os.path.abspath(os.environ.get("THERMO" + P["key"] + "_FAB_PCB") or str(P[
 SCH = os.path.abspath(os.environ.get("THERMO" + P["key"] + "_FAB_SCH") or str(Path(PCB).with_suffix(".kicad_sch")))
 OUT_ROOT = os.path.abspath(os.environ.get("THERMO" + P["key"] + "_FAB_OUT") or os.path.join(ROOT, "production"))
 BARE = ("#", "H", "TP")      # power symbols, mounting holes, test pads: nothing to buy or place
-LAYERS = "F.Cu,In1.Cu,In2.Cu,B.Cu,F.Paste,B.Paste,F.SilkS,B.SilkS,F.Mask,B.Mask,Edge.Cuts"
+LAYERS = ','.join(copper_layers(P.get('copper_layers', 4)) +
+                  ('F.Paste', 'B.Paste', 'F.SilkS', 'B.SilkS', 'F.Mask', 'B.Mask', 'Edge.Cuts'))
+
+
+def assembly_python():
+    """Use a renderer with PyMuPDF; allow an explicit interpreter override."""
+    import sys
+    override = os.environ.get('ASSEMBLY_PYTHON')
+    local = Path(os.environ.get('LOCALAPPDATA', '')) / 'Programs/Python/Python310/python.exe'
+    choices = [override] if override else [sys.executable, str(local)]
+    for exe in dict.fromkeys(choices):
+        try:
+            if subprocess.run([exe, '-B', '-c', 'import fitz'], capture_output=True).returncode == 0:
+                return exe
+        except OSError:
+            continue
+    raise SystemExit('PyMuPDF renderer missing: set ASSEMBLY_PYTHON to an interpreter with fitz')
 
 def write_order_notes(out, pcb, name):
     # Written for the supplier: a request for a quotation, not a list of conditions (owner, 2026-10-12).
@@ -45,7 +62,7 @@ def git(*args):
     r = subprocess.run(["git", "-C", ROOT, *args], capture_output=True, text=True)
     return r.stdout.strip() if r.returncode == 0 else "unknown"
 
-def write_manifest(out, snap, src_sha, counts, bom):
+def write_manifest(out, snap, src_sha, counts, bom, warnings):
     kv = subprocess.run([CLI, "version"], capture_output=True, text=True).stdout.strip() or "unknown"
     dirty = git("status", "--porcelain")
     lines = [f"MANIFEST {os.path.basename(out)}", f"created: {datetime.datetime.now():%Y-%m-%d %H:%M:%S}",
@@ -56,6 +73,7 @@ def write_manifest(out, snap, src_sha, counts, bom):
              f"board after DRC refill (source-snapshot/{P['project']}.kicad_pcb) sha256: "
              f"{guard.sha256(os.path.join(snap, P['project'] + '.kicad_pcb'))}",
              f"DRC (errors, unconnected, parity; --severity-error, refilled zones): {counts}",
+             f"DRC warnings (drc-warnings.rpt; both dangling kinds block release): {warnings}",
              f"BOM lines: {bom[0]}; lines without LCSC code: {len(bom[1])}", "schematic set sha256:"]
     for f in sorted(os.listdir(snap)):
         if f.endswith(".kicad_sch"):
@@ -77,6 +95,7 @@ def release(out, name, src_sha):
     counts = drc_counts(out, pcb)
     if counts != (0, 0, 0):
         raise SystemExit(f"DRC not clean {counts} - no fabrication files written")
+    warnings = drc_warnings(out, pcb)
     kpy = os.environ.get("KICAD_PYTHON", r"C:\Program Files\KiCad\10.0\bin\python.exe")
     r = subprocess.run([kpy, os.path.join(HERE, "pincaps.py"), "--board", P["key"], "--pcb", pcb], capture_output=True, text=True)
     with open(os.path.join(out, "pincaps.txt"), "w", encoding="utf-8") as f:
@@ -94,6 +113,7 @@ def release(out, name, src_sha):
         raise SystemExit(f"kicad-cli wrote too few Gerber/drill files: {names}")
     shutil.make_archive(os.path.join(out, (P["project"] + "-gerbers")), "zip", g)
     bom = bom_cpl(out, pcb, sch)
+    subprocess.run([kpy, os.path.join(HERE, 'cpl_jlc.py'), '--board', P['key'], out], check=True)
     pdf = os.path.join(out, (P["project"] + "-schematic.pdf"))
     run("sch", "export", "pdf", "-o", pdf, sch, out=pdf)
     acc = os.path.join(HW, "accessories.csv")         # I-116: everything not mounted on the board
@@ -101,7 +121,9 @@ def release(out, name, src_sha):
         raise SystemExit("accessories.csv missing beside selected board (I-116)")
     supplier_accessories(acc, os.path.join(out, "ACCESSORIES.csv"))
     write_order_notes(out, pcb, name)
-    write_manifest(out, snap, src_sha, counts, bom)
+    write_manifest(out, snap, src_sha, counts, bom, warnings)
+    subprocess.run([assembly_python(), '-B', os.path.join(HERE, 'assembly_spec.py'),
+                    '--board', P['key'], out], check=True)
 
 def main():
     guard.check(PCB)
@@ -123,7 +145,7 @@ def main():
 import sys
 if __name__ == "__main__":
     sys.modules["fab"] = sys.modules[__name__]
-from fab_ops import run, snapshot, drc_counts, bom_cpl, board_size, supplier_accessories
+from fab_ops import run, snapshot, drc_counts, drc_warnings, bom_cpl, board_size, supplier_accessories
 
 if __name__ == "__main__":
     main()

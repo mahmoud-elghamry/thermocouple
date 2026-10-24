@@ -3,12 +3,12 @@
 Copies of the ordered board's `hardware/24ch/gen/` tools. No circuit generators,
 `place.py` or `rules.py` are included. Donor source files remain untouched.
 
-Every entry accepts `--board 24|8|40` (default: `THERMO_BOARD`, otherwise 24)
+Every entry accepts `--board 24|8|8l|40` (default: `THERMO_BOARD`, otherwise 24)
 and `--pcb <path>`. Common options are removed before the existing positional
 parser runs. Selection and copy path survive child processes. `THERMO24_BOARD`,
 `THERMO24_MAZE_IN2`, `THERMO24_WRITER_CLAIM`, and the FAB_PCB/FAB_SCH/FAB_OUT
 overrides still work; use the corresponding THERMO8/THERMO40 prefix on those
-profiles. `route24.py --board` now selects a profile; its old copy-path argument
+profiles (and THERMO8L for the two-layer variant). `route24.py --board` now selects a profile; its old copy-path argument
 is `--pcb`. `pincaps.py [board]` and `guard.py [board]` remain compatible.
 
 `--pcb` selects adjacent `.kicad_pro`, `.kicad_dru`, `.xml`, `accessories.csv`
@@ -16,16 +16,17 @@ and `output/`; copy the sidecars and schematic set with the PCB. The family
 guard refuses a write to the ordered `hardware/24ch/thermo24.kicad_pcb`, even
 with `--force`. Fabrication reads that source and writes only a release snapshot.
 
-`profiles.py` is the only profile module. It holds project/folder, width/height,
+`profiles.py` selects the board; `profiles_new.py` supplies the 8/8l/40 variants.
+Together they hold project/folder, width/height,
 outline/mounting coordinates and types, ADC refs/banks/reference bases/channel counts, RTD
 ref, plane/contact/chassis/high-clearance/protected nets, class and router
 pair rules, pin-cap checks and buck/bootstrap identity, fiducial targets,
 silk geometry/functions/revision, bias/island zone naming, board-only prefixes,
 release prefix, assembly instructions/test points/orientation and output stems.
-8 uses the confirmed 130 x 125 mm floor plan, mounting coordinates/types and REV B0.
-40 uses bank bases 100/200/300/800/900, RTD U1001, decoder U410 and SIO U411;
-its size remains **None**, not the approximate planning dimensions. All
-unconfirmed per-board fields are None with a `set by floor plan` comment;
+8 uses the confirmed 130 x 137 mm four-layer floor plan (REV B0); 8l uses
+150 x 154 mm and two layers (REV B0-2L). 40 uses 250 x 145 mm, bank bases
+100/200/300/800/900, RTD U1001, decoder U410 and SIO U411. All variants
+check the gated SIO driver U411. Unconfirmed per-board fields are None with a `set by floor plan` comment;
 `require()` stops rather than generating guessed geometry or assembly guidance.
 
 `fanout`, `maze`, and `capnear` import only `domain` and `BANDS` from the
@@ -33,12 +34,21 @@ selected board's own `gen/rules.py`, without executing its main writer. An
 absent floor plan is an explicit failure. The helper modules split the copied
 algorithms into files below 300 lines; they share their entry module's context.
 
-## Regression hand-off
+## Regression hand-off (historical 24-channel tool comparison)
 
-The implementer **must not run KiCad** in the sandbox. Claude runs:
+The older full tool comparison harness still writes to `hardware/family/tools-test/`.
+Relocate its scratch copies under a board's `output/coord/` before running it
+for this coordination task. The plain-Python profile tests already put temporary
+files under `hardware/8ch-new/output/coord/profile-tests/`:
 
 ```powershell
-pwsh -NoProfile -File D:\tasks\thermo-branches\family-tools\hardware\family\tools\regress.ps1
+python -B hardware/family/tools/test_profiles.py
+```
+
+The historical external comparison command was:
+
+```powershell
+pwsh -NoProfile -File hardware/family/tools/regress.ps1
 ```
 
 The launcher pins KiCad 10 CLI/Python and the installed Python310/PyMuPDF renderer paths, disables bytecode and
@@ -138,5 +148,33 @@ mounting/standoff types and positions; packing gaps, regions and failure staging
 position. The existing placement describes older component choices and is
 not an approved floor plan for 8/40 or for rebuilding the ordered board.
 
-Ignore paths for Claude to add: `hardware/family/tools-test/` and
-`hardware/family/tools/__pycache__/`. No .gitignore was written here.
+## Coordination release flow
+
+`fab.py --board 8|8l|40 --pcb COPY` now generates the complete package, including
+raw `CPL.csv`, `CPL-JLC.csv`, a placement-preview checklist, `ASSEMBLY-SPEC.pdf`,
+standalone `POWER-ON-TEST.pdf`/ZIP, `WHICH-FILE-WHERE.txt` and final hashes.
+The assembler's JLC upload uses **CPL-JLC.csv**; another assembler receives the
+raw CPL. Offsets for 8/8l/40 are package hypotheses, so every listed polarized or
+directional part still needs a placement-preview check. The map uses the release
+snapshot. `ASSEMBLY_PYTHON` selects a Python with PyMuPDF; the current interpreter
+and existing local Python310 renderer are checked when no override is provided.
+Set `THERMO8_FAB_OUT`, `THERMO8L_FAB_OUT` or `THERMO40_FAB_OUT` to redirect releases.
+Both `track_dangling` and `via_dangling` block release; `drc-warnings.rpt` and
+`DRC-WARNINGS.txt` retain other warnings. Two-layer exports omit inner copper.
+
+`dangling_trim.py --board KEY --pcb COPY --report REPORT.json --out PLAN.txt`
+generates a fresh all-severity report and a **proposal**, without saving COPY.
+It trims free extensions and replaces same-layer via bridges with tracks.
+Apply only to a copy with `finish.py --board KEY --pcb COPY apply PLAN.txt`, then
+refill/save and run DRC, pincaps, holes, route_report and pourcheck. Multiple passes
+may be needed. Plans include a source hash; `finish apply` rejects stale hashes
+or missing UUIDs before saving. The final coordination lists are consolidated
+against the original source bytes, with independent replay proofs.
+
+`decoupling_report.py --board 8l --pcb REFILLED_COPY` reports a **proposed** routed
+ADC supply criterion: <=5 mm centreline to a 100 nF bypass, <=1 supply via, with
+both ADC ground and bypass return connected to saved ground fill. It does not
+change the existing release gate or establish electrical noise performance.
+Current 8l best paths are 11.48 mm/2 vias (AVDD) and 6.81 mm/0 vias (IOVDD), so the
+proposal fails; no limit was widened to pass this board. Owner review/bench
+evidence or a local routing change is needed before adopting an exception.

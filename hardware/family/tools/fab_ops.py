@@ -49,6 +49,28 @@ def drc_counts(out, pcb):
     return counts
 
 
+def drc_warnings(out, pcb):
+    """All warnings remain reviewable; both dangling kinds stop fabrication."""
+    from release_checks import warning_summary
+    rpt = os.path.join(out, 'drc-warnings.rpt')
+    run('pcb', 'drc', '--schematic-parity', '--severity-all', '-o', rpt, pcb,
+        out=rpt, ok=(0, 5))
+    text = Path(rpt).read_text(encoding='utf-8')
+    kinds = defaultdict(int)
+    for kind in re.findall(r'^\[([a-z_]+)\]', text, re.M):
+        kinds[kind] += 1
+    summary = ', '.join(f'{k} {n}' for k, n in sorted(kinds.items())) or 'none'
+    Path(out, 'DRC-WARNINGS.txt').write_text(
+        'All-severity DRC: ' + summary + '\n'
+        'Release blockers: track_dangling and via_dangling (any count).\n', encoding='utf-8')
+    print('DRC warnings:', summary)
+    try:
+        warning_summary(text)
+    except ValueError as exc:
+        raise SystemExit(f'{exc}; no fabrication files written') from exc
+    return summary
+
+
 def bom_cpl(out, pcb, sch):
     xml = os.path.join(out, "netlist.xml")
     run("sch", "export", "netlist", "--format", "kicadxml", "-o", xml, sch, out=xml)

@@ -1,5 +1,4 @@
 """One board profile; consume --board/--pcb before the legacy tool parses arguments.
-
 Unknown geometry is None. Copy overrides redirect sidecars/output beside the copy.
 Children inherit selection. Geometry stays in each board's own gen/rules.py.
 """
@@ -34,6 +33,7 @@ for key, folder, adcs in (
     )
 PROFILES['40'].update(rtd_adc='U1001', decoder_ref='U410', sio_driver_ref='U411')
 PROFILES['8'].update(width=130.0, height=137.0, outline=((0, 0), (130, 0), (130, 137), (0, 137)),
+    sio_driver_ref='U411',
     revision='REV B0', bank_channels=(8,), buck_ref='U601',
     mounting_holes={'H5': (4.5, 4.5), 'H4': (126, 40), 'H6': (4.5, 29.5), 'H7': (97.5, 29.5), 'H8': (4.5, 84.5),
                     'H9': (97.5, 84.5), 'H1': (4.5, 132.5), 'H3': (125.5, 132.5), 'H2': (4.5, 100), 'H10': (90, 113)},
@@ -74,6 +74,7 @@ P24['pin_checks'] = [('U601', '2', 3.0, 'LM5164 VIN ceramic input cap'),
 ] + [('U501', pin, 3.0, what) for pin, what in (
     ('5', 'ATmega VCC'), ('17', 'ATmega VCC'), ('38', 'ATmega VCC'), ('27', 'ATmega AVCC'))]
 P24['silk'] = dict(
+    label_by_net=True,  # REV A4 donor silk reads each terminal pad's net after connector rotation
     barriers=((43.5, 12.5, 43.5, 101.5), (43.5, 101.5, 169.5, 101.5),
               (53.5, 0.5, 53.5, 23.5), (53.5, 23.5, 85.5, 23.5), (85.5, 23.5, 85.5, 0.5)),
     horizontal=('J101', 'J102', 'J201', 'J202'), vertical=('J301', 'J302'),
@@ -250,7 +251,6 @@ In the quotation it would help us to see: PCB price, assembly price, parts price
 any part you could not find or would replace. Thank you.
 """
 P24["order_notes"] = order24_notes
-
 def select():
     key, pcb = os.environ.get('THERMO_BOARD', '24'), None
     args, rest, i = sys.argv[1:], [], 0

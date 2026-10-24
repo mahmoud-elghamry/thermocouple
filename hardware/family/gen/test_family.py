@@ -37,6 +37,13 @@ class FamilyTests(unittest.TestCase):
                 importlib.import_module(path.stem)
         self.assertNotIn("pcbnew", sys.modules)
 
+    def test_40_root_title_matches_fitted_rtds(self):
+        from c_rtd import rtd_bank
+        refs = {p.ref for p in rtd_bank(B40).parts()}
+        self.assertTrue({'J1001', 'J1002', 'R1095'} <= refs)
+        self.assertIn('3 PT100 + check resistor', B40.root_title)
+        self.assertNotIn('4 PT100', B40.root_title)
+
     def test_24_model_identical_to_original(self):
         code = """
 import json, sys

@@ -1,25 +1,20 @@
 """Net classes, isolation rules, pours and barrier keep-outs for the 2-layer 8-ch board REV B0-2L (from 8ch-new).
-
 2 layers for a local fab: no planes; F.Cu and B.Cu are poured with the domain's ground, power runs as tracks.
 Local-fab rules: 0.2 mm track and space (Island 0.15 only if the router cannot leave the AD7124 LFCSP),
 vias 0.7 / 0.3 mm (0.2 mm ring).
-
 Every net is put in a domain by where its pads are: the sensor island, the
 RS-485 bus pocket or the control side. A net with pads in two domains is a
 design error and stops the script. Run with KiCad's python after place.py.
 """
 import json
 import os
-
 import pcbnew
-
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.dirname(HERE)
 BOARD = os.environ.get("THERMO8L_BOARD", os.path.join(OUT, "thermo8.kicad_pcb"))
 PRO = os.path.splitext(BOARD)[0] + ".kicad_pro"
 DRU = os.path.splitext(BOARD)[0] + ".kicad_dru"
 mm = pcbnew.FromMM
-
 # the 4-layer floor plan spread 1.154 x 1.124 (gen/place.py): band centre y 92.5 -> 104.0, 3 mm wide;
 # the B0505 notch and the RS-485 pocket follow the moved parts (U401 x 117.7-126.9, pocket from x 123)
 W, H = 150, 154
@@ -34,16 +29,12 @@ BANDS = [[(0, 102.5), (117.7, 102.5), (117.7, 105.5), (0, 105.5)],
 GROUND = {"ISLAND": "GND_ISO", "CONTROL": "GND", "POCKET": "GND_RS485"}   # poured on F.Cu and B.Cu
 CONTACT = {"TRIP_COM", "TRIP_NO", "TRIP_NC", "TRIP_MID", "ALM_COM", "ALM_NO", "ALM_NC"}
 PWR24 = {"+24V_RAW", "+24V_FUSED", "+24V_PROT"}
-
-
 def inside(poly, x, y):
     c = False
     for (x1, y1), (x2, y2) in zip(poly, poly[1:] + poly[:1]):
         if (y1 > y) != (y2 > y) and x < (x2 - x1) * (y - y1) / (y2 - y1) + x1:
             c = not c
     return c
-
-
 def domain(x, y):
     if inside(POCKET, x, y):
         return "POCKET"
@@ -52,8 +43,6 @@ def domain(x, y):
     if inside(CONTROL, x, y):
         return "CONTROL"
     return "BAND"
-
-
 def classify(b):
     doms = {}
     for fp in b.GetFootprints():
@@ -72,8 +61,6 @@ def classify(b):
             print("DOMAIN CONFLICT", n, sorted(s))
         raise SystemExit("nets span two domains")
     return {n: next(iter(s))[0] for n, s in doms.items()}
-
-
 def netclass_of(net, dom):
     bare = net.rsplit("/", 1)[-1]
     if bare == "CHASSIS":
@@ -89,8 +76,6 @@ def netclass_of(net, dom):
     if bare in ("+5V", "GND"):
         return "CtrlPower"
     return "Default"
-
-
 CLASSES = {  # name: (track, clearance, via diameter, via drill) - local 2-layer fab: 0.2 / 0.2, via 0.7 / 0.3
     "Default": (0.20, 0.20, 0.70, 0.30),
     "Island": (0.20, 0.15, 0.70, 0.30),   # the AD7124 LFCSP corner pads are 0.18 apart: the fab needs 0.15 anyway (ERI publishes 0.15)
@@ -101,8 +86,6 @@ CLASSES = {  # name: (track, clearance, via diameter, via drill) - local 2-layer
     "RS485": (0.40, 0.25, 0.80, 0.40),
     "Chassis": (0.80, 0.25, 0.90, 0.50),
 }
-
-
 def write_project(assign):
     pro = json.load(open(PRO, encoding="utf-8"))
     ns = pro.setdefault("net_settings", {})
@@ -121,17 +104,14 @@ def write_project(assign):
     rules.update(min_clearance=0.15, min_track_width=0.2, min_via_diameter=0.6,
                  min_via_annular_width=0.15, min_through_hole_diameter=0.3,
                  min_copper_edge_clearance=0.5, min_hole_clearance=0.25, min_hole_to_hole=0.25)
+    pro["board"]["design_settings"].setdefault("rule_severities", {}).update(hole_to_hole="error", holes_co_located="error")
     json.dump(pro, open(PRO, "w", encoding="utf-8"), indent=2)
-
-
 def pair(a, b):
     ta = " || ".join(f"A.NetClass == '{x}'" for x in a)
     tb = " || ".join(f"B.NetClass == '{x}'" for x in b)
     ra = " || ".join(f"B.NetClass == '{x}'" for x in a)
     rb = " || ".join(f"A.NetClass == '{x}'" for x in b)
     return f"(({ta}) && ({tb})) || (({rb}) && ({ra}))"
-
-
 def write_dru():
     isl = ("Island", "IslandPower")
     others = tuple(c for c in CLASSES if c not in isl)
@@ -183,15 +163,12 @@ def write_dru():
              "  (condition \"(A.memberOfFootprint('C610') && B.memberOfFootprint('C610')) || "
              "(A.memberOfFootprint('R607') && B.memberOfFootprint('R607'))\"))", ""]
     open(DRU, "w", encoding="utf-8", newline="\n").write("\n".join(lines))
-
-
 def poly_outline(pts):
     chain = pcbnew.SHAPE_LINE_CHAIN()
     for x, y in pts:
         chain.Append(mm(x), mm(y))
     chain.SetClosed(True)
     return chain
-
 
 def find_net(b, bare):
     for name, n in b.GetNetsByName().items():

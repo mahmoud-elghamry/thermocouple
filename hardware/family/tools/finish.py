@@ -170,9 +170,14 @@ def add(net, layer, width, pts, end_via, b=None, via_size=(0.6, 0.3)):
 
 def apply(path):
     """Apply a route list: lines `rip UUID` / `add NET LAYER W x,y ... [via [D/d]]` (hand or Sol routes), one save."""
+    from pathlib import Path
+    from trim_geometry import require_rips, require_source_hash
+    text = Path(path).read_text(encoding='utf-8')
+    require_source_hash(Path(BOARD).read_bytes(), text)
     b = pcbnew.LoadBoard(BOARD)
-    lines = [l.split() for l in open(path, encoding="utf-8") if l.strip() and not l.startswith("#")]
+    lines = [l.split() for l in text.splitlines() if l.strip() and not l.startswith("#")]
     want = {a[1] for a in lines if a[0] == "rip"}
+    require_rips(want, {t.m_Uuid.AsString() for t in b.GetTracks()})
     gone = [t for t in b.GetTracks() if t.m_Uuid.AsString() in want]
     for t in gone:
         b.Remove(t)

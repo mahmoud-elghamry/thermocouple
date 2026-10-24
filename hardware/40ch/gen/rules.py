@@ -1,21 +1,17 @@
 """Net classes, isolation rules, planes and barrier keep-outs for the 40-ch board REV A0 (from the 24-ch rules.py).
-
 Every net is put in a domain by where its pads are: the sensor island, the
 RS-485 bus pocket or the control side. A net with pads in two domains is a
 design error and stops the script. Run with KiCad's python after place.py.
 """
 import json
 import os
-
 import pcbnew
-
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.dirname(HERE)
 BOARD = os.environ.get("THERMO40_BOARD", os.path.join(OUT, "thermo40.kicad_pcb"))
 PRO = os.path.splitext(BOARD)[0] + ".kicad_pro"
 DRU = os.path.splitext(BOARD)[0] + ".kicad_dru"
 mm = pcbnew.FromMM
-
 # floor plan v1 (gen/place.py): 250 x 145 mm; the 24-ch geometry with a right island column x > 198
 W, H = 250, 145
 ISLAND = [(0, 0), (42, 0), (42, 103), (198, 103), (198, 0), (W, 0), (W, H), (0, H)]
@@ -36,8 +32,6 @@ PLANES = {  # domain: (In1 net, In2 net, outer-layer pour net)
 }
 CONTACT = {"TRIP_COM", "TRIP_NO", "TRIP_NC", "TRIP_MID", "ALM_COM", "ALM_NO", "ALM_NC"}
 PWR24 = {"+24V_RAW", "+24V_FUSED", "+24V_PROT"}
-
-
 def inside(poly, x, y):
     c = False
     for (x1, y1), (x2, y2) in zip(poly, poly[1:] + poly[:1]):
@@ -125,6 +119,7 @@ def write_project(assign):
     rules.update(min_clearance=0.15, min_track_width=0.2, min_via_diameter=0.5,
                  min_via_annular_width=0.15, min_through_hole_diameter=0.3,
                  min_copper_edge_clearance=0.5, min_hole_clearance=0.25, min_hole_to_hole=0.25)
+    pro["board"]["design_settings"].setdefault("rule_severities", {}).update(hole_to_hole="error", holes_co_located="error")
     json.dump(pro, open(PRO, "w", encoding="utf-8"), indent=2)
 
 

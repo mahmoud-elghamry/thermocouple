@@ -99,7 +99,7 @@ MCU40 = dict(MCU24, PB0="CSA0", PB1="CSA1", PB2="CSA2", PB4="CS_EN", PC0="CSA3",
              PC3=NC, PC4=NC, PC5=NC)
 B40 = replace(
     B24, key="40", project="thermo40", library="thermo40", revision="A0",
-    root_title="Thermo 40-channel protection unit, 4 PT100 - REV A0", bank_count=5,
+    root_title="Thermo 40-channel protection unit, 3 PT100 + check resistor - REV A0", bank_count=5,
     bank_letters=tuple("ABCDE"), bank_bases=(100, 200, 300, 800, 900), mcu_pins=MCU40,
     chip_selects=("CS_EN",), cs_pullups=(("R430", "CS_EN"), ("R439", "SIO_WR_N")),
     isolators=(

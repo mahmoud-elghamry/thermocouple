@@ -97,8 +97,10 @@ def apply(PROFILES, P24):
         if key not in PROFILES:
             continue
         p = PROFILES[key]
-        defaults = dict(project='thermo' + key, channels=int(key.rstrip('l')), revision=rev, width=width, height=height,
-                        release_prefix='8ch-revb0' if key == '8' else '40ch-reva0',
+        defaults = dict(project='thermo8' if key == '8l' else 'thermo' + key,
+                        channels=int(key.rstrip('l')), revision=rev, width=width, height=height,
+                        copper_layers=2 if key == '8l' else 4,
+                        release_prefix={'8': '8ch-revb0', '8l': '8ch-revb0-2l', '40': '40ch-reva0'}[key],
                         folder=ROOT / 'hardware' / folder)
         p.update({k: v for k, v in defaults.items() if p.get(k) is None})
         bom = _bom(p['folder'])

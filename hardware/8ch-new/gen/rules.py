@@ -1,21 +1,17 @@
 """Net classes, isolation rules, planes and barrier keep-outs for the 8-ch board REV B0 (from the 24-ch rules.py).
-
 Every net is put in a domain by where its pads are: the sensor island, the
 RS-485 bus pocket or the control side. A net with pads in two domains is a
 design error and stops the script. Run with KiCad's python after place.py.
 """
 import json
 import os
-
 import pcbnew
-
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.dirname(HERE)
 BOARD = os.environ.get("THERMO8_BOARD", os.path.join(OUT, "thermo8.kicad_pcb"))
 PRO = os.path.splitext(BOARD)[0] + ".kicad_pro"
 DRU = os.path.splitext(BOARD)[0] + ".kicad_dru"
 mm = pcbnew.FromMM
-
 # floor plan v2 (gen/place.py): 130 x 137 mm, island = bottom strip below the band y 91-94 (control
 # reaches into the band under U401's pins 1-2, the module is the barrier there),
 # RS-485 pocket top right (x 103-130, y 0-25) with bands on its left and bottom
@@ -36,8 +32,6 @@ PLANES = {  # domain: (In1 net, In2 net, outer-layer pour net)
 }
 CONTACT = {"TRIP_COM", "TRIP_NO", "TRIP_NC", "TRIP_MID", "ALM_COM", "ALM_NO", "ALM_NC"}
 PWR24 = {"+24V_RAW", "+24V_FUSED", "+24V_PROT"}
-
-
 def inside(poly, x, y):
     c = False
     for (x1, y1), (x2, y2) in zip(poly, poly[1:] + poly[:1]):
@@ -125,6 +119,7 @@ def write_project(assign):
     rules.update(min_clearance=0.15, min_track_width=0.2, min_via_diameter=0.5,
                  min_via_annular_width=0.15, min_through_hole_diameter=0.3,
                  min_copper_edge_clearance=0.5, min_hole_clearance=0.25, min_hole_to_hole=0.25)
+    pro["board"]["design_settings"].setdefault("rule_severities", {}).update(hole_to_hole="error", holes_co_located="error")
     json.dump(pro, open(PRO, "w", encoding="utf-8"), indent=2)
 
 
@@ -175,7 +170,7 @@ def write_dru():
              '(rule "relay_area" (constraint clearance (min 0.5mm))',
              "  (condition \"((A.intersectsCourtyard('K701') && B.intersectsCourtyard('K701')) || "
              "(A.intersectsCourtyard('K702') && B.intersectsCourtyard('K702'))) && "
-             "(A.NetClass == 'Contact' || B.NetClass == 'Contact')\"))", "",
+             "(A.NetClass == 'Contact' || B.NetClass == 'Contact') && A.Type != 'Zone' && B.Type != 'Zone'\"))", "",
              "# Relay pads: the G6K's own coil-contact rating covers its pin spacing.",
              '(rule "relay_own_pins" (constraint clearance (min 0.3mm))',
              "  (condition \"(A.memberOfFootprint('K701') && B.memberOfFootprint('K701')) || "
