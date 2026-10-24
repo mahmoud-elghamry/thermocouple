@@ -22,6 +22,7 @@ def apply(PROFILES, P24):
         PROFILES[_key].update({k: P24[k] for k in _SHARED})
     PROFILES['8'].update(
         fiducials={'FID1': (10.0, 10.0), 'FID2': (120.0, 32.0), 'FID3': (10.0, 116.0)},
+        fab_limits='track 0.20 mm; spacing 0.15 mm (AD7124 LFCSP 0.5 mm pitch); vias 0.6/0.3 mm (0.15 mm ring), smallest drill 0.3 mm',
         pin_checks=_pin_checks(('U101',), ('U403', 'U404')), release_prefix='8ch-revb0', silk=dict(
             P24['silk'], barriers=((0.5, 92.5, 129.5, 92.5), (101.5, 0.5, 101.5, 26.5), (101.5, 26.5, 129.5, 26.5)),
             horizontal=('J101', 'J102'), vertical=(), horizontal_y=125.3, isp_dy=8.0, terminal_y=12.0,
@@ -62,6 +63,7 @@ def apply(PROFILES, P24):
     PROFILES['40'].update(
         width=250.0, height=145.0, outline=((0, 0), (250, 0), (250, 145), (0, 145)), revision='REV A0',
         bank_channels=(8, 8, 8, 8, 8), buck_ref='U601', release_prefix='40ch-reva0',
+        fab_limits='track 0.20 mm; spacing 0.15 mm (AD7124 LFCSP 0.5 mm pitch); vias 0.6/0.3 mm (0.15 mm ring), smallest drill 0.3 mm',
         mounting_holes={'H1': (4.5, 140.5), 'H2': (4.5, 101), 'H3': (245.5, 140.5), 'H4': (165.5, 92),
                         'H5': (165.5, 4.5), 'H10': (4.5, 4.5), 'H6': (49.5, 41.5), 'H7': (142.5, 41.5),
                         'H8': (49.5, 96.5), 'H9': (142.5, 96.5)},
