@@ -28,10 +28,8 @@ TMP126 SIO driver (P2).
 * The 60 by Sol (gpt-6.1-sol) as route lists computed from the board text (no KiCad), applied with
   `finish.py --board 40 --pcb output/mz/thermo40.kicad_pcb apply output/sol-routesN.txt`: 60 -> 36 -> 26 -> 11
   -> 8 -> 5 -> 3, DRC 0 violations each time (`output/mz-sol1..6`). The last 3 (U1001 RTD pins): no 0.15 mm
-  tracks (0.20 kept), a pin swap cannot help (pads 5-7: two passages for three tracks); **four passives moved**
-  (`output/sol-moves9.txt` via `move.py`: C1096, C1091, C1095, C1097) and the PT100 area re-routed -> **0 / 0**,
-  `pincaps.py` 0 over (C1095/C1097 4.9 mm, limit 5). Antigravity (Gemini 3.8 Flash High, Opus 4.6) tried the
-  same task and produced nothing.
+  tracks (0.20 kept); **four passives moved** (`sol-moves9.txt`: C1096, C1091, C1095, C1097) -> **0 / 0**.
+  Antigravity, GLM 5.3 and DeepSeek 4.1 Flash tried the 26-connection stage: 0, 0 and 2 routed.
 * Finishing: `finish.py dangling` (196 stubs), I-129 fix in `gen/rules.py`, outer pours F/B (left out for
   routing; added with `rules.add_zone` only), `vbias_pour.py`, `fiducials.py`, `silk.py` (PT100 labels in the
   terminal body: profile key `terminal_y_at`); DRC 0/0 after each (backups `output/clean, pours, vbias, silk`).
@@ -51,8 +49,10 @@ TMP126 SIO driver (P2).
   and via holes cutting small SMD lands. Sol round 11 (`sol-routes11.txt`): hole pairs < 0.25 mm 19 -> 0, via
   hole to small SMD land < 0.10 mm 61 -> 0 (own pcbnew check), SAC/SBC partly shortened (RTD1 48 -> 37 mm,
   adjacent-layer digital crossings 25 -> 17), SP/SN 9.8-14.1 mm, mismatch <= 1.9 mm; Kelvin/decoupling kept.
-* **Release candidate `production/40ch-reva0-20261019-040422-9bed30/`**: MANIFEST DRC **(0, 0, 0)**, hole_to_hole
-  and holes_co_located 0, pincaps 0 over, 108 BOM lines, ASSEMBLY-SPEC hashed in MANIFEST. Next: quotation.
+* **Astra final review 2026-10-24: send for quotation as is** (DRC 0/0/0 fresh, holes/lands FIXED, 51/51 hashes,
+  1212/1212 fill reached). Left as SHOULD-FIX: RTD3/RTD4 SAC/SBC 17 adjacent-layer digital crossings (RTD1 now 5
+  vias/leg), 0.8 mm RTD4_SAC stub at 216.9,38.3. Review: `output/astra-final/REVIEW.md`.
+* **Release candidate `production/40ch-reva0-20261024-113204-9bed30/`** (board as 040422, archived; hole rules = errors, ORDER-NOTES smallest features).
 
 ## Open
 
