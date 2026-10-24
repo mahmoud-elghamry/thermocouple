@@ -12,7 +12,7 @@ nowhere, is covered by no test, and looks like working code to the next person
 who reads it - which is exactly how the MAX31856 bank driver came to be missing
 while a MAX6675 one quietly took its place (I-030).
 
-    python firmware/sources/check_lists.py
+    python firmware/8ch-legacy/sources/check_lists.py
 
 Exits non-zero and says what is wrong.
 """

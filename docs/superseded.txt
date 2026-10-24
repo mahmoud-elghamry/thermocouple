@@ -29,3 +29,10 @@ hardware/36ch | 0039: hardware/40ch
 R443 (TMP126 SIO) | 0041: gated SIO driver U411 + R446, R443 removed
 R443 22k DIN-DOUT | 0041: gated SIO driver U411 + R446, R443 removed
 + R443 22k DIN-DOUT | 0041: gated SIO driver U411 + R446, R443 removed
+trip must happen within **1 s** | GOAL 2026-10-20: within 2 s (like Murphy TDXM), ~1 s design target
+Design target stays ~1 s: the 24-ch firmware estimate is ~0.75 s normal, ~0.9 s worst
+T_WIN = 900 ms
+worst case <= 8 ms
+MAX_CHANNELS 43u /* 40-ch board: 40 TC + 3 PT100 */ | 0043 9 (2026-10-23): firmware is 24-ch only, MAX_CHANNELS 24, MAX_BANKS 3
+
+T_WIN = 1200 ms | 0043 10 (owner 2026-10-24): RUN window and scan deadline 1500 ms

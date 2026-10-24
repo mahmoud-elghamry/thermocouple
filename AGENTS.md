@@ -50,7 +50,7 @@ hardware/24ch/            the 24-channel board REV A3 - being ordered (README, S
 hardware/8ch/             the 8-channel board REV A2 - reference; the new 8-ch derives from 24ch
 hardware/8ch-new/, 40ch/  new 8-ch REV B0 (8ch-2l: 2 layers, 0040) and 40-ch (40 TC + 3 PT100); family/ = shared lib (0039)
 hardware/single-channel/  superseded board, kept for reference - DO NOT MODIFY
-firmware/                 AVR C, host unit tests; 8-ch REV A2 images so far; one family firmware next
+firmware/                 family/ = the one firmware (24-ch first), spec/ = its spec, 8ch-legacy/ = old 8-ch REV A2
 simulation/               Proteus simulation project
 production/               fabrication output - generated, never committed
 _old/                     superseded files, reference only - never build or order from it
@@ -125,7 +125,7 @@ pwsh -File hardware\8ch\run_all.ps1      # validate a snapshot; source hardware 
 ```
 
 ```powershell
-pwsh -File firmware\build.ps1       # firmware build + host tests
+pwsh -File firmware\family\build.ps1   # 24-ch family firmware: build + all host tests + AVR profiler
 ```
 
 Both must be run before claiming anything about the current state. In a cloud

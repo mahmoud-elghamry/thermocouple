@@ -16,7 +16,7 @@
 # asserts it to permit running, the legacy single-channel image asserts it on
 # over-temperature. Flashing the wrong stale file inverts the safety function
 # with no visible symptom (I-031). Build them: firmware/build.ps1.
-firmware/build/
+firmware/8ch-legacy/build/
 
 # --- KiCad ---------------------------------------------------------------------
 # fp-lib-table and sym-lib-table are project configuration and stay tracked.

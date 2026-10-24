@@ -17,8 +17,8 @@ jobs:
       - name: Entry documents agree (docs/check_docs.py, I-117)
         run: python3 docs/check_docs.py
       - name: Check source lists (I-022, I-042)
-        run: python3 firmware/sources/check_lists.py
+        run: python3 firmware/8ch-legacy/sources/check_lists.py
       - name: Build both sensor variants
-        run: make -C firmware all
+        run: make -C firmware/8ch-legacy all
       - name: Run host tests (application logic, application integration, bank driver)
-        run: make -C firmware test
+        run: make -C firmware/8ch-legacy test

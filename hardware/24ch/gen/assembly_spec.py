@@ -254,12 +254,14 @@ WHICH = """WHICH FILE GOES WHERE - {name}
 
 JLCPCB website order (only these reach JLC):
   thermo24-gerbers.zip   upload as the gerber
-  BOM.csv, CPL.csv       upload on the assembly step
+  BOM.csv, CPL-JLC.csv   upload on the assembly step (CPL-JLC = rotations for JLC's models, `jlc_cpl.py`;
+                         plain CPL.csv is for other assemblers)
   POWER-ON-TEST.zip      PCBA option "Function test" -> Attach (box accepts zip/rar only)
   Assembly remark        paste the text below (the website has no other file of ours)
 
 E-mail quotation / support / another assembler (NORI etc.):
-  PURCHASING zip = gerbers + BOM + CPL + ASSEMBLY-SPEC.pdf + ORDER-NOTES.txt + schematic + ACCESSORIES + DNP
+  PURCHASING zip = gerbers + BOM + CPL + CPL-JLC + ASSEMBLY-SPEC.pdf + POWER-ON-TEST.pdf + ORDER-NOTES.txt
+                   + schematic + ACCESSORIES + DNP (ORDER-NOTES lists them for the reader)
 
 Outside reviewer (expert): FOR-REVIEWER zip = schematic PDF, BOM, gerbers, ASSEMBLY-SPEC.pdf, KiCad project.
 
@@ -272,7 +274,22 @@ REMARK = ("1) X-ray U101,U201,U301,U601 exposed pads, send images. 2) Power-on t
           "(+24V,0V), limit 150mA. Expect vs GND TP601: TP603 23.3-24.0V, TP602 5V 4.85-5.15V. Vs GNDI TP402: "
           "TP401 3V3I 3.23-3.37V, TP404 VREF 2.99-3.01V, TP403 VMID 1.60-1.70V. Input current <100mA. Power off: "
           "GND to GNDI open >10Mohm. Send readings per board, stop if out of range. 3) Photos of each board. "
-          "4) Wash flux.")
+          "4) Wash flux. 5) Polarity: check pin 1 of K701/K702 (coil +5V) and U401 B0505S (GND) on placement.")
+
+REMARK_HEAD = "IF YOU ORDER ON THE JLCPCB WEBSITE"
+
+
+def add_remark_to_order_notes(rel):
+    # the supplier only gets the zip, so the website remark must travel inside ORDER-NOTES (self-contained)
+    p = os.path.join(rel, "ORDER-NOTES.txt")
+    txt = open(p, encoding="utf-8").read()
+    if REMARK_HEAD in txt:
+        txt = txt[:txt.index(REMARK_HEAD)].rstrip() + "\n"
+    txt += ("\n" + REMARK_HEAD + "\n"
+            "- Upload thermo24-gerbers.zip as the Gerber file, BOM.csv and CPL-JLC.csv on the assembly step.\n"
+            "- PCBA option \"Function test\": attach POWER-ON-TEST.zip (the same PDF zipped - the box accepts zip/rar only).\n"
+            "- Paste this text into the assembly remark box (under 500 characters):\n\n" + REMARK + "\n")
+    open(p, "w", encoding="utf-8", newline="\n").write(txt)
 
 
 def main(rel):
@@ -283,6 +300,7 @@ def main(rel):
     assert len(REMARK) <= 500
     open(os.path.join(rel, "WHICH-FILE-WHERE.txt"), "w", encoding="utf-8").write(
         WHICH.format(name=os.path.basename(rel.rstrip("/\\")), remark=REMARK))
+    add_remark_to_order_notes(rel)
     dnp = open(os.path.join(rel, "DNP.txt"), encoding="utf-8").read().splitlines()[1].strip()
     dnp = "" if dnp.startswith("none") else dnp
     story = fitz.Story(html=html(rel, dnp, counts(rel)), user_css=CSS)

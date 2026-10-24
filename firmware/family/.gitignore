@@ -1,0 +1,6 @@
+build/
+test/integration/output_soak/
+briefs/*.thread
+briefs/.lock-*
+briefs/*.log.*
+briefs/*.stop

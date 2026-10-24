@@ -1,0 +1,11 @@
+#ifndef TEST_AVR_IO_H
+#define TEST_AVR_IO_H
+#include <stdint.h>
+extern uint8_t TCCR0A,TCCR0B,TIMSK0,TCCR1A,TCCR1B,TIMSK1;
+extern uint8_t ASSR,TCCR2A,TCCR2B,OCR2A,TIMSK2,TCNT0,OCR0A,PORTB;
+extern uint8_t TCNT2;
+extern uint16_t TCNT1;
+#define _BV(n) (1u<<(n))
+extern uint8_t UBRR0H,UBRR0L,UCSR0A,UCSR0B,UCSR0C,UDR0,PORTD;
+enum { RXEN0=4,TXEN0=3,RXCIE0=7,TXC0=6,UDRIE0=5,TXCIE0=6,USBS0=3,FE0=4,DOR0=3,UPE0=2,RXC0=7 };
+#endif

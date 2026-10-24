@@ -1,0 +1,198 @@
+<title>اختبار ثيرمو 24 السريع</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Readex+Pro:wght@500;700&display=swap">
+<style>
+/* Layout: one printable column like a workshop sheet; terminal names in mono, isolated side in teal, power side in orange. */
+:root {
+  --bg: #f5f7fa; --paper: #ffffff; --ink: #18212c; --muted: #5a6574; --line: #d3d9e1;
+  --power: #c2410c; --iso: #0f766e; --danger: #b42318; --ok: #2f6f3a; --warn: #a15c07;
+  --soft-power: #fdeee6; --soft-iso: #e3f3f1; --soft-danger: #fdecea; --soft-ok: #e8f3ea;
+  --board: #eef1f5; --wire: #18212c;
+  --f-body: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  --f-head: "Readex Pro", "IBM Plex Sans Arabic", "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11151b; --paper: #181e26; --ink: #e5e9ef; --muted: #9aa5b3; --line: #2b3440;
+  --power: #fb8a4f; --iso: #34d1bd; --danger: #f2786d; --ok: #7cc98a; --warn: #f0b552;
+  --soft-power: #2c1d14; --soft-iso: #0f2724; --soft-danger: #2d1715; --soft-ok: #15241a;
+  --board: #1f2731; --wire: #d6dbe2; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11151b; --paper: #181e26; --ink: #e5e9ef; --muted: #9aa5b3; --line: #2b3440;
+  --power: #fb8a4f; --iso: #34d1bd; --danger: #f2786d; --ok: #7cc98a; --warn: #f0b552;
+  --soft-power: #2c1d14; --soft-iso: #0f2724; --soft-danger: #2d1715; --soft-ok: #15241a;
+  --board: #1f2731; --wire: #d6dbe2; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.75; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-block: 28px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 28px; }
+header { display: grid; gap: 10px; }
+.eyebrow { font-family: var(--f-mono); font-size: 13px; color: var(--muted); letter-spacing: .04em; direction: ltr; text-align: right; }
+h1 { font-family: var(--f-head); font-size: clamp(26px, 4vw, 36px); line-height: 1.3; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-head); font-size: 23px; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-head); font-size: 18px; margin: 0; }
+p { margin: 0; max-width: 72ch; }
+section { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding-block: 22px;
+  padding-inline: clamp(16px, 3vw, 28px); display: grid; gap: 16px; min-width: 0; }
+.lead { color: var(--muted); }
+code, .m { font-family: var(--f-mono); font-size: .92em; direction: ltr; unicode-bidi: isolate; }
+pre { font-family: var(--f-mono); font-size: 14px; direction: ltr; text-align: left; background: var(--bg);
+  border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin: 0; overflow-x: auto; }
+.rules { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); }
+.rule { border-inline-start: 4px solid var(--danger); background: var(--soft-danger); padding: 12px 14px; border-radius: 6px; }
+.rule b { display: block; margin-bottom: 2px; }
+.scroll { overflow-x: auto; min-width: 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: right; vertical-align: top; }
+th { font-family: var(--f-head); font-weight: 500; font-size: 14px; color: var(--muted); background: var(--bg); }
+td.n, th.n { font-variant-numeric: tabular-nums; }
+.tag { display: inline-block; font-family: var(--f-mono); font-size: 12.5px; padding: 1px 7px; border-radius: 4px; direction: ltr; }
+.tag.p { background: var(--soft-power); color: var(--power); }
+.tag.i { background: var(--soft-iso); color: var(--iso); }
+.fig { display: grid; gap: 8px; }
+.fig img { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.cap { font-size: 14px; color: var(--muted); }
+svg { display: block; min-width: 860px; width: 100%; height: auto; direction: ltr; unicode-bidi: isolate; }
+svg text { font-family: var(--f-mono); fill: var(--ink); direction: ltr; unicode-bidi: plaintext; }
+svg .ar { font-family: var(--f-body); }
+.box { fill: var(--paper); stroke: var(--ink); stroke-width: 1.4; }
+.brd { fill: var(--board); stroke: var(--ink); stroke-width: 2; }
+.tb { fill: var(--paper); stroke: var(--ink); stroke-width: 1.2; }
+.tbp { fill: var(--soft-power); stroke: var(--power); stroke-width: 1.4; }
+.tbi { fill: var(--soft-iso); stroke: var(--iso); stroke-width: 1.4; }
+.w { stroke: var(--wire); stroke-width: 1.6; fill: none; }
+.wd { stroke: var(--wire); stroke-width: 1.4; fill: none; stroke-dasharray: 5 4; }
+.wr { stroke: var(--power); stroke-width: 2; fill: none; }
+.wi { stroke: var(--iso); stroke-width: 1.8; fill: none; }
+.bar { fill: var(--muted); }
+.mut { fill: var(--muted); }
+.red { fill: var(--danger); }
+.steps { display: grid; gap: 14px; counter-reset: s; }
+.step { border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 8px; }
+.step > h3 { display: flex; gap: 10px; align-items: baseline; }
+.step > h3 .k { font-family: var(--f-mono); color: var(--power); font-size: 15px; }
+ul.chk { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+ul.chk li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: start; }
+ul.chk input { width: 18px; height: 18px; margin-top: 5px; accent-color: var(--ok); }
+ul.chk input:focus-visible { outline: 2px solid var(--power); outline-offset: 2px; }
+.note { border-inline-start: 4px solid var(--warn); background: var(--bg); padding: 10px 14px; border-radius: 6px; }
+.good { border-inline-start: 4px solid var(--ok); background: var(--soft-ok); padding: 10px 14px; border-radius: 6px; }
+.todo { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.todo > div { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; }
+.todo ul { margin: 0; padding-inline-start: 20px; }
+.st { font-family: var(--f-mono); font-size: 12px; padding: 1px 7px; border-radius: 4px; }
+.st.done { background: var(--soft-ok); color: var(--ok); } .st.open { background: var(--soft-danger); color: var(--danger); }
+.st.later { background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+.row-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+button { font: inherit; font-size: 14px; border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+  border-radius: 6px; padding: 4px 12px; cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--power); outline-offset: 2px; }
+td.fill { min-width: 90px; }
+@page { size: A4; margin: 12mm; }
+@media print { body { font-size: 12.5px; background: #fff; } .wrap { padding: 0; gap: 12px; max-width: none; }
+  section { break-inside: avoid-page; border: none; padding: 0; } svg { min-width: 0; } .scroll { overflow: visible; }
+  .fig img { max-height: 120mm; width: auto; margin: 0 auto; } }
+</style>
+
+<div class="wrap" dir="rtl">
+
+<header>
+  <div class="eyebrow">THERMO 24-CH · REV A4 · BENCH QUICK TEST</div>
+  <h1>اختبار البوردة السريع بحساس واحد</h1>
+  <p class="lead">3 مراحل، حوالي ربع ساعة. المطلوب: البوردة، وسبلاي 24 فولت، والـ USBasp، وحساس K واحد، وولاعة. محوّل USB-RS485 اختياري، بس من غيره مش هتشوف تقرير الفحص كامل.</p>
+</header>
+
+<section aria-labelledby="why">
+  <h2 id="why">ليه الحماية مش هتعطّلك</h2>
+  <div class="todo">
+    <div><h3>الـ 23 قناة الفاضية</h3><p>على بوردة جديدة، كل القنوات في القائمة بتبدأ OFF. هتفتح قناة 1 بس، والباقي مش هيطلّع أعطال.</p></div>
+    <div><h3>سلك مرجع الموتور (J401)</h3><p>على البنش: سلك صغير بين الطرفين جوّه الفيشة. ده نفس اللي بيحصل على الموتور، لأن السلكين بيتقابلوا عند جسمه. من غير السلك، البوردة بتفصل على طول وتكتب <code>ENGINE REF LOST</code>، وده مقصود.</p></div>
+  </div>
+</section>
+
+<section aria-labelledby="pc">
+  <h2 id="pc">على اللابتوب (جاهز)</h2>
+  <p>الأوامر دي بتتشغّل من فولدر الفرع، مش من <code>D:\tasks\thermo</code>:</p>
+<pre>cd D:\tasks\thermo\.claude\worktrees\24ch-rev-a4
+pwsh -File firmware\family\build.ps1 -AvrOnly -CompileOnly   # 30 sec, only after a new commit
+pwsh -File firmware\family\program.ps1                       # program the board, ends with PROGRAM PASS
+pwsh -File firmware\family\read_report.ps1 -Board 01         # save the self-test report</pre>
+</section>
+
+<section aria-labelledby="s1">
+  <h2 id="s1">مرحلة 1: البوردة سليمة؟ (5 دقايق، من غير أي إعداد)</h2>
+  <ul class="chk">
+    <li><input type="checkbox" id="a1"><label for="a1">السبلاي على 24 فولت، وحد التيار 150 مللي، ومفيش حاجة متوصّلة غير J601. التيار لازم يبقى أقل من 100 مللي. لو وصل للحد: اطفي ووقف.</label></li>
+    <li><input type="checkbox" id="a2"><label for="a2">اطفي. وصّل الـ USBasp على J501، والخط الأحمر عند رجل 1 المربعة، وشيل جمبر 5V من الـ USBasp. ارفع حد التيار لـ 0.5 أمبير، وشغّل، ونفّذ <code>program.ps1</code>. المفروض يطلع <code>PROGRAM PASS</code>. بعدها اطفي وشيل الـ USBasp.</label></li>
+    <li><input type="checkbox" id="a3"><label for="a3">ركّب الحساس على قناة 1: أول طرفين في J101، الموجب على الشمال. وركّب فيشة J401 اللي فيها السلك الصغير، والشاشة، ومحوّل RS-485 على J703 لو موجود.</label></li>
+    <li><input type="checkbox" id="a4"><label for="a4">شغّل <code>read_report.ps1 -Board 01</code> على اللابتوب، وبعدين امسك زرار SET وانت بتشغّل البوردة. الشاشة هتكتب <code>SERVICE MODE</code>، والبوردة هتفحص نفسها وتكتب التقرير.</label></li>
+    <li><input type="checkbox" id="a5"><label for="a5">لما تسأل على الاختبارات اليدوية (A01 لحد A07): دوس ESC لكل واحد دلوقتي.</label></li>
+  </ul>
+  <div class="good"><b>النتيجة الطبيعية:</b> القنوات من 2 لـ 24 هتطلع <code>OPEN … FAIL</code> لأن مفيش فيها حساس، وده متوقع. قناة 1 لازم تقرا حرارة الأوضة. أي FAIL تاني يبقى مشكلة حقيقية: ابعت ملف التقرير في الشات.</div>
+</section>
+
+<section aria-labelledby="s2">
+  <h2 id="s2">مرحلة 2: افتح قناة 1 (دقيقتين)</h2>
+  <ul class="chk">
+    <li><input type="checkbox" id="b1"><label for="b1">اطفي وشغّل عادي (من غير SET). الشاشة هتكتب <code>LOCKED: SETUP</code>، وده طبيعي على بوردة جديدة.</label></li>
+    <li><input type="checkbox" id="b2"><label for="b2">امسك SET 3 ثواني، واكتب PIN <code>0000</code>، وبعدين اختار PIN جديد واكتبه في ورقة.</label></li>
+    <li><input type="checkbox" id="b3"><label for="b3">CHANNELS، وبعدين CH01: النوع K، والوضع TRIP، وحد الحساس 400. بعدها حد الإنذار 50، وحد الفصل 60، والـ Band 5. احفظ (<code>SAVED OK</code>). القنوات التانية سيبها OFF زي ما هي.</label></li>
+  </ul>
+  <p class="cap">ESC = زرار ESC، أو UP و DOWN مع بعض. الحدود دي للتجربة بس، وبتتغيّر قبل التركيب.</p>
+</section>
+
+<section aria-labelledby="s3">
+  <h2 id="s3">مرحلة 3: المعايرة والتجربة بالولاعة (5 دقايق)</h2>
+  <ul class="chk">
+    <li><input type="checkbox" id="c1"><label for="c1">الشاشة هتكتب <code>LOCKED: CALIBRATE</code>. اطفي، وامسك SET وانت بتشغّل، ودوس ESC لحد ما توصل A06 <code>CAL REF</code>، ودوس SET. بعدها A07 <code>LEARN BURNOUT</code>: هتعرض CH01، فدوس SET.</label></li>
+    <li><input type="checkbox" id="c2"><label for="c2">اطفي وشغّل عادي، ودوس ACK. الشاشة هتكتب <code>RUN OK</code>، ولمبة RUN هتنوّر، وقناة 1 هتقرا حرارة الأوضة.</label></li>
+    <li><input type="checkbox" id="c3"><label for="c3">قرّب الولاعة من طرف الحساس المعدن (مش الكابل): القراية تطلع، وعند 50 يحصل إنذار، وعند 60 يحصل <code>TRIP</code>. لمبة RUN تطفى، والريلاي يطقطق في أقل من ثانيتين.</label></li>
+    <li><input type="checkbox" id="c4"><label for="c4">دوس ACK والحساس لسه سخن: لازم يترفض (<code>R4 CH 01</code>). سيبه يبرد تحت 55، ودوس ACK: يرجع <code>RUN OK</code>.</label></li>
+    <li><input type="checkbox" id="c5"><label for="c5">شيل فيشة J401: لازم يفصل ويكتب <code>ENGINE REF LOST</code>. رجّعها، ودوس ACK.</label></li>
+    <li><input type="checkbox" id="c6"><label for="c6">شيل فيشة الحساس: لازم يفصل ويكتب <code>OPEN</code>. رجّعها، ودوس ACK.</label></li>
+  </ul>
+  <div class="good">لو كل ده حصل، يبقى البوردة بتقرا وبتفصل صح. الخطوة الجاية: باقي الحساسات، والمقارنة بترمومتر في مية بتلج ومية بتغلي.</div>
+</section>
+
+<section aria-labelledby="ref">
+  <h2 id="ref">سلك المرجع: بيه ولا من غيره؟</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>السؤال</th><th>الإجابة</th></tr></thead>
+    <tbody>
+      <tr><td>أوصّله إزاي على البنش؟</td><td>سلك صغير بين طرفين فيشة J401. لو وصّلت سلكين لمسمار، هتبقى نفس الحكاية بالظبط، ومالهاش لازمة غير على الموتور.</td></tr>
+      <tr><td>ينفع أجرّب من غيره؟</td><td>في التشغيل العادي لأ: البوردة هتفصل، وده مقصود. في تقرير الفحص (مرحلة 1)، قراية القناة بتطلع حتى من غيره.</td></tr>
+      <tr><td>هيفرق في القراية؟</td><td>مع الحساس المعزول اللي معاك، المفروض لأ. لو عايز تتأكد: اعمل تقرير المرحلة 1 مرة بالسلك ومرة من غيره، وقارن سطر <code>P12 CH01</code>.</td></tr>
+      <tr><td>فايدته إيه على الموتور؟</td><td>بيربط البوردة بجسم الموتور، فالقراية تفضل صح لو أي حساس لامس الجسم. ولو السلك اتقطع، البوردة بتعرف وبتفصل.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section aria-labelledby="fix">
+  <h2 id="fix">لو حاجة مش شغالة</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>اللي بيحصل</th><th>تعمل إيه</th></tr></thead>
+    <tbody>
+      <tr><td>التيار وصل للحد أول ما شغّلت</td><td>اطفي، وما تكمّلش على البوردة دي. صوّرها وابعت الصورة.</td></tr>
+      <tr><td><code>program.ps1</code>: مش لاقي USB device</td><td>درايفر الـ USBasp: نزّل Zadig، واختار libusbK.</td></tr>
+      <tr><td>الشريحة مش بترد</td><td>اتأكد إن البوردة شغالة على 24 فولت، وإن رجل 1 في مكانها. لو لسه: حط جمبر السرعة البطيئة على الـ USBasp.</td></tr>
+      <tr><td><code>Image validation failed … HEAD</code></td><td>اعمل البناء السريع (أول أمر)، وبعدين جرّب تاني.</td></tr>
+      <tr><td>الشاشة فاضية أو مربعات</td><td>لف <code>LCD CONTRAST</code> على البوردة بمفك.</td></tr>
+      <tr><td>مفيش تقرير على اللابتوب</td><td>بدّل A و B على J703، واتأكد إنك مسكت SET وقت التشغيل.</td></tr>
+      <tr><td>الرقم بيقل لما تسخّن</td><td>سلكين الحساس معكوسين في الفيشة.</td></tr>
+      <tr><td>ACK مرفوض <code>R1</code> / <code>R2</code></td><td>سيب الزرار، واستنى ثانية، ودوس تاني.</td></tr>
+      <tr><td><code>R3 FAULT …</code> أو أي كود تاني</td><td>صوّر الشاشة وابعتها.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+</div>
+<script>
+(function () {
+  var boxes = document.querySelectorAll('ul.chk input[type=checkbox]');
+  function load() { try { return JSON.parse(localStorage.getItem('t24-quick') || '{}'); } catch (e) { return {}; } }
+  function save(s) { try { localStorage.setItem('t24-quick', JSON.stringify(s)); } catch (e) {} }
+  var state = load();
+  boxes.forEach(function (b) { b.checked = !!state[b.id]; b.addEventListener('change', function () { state[b.id] = b.checked; save(state); }); });
+})();
+</script>

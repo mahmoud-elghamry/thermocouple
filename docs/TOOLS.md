@@ -15,7 +15,7 @@ working, fix it here rather than working around it in a session.
 | `kicad-tool` | `%USERPROFILE%\.local\bin` | schematic edits, schematic↔board sync. Install: `uv tool install git+https://github.com/mash/kicad-skills.git` - **never** `pip install kiutils`, that pulls upstream and breaks it |
 | Freerouting 2.4.1 | `%LOCALAPPDATA%\kicad-tools\freerouting.jar` | autorouting via Specctra DSN/SES |
 | Temurin JRE 25 | `%LOCALAPPDATA%\kicad-tools\jre25\*\bin\java.exe` | runs Freerouting |
-| avr-gcc | see `firmware/build.ps1` | firmware |
+| avr-gcc | see `firmware/family/build.ps1` (old 8-ch: `firmware/8ch-legacy/build.ps1`) | firmware |
 | Konnect | `C:\Users\Public\AI-Tools\konnect\konnect.exe` (what `~/.claude.json` registers; `sch_layout/kon.py` needs it on PATH or in `KONNECT`) | the KiCad MCP - 226 tools; IPC when KiCad is open, S-expressions when it is closed |
 
 Freerouting and the JRE are **not** in the repository. Override the paths with
@@ -98,8 +98,20 @@ looks at MPN. Run this whenever `build.py` adds symbols.
 ## Firmware
 
 ```powershell
-pwsh -File firmware\build.ps1     # -Wall -Wextra -Werror, plus host unit tests
+pwsh -File firmware\family\build.ps1     # 24-ch family firmware; old 8-ch: firmware\8ch-legacy\build.ps1
+pwsh -File firmware\family\test\integration\soak.ps1   # 60-day simulated soak, ~10 min, separate gate
+pwsh -File firmware\family\program.ps1 -DryRun         # USBasp: fuses F7/C1/FC + read-back, flash + verify
+pwsh -File firmware\family\read_report.ps1 -Board 01  # service report (SET held at power-up) -> production/bench/
 ```
+
+Printable installation sheet (terminals, wiring, channel map): `hardware/24ch/install-guide/index.html`; one-probe bench quick test (laptop): `hardware/24ch/install-guide/bench.html`.
+
+`build.ps1` takes ~17 min (all tests + AVR cycle profiler, cppcheck 2.22 at `C:/Program Files/Cppcheck`): run it
+after every code change. **Image only, ~30 s:** `pwsh -File firmware\family\build.ps1 -AvrOnly -CompileOnly` (cppcheck,
+startup-order check, CRC, identity, metadata; no tests) - use it before programming when only docs changed, because
+`program.ps1` refuses an image whose embedded commit is not HEAD. `program.ps1`
+finds avrdude in PlatformIO or Proteus (`Tools/ARDUINO/.../avrdude.exe` 6.3), uses `-B 10` (100 kHz ISP for the
+factory 1 MHz clock) and prints one `PROGRAM PASS`/`PROGRAM FAIL` line; drop `-DryRun` with the USBasp connected.
 
 ## Visual check
 
@@ -324,7 +336,7 @@ what is still missing.
 
 | Workstation | Cloud equivalent |
 |---|---|
-| `pwsh -File firmware\build.ps1` | `make -C firmware all test` (build.ps1 needs MSVC) |
+| `pwsh -File firmware\8ch-legacy\build.ps1` (old 8-ch) | `make -C firmware/8ch-legacy all test` (build.ps1 needs MSVC) |
 | `pwsh -File hardware\8ch\run_all.ps1` | `pwsh -File hardware/8ch/validate.ps1` |
 | `run_all.ps1 -Regenerate` | by hand, measured 2026-09-24: Temurin JRE 25 (`github.com/adoptium/temurin25-binaries`) and `freerouting-2.4.1.jar` (`github.com/freerouting/freerouting` releases) into `~/.local/opt`; KiCad's footprints copied out of the image; then `apply_rules.py`, `kicad-tool pcb sync`, and `generate_board.py` / `route.py` / `close_gaps.py` run with the image's `python3` (`docker run --user root` with `/tmp`, `/home`, `~/.local` mounted, `FREEROUTING_JAR`, `FREEROUTING_JAVA`, `JAVA_TOOL_OPTIONS=` cleared). Routing takes ~12 min. |
 
@@ -485,7 +497,7 @@ include line spacing - use the glyph box); board min text height 0.8 mm. `gen/fa
 `--refill-zones --save-board` so the Gerbers carry the pours DRC checked (scripts save boards unfilled).
 Render check: `kicad-cli pcb render --side top`.
 
-- **24-ch gates (I-115):** `gen/build.py` and `gen/fab.py` exit non-zero if kicad-cli fails or writes no fresh report (exit 5 = violations, also a fail); `gen/guard.py` (`check`, `claim`, `sha256`) refuses while KiCad holds a `~*.lck` or another tool holds `output/.writer.json`; `fab.py` writes a new `production/24ch-reva3-<time>-<sha6>/` from a snapshot copy (source never saved) with `MANIFEST.txt` and `ORDER-NOTES.txt`. Test on copies: `THERMO24_SCH_OUT` (build.py), `THERMO24_FAB_PCB` / `THERMO24_FAB_SCH` / `THERMO24_FAB_OUT` (fab.py), `THERMO24_WRITER_CLAIM`.
+- **24-ch gates (I-115):** `gen/build.py` and `gen/fab.py` exit non-zero if kicad-cli fails or writes no fresh report (exit 5 = violations, also a fail); `gen/guard.py` (`check`, `claim`, `sha256`) refuses while KiCad holds a `~*.lck` or another tool holds `output/.writer.json`; `fab.py` writes a new `production/24ch-reva3-<time>-<sha6>/` from a snapshot copy (source never saved) with `MANIFEST.txt` and `ORDER-NOTES.txt`. Test on copies: `THERMO24_SCH_OUT` (build.py), `THERMO24_FAB_PCB` / `THERMO24_FAB_SCH` / `THERMO24_FAB_OUT` (fab.py), `THERMO24_WRITER_CLAIM`. Since 2026-10-23 `fab.py` also runs DRC `--severity-all` (`drc-warnings.rpt`, summary in MANIFEST) and refuses dangling tracks; on a frozen board clean them with `gen/dangling.py [--apply]` (trims overshoots, keeps junction vias, restores the board if a pad would disconnect; run until `clean`), not `finish.py dangling`, which deletes whole segments.
 
 **Local repairs on the 24-ch board (2026-10-11, `0035`):** `gen/capnear.py U403 1 C407 [--soft-vias]
 [--avoid "TC*"] [--apply [--rip]]` finds a spot within N mm of a pin and scores what is in the way;
@@ -586,6 +598,16 @@ all eight final-round-11 sense legs reproduced to 1e-6 mm, 3 vias each, mismatch
 - **Codex 0.162 alpha cannot run any command with the elevated Windows sandbox**
   (`helper_unknown_error: setup refresh had errors`; it then reviews blind). Run
   `codex exec -c 'windows.sandbox="unelevated"' -s read-only -o report.md - < brief.txt`.
+- **Codex roles used here (2026-10-20, verified):** reviewer **Astra** =
+  `codex exec -m gpt-6-astra -c 'model_reasoning_effort="high"' -c 'windows.sandbox="unelevated"' -s read-only -C <worktree> -o <report.md> - < <brief.md>`
+  (never xhigh); implementer **Sol** = `codex exec -m gpt-6.1-sol -c 'windows.sandbox="unelevated"' -s workspace-write --skip-git-repo-check -C <dir> -o <report.md> - < <brief.md>`.
+  With `unelevated`, Sol **can** run kicad-cli and KiCad python (2026-10-19 test); board writes still one writer
+  through `gen/guard.py`. Write the command into a `.sh` file and run it with `sh` (the Claude Code worktree
+  guard rejects complex inline commands). Briefs and reports: `production/review-20261015-a4/` (local) and
+  `firmware/family/briefs/` (tracked). Codex quota can run out mid-run: the log ends with "usage limit".
+  **Before starting or restarting any Sol, list running `codex.exe ... exec` processes**: a Claude session that
+  ends does not stop its Sol (2026-10-21: two B2 runs wrote the same files). `firmware/family/briefs/run_lane.sh`
+  keeps one lock per file group (B/B2/B3 share one; A, B, C run in parallel), saves the thread id, and `run_lane.sh <lane> resume` continues that session.
 - **`kicad-tool` on Windows needs `KICAD_CLI`** (its default is the macOS path;
   the error is a bare `[WinError 2]`) and `KICAD10_FOOTPRINT_DIR` for `pcb sync`.
 - **Freerouting rounds clearances down** (0.2454 mm against a 0.25 mm rule), so

@@ -1,0 +1,311 @@
+<title>ورقة تركيب ثيرمو 24</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Readex+Pro:wght@500;700&display=swap">
+<style>
+/* Layout: one printable column like a workshop sheet; terminal names in mono, isolated side in teal, power side in orange. */
+:root {
+  --bg: #f5f7fa; --paper: #ffffff; --ink: #18212c; --muted: #5a6574; --line: #d3d9e1;
+  --power: #c2410c; --iso: #0f766e; --danger: #b42318; --ok: #2f6f3a; --warn: #a15c07;
+  --soft-power: #fdeee6; --soft-iso: #e3f3f1; --soft-danger: #fdecea; --soft-ok: #e8f3ea;
+  --board: #eef1f5; --wire: #18212c;
+  --f-body: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  --f-head: "Readex Pro", "IBM Plex Sans Arabic", "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11151b; --paper: #181e26; --ink: #e5e9ef; --muted: #9aa5b3; --line: #2b3440;
+  --power: #fb8a4f; --iso: #34d1bd; --danger: #f2786d; --ok: #7cc98a; --warn: #f0b552;
+  --soft-power: #2c1d14; --soft-iso: #0f2724; --soft-danger: #2d1715; --soft-ok: #15241a;
+  --board: #1f2731; --wire: #d6dbe2; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11151b; --paper: #181e26; --ink: #e5e9ef; --muted: #9aa5b3; --line: #2b3440;
+  --power: #fb8a4f; --iso: #34d1bd; --danger: #f2786d; --ok: #7cc98a; --warn: #f0b552;
+  --soft-power: #2c1d14; --soft-iso: #0f2724; --soft-danger: #2d1715; --soft-ok: #15241a;
+  --board: #1f2731; --wire: #d6dbe2; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.75; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-block: 28px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 28px; }
+header { display: grid; gap: 10px; }
+.eyebrow { font-family: var(--f-mono); font-size: 13px; color: var(--muted); letter-spacing: .04em; direction: ltr; text-align: right; }
+h1 { font-family: var(--f-head); font-size: clamp(26px, 4vw, 36px); line-height: 1.3; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-head); font-size: 23px; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-head); font-size: 18px; margin: 0; }
+p { margin: 0; max-width: 72ch; }
+section { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding-block: 22px;
+  padding-inline: clamp(16px, 3vw, 28px); display: grid; gap: 16px; min-width: 0; }
+.lead { color: var(--muted); }
+code, .m { font-family: var(--f-mono); font-size: .92em; direction: ltr; unicode-bidi: isolate; }
+pre { font-family: var(--f-mono); font-size: 14px; direction: ltr; text-align: left; background: var(--bg);
+  border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin: 0; overflow-x: auto; }
+.rules { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); }
+.rule { border-inline-start: 4px solid var(--danger); background: var(--soft-danger); padding: 12px 14px; border-radius: 6px; }
+.rule b { display: block; margin-bottom: 2px; }
+.scroll { overflow-x: auto; min-width: 0; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: right; vertical-align: top; }
+th { font-family: var(--f-head); font-weight: 500; font-size: 14px; color: var(--muted); background: var(--bg); }
+td.n, th.n { font-variant-numeric: tabular-nums; }
+.tag { display: inline-block; font-family: var(--f-mono); font-size: 12.5px; padding: 1px 7px; border-radius: 4px; direction: ltr; }
+.tag.p { background: var(--soft-power); color: var(--power); }
+.tag.i { background: var(--soft-iso); color: var(--iso); }
+.fig { display: grid; gap: 8px; }
+.fig img { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.cap { font-size: 14px; color: var(--muted); }
+svg { display: block; min-width: 860px; width: 100%; height: auto; direction: ltr; unicode-bidi: isolate; }
+svg text { font-family: var(--f-mono); fill: var(--ink); direction: ltr; unicode-bidi: plaintext; }
+svg .ar { font-family: var(--f-body); }
+.box { fill: var(--paper); stroke: var(--ink); stroke-width: 1.4; }
+.brd { fill: var(--board); stroke: var(--ink); stroke-width: 2; }
+.tb { fill: var(--paper); stroke: var(--ink); stroke-width: 1.2; }
+.tbp { fill: var(--soft-power); stroke: var(--power); stroke-width: 1.4; }
+.tbi { fill: var(--soft-iso); stroke: var(--iso); stroke-width: 1.4; }
+.w { stroke: var(--wire); stroke-width: 1.6; fill: none; }
+.wd { stroke: var(--wire); stroke-width: 1.4; fill: none; stroke-dasharray: 5 4; }
+.wr { stroke: var(--power); stroke-width: 2; fill: none; }
+.wi { stroke: var(--iso); stroke-width: 1.8; fill: none; }
+.bar { fill: var(--muted); }
+.mut { fill: var(--muted); }
+.red { fill: var(--danger); }
+.steps { display: grid; gap: 14px; counter-reset: s; }
+.step { border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 8px; }
+.step > h3 { display: flex; gap: 10px; align-items: baseline; }
+.step > h3 .k { font-family: var(--f-mono); color: var(--power); font-size: 15px; }
+ul.chk { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+ul.chk li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: start; }
+ul.chk input { width: 18px; height: 18px; margin-top: 5px; accent-color: var(--ok); }
+ul.chk input:focus-visible { outline: 2px solid var(--power); outline-offset: 2px; }
+.note { border-inline-start: 4px solid var(--warn); background: var(--bg); padding: 10px 14px; border-radius: 6px; }
+.good { border-inline-start: 4px solid var(--ok); background: var(--soft-ok); padding: 10px 14px; border-radius: 6px; }
+.todo { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.todo > div { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; }
+.todo ul { margin: 0; padding-inline-start: 20px; }
+.st { font-family: var(--f-mono); font-size: 12px; padding: 1px 7px; border-radius: 4px; }
+.st.done { background: var(--soft-ok); color: var(--ok); } .st.open { background: var(--soft-danger); color: var(--danger); }
+.st.later { background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+.row-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+button { font: inherit; font-size: 14px; border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+  border-radius: 6px; padding: 4px 12px; cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--power); outline-offset: 2px; }
+td.fill { min-width: 90px; }
+@page { size: A4; margin: 12mm; }
+@media print { body { font-size: 12.5px; background: #fff; } .wrap { padding: 0; gap: 12px; max-width: none; }
+  section { break-inside: avoid-page; border: none; padding: 0; } svg { min-width: 0; } .scroll { overflow: visible; }
+  .fig img { max-height: 120mm; width: auto; margin: 0 auto; } }
+</style>
+
+<div class="wrap" dir="rtl">
+
+<header>
+  <div class="eyebrow">THERMO 24-CH · REV A4 · INSTALLATION SHEET</div>
+  <h1>بوردة الحماية 24 قناة: ورقة التركيب</h1>
+  <p class="lead">أماكن الأطراف على البوردة، وتوصيل كل طرف في اللوحة، وخريطة القنوات اللي بتتملي وقت التركيب.</p>
+</header>
+
+<section aria-labelledby="r">
+  <h2 id="r">قبل أي حاجة: 4 قواعد</h2>
+  <div class="rules">
+    <div class="rule"><b>كونتاكتات الإشارة بس</b>RUN PERMIT و ALARM لحد 30 فولت DC و 1 أمبير. أي حمل أكبر (موتور الاستارتر، ملف كبير، 220 فولت) يتوصّل من خلال ريلاي وسيط، مش على البوردة مباشرة.</div>
+    <div class="rule"><b>ممنوع 24 فولت على أطراف الحساسات</b>أطراف الثيرموكبل (J101 لحد J302) و J401 في الجانب المعزول. أي فولت خارجي عليها ممكن يحرق قناة.</div>
+    <div class="rule"><b>FEED و SENSE لازم يتوصّلوا</b>من غير سلكين J401 البوردة بتعتبر مرجع الموتور مقطوع (G08) وتفصل. على البنش: سلك قصير بين الطرفين في الفيشة.</div>
+    <div class="rule"><b>القناة الفاضية تتعمل OFF</b>أي قناة مفيهاش حساس بتقرا "مفتوح" وتفصل. لازم تتضبط OFF من القائمة.</div>
+  </div>
+</section>
+
+<section aria-labelledby="map">
+  <h2 id="map">مكان الأطراف على البوردة</h2>
+  <div class="fig">
+    <img src="board.jpg" alt="رسمة البوردة من ملف التصميم: الأطراف على الحواف، ونقط القياس معلّمة بدواير حمرا" width="1238" height="1058">
+    <div class="cap">من ملف البوردة نفسه. الدواير الحمرا هي نقط القياس (TP) اللي بنستخدمها في أول تشغيل. الجزء الشمال والتحت هو الجانب المعزول (الحساسات).</div>
+  </div>
+  <div class="scroll"><table>
+    <thead><tr><th>المكان على البوردة</th><th>الطرف</th><th>إيه هو</th></tr></thead>
+    <tbody>
+      <tr><td>الحافة اللي فوق، من الشمال لليمين</td><td><span class="tag p">J703</span> <span class="tag p">J701</span> <span class="tag p">J702</span> <span class="tag p">J601</span></td><td>RS-485، كونتاكت التشغيل RUN PERMIT، كونتاكت الإنذار ALARM، الكهربا 24V</td></tr>
+      <tr><td>الحافة الشمال</td><td><span class="tag i">J301</span> <span class="tag i">J302</span> <span class="tag i">J401</span></td><td>حساسات 17-20 و 21-24، ومرجع الموتور FEED/SENSE</td></tr>
+      <tr><td>الحافة اللي تحت، من الشمال لليمين</td><td><span class="tag i">J101</span> <span class="tag i">J102</span> <span class="tag i">J201</span> <span class="tag i">J202</span></td><td>حساسات 1-4، 5-8، 9-12، 13-16</td></tr>
+      <tr><td>النص</td><td><span class="tag p">J502</span> <span class="tag p">J501</span> <span class="tag p">J503</span></td><td>كابل الشاشة 16 سلك، فيشة البرمجة ISP، فيشة زراير الباب</td></tr>
+      <tr><td>اليمين</td><td>UP DOWN SET ESC ACK · RUN · ALARM</td><td>زراير على البوردة للبنش، ولمبة RUN، ولمبة ALARM</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note"><b>لمبة ALARM بالعكس:</b> منوّرة = مفيش إنذار. بتطفى لما يحصل إنذار أو لو البوردة مفصولة. لمبة RUN منوّرة = الماكينة مسموح لها تشتغل.</div>
+</section>
+
+<section aria-labelledby="wiring">
+  <h2 id="wiring">رسمة التوصيل في اللوحة</h2>
+  <p class="lead">البوردة في النص. كل مربع بره هو حاجة في اللوحة أو على الموتور. الخط البرتقالي في جانب الكهربا، والخط الأخضر في الجانب المعزول.</p>
+  <div class="scroll">
+  <svg viewBox="0 0 1100 800" role="img" aria-label="رسمة توصيل البوردة في اللوحة" dir="ltr">
+    <!-- board -->
+    <rect class="brd" x="360" y="190" width="470" height="400" rx="6"/>
+    <text x="595" y="385" text-anchor="middle" font-size="18" font-weight="600">THERMO 24-CH</text>
+    <text x="595" y="406" text-anchor="middle" font-size="12" class="mut">REV A4</text>
+
+    <!-- top terminals -->
+    <rect class="tbp" x="390" y="176" width="80" height="28" rx="3"/><text x="430" y="195" text-anchor="middle" font-size="12">A  B  GND</text>
+    <text x="430" y="222" text-anchor="middle" font-size="12" font-weight="600">J703</text>
+    <rect class="tbp" x="495" y="176" width="80" height="28" rx="3"/><text x="535" y="195" text-anchor="middle" font-size="12">C  NO  NC</text>
+    <text x="535" y="222" text-anchor="middle" font-size="12" font-weight="600">J701 RUN</text>
+    <rect class="tbp" x="600" y="176" width="80" height="28" rx="3"/><text x="640" y="195" text-anchor="middle" font-size="12">C  NO  NC</text>
+    <text x="640" y="222" text-anchor="middle" font-size="12" font-weight="600">J702 ALARM</text>
+    <rect class="tbp" x="715" y="176" width="100" height="28" rx="3"/><text x="765" y="195" text-anchor="middle" font-size="12">+24V 0V CHAS</text>
+    <text x="765" y="222" text-anchor="middle" font-size="12" font-weight="600">J601</text>
+
+    <!-- external top: PLC -->
+    <rect class="box" x="360" y="40" width="130" height="64" rx="4"/>
+    <text x="425" y="64" text-anchor="middle" font-size="13">PLC / SCADA</text>
+    <text x="425" y="84" text-anchor="middle" font-size="11" class="mut">Modbus RTU (optional)</text>
+    <path class="wd" d="M410 104 V176 M430 104 V176 M450 104 V176"/>
+
+    <!-- start circuit -->
+    <rect class="box" x="500" y="20" width="110" height="84" rx="4"/>
+    <text x="555" y="42" text-anchor="middle" font-size="12">engine start</text>
+    <text x="555" y="58" text-anchor="middle" font-size="12">permissive</text>
+    <text x="555" y="76" text-anchor="middle" font-size="10.5" class="mut">C-NO closed = RUN</text>
+    <text x="555" y="93" text-anchor="middle" font-size="10.5" class="red">&#8804;30 VDC 1 A</text>
+    <path class="wr" d="M520 104 V176 M540 104 V176"/>
+
+    <!-- alarm lamp -->
+    <rect class="box" x="625" y="20" width="90" height="84" rx="4"/>
+    <circle cx="670" cy="50" r="12" class="tb"/><path class="w" d="M662 42 L678 58 M678 42 L662 58"/>
+    <text x="670" y="80" text-anchor="middle" font-size="11">alarm lamp</text>
+    <text x="670" y="95" text-anchor="middle" font-size="10.5" class="mut">C-NC closed = alarm</text>
+    <path class="wr" d="M625 176 V140 H648 V104 M660 176 V150 H690 V104"/>
+
+    <!-- battery + fuse -->
+    <rect class="box" x="900" y="30" width="150" height="70" rx="4"/>
+    <text x="975" y="58" text-anchor="middle" font-size="13">BATTERY 24 V</text>
+    <text x="940" y="86" text-anchor="middle" font-size="13" class="red">+</text>
+    <text x="1010" y="86" text-anchor="middle" font-size="13">&#8722;</text>
+    <rect class="box" x="845" y="128" width="70" height="26" rx="3"/>
+    <text x="880" y="145" text-anchor="middle" font-size="11">FUSE 1A T</text>
+    <path class="wr" d="M940 100 V141 H915 M845 141 H738 V176"/>
+    <path class="w" d="M1010 100 V160 H765 V176"/>
+    <!-- chassis -->
+    <path class="w" d="M792 176 V166 H1060 V700"/>
+    <text x="1066" y="250" font-size="11" class="mut" transform="rotate(90 1066 250)">CHASSIS / panel earth bar</text>
+
+    <!-- left side terminals -->
+    <rect class="tbi" x="346" y="230" width="28" height="90" rx="3"/><text x="360" y="225" text-anchor="middle" font-size="11" font-weight="600">J301</text>
+    <rect class="tbi" x="346" y="340" width="28" height="90" rx="3"/><text x="360" y="447" text-anchor="middle" font-size="11" font-weight="600">J302</text>
+    <rect class="tbi" x="346" y="480" width="28" height="44" rx="3"/><text x="360" y="540" text-anchor="middle" font-size="11" font-weight="600">J401</text>
+    <text x="388" y="279" font-size="11">17-20</text><text x="388" y="389" font-size="11">21-24</text>
+    <text x="388" y="497" font-size="10.5">1 FEED</text><text x="388" y="515" font-size="10.5">2 SENSE</text>
+
+    <!-- probes 17-24 -->
+    <rect class="box" x="40" y="230" width="170" height="200" rx="4"/>
+    <text x="125" y="255" text-anchor="middle" font-size="13">probes 17-24</text>
+    <text x="125" y="273" text-anchor="middle" font-size="11" class="mut">K or J, 2 wires each</text>
+    <path class="wi" d="M210 260 H346 M210 290 H346 M210 370 H346 M210 400 H346"/>
+    <rect class="bar" x="270" y="222" width="10" height="216" rx="2"/>
+    <text x="275" y="214" text-anchor="middle" font-size="10.5" class="mut">shield bar</text>
+    <path class="wd" d="M210 320 H270 M210 340 H270"/>
+    <text x="125" y="330" text-anchor="middle" font-size="10.5" class="mut">shields to the bar,</text>
+    <text x="125" y="345" text-anchor="middle" font-size="10.5" class="mut">never to the board</text>
+
+    <!-- engine block -->
+    <rect class="box" x="40" y="470" width="170" height="76" rx="4"/>
+    <text x="125" y="495" text-anchor="middle" font-size="13">ENGINE BLOCK</text>
+    <text x="125" y="514" text-anchor="middle" font-size="10.5" class="mut">2 separate wires,</text>
+    <text x="125" y="530" text-anchor="middle" font-size="10.5" class="mut">joined only at the engine</text>
+    <path class="wi" d="M210 493 H346 M210 512 H346"/>
+    <circle cx="214" cy="502" r="4" class="red"/>
+
+    <!-- bottom terminals -->
+    <rect class="tbi" x="390" y="576" width="80" height="28" rx="3"/><text x="430" y="624" text-anchor="middle" font-size="11" font-weight="600">J101 1-4</text>
+    <rect class="tbi" x="490" y="576" width="80" height="28" rx="3"/><text x="530" y="624" text-anchor="middle" font-size="11" font-weight="600">J102 5-8</text>
+    <rect class="tbi" x="590" y="576" width="80" height="28" rx="3"/><text x="630" y="624" text-anchor="middle" font-size="11" font-weight="600">J201 9-12</text>
+    <rect class="tbi" x="690" y="576" width="80" height="28" rx="3"/><text x="730" y="624" text-anchor="middle" font-size="11" font-weight="600">J202 13-16</text>
+    <text x="430" y="595" text-anchor="middle" font-size="11">+1- +2- +3- +4-</text>
+    <rect class="bar" x="380" y="660" width="400" height="10" rx="2"/>
+    <text x="790" y="669" font-size="10.5" class="mut">shield bar</text>
+    <path class="wi" d="M410 604 V720 M450 604 V720 M510 604 V720 M550 604 V720 M610 604 V720 M650 604 V720 M710 604 V720 M750 604 V720"/>
+    <rect class="box" x="380" y="720" width="400" height="56" rx="4"/>
+    <text x="580" y="745" text-anchor="middle" font-size="13">probes 1-16</text>
+    <text x="580" y="765" text-anchor="middle" font-size="10.5" class="mut">each plug: CH+ CH- for 4 channels, + on the left</text>
+
+    <!-- inside headers -->
+    <rect class="tb" x="400" y="280" width="150" height="16" rx="2"/><text x="475" y="275" text-anchor="middle" font-size="11" font-weight="600">J502 LCD (pin 1 left)</text>
+    <rect class="tb" x="595" y="250" width="30" height="20" rx="2"/><text x="610" y="245" text-anchor="middle" font-size="11" font-weight="600">J501 ISP</text>
+    <rect class="tb" x="720" y="300" width="70" height="20" rx="2"/><text x="755" y="295" text-anchor="middle" font-size="11" font-weight="600">J503 KEYS</text>
+    <circle cx="805" cy="350" r="6" class="tb"/><text x="795" y="354" text-anchor="end" font-size="10.5">RUN</text>
+    <circle cx="805" cy="372" r="6" class="tb"/><text x="795" y="376" text-anchor="end" font-size="10.5">ALARM (lit = OK)</text>
+
+    <!-- door: LCD, keys -->
+    <rect class="box" x="900" y="250" width="150" height="70" rx="4"/>
+    <text x="975" y="276" text-anchor="middle" font-size="13">LCD 20x4 (door)</text>
+    <text x="975" y="296" text-anchor="middle" font-size="10.5" class="mut">16-wire cable, pin 1 to pin 1</text>
+    <path class="w" d="M550 288 H560 V236 H870 V285 H900"/>
+    <rect class="box" x="900" y="345" width="150" height="110" rx="4"/>
+    <text x="975" y="368" text-anchor="middle" font-size="13">door buttons</text>
+    <text x="975" y="388" text-anchor="middle" font-size="10.5">1 UP  2 DOWN  3 SET</text>
+    <text x="975" y="406" text-anchor="middle" font-size="10.5">4 ESC  5 ACK  6 GND</text>
+    <text x="975" y="430" text-anchor="middle" font-size="10.5" class="mut">each button: its pin to 6</text>
+    <path class="w" d="M790 310 H860 V400 H900"/>
+    <!-- bench only -->
+    <rect class="box" x="900" y="490" width="150" height="80" rx="4" stroke-dasharray="5 4"/>
+    <text x="975" y="514" text-anchor="middle" font-size="12">bench only:</text>
+    <text x="975" y="533" text-anchor="middle" font-size="11">USBasp &#8594; J501</text>
+    <text x="975" y="551" text-anchor="middle" font-size="11">USB-RS485 &#8594; J703</text>
+    <path class="wd" d="M625 260 H640 V530 H900"/>
+  </svg>
+  </div>
+</section>
+
+<section aria-labelledby="terms">
+  <h2 id="terms">جدول الأطراف: إيه يتوصّل فين</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>الطرف</th><th>المكتوب على البوردة</th><th>يتوصّل في</th><th>ملاحظات</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag p">J601</span></td><td class="m">+24V · 0V · CHAS</td><td>+24V من البطارية بعد فيوز اللوحة، و0V سالب البطارية، وCHAS لبار الأرضي في جسم اللوحة</td><td>فيوز 1 أمبير بطيء (time-delay)، يتحمّل 80 فولت DC أو أكتر. البوردة بتاخد كهربتها من بطارية الموتور 24 فولت.</td></tr>
+      <tr><td><span class="tag p">J701</span></td><td class="m">RUN PERMIT C · NO · NC</td><td>C و NO في دايرة السماح بالتشغيل</td><td>C-NO مقفول = الماكينة مسموح لها تشتغل. أي عطل أو فصل أو قطع كهربا يفتحه. 30 VDC / 1 A بالكتير.</td></tr>
+      <tr><td><span class="tag p">J702</span></td><td class="m">ALARM C · NO · NC</td><td>لمبة أو سرينة الإنذار على C و NC</td><td>الريلاي شغال وقت ما مفيش إنذار، فـ C-NC مقفول = إنذار، وكمان لو البوردة مفصولة. 30 VDC / 1 A.</td></tr>
+      <tr><td><span class="tag p">J703</span></td><td class="m">RS-485 A · B · GND</td><td>الـ PLC (لو موجود). على البنش: محوّل USB-RS485</td><td>اختياري. A في A و B في B. لو مفيش اتصال، بدّل A و B. شيلد الكابل على بار اللوحة.</td></tr>
+      <tr><td><span class="tag i">J401</span></td><td class="m">ENGINE REF 1 FEED · 2 SENSE</td><td>سلكين منفصلين لحد جسم الموتور، ويتلحموا مع بعض هناك بس</td><td>إجباري. على البنش: سلك قصير بين 1 و 2 في الفيشة.</td></tr>
+      <tr><td><span class="tag i">J101-J302</span></td><td class="m">+ n −</td><td>الحساسات، كل فيشة 4 قنوات</td><td>الموجب على الشمال من كل زوج. الشيلد على بار دخول اللوحة، مش على البوردة.</td></tr>
+      <tr><td><span class="tag p">J502</span></td><td class="m">LCD 1</td><td>الشاشة 20x4 على الباب، كابل 16 سلك</td><td>رجل 1 في رجل 1 من غير لف. الإضاءة والتباين من البوردة (LCD CONTRAST).</td></tr>
+      <tr><td><span class="tag p">J503</span></td><td class="m">6 pin XH</td><td>زراير الباب: 1 UP، 2 DOWN، 3 SET، 4 ESC، 5 ACK، 6 GND</td><td>كل زرار بين رجله ورجل 6. زرار ACK أحمر. الزراير اللي على البوردة شغالة معاهم.</td></tr>
+      <tr><td><span class="tag p">J501</span></td><td class="m">ISP 1</td><td>المبرمجة USBasp على البنش بس</td><td>رجل 1 (المربعة) عند الخط الأحمر في الكابل. شيل جمبر 5V من الـ USBasp.</td></tr>
+      <tr><td class="m">JP731-733</td><td class="m">TERM · BIAS A · BIAS B</td><td>جمبرات RS-485</td><td>على البنش: من غيرهم. في الموقع: TERM على آخر جهاز في الخط بس.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note"><b>قطبية الحساس:</b> في النوع K، المغناطيس بيلزق في السلك <b>السالب</b>. في النوع J، بيلزق في <b>الموجب</b>. ألوان الأسلاك بتختلف حسب المصنع: في المواصفة الأمريكية الأحمر هو <b>السالب</b>. لو الحرارة بتقل لما تسخّن الحساس، يبقى السلكين معكوسين.</div>
+</section>
+
+<section aria-labelledby="ch">
+  <h2 id="ch">خريطة القنوات (تتملي وقت التركيب)</h2>
+  <p class="lead">مكان كل حساس واسمه وحدوده. نسخة منها تتحط جوّه اللوحة. أي قناة فاضية: النوع OFF.</p>
+  <div class="scroll"><table>
+    <thead><tr><th class="n">CH</th><th>الفيشة · الأطراف</th><th>مكان الحساس على الموتور</th><th>الاسم (6 حروف)</th><th>K / J / OFF</th><th class="n">Alarm °C</th><th class="n">Trip °C</th></tr></thead>
+    <tbody>
+      <tr><td class="n m">01</td><td class="m">J101 · 1+ 2−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td class="n m">02</td><td class="m">J101 · 3+ 4−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td class="n m">03</td><td class="m">J101 · 5+ 6−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td class="n m">04</td><td class="m">J101 · 7+ 8−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td class="n m">05</td><td class="m">J102 · 1+ 2−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td class="n m">06</td><td class="m">J102 · 3+ 4−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td class="n m">07</td><td class="m">J102 · 5+ 6−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td class="n m">08</td><td class="m">J102 · 7+ 8−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td class="n m">09</td><td class="m">J201 · 1+ 2−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td class="n m">10</td><td class="m">J201 · 3+ 4−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td class="n m">11</td><td class="m">J201 · 5+ 6−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td class="n m">12</td><td class="m">J201 · 7+ 8−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td class="n m">13</td><td class="m">J202 · 1+ 2−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td class="n m">14</td><td class="m">J202 · 3+ 4−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td class="n m">15</td><td class="m">J202 · 5+ 6−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td class="n m">16</td><td class="m">J202 · 7+ 8−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td class="n m">17</td><td class="m">J301 · 1+ 2−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td class="n m">18</td><td class="m">J301 · 3+ 4−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td class="n m">19</td><td class="m">J301 · 5+ 6−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td class="n m">20</td><td class="m">J301 · 7+ 8−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td class="n m">21</td><td class="m">J302 · 1+ 2−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td class="n m">22</td><td class="m">J302 · 3+ 4−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td class="n m">23</td><td class="m">J302 · 5+ 6−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+      <tr><td class="n m">24</td><td class="m">J302 · 7+ 8−</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
+    </tbody>
+  </table></div>
+  <p class="cap">PIN القائمة على بوردة جديدة: <span class="m">0000</span>، وأول ضبط بيطلب PIN جديد. اكتبه في مكان آمن. لو اتنسى: امسك ACK و SET مع بعض وانت بتشغّل البوردة، وبعدين SET. الـ PIN بيرجع <span class="m">0000</span> والإعدادات بتفضل زي ما هي.</p>
+</section>
+
+</div>

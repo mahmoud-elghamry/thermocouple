@@ -1,0 +1,193 @@
+#include "app/ee_owner.h"
+#include "mcal/eeprom.h"
+#include <string.h>
+#define QUEUE_SIZE 32u
+static set_store_t store;
+static settings_t *active;
+static calibration_t *calibration;
+static calibration_t cal_mailbox;
+static uint8_t settings_slot,cal_slot,done,head,tail,count;
+static bool settings_ok,begin_notice,transaction,cal_transaction,cal_saved,io_ok,internal_error,bg_fault;
+static bool counted,counter_pending,event_pending,loss_alarm;
+static uint8_t counter_slot,counter_index,event_index,event_slot;
+static uint8_t load_slot,next_slot;
+static uint16_t next_sequence;
+static bool ring_valid;
+static uint32_t cycles,events_lost;
+static uint32_t history_mask;
+static events_t ring;
+static event_t queue[QUEUE_SIZE];
+static ee_op_t operation;
+#ifdef FAMILY_TEST
+bool ee_owner_invariants(void) {
+    return head<QUEUE_SIZE && tail<QUEUE_SIZE && count<=QUEUE_SIZE &&
+        load_slot<=EVENT_SLOTS && next_slot<EVENT_SLOTS &&
+        (!event_pending || (event_slot<EVENT_SLOTS && event_index<16)) &&
+        (!counter_pending || (counter_slot<2 && counter_index<8)) &&
+        store.phase<=STORE_PREPARE && store.length<=SETTINGS_SLOT_SIZE &&
+        (!store.pending || (store.index<=store.length && store.base+store.length<=0x840)) &&
+        (operation.kind==EE_NONE || operation.address<4096);
+}
+#endif
+static uint32_t read32(uint16_t address) {
+    uint8_t i; uint32_t v=0;
+    for(i=0;i<4;i++) v|=(uint32_t)ee_read((uint16_t)(address+i))<<(8*i);
+    return v;
+}
+uint8_t *ee_owner_boot_image(void) { return store.image; }
+void ee_owner_init(settings_t *cfg,calibration_t *cal,uint8_t ss,uint8_t cs,bool valid) {
+    uint32_t a,b; bool av,bv;
+    active=cfg; calibration=cal; settings_slot=ss; cal_slot=cs; settings_ok=valid;
+    done=head=tail=count=0; begin_notice=transaction=cal_transaction=cal_saved=false;
+    counted=counter_pending=event_pending=internal_error=bg_fault=false; io_ok=true;
+    loss_alarm=false; events_lost=0;
+    memset(&operation,0,sizeof operation); set_store_init(&store);
+    load_slot=next_slot=0; next_sequence=0; ring_valid=false; history_mask=0;
+    a=read32(0x10); b=read32(0x18);
+    av=(a^read32(0x14))==UINT32_MAX; bv=(b^read32(0x1C))==UINT32_MAX;
+    counter_slot=(uint8_t)(bv && (!av || (b!=a && (uint32_t)(b-a)<0x80000000UL)));
+    cycles=av || bv?(counter_slot?b:a):0;
+}
+bool ee_owner_busy(void) { return transaction; }
+store_phase_t ee_owner_phase(void) { return store.phase; }
+bool ee_owner_publish_pending(void) {
+    return transaction && store.phase==STORE_VERIFY && store.pending && store.index+1u==store.length;
+}
+bool ee_owner_protection_change(void) { return store.protection_change; }
+bool ee_owner_settings_valid(void) { return settings_ok; }
+bool ee_owner_cal_saved(void) { return cal_saved; }
+bool ee_owner_take_begin(void) { bool b=begin_notice; begin_notice=false; return b; }
+uint8_t ee_owner_take_done(void) { uint8_t d=done; done=0; return d; }
+fault_code_t ee_owner_fault(void) {
+    return internal_error?FC_G04_INTERNAL:store.fault!=FC_NONE?store.fault:ee_owner_info_fault()?FC_G13_SAVE_FAIL_INFO:FC_NONE;
+}
+bool ee_owner_info_fault(void) { return store.fault==FC_G13_SAVE_FAIL_INFO || bg_fault || loss_alarm; }
+uint32_t ee_owner_events_lost(void) { return events_lost; }
+bool ee_owner_events_drained(void) { return load_slot==EVENT_SLOTS && count==0 && !event_pending && ee_ready(); }
+void ee_owner_ack_events(void) { if(ee_owner_events_drained()) loss_alarm=false; }
+uint32_t ee_owner_cycles(void) { return cycles; }
+res_t ee_owner_history(uint8_t age,uint8_t *n,event_t *e) {
+    uint8_t i,slot,selected=255,found=0;
+    if(!n || !e) return RES_ERR_RANGE;
+    *n=0;
+    if(age>=EVENT_SLOTS) return RES_ERR_RANGE;
+    if(load_slot<EVENT_SLOTS || !ee_ready()) return RES_BUSY;
+    for(i=0;i<EVENT_SLOTS;i++) {
+        slot=(uint8_t)((next_slot+EVENT_SLOTS-1u-i)%EVENT_SLOTS);
+        if(history_mask&(1UL<<slot)) { if(found==age) selected=slot; ++found; }
+    }
+    *n=found;
+    return selected==255?RES_ERR_RANGE:ev_unpack(ring.slot[selected],e);
+}
+static bool background_busy(void) { return load_slot<EVENT_SLOTS || counter_pending || event_pending; }
+res_t ee_owner_settings(const settings_t *candidate) {
+    res_t r;
+    if(transaction || background_busy() || !ee_ready()) return RES_BUSY;
+    if(!active) return RES_ERR_RANGE;
+    r=set_prepare_with_cal(&store,candidate,settings_ok?active:NULL,settings_slot,calibration,cal_slot);
+    if(r==RES_OK) { transaction=begin_notice=true; cal_transaction=false; io_ok=true; operation.kind=EE_NONE; }
+    return r;
+}
+res_t ee_owner_calibration(const calibration_t *candidate) {
+    res_t r;
+    if(transaction || background_busy() || !ee_ready()) return RES_BUSY;
+    if(!calibration || !candidate || candidate->bank_count!=calibration->bank_count) return RES_ERR_RANGE;
+    cal_mailbox=*candidate;
+    r=cal_prepare(&store,&cal_mailbox,calibration->sequence,cal_slot);
+    if(r==RES_OK) { transaction=begin_notice=cal_transaction=true; cal_saved=false; io_ok=true; operation.kind=EE_NONE; }
+    return r;
+}
+event_t *ee_owner_event(void) {
+    event_t *e;
+    if(count==QUEUE_SIZE) {
+        if(events_lost!=UINT32_MAX) ++events_lost;
+        loss_alarm=true; return NULL;
+    }
+    e=&queue[head]; e->sequence=0; e->power_cycles=(uint16_t)(cycles+(counted?0u:1u));
+    head=(uint8_t)((head+1u)%QUEUE_SIZE); ++count; return e;
+}
+bool ee_owner_log(const event_t *event) {
+    event_t *e; uint16_t power;
+    if(!event) { internal_error=true; return false; }
+    e=ee_owner_event(); if(!e) return false;
+    power=e->power_cycles; *e=*event; e->power_cycles=power; return true;
+}
+void ee_owner_validated_scan(fault_code_t reset_code,uint32_t uptime) {
+    event_t e;
+    if(counted) return;
+    counted=true; ++cycles; counter_slot^=1; counter_index=0; counter_pending=true;
+    memset(&e,0,sizeof e); e.type=EV_POWER_UP; e.code=reset_code; e.uptime_s=uptime;
+    (void)ee_owner_log(&e);
+}
+static void publish(void) {
+    uint8_t ch;
+    /* Preparation validated immutable owner mailboxes; the byte protocol has
+     * compared EVERY stored byte with their packed image. Publish that same
+     * candidate, without repeating CRC/unpack/validation in the handoff pass. */
+    if(store.calibration_slot_known && store.calibration_active_slot!=cal_slot && !cal_transaction) {
+        for(ch=0;ch<MAX_CHANNELS;ch++) if(store.prep_wrap_mask[ch/8u]&(1u<<(ch%8u))) {
+            calibration->baseline_nV[ch]=CAL_MISSING; calibration->tag[ch]=0;
+        }
+        ++calibration->sequence; cal_slot=store.calibration_active_slot;
+    }
+    if(store.phase!=STORE_DONE) return;
+    if(cal_transaction) {
+        *calibration=cal_mailbox; calibration->sequence=store.prep_sequence;
+        cal_slot=store.active_slot; cal_saved=true; done=2;
+    } else {
+        *active=*store.prep_candidate; active->sequence=store.prep_sequence;
+        /* Publish exactly the canonical epochs compared by the byte machine. */
+        for(ch=0;ch<active->channel_count;ch++) active->ch[ch].type_epoch=store.image[16u+16u*ch+13u];
+        settings_slot=store.active_slot; settings_ok=true; done=1;
+    }
+}
+void ee_owner_step(void) {
+    uint8_t value=0; res_t r;
+    if(!ee_ready()) return;
+    if(load_slot<EVENT_SLOTS) {
+        uint8_t i; event_t e;
+        for(i=0;i<16;i++) ring.slot[load_slot][i]=ee_read((uint16_t)(0x840+16*load_slot+i));
+        if(ev_unpack(ring.slot[load_slot],&e)==RES_OK) history_mask|=1UL<<load_slot;
+        if(ev_unpack(ring.slot[load_slot],&e)==RES_OK &&
+           (!ring_valid || ((uint16_t)(e.sequence-(uint16_t)(next_sequence-1u))!=0 &&
+                            (uint16_t)(e.sequence-(uint16_t)(next_sequence-1u))<0x8000u))) {
+            ring_valid=true; next_sequence=(uint16_t)(e.sequence+1u);
+            next_slot=(uint8_t)((load_slot+1u)%EVENT_SLOTS);
+        }
+        ++load_slot; return;
+    }
+    if(transaction) {
+        if(operation.kind==EE_READ) value=ee_read(operation.address);
+        set_store_step(&store,true,io_ok,value,&operation); io_ok=true;
+        if(operation.kind==EE_WRITE) io_ok=ee_write_byte(operation.address,operation.value)==RES_OK;
+        if(store.phase==STORE_DONE || store.phase==STORE_FAILED) {
+            publish(); transaction=false;
+        }
+        return;
+    }
+    if(counter_pending) {
+        uint32_t v=counter_index<4?cycles:~cycles;
+        r=ee_write_byte((uint16_t)(0x10+8*counter_slot+counter_index),(uint8_t)(v>>(8*(counter_index%4))));
+        if(r==RES_OK) { bg_fault=false; if(++counter_index==8) counter_pending=false; }
+        else bg_fault=true;
+        return;
+    }
+    if(!event_pending && count) {
+        queue[tail].sequence=next_sequence;
+        if(ev_pack(&queue[tail],ring.slot[next_slot])!=RES_OK) { internal_error=true; return; }
+        history_mask&=~(1UL<<next_slot);
+        event_slot=next_slot; ++next_sequence; next_slot=(uint8_t)((next_slot+1u)%EVENT_SLOTS);
+        event_index=0; event_pending=true;
+        tail=(uint8_t)((tail+1u)%QUEUE_SIZE); --count;
+    }
+    if(event_pending) {
+        r=ee_write_byte((uint16_t)(0x840+16*event_slot+event_index),ring.slot[event_slot][event_index]);
+        if(r==RES_OK) { bg_fault=false; if(++event_index==16) { event_pending=false; history_mask|=1UL<<event_slot; } }
+        else bg_fault=true;
+    }
+}
+res_t ee_owner_scratch(uint16_t address,uint8_t value) {
+    if(address<0xF00 || address>=0x1000) return RES_ERR_RANGE;
+    if(transaction || background_busy() || count || !ee_ready()) return RES_BUSY;
+    return ee_write_byte(address,value);
+}
