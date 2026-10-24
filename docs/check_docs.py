@@ -24,7 +24,8 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PRODUCT_STATE = ["hardware/24ch/STATE.md", "hardware/8ch/STATE.md", "hardware/8ch-new/STATE.md",
-                 "hardware/8ch-2l/STATE.md", "hardware/40ch/STATE.md", "firmware/STATE.md"]   # 0037 D4
+                 "hardware/8ch-2l/STATE.md", "hardware/40ch/STATE.md", "hardware/family/STATE.md",
+                 "firmware/STATE.md"]   # 0037 D4
 ENTRY = ["AGENTS.md", "README.md", "docs/GOAL.md", "docs/STATE.md", "docs/ISSUES.md",
          "hardware/24ch/README.md"] + PRODUCT_STATE
 LIMITS = {"AGENTS.md": 150, "docs/STATE.md": 60, "docs/GOAL.md": 120, **{s: 60 for s in PRODUCT_STATE}}
@@ -44,7 +45,7 @@ def main():
         if n > limit:
             bad.append(f"{rel}: {n} lines, limit {limit}")
 
-    for rel in ENTRY + ["docs/TOOLS.md", "hardware/family/STATE.md", "docs/ISSUES-closed.md"]:
+    for rel in ENTRY + ["docs/TOOLS.md", "docs/ISSUES-closed.md"]:
         for n, line in enumerate(read(rel).splitlines(), 1):
             if CTRL.search(line):
                 bad.append(f"{rel}:{n}: control character {CTRL.search(line).group()!r}")

@@ -2,7 +2,7 @@
 
 **Read second, after AGENTS.md; then the product's own STATE.md; then all of ISSUES.md (P0 first).
 Hard limit: 60 lines, and so is every product STATE.md.**
-**Last updated:** 2026-10-24 (branch `24ch-rev-a4` content copied into main, rule 3; 40-ch round 12).
+**Last updated:** 2026-10-24 (branch `24ch-rev-a4` merged into main `7a31f0c`; coordination sweep; all family boards re-released).
 
 ## The products (`0037`: one board family on the 24-ch architecture, one firmware)
 
@@ -22,7 +22,7 @@ Hard limit: 60 lines, and so is every product STATE.md.**
 * **Two lines of work (`0037` D5):** hardware (24-ch order, then 8-ch, then 40-ch, in that order) on
   `main`, one chat in `D:\tasks\thermo`; firmware + simulation in branch `firmware`, one chat in
   `D:\tasks\thermo-branches\firmware`, brought to `main` per AGENTS rule 3 (the family firmware came from
-  `24ch-rev-a4`, copied 2026-10-24). Report last, no branch.
+  `24ch-rev-a4`, merged 2026-10-24 `7a31f0c`). Report last, no branch.
   A new branch only when a second chat must change the same area at once. No `git merge` without the owner's word (rule 3).
 * A chat writes its product's STATE.md; it edits this index only when a headline above changes.
 
