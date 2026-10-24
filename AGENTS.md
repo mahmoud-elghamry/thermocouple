@@ -13,13 +13,12 @@ others read it directly; `CLAUDE.md` imports it for Claude Code.
 
 A protection system for **K- and J-type thermocouples** (per channel, `0038`) on engines. **`0037` (2026-10-14): one board
 family on the 24-ch architecture** - banks of one AD7124-8 each: 8 ch = 1 bank, 24 ch = 3, 40 ch = 5 + a PT100 bank (`0039`) -
-and **one firmware** for all of them. **`hardware/24ch/` (REV A3, cost-down variant `0036`) is the
+and **one firmware** for all of them. **`hardware/24ch/` (REV A4 `0041` on the cost-down `0036`) is the
 board being ordered**; `0031` holds its architecture (grounded, insulated or mixed probes).
 `hardware/8ch/` (REV A2, MAX31856) is reference; the new 8-ch (`hardware/8ch-new/`) and 40-ch (`hardware/40ch/`) derive from it via `hardware/family/` (`0039`).
 Any channel trips the common run-permit contact.
 Earlier eight-channel basis: cylinder-body probes, roughly 50 m cables, no VFD.
-Per-channel persistent setpoints and manual ACK are required (`0029`); the 24-ch firmware is not written yet (I-100).
-Supply: engine battery, nominal 24 V (`0016`). HMI selection/mounting is delegated to the design team (`0029`).
+Per-channel setpoints and manual ACK (`0029`): family firmware, 24-ch only so far (`0043`). Supply: engine battery, nominal 24 V (`0016`). HMI selection/mounting is delegated to the design team (`0029`).
 **It is being built to go on a real machine.** Treat decisions as safety-relevant.
 
 The output is energised-to-run: loss of power, reset, or a fault means the
@@ -46,7 +45,7 @@ rots — that has already happened here once.
 ## Repository layout
 
 ```
-hardware/24ch/            the 24-channel board REV A3 - being ordered (README, STATE.md there)
+hardware/24ch/            the 24-channel board REV A4 - being ordered (README, STATE.md there)
 hardware/8ch/             the 8-channel board REV A2 - reference; the new 8-ch derives from 24ch
 hardware/8ch-new/, 40ch/  new 8-ch REV B0 (8ch-2l: 2 layers, 0040) and 40-ch (40 TC + 3 PT100); family/ = shared lib (0039)
 hardware/single-channel/  superseded board, kept for reference - DO NOT MODIFY
@@ -58,7 +57,7 @@ docs/                     see the table above
 ```
 
 Products are folders, not branches (`0037` D3, D5): hardware work is on `main` (one chat); firmware and
-simulation in branch `firmware` (one chat), which the owner merges; a new branch only for parallel work. Sources are tracked; anything a script regenerates is not. Gerbers, drill and
+simulation in a branch (`firmware`; the family firmware was written in `24ch-rev-a4`), brought to `main` per rule 3; a new branch only for parallel work. Sources are tracked; anything a script regenerates is not. Gerbers, drill and
 placement files, renders and netlists belong in `production/` or are ignored.
 
 ## Rules
@@ -69,7 +68,8 @@ placement files, renders and netlists belong in `production/` or are ignored.
 2. **Do not touch `hardware/single-channel/`.** It is the superseded board, kept
    only for reference.
 3. **Do not commit or push** unless the user asks. Leave work in the tree for
-   review. **Never merge, even if subsequently requested** (owner, cloud session).
+   review. **No `git merge` without the owner's word.** With that word a branch may be copied into `main`
+   instead (`git merge-tree` result, conflicts by hand, ordinary commit; owner 2026-10-24).
 4. **Firmware is in scope.** Several open issues are firmware faults with
    safety consequences; a PCB-only reading of a task is too narrow.
 5. **Update your product's `STATE.md` before you finish** (and the index `docs/STATE.md` only when a
