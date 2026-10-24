@@ -49,10 +49,10 @@ TMP126 SIO driver (P2).
   and via holes cutting small SMD lands. Sol round 11 (`sol-routes11.txt`): hole pairs < 0.25 mm 19 -> 0, via
   hole to small SMD land < 0.10 mm 61 -> 0 (own pcbnew check), SAC/SBC partly shortened (RTD1 48 -> 37 mm,
   adjacent-layer digital crossings 25 -> 17), SP/SN 9.8-14.1 mm, mismatch <= 1.9 mm; Kelvin/decoupling kept.
-* **Astra final review 2026-10-24: send for quotation as is** (DRC 0/0/0 fresh, holes/lands FIXED, 51/51 hashes,
-  1212/1212 fill reached). Left as SHOULD-FIX: RTD3/RTD4 SAC/SBC 17 adjacent-layer digital crossings (RTD1 now 5
-  vias/leg), 0.8 mm RTD4_SAC stub at 216.9,38.3. Review: `output/astra-final/REVIEW.md`.
-* **Release candidate `production/40ch-reva0-20261024-113204-9bed30/`** (board as 040422, archived; hole rules = errors, ORDER-NOTES smallest features).
+* Astra final review 2026-10-24: send as is (`output/astra-final/REVIEW.md`); SHOULD-FIX items done by Sol round 12
+  (`sol-routes12.txt`, 78 rips/12 adds): SAC/SBC adjacent-layer digital crossings 17 -> 0, RTD4_SAC stub 0.8 -> 0 mm;
+  RTD1 still 5 vias/leg; rest unchanged. DRC 0/0/0 (10 warn), pincaps 0, holes 0, fill 1212/1212, hashes 69/69.
+* **Release candidate `production/40ch-reva0-20261024-122716-b046ff/`** (113204 archived; hole rules = errors).
 
 ## Open
 
