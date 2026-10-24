@@ -56,4 +56,4 @@
   hypotheses until the JLC preview, `JLC-PLACEMENT-REVIEW.txt`), POWER-ON-TEST pdf/zip, WHICH-FILE-WHERE, MANIFEST of
   every final file. U411.5 cap check on 8/8l/40; hole severities written by the generators; profile 24 net labels.
 * `gate.ps1` baseline = 24-ch A4 `02daef`, builds 24/8/40: FAMILY GATES PASS; tests 63 plain + 17 KiCad, test_family 9.
-* 8l: `decoupling_report.py` (routed-supply criterion <= 5 mm, <= 1 via) - AVDD 11.5 mm/2 vias, IOVDD 6.8 mm: in work.
+* 8l: `decoupling_report.py` (routed-supply criterion <= 5 mm, <= 1 via): AVDD 11.5 -> 3.9 mm, IOVDD 6.8 -> 2.9 mm (8ch-2l STATE).

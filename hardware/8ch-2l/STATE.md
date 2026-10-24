@@ -41,7 +41,12 @@ Astra (gpt-6-astra, read-only) review: "send after fixes". Done:
   "copper-free isolation gap" on the family boards (no milled slot); LCD standoffs >= 11 mm (we buy them).
 * 2026-10-19 (I-131): vias into U703.10 and U101.24 (AD7124) lands moved (Sol `output/sol-holes.txt`, backup
   `output/pre-holes/`); DRC 0/0/0 with hole rules now errors, via hole to land >= 0.156 mm, pincaps 0.
-  **Release candidate `production/8ch-revb0-2l-20261019-042949-393f63/`**; 203125 and 033622 archived.
+  Release 393f63 archived (2026-10-24).
+* 2026-10-24 coordination (Sol, `output/coord/fix8l-top.txt` + `moves8l-top.txt`, `apply_fix8l_top.py`): dangling
+  11 track + 8 via -> 0; AD7124 bypass on 2 layers now measured on the routed path (`decoupling_report.py`): AVDD -> C194
+  11.5 mm/2 vias -> 3.9 mm/0 vias, IOVDD -> C196 6.8 -> 2.9 mm; C193 C194 C196 C197 moved, all parts still on top.
+  **Release candidate `production/8ch-revb0-2l-20261024-222750-287dce/`**: DRC 0/0/0, warnings 134 Description fields
+  + 1 silk, pincaps 0, holes 0, fill 317/317, MANIFEST 54/54, CPL-JLC (preview check), POWER-ON-TEST.
 * Open from the review, accepted as notes: bottom pour in 7 pieces and TC7/TC8 partly without pour under them
   (I-128 bench test), CJ placement thermally unproven, U601 exposed-pad holes at 0 mm from the paste windows
   (ask the assembler: plug/tent from the bottom), `+24V` silk touches an outline stroke.
