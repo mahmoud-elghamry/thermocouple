@@ -44,15 +44,15 @@ TMP126 SIO driver (P2).
   RTD1-4 SP/SN 9.4-11.9 mm, mismatch <= 1.4 mm, 3 vias each; R1092 Kelvin (REFIN tracks own, shared run 0);
   terminal leads split at the pads; C1096 loop 1.77 mm; vias in small IC pads 0; digital/sense crossings 0.
   Then `finish.py dangling` (15 removed), `silk.py`. Backup before the round: `output/pre-r10/`.
-* Release `40ch-reva0-20261019-024508-4774af` (archived): Astra re-review **after fixes** - PT100 items FIXED,
-  but 7 overlapping drill-hole pairs (pre-existing since the copy; KiCad severity warning, the 24-ch has none)
-  and via holes cutting small SMD lands. Sol round 11 (`sol-routes11.txt`): hole pairs < 0.25 mm 19 -> 0, via
+* Release 4774af (archived): Astra re-review - PT100 FIXED, but 7 overlapping drill-hole pairs and via holes in small
+  SMD lands. Sol round 11 (`sol-routes11.txt`): hole pairs < 0.25 mm 19 -> 0, via
   hole to small SMD land < 0.10 mm 61 -> 0 (own pcbnew check), SAC/SBC partly shortened (RTD1 48 -> 37 mm,
   adjacent-layer digital crossings 25 -> 17), SP/SN 9.8-14.1 mm, mismatch <= 1.9 mm; Kelvin/decoupling kept.
-* Astra final review 2026-10-24: send as is (`output/astra-final/REVIEW.md`); SHOULD-FIX items done by Sol round 12
-  (`sol-routes12.txt`, 78 rips/12 adds): SAC/SBC adjacent-layer digital crossings 17 -> 0, RTD4_SAC stub 0.8 -> 0 mm;
-  RTD1 still 5 vias/leg; rest unchanged. DRC 0/0/0 (10 warn), pincaps 0, holes 0, fill 1212/1212, hashes 69/69.
-* **Release candidate `production/40ch-reva0-20261024-122716-b046ff/`** (113204 archived; hole rules = errors).
+* Astra final review 2026-10-24: send as is (`output/astra-final/REVIEW.md`); Sol round 12 (`sol-routes12.txt`): SAC/SBC
+  adjacent-layer digital crossings 17 -> 0, RTD4_SAC stub removed; RTD1 still 5 vias/leg. No firmware (`0043` 9).
+* 2026-10-24 coordination: trim (`output/coord/trim40.txt`, 5 track + 2 via dangling -> 0; release now refuses dangling).
+  **Release candidate `production/40ch-reva0-20261024-141240-35825e/`**: DRC 0/0/0, warnings 3 silk, pincaps 0, holes 0,
+  fill 1212/1212, MANIFEST 76/76, CPL-JLC (174 refs to check in the preview), POWER-ON-TEST; 122716 archived.
 
 ## Open
 

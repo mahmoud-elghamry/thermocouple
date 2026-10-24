@@ -30,8 +30,10 @@ buttons and panel-button header as the 24-ch. 4 layers first; 2-layer / local-fa
   Backups in `output/`: drc-zero, vbias, fid (.kicad_pcb).
 * 2026-10-19 (I-131): 12 hole_to_hole + 11 co-located holes and 3 vias into SMD lands fixed (Sol `output/sol-holes.txt`,
   23 rips / 3 adds; backup `output/pre-holes/`); DRC 0/0/0 with hole rules now errors, via hole to land >= 0.157 mm,
-  pincaps 0. 2026-10-24 re-released as **`production/8ch-revb0-20261024-113258-2d12ea/`** (same board; ORDER-NOTES state the
-  smallest features); 042934 and 5e720e archived. Older notes:
+  pincaps 0. 2026-10-24 coordination with the 24-ch: I-129 relay rule (pours out of `relay_area`, gen + DRU), Sol trim
+  (`output/coord/trim8.txt`, 1 track + 8 via dangling -> 0); **release `production/8ch-revb0-20261024-141437-3238f9/`**:
+  DRC 0/0/0, warnings silk only, pincaps 0, holes 0, fill 496/496, MANIFEST 56/56, CPL-JLC (preview check) + POWER-ON-TEST
+  + WHICH-FILE-WHERE; 113258, 042934, 5e720e archived. Older notes:
 * Release `8ch-revb0-20261014-203721-5e720e` (archived; `fab.py --board 8`, then
   `assembly_spec.py` with Python 3.10): MANIFEST DRC (0, 0, 0), 92 BOM lines / 243 parts, none without LCSC,
   DNP none; ASSEMBLY-SPEC.pdf 4 pages, ORDER-NOTES, ACCESSORIES (`accessories.csv` here). Release texts:
