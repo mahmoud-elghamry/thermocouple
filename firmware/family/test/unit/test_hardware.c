@@ -86,6 +86,10 @@ int main(void) {
     fake_reset(); gpio_init(); timer_init(); iso_init(); ad_reset_state(); cj_reset();
     CHECK(board()->banks==3 && board()->channels==24);
     CHECK(fake_port(PORT_B)==0x97 && fake_ddr(PORT_B)==0xBF);
+    for(i=0;i<board()->key_count;i++) { /* keys have no external pull-up: input with internal pull-up */
+        pin_t k=board()->keys[i]; uint8_t m=(uint8_t)(1u<<(k%8u));
+        CHECK((board()->ddr_init[k/8u]&m)==0 && (board()->port_init[k/8u]&m)!=0);
+    }
     CHECK(iso_select(0)==RES_OK); CHECK(iso_select(1)==RES_BUSY);
     CHECK(iso_sio_write_enable(true)==RES_ERR_RANGE); iso_deselect();
     CHECK(ad_crc8(crcvec,4)==0x90);

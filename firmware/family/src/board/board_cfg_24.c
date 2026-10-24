@@ -9,6 +9,6 @@ static const board_t cfg = {
     PIN(PORT_B,3),PIN(PORT_C,2),PIN(PORT_C,6),PIN(PORT_C,7),PIN(PORT_D,7),
     {PIN(PORT_D,2),PIN(PORT_D,3),PIN(PORT_D,4),PIN(PORT_D,6),0},4,
     {BANK(0),BANK(1),BANK(2)}, /* OPEN-Q14: provisional clamped header weights */
-    {0,0x97,0x3B,0x74},{0xFB,0xBF,0x7B,0xA2}
+    {0,0x97,0x3B,0x7C},{0xFB,0xBF,0x7B,0xA2}
 };
 const board_t *board(void) { return &cfg; }

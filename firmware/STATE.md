@@ -38,16 +38,19 @@
 * Scan 3 banks concurrently, trip within 2 s like Murphy (GOAL; ~0.75 s normal, ~1.1 s worst); per-channel setpoints in EEPROM,
   latch + manual ACK (`0029`); open sensor trips by default, alarm-only is a saved per-channel
   setting (`0034` D1); relay held by a heartbeat from completed scans (I-118); internal watchdog
-  (WDTON fuse, `fuses.md`).
+  (WDTON fuse; fuses in `firmware/spec/02` 6, written and read back by `family/program.ps1`).
 * AD7124 diagnostics every scan (CRC, ID, error register) and burnout/open check one channel per scan
   (`0031` D2).
-* TMP126 cold junction (`0036` D1): one CS low at a time, >= 1 us between CS edges, writes <= ~40 kHz
-  (CALCULATIONS 8.3), CRC + device ID 0x2126 on every read; no AD7124 continuous-read mode.
-* Open firmware issues: I-100, I-104, I-118, I-119, I-097; RS-485/Modbus hardware is fitted (owner
-  2026-10-14), protocol later (I-086, I-094).
+* TMP126 cold junction (`0036` D1): one CS low at a time, >= 1 us between CS edges, commands through the
+  REV A4 gated driver (SIO_WR_N, `0041`; timing `firmware/spec/02` TMP126 section), CRC + device ID 0x2126 on
+  every read; no AD7124 continuous-read mode.
+* I-100, I-104, I-118, I-119 implemented (host + simulator), bench pending; read-only Modbus implemented (I-086),
+  bench poll test pending; I-094, I-097 see ISSUES.
 * The simulation demo (`simulation/`, Proteus) is done in this branch once the firmware runs: MCU, LCD,
   buttons, relays with simulated temperatures (Proteus has no AD7124/TMP126 model).
-* To study: thermocouple type per channel (K / J), `0037` D2.
+* Thermocouple type per channel (OFF / K / J, `0038`) implemented; bench check pending.
+* 2026-10-24 (Claude, Sol audit): DOWN key PD3 had no pull-up (PORTD init 0x74 -> 0x7C, no external pull-up on
+  the A4 board); fixed, `test_hardware.c` now checks every key pin is an input with its pull-up.
 
 ## Preserve
 
