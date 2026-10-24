@@ -351,7 +351,7 @@ has not been measured**; if it can exceed 70 °C, look again.
 
 These checks supplement prior calculations; they do not qualify an assembled
 unit. No hardware values were changed. Source evidence is in
-`production/review-20260929/` and issues I-075 through I-080.
+`production/reviews/review-20260929/` and issues I-075 through I-080.
 
 ### 5.1 Battery-connected relay and indicator (I-077)
 
@@ -872,7 +872,7 @@ R502 >= 22 ohm unless the bought LCD proves too dim; then re-run this line.
 ### 8.1 Parts cost per board
 
 Inputs: `hardware/24ch/output/cost.csv` (2026-10-09, LCSC 10-piece prices, total $104.91) and LCSC
-listings read 2026-10-12 (`production/review-20261012-cheaper/*.md`).
+listings read 2026-10-12 (`production/reviews/review-20261012-cheaper/*.md`).
 
     ADT7310 x6 -> TMP126DCKR x6     6 x (5.4045 - 2.2415)      = -18.98
     ISO7761 x3 -> CA-IS3761HW x3    3 x (2.9219 - 1.61)        =  -3.94

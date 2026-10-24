@@ -60,3 +60,4 @@ on `main` directly, one chat. **Firmware + simulation** works in branch `firmwar
 passes its tests. The management report comes last, in its own short chat, and changes no sources.
 A new branch is opened only when a second chat must change the same area at the same time.
 Branches `24ch-order`, `8ch`, `36ch` removed (they had no commits beyond `main`).
+**Update 2026-10-24 (owner):** the family firmware was written in branch `24ch-rev-a4` with the 24-ch board, not in `firmware`; that branch was merged into `main` (`7a31f0c`) and stays the 24-ch line (board + firmware) until the first boards run. Branch/worktree `firmware`, `family-lib`, `family-tools` and `cheaper-parts` were removed.

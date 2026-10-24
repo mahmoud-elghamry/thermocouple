@@ -4,7 +4,7 @@
   "verify" are still open.
 * Date: 2026-10-08
 * Deciders: owner; front end reviewed adversarially by Codex gpt-6.1-sol
-  (read-only, `production/review-20261008/codex-frontend-review.md`, local)
+  (read-only, `production/reviews/review-20261008/codex-frontend-review.md`, local)
 * Supersedes: `0030` D1, D1a, D3, D4, D4a, D6, D7 and its W3 work item.
   `0030` D2 (comms never in the trip path), D5 (signal relay) and D8 (per-channel
   setpoints, timing) still apply. Partly supersedes `0024` (three modules).

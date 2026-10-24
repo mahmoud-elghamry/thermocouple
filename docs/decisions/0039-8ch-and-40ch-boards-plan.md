@@ -19,7 +19,7 @@
 * Generator and tools are 24-ch specific: `bank(1..3)`/"ABC", `rules.py:19-25` geometry, `place.py` floor plan,
   `pincaps.py:27` (three ADCs), `maze.py:34` (170 x 145), `fanout.py:117` (REFIN1- grounded).
 * `hardware/24ch/thermo24.xml` is **stale** (2026-10-11, still ADT7310/ISO7761/R415, Astra). The baseline is the
-  release netlist `production/24ch-reva3-20261014-072946-4b1601/netlist.xml` + its `BOM.csv`.
+  release netlist `production/_OLD_DO_NOT_ORDER/24ch-reva3-20261014-072946-4b1601/netlist.xml` + its `BOM.csv`.
 
 ## Decisions proposed
 

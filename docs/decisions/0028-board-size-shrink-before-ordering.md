@@ -23,7 +23,7 @@ Measured on the REV A2 board (KiCad 10, courtyards, 2026-10-06):
   optimized minimum".
 * The owner says there is **no enclosure or panel constraint** on the shape.
 
-A to-scale map is in `production/board-size-map.svg` (local, not tracked).
+A to-scale map is in `production/reference/board-size-map.svg` (local, not tracked).
 
 ### Prices (JLCPCB online calculator, 2026-10-06)
 
@@ -78,7 +78,7 @@ is chosen after the owner answers I-091 to I-096, not before**:
 
 ## Consequences
 
-* `production/8ch-reva2/` stays **on hold**. The shrink is a new layout, so
+* `production/reference/8ch-reva2/` stays **on hold**. The shrink is a new layout, so
   the board revision becomes **A3** (silkscreen, `BOARD_REV`, firmware
   `APP_TARGET_BOARD`).
 * Every hardware gate is re-run and re-quoted after the shrink. The power-stage

@@ -6,7 +6,7 @@
 ## Where it stands
 
 * `hardware/8ch/` is **REV A2** (MAX31856 front end): ERC/DRC 0/0, netlist identical, firmware 4 builds /
-  3 suites pass (2026-10-09 snapshot `production/validation-20261009-043553-906505`). Never ordered;
+  3 suites pass (2026-10-09 snapshot `production/validation/validation-20261009-043553-906505`). Never ordered;
   no physical qualification or SPICE.
 * Direction (`0037` D1): the company's 8-channel option is a **new board derived from the 24-ch one**
   (one bank: one AD7124-8, TMP126 pair, same isolation, supply, relays, LCD and buttons). REV A2 becomes

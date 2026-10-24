@@ -5,7 +5,7 @@ $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot/check_commands.ps1"
 $repoRoot = (Resolve-Path "$PSScriptRoot/../..").Path
 if (-not $OutputDirectory) {
-    $OutputDirectory = Join-Path $repoRoot ('production/validation-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '-' + [guid]::NewGuid().ToString('N').Substring(0,6))
+    $OutputDirectory = Join-Path $repoRoot ('production/validation/validation-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '-' + [guid]::NewGuid().ToString('N').Substring(0,6))
 }
 $out = [IO.Path]::GetFullPath($OutputDirectory)
 if (Test-Path -LiteralPath $out) { throw "Use a new output directory to prevent stale reports: $out" }

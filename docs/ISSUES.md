@@ -7,7 +7,7 @@
 * A row is at most about 600 characters and holds four things: what is wrong,
   why it matters, where the evidence is, and when the issue can be closed.
   Long arithmetic goes to `reference/CALCULATIONS.md`, a choice between
-  alternatives goes to `decisions/`, and raw logs go to `production/review-*/`.
+  alternatives goes to `decisions/`, and raw logs go to `production/reviews/review-*/`.
   The row points there.
 * No narrative sections. A review's findings become rows here. Its coverage
   notes become rows too, or one bullet under "Not verified by anyone" below.
@@ -90,7 +90,7 @@ Severity: **blocker** stops fabrication · **high** is a real failure mode ·
 | I-136 | low | **[fw] Proteus demo points at the old HEX path**: `simulation/thermocouple_8ch.pdsprj` (ROOT.DSN and ROOT.CDB) loads `..\firmware\build\thermo_8ch_max6675_sim.hex`; since the move it is `..\firmware\8ch-legacy\build\...`. It is the legacy 8-ch MAX6675 demo, not an A4 simulation (Proteus has no AD7124/TMP126 model). Needs Proteus to re-select and save. | Project re-pointed and saved in Proteus, labelled legacy; or an A4 demo made |
 | I-084 | low | CI has no 24-ch job (schematic ERC/netlist, DRC, `pincaps.py`) and none for 8ch-new/8ch-2l/40ch (`hardware.yml` runs the REV A2 board only), and the 8-ch job runs fewer checks than `validate.ps1`. **Firmware CI** (`firmware.yml`) builds only `firmware/8ch-legacy`; the family firmware (build.ps1 + test/build_core.ps1 + test/build_acceptance.ps1, MSVC + avr-gcc + simulator) has no CI job, so a green check says nothing about it. Ties to I-115. | CI runs the 24-ch gates, or the difference is documented |
 | I-127 | low | **[24ch] Board tools fail when they spawn a child:** `24ch/gen/silk.py`, `rules.py`, `place.py --drop` start a child process that is refused by the parent's own writer claim (`guard.py`); `fiducials.py` enumerates after `Remove()` invalidates SWIG objects. Both found 2026-10-14 by the family-tools regression (Sol; 33/33 pass after family-only fixes). Fixed in `hardware/family/tools/` and the 8-ch/40-ch scripts; the 24-ch copies are left unchanged while it is being ordered. | Fixed in `hardware/24ch/gen/` when the 24-ch is next edited |
-| I-109 | low | **Cost options** (`0033` D3). **Taken in `0036`: TMP126, CA-IS3761HW, trimmer/22u swaps; RS-485 DNP was reversed by `0036` D9: parts ~$105 -> ~$81 (`CALCULATIONS` 8.1).** Left: ATmega644PA (-$2.5, 4 KB RAM, wait for the firmware size), ADS1248 x6 (-$5, full re-route), basic-part merges (JLC-style fee per BOM line), fab choice NORI vs JLCPCB (`production/review-20261012-cheaper/pcb-and-similar-boards.md`). Rejected: TMP117, Chinese 24-bit ADCs, 2-layer. | Decided at REV B |
+| I-109 | low | **Cost options** (`0033` D3). **Taken in `0036`: TMP126, CA-IS3761HW, trimmer/22u swaps; RS-485 DNP was reversed by `0036` D9: parts ~$105 -> ~$81 (`CALCULATIONS` 8.1).** Left: ATmega644PA (-$2.5, 4 KB RAM, wait for the firmware size), ADS1248 x6 (-$5, full re-route), basic-part merges (JLC-style fee per BOM line), fab choice NORI vs JLCPCB (`production/reviews/review-20261012-cheaper/pcb-and-similar-boards.md`). Rejected: TMP117, Chinese 24-bit ADCs, 2-layer. | Decided at REV B |
 
 | I-139 | low | **[fw] Fault arrays sized for 96 units** (`firmware/family/include/services/fault.h:5`, `fault.c`, `app.c:37`): three arrays keep 96-unit storage on a 24-ch build; a 32-unit form saves 1248 B RAM (Astra 2026-10-24). Change the unrolled operations together, not only `FAULT_UNITS`; rerun functional and AVR timing gates. | Done with all firmware gates passing, or left as is by choice |
 ## REV A2 (8-ch reference board) only
@@ -99,7 +99,7 @@ The 8-ch board is never ordered (`0031`); these stay open only for it: I-079, I-
 
 | # | Sev | Issue | Close when |
 |---|---|---|---|
-| I-079 | medium | **`production/8ch-reva2/RELEASE.txt` said the K1 coil is ~2.9 kOhm.** The G5LE-1 DC24 coil is **1.44 kOhm ±10 %** at 23 °C (16.7 mA; `datasheets/G5LE-relay.pdf`). The 2.9 came from an old I-058 text, copied without checking. The package is marked on hold. | The re-exported package's RELEASE text uses 1.44 kOhm |
+| I-079 | medium | **`production/reference/8ch-reva2/RELEASE.txt` said the K1 coil is ~2.9 kOhm.** The G5LE-1 DC24 coil is **1.44 kOhm ±10 %** at 23 °C (16.7 mA; `datasheets/G5LE-relay.pdf`). The 2.9 came from an old I-058 text, copied without checking. The package is marked on hold. | The re-exported package's RELEASE text uses 1.44 kOhm |
 | I-058 | high | K1 coil pins were fixed in the schematic and PCB (2026-09-24/26). Before power-up: pins 2-5 read **1.44 kOhm ±10 %**, 1-4 read 0 Ohm and 1-3 open. | Measured on an assembled board |
 | I-072 | low | Stale overview text: `hardware/8ch/README.md` (TSR 1-2450), firmware comments on feedback. **Audit 2026-10-06 (24) adds:** VFD comments `config.py:80`, `check_board.py:174`; "C_diff 100n C0G" (X7R since `0011`) `config.py:73`; "AP2112K" for U13 `placement.py:78`; "0.5 A PTC" `apply_rules.py:59`; "G5LE-1" `placement.py:150`; value text "10u 10V" on C45/C46/C55 (MPNs are 25 V/16 V). | Reconciled |
 | I-087 | low | The Proteus project simulates a MAX6675, not the fitted MAX31856, so it proves nothing about the real sensor path (review 2026-09-29). | Updated, or labelled as legacy |
@@ -110,7 +110,7 @@ The 8-ch board is never ordered (`0031`); these stay open only for it: I-079, I-
 ## Not verified by anyone yet
 
 This list is from the 2026-09-29 review coverage. The full table is in
-`production/review-20260929/ISSUES-as-reviewed-20260929.md`, which is
+`production/reviews/review-20260929/ISSUES-as-reviewed-20260929.md`, which is
 local-only.
 
 * Worst-case tolerances of every component; cold-junction gradients; 50 m cable accuracy and noise.

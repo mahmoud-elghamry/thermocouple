@@ -115,7 +115,7 @@ TC21_PA طوله 17.657 مم، وNA طوله 32.627 مم. فرق الطول لا
 |---|---|
 | ERC24 جديد | 0 errors / 0 warnings، 12 sheets؛ `erc24.rpt`. توجد فئات ignored مذكورة داخل التقرير. |
 | DRC24 جديد، refill في الذاكرة وschematic parity | 0 errors، 3 track_dangling warnings، 0 unconnected، 0 footprint errors؛ `drc24.rpt`. لا exclusions فردية في project. |
-| 8ch snapshot validation | PASS؛ ERC/DRC 0/0، netlist مطابق 202 components/163 nets/647 pins، 129 passives مطابقة. `production/validation-20261009-113815-e0d952/`. |
+| 8ch snapshot validation | PASS؛ ERC/DRC 0/0، netlist مطابق 202 components/163 nets/647 pins، 129 passives مطابقة. `production/validation/validation-20261009-113815-e0d952/`. |
 | firmware/build.ps1 | 4 images بُنيت، 3 suites PASS؛ `firmware-build.txt`. كلها targets قديمة. |
 | schematic analyzer | 462 non-power components /296 nets، 191 findings خام. العدد يطابق PCB؛ 10 voltage-domain errors أُسقطت بعد فحص تغذيات العوازل. |
 | PCB analyzer --full | 99 findings خام؛ تم فحص الأرقام المؤثرة بـpcbnew مستقلًا. |
@@ -190,7 +190,7 @@ and https://www.lcsc.com/product-detail/C699536.html .
 header pad centre, sqrt((xs-xp)^2 + (ys-yp)^2), all in mm. Across six sensors,
 nearest pad = 25.20-27.43 mm; maximum farthest pad = 35.14 mm. The physical
 plug's metal junction location is not specified by pad centres. Evidence:
-`production/review-20261009-system/plane-cj-audit.json` and its read-only script.
+`production/reviews/review-20261009-system/plane-cj-audit.json` and its read-only script.
 No temperature error is inferred from distance alone; R-08 requires a test.
 
 
@@ -272,7 +272,7 @@ No temperature error is inferred from distance alone; R-08 requires a test.
 
 **R-13 — نتيجة ERC قديمة يمكن أن تتحول إلى PASS جديد (مؤكد بإعادة إنتاج؛ تفصيل R-06).** استخرج الاختبار دالة `run_erc()` الأصلية من `gen/build.py` بواسطة AST وشغّلها منفردة، مع تقرير scratch قديم `** ERC messages: 0` وsubprocess يعيد فشلًا 23. النتيجة True. السبب أن الدالة تتجاهل returncode وتقرأ التقرير الموجود. لم أشغل build.py بالكامل؛ هذا اختبار للدالة مع فشل أداة محقون. الإصلاح المقترح: fail على خروج الأداة غير الصفري، وreport في مجلد run جديد، ورفض القديم/المفقود، وربط الدليل بالـhash. `check_netlist()` أيضًا يتجاهل returncode قبل قراءة XML؛ هذا خطر مماثل ظاهر من المصدر، ولم أختبره كحالة مستقلة. لا تثبت التجربة أن تقارير ERC الحالية قديمة؛ تقارير مراجعتي أنتجتها باستدعاء مستقل ناجح.
 
-لإعادة الاختبار دون نموذج ذكاء اصطناعي: `python production/review-20261009-system/extended/run_extra.py` و`python production/review-20261009-system/extended/replay_erc_failure.py`. الأول يعتمد MSVC BuildTools بمسار الجهاز المسجل في script؛ لا يدّعي portability تلقائية. فشل mutants هنا متوقع ومطلوب، وليس فشل المصدر الأصلي. لا ينفذ أي من الأمرين كتابة hardware أو firmware الأصلية.
+لإعادة الاختبار دون نموذج ذكاء اصطناعي: `python production/reviews/review-20261009-system/extended/run_extra.py` و`python production/reviews/review-20261009-system/extended/replay_erc_failure.py`. الأول يعتمد MSVC BuildTools بمسار الجهاز المسجل في script؛ لا يدّعي portability تلقائية. فشل mutants هنا متوقع ومطلوب، وليس فشل المصدر الأصلي. لا ينفذ أي من الأمرين كتابة hardware أو firmware الأصلية.
 
 ## 12. مصفوفة اختبار الجهاز: ما زال مطلوبًا قبل الاعتماد
 

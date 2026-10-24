@@ -32,7 +32,7 @@ every session, for the benefit of the one who works on that row.
   * **P3** later or accepted.
 * Each row is at most about 600 characters: what, why, evidence pointer, close-when.
 * Detail goes where it belongs: arithmetic to `CALCULATIONS.md`, choices to
-  `decisions/`, logs to `production/review-*/`.
+  `decisions/`, logs to `production/reviews/review-*/`.
 * Closed issues move to **`ISSUES-closed.md`**. It is an archive, read only when
   an old number comes up.
 * A finding judged overstated **keeps its row**, marked "Review weight: rated X,
@@ -42,7 +42,7 @@ every session, for the benefit of the one who works on that row.
 
 Result on 2026-10-01: 72 KB → about 11 KB. The pre-restructure text is in git
 history (`7107a94`) and, for the uncommitted 2026-09-29 review, in
-`production/review-20260929/ISSUES-as-reviewed-20260929.md`.
+`production/reviews/review-20260929/ISSUES-as-reviewed-20260929.md`.
 
 ## Rejected
 

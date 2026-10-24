@@ -14,7 +14,7 @@ without retaining duplicate test plumbing indefinitely.
 
 Both were compiled with MSVC C11 `/W4 /WX` and rerun after relocation on
 2026-09-29. Output is in
-`production/review-20260929/preserved-reproductions/` (ignored).
+`production/reviews/review-20260929/preserved-reproductions/` (ignored).
 Loop ticks are simulated iterations, not measured physical milliseconds.
 
 ## Windows reproduction

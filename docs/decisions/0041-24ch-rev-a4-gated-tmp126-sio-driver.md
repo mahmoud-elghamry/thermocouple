@@ -62,7 +62,7 @@ TC traces untouched. New island nets added to class Island in `thermo24.kicad_pr
   (I-118); AD7124 SPI <= 2 MHz through the isolators; REF_EN = 1, no REFIN2 (AIN14/15 are TC inputs).
   (Reviews 2026-10-15, `CALCULATIONS` 8.5.)
 
-## Review 2026-10-15 (4 Claude reviewers + Astra twice, `production/review-20261015-a4/`)
+## Review 2026-10-15 (4 Claude reviewers + Astra twice, `production/reviews/review-20261015-a4/`)
 
 No pinout, net, package, missing-part or value error that blocks the order. Fixed: mirrored terminal labels,
 stale REV/DNP text, missing ASSEMBLY-SPEC.pdf, J601 pin wording in I-085. Left as accepted, optional (owner's

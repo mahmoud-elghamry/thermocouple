@@ -6,7 +6,7 @@
 ## Where it stands
 
 * `firmware/` holds the **REV A2 8-channel** firmware (ATmega, MAX31856 front end): 4 builds and
-  3 host test suites pass (2026-10-09 snapshot `production/validation-20261009-043553-906505`).
+  3 host test suites pass (2026-10-09 snapshot `production/validation/validation-20261009-043553-906505`).
   Moved to `firmware/8ch-legacy/` 2026-10-23 (owner); build `pwsh -File firmware\8ch-legacy\build.ps1`.
 * **Family firmware (`0043`):** spec `firmware/spec/`, code `firmware/family/` by Codex Sol lanes (briefs, reports
   and runner `family/briefs/run_lane.sh`; roles `docs/TOOLS.md`). F0, F1 protection, F2 UI, F3 Modbus integrated (F4).

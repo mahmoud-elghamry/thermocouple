@@ -4,7 +4,7 @@
 * Date: 2026-10-09
 * Builds on: `0031`, `0032`, `0033`
 * Evidence: `docs/reference/review-20261009-astra.md` (Codex GPT-6-Astra, whole-project
-  review at commit `5f8abc6`; its evidence files stay in `production/review-20261009-system/`)
+  review at commit `5f8abc6`; its evidence files stay in `production/reviews/review-20261009-system/`)
 
 ## Context
 

@@ -100,7 +100,7 @@ The circuit changed, and REV A1 has a complete, uploadable package. A board
 that says "REV A1" with a different netlist is the fab mix-up waiting to
 happen. So: `BOARD_REV = "A2"`, the netlist contract is
 `netlist-baseline-reva2.json` (202 / 163 / 647), and the release goes to
-`production/8ch-reva2/`. **`production/8ch-reva1/` must not be ordered.**
+`production/reference/8ch-reva2/`. **`production/8ch-reva1/` must not be ordered.**
 
 ## How it was done
 

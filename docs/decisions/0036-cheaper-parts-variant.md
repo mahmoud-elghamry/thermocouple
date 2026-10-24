@@ -4,7 +4,7 @@
   relay choices and the TMP126 proposal are the owner's own; external watchdog removed by the owner)
 * Date: 2026-10-12
 * Builds on: `0031`, `0032` (part picks), `0035` (I-111 repair); I-109 (cost options)
-* Evidence: `production/review-20261012-cheaper/` (local): `frontend-alternatives.md`,
+* Evidence: `production/reviews/review-20261012-cheaper/` (local): `frontend-alternatives.md`,
   `digital-power-alternatives.md`, `pcb-and-similar-boards.md`, `review-tmp126-watchdog.md`
 
 ## Context

@@ -4,7 +4,7 @@
   revisions 2-4 at the end of this file, which override the text above them. The 24-ch
   schematic implements revision 4; every "check" not closed in `ISSUES.md` is still open.
 * Relates to: `0031` (architecture), I-101, I-103, I-091, I-093, I-094, I-095,
-  I-096; Codex review `production/review-20261008/codex-frontend-review.md`
+  I-096; Codex review `production/reviews/review-20261008/codex-frontend-review.md`
 * Sources: AD7124-8 Rev B (LCSC C97314 PDF), local datasheets, LCSC stock read
   2026-10-08 in the browser
 
@@ -126,7 +126,7 @@ re-checked at BOM time.
 
 ## Revision 1 after Codex's reviews (2026-10-08)
 
-Codex reviewed this file (`production/review-20261008/codex-0032-review.md`)
+Codex reviewed this file (`production/reviews/review-20261008/codex-0032-review.md`)
 and floor plan v1 (`codex-floorplan-review.md`), both local. W1 accepts the
 following; each overrides the text above where they differ.
 
@@ -173,7 +173,7 @@ following; each overrides the text above where they differ.
 7. **Top terminals:** REV A2's C8270/C192769 are fixed 5.08 mm screw
    terminals, not plugs. Kept as fixed screw terminals for power, contacts and
    RS-485 (rarely unplugged); the floor-plan text that said "plugs" was wrong.
-8. **Floor plan v2: 170 x 145 mm** (`production/review-20261008/floorplan-v2.png`):
+8. **Floor plan v2: 170 x 145 mm** (`production/reviews/review-20261008/floorplan-v2.png`):
    real REV A2 footprint sizes; 3 mm copper-free band on all layers; an
    isolated RS-485 pocket at its connector; isolated DC-DC at the top of the
    left barrier, ~26 mm from AD7124 #3; island mounting holes NPTH with
@@ -185,7 +185,7 @@ following; each overrides the text above where they differ.
 
 ## Revision 2 after Codex's short check of revision 1 (2026-10-08)
 
-Codex (`production/review-20261008/codex-rev1-check.md`, local) passed items
+Codex (`production/reviews/review-20261008/codex-rev1-check.md`, local) passed items
 2, 5, 7 and 8 and rejected 1, 3, 4 and 6. W1 agrees with all four and changes:
 
 1. **AVDD sink, with a defined envelope.** The DC-DC preload moves from the

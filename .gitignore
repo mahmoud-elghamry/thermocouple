@@ -51,7 +51,8 @@ venv/
 
 # --- Generated hardware output ------------------------------------------------
 # production/ is where a release is assembled. Nothing in it is a source.
-production/
+production/*
+!production/README.md
 # production/ is local. When a revision is actually ORDERED, copy its upload zip
 # to hardware/8ch/fabricated/<rev>/ and commit it - the same reason the
 # single-channel Gerbers below are tracked: once the sources move on, that zip

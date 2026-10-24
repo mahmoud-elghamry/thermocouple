@@ -4,7 +4,7 @@
   replaces D1, D1a, D3, D4, D4a, D6, D7 and W3. D2, D5 and D8 still apply.
 * Date: 2026-10-08
 * Deciders: owner; plan reviewed by Codex gpt-6.1-sol (read-only,
-  `production/review-20261008/codex-plan-review.md`, local)
+  `production/reviews/review-20261008/codex-plan-review.md`, local)
 * Relates to: `0024`, `0028`, `0029`, `0009`, `0008`, `0020`; I-026, I-085, I-091,
   I-092, I-094, I-096, I-097, I-100
 

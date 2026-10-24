@@ -28,7 +28,7 @@ pwsh -File hardware\8ch\run_all.ps1
 ```
 
 This is now the default: copy the four KiCad source files into a fresh
-`production/validation-*` directory, run ERC and the A0 netlist contract, then
+`production/validation/validation-*` directory, run ERC and the A0 netlist contract, then
 refill and DRC the copy. The source hashes must remain unchanged. Errors,
 unconnected pads and parity failures stop the run; warnings are reported.
 KiCad ERC exit 5 can mean warnings, so its report is parsed before accepting it.
@@ -124,7 +124,7 @@ factory 1 MHz clock) and prints one `PROGRAM PASS`/`PROGRAM FAIL` line; drop `-D
 Do not run this while `docs/ISSUES.md` still lists `I-001`.
 
 A release goes to its own folder per revision under `production/`, not next to
-the sources. The current one is `production/8ch-reva2/` (2026-09-28, with
+the sources. The current one is `production/reference/8ch-reva2/` (2026-09-28, with
 `RELEASE.txt`, the upload zip and `validation-report/`). Superseded packages move to
 `production/_OLD_DO_NOT_ORDER/` (REV A0, REV A1 - none was fabricated); stale
 `validation-*` runs are deleted. `production/` is gitignored.
@@ -602,7 +602,7 @@ all eight final-round-11 sense legs reproduced to 1e-6 mm, 3 vias each, mismatch
   (never xhigh); implementer **Sol** = `codex exec -m gpt-6.1-sol -c 'windows.sandbox="unelevated"' -s workspace-write --skip-git-repo-check -C <dir> -o <report.md> - < <brief.md>`.
   With `unelevated`, Sol **can** run kicad-cli and KiCad python (2026-10-19 test); board writes still one writer
   through `gen/guard.py`. Write the command into a `.sh` file and run it with `sh` (the Claude Code worktree
-  guard rejects complex inline commands). Briefs and reports: `production/review-20261015-a4/` (local) and
+  guard rejects complex inline commands). Briefs and reports: `production/reviews/review-20261015-a4/` (local) and
   `firmware/family/briefs/` (tracked). Codex quota can run out mid-run: the log ends with "usage limit".
   **Before starting or restarting any Sol, list running `codex.exe ... exec` processes**: a Claude session that
   ends does not stop its Sol (2026-10-21: two B2 runs wrote the same files). `firmware/family/briefs/run_lane.sh`

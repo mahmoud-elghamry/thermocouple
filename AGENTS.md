@@ -51,13 +51,13 @@ hardware/8ch-new/, 40ch/  new 8-ch REV B0 (8ch-2l: 2 layers, 0040) and 40-ch (40
 hardware/single-channel/  superseded board, kept for reference - DO NOT MODIFY
 firmware/                 family/ = the one firmware (24-ch first), spec/ = its spec, 8ch-legacy/ = old 8-ch REV A2
 simulation/               Proteus simulation project
-production/               fabrication output - generated, never committed
+production/               releases (one current per board at the top), reviews/, validation/, reference/, _OLD_DO_NOT_ORDER/ - see production/README.md; generated, not committed
 _old/                     superseded files, reference only - never build or order from it
 docs/                     see the table above
 ```
 
-Products are folders, not branches (`0037` D3, D5): hardware work is on `main` (one chat); firmware and
-simulation in a branch (`firmware`; the family firmware was written in `24ch-rev-a4`), brought to `main` per rule 3; a new branch only for parallel work. Sources are tracked; anything a script regenerates is not. Gerbers, drill and
+Products are folders, not branches (`0037` D3, D5): `main` is the authority (one chat); the 24-ch board and its
+firmware are worked in branch `24ch-rev-a4` until the first boards run, merged per rule 3; a new branch only for parallel work. Sources are tracked; anything a script regenerates is not. Gerbers, drill and
 placement files, renders and netlists belong in `production/` or are ignored.
 
 ## Rules
