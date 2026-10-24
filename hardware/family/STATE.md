@@ -1,6 +1,6 @@
 # Shared family circuit library - state
 
-**Last updated:** 2026-10-19 (Codex). Plan: `docs/decisions/0039`. **Hard limit: 60 lines.**
+**Last updated:** 2026-10-24 (Claude, coordination with the 24-ch after the merge). Plan: `docs/decisions/0039`. **Hard limit: 60 lines.**
 
 ## What is here
 
@@ -41,7 +41,6 @@
 * Before/after dumps: `out/a4-proof/{before,after}/`, reproducible via `out/a4-proof/snapshot.py`;
   models B8/B40, full sheets (including RTD), root parts and profiles 8/8l/40 are **byte-identical (9/9)**.
   Identity hashes/report: `out/a4-proof/identity.txt`. Board folders and docs unchanged. No commit.
-* I-129 and I-130 still apply to REV A4; this sync implements the existing decision, not a board revision.
 
 ## Board audit toolkit (2026-10-19, Sol, from its routing-round scripts)
 
@@ -49,3 +48,12 @@
   shared runs), `pourcheck.py`; no-KiCad (stdlib, `python -S`): `board_text.py`, `text_check.py` (clearance,
   keepouts, holes; matches KiCad's 25 pre-r10 hole pairs by UUID). 0 findings on 40ch / 8ch-new / 8ch-2l.
   Tests: 47 plain + 14 KiCad OK. Commands in `docs/TOOLS.md`.
+
+## Coordination with the 24-ch (2026-10-24, Sol audit + implementation, reviewed by Claude, b93eb61)
+
+* Release now runs an all-severity DRC (`drc-warnings.rpt`, `DRC-WARNINGS.txt`) and refuses track/via dangling;
+  `dangling_trim.py` makes copy-tested trim lists. CPL-JLC.csv (rotations + drilled-part centres, `cpl_profiles.py`;
+  hypotheses until the JLC preview, `JLC-PLACEMENT-REVIEW.txt`), POWER-ON-TEST pdf/zip, WHICH-FILE-WHERE, MANIFEST of
+  every final file. U411.5 cap check on 8/8l/40; hole severities written by the generators; profile 24 net labels.
+* `gate.ps1` baseline = 24-ch A4 `02daef`, builds 24/8/40: FAMILY GATES PASS; tests 63 plain + 17 KiCad, test_family 9.
+* 8l: `decoupling_report.py` (routed-supply criterion <= 5 mm, <= 1 via) - AVDD 11.5 mm/2 vias, IOVDD 6.8 mm: in work.
