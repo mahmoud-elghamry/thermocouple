@@ -1,4 +1,4 @@
-<title>دليل الفني ثيرمو 24</title>
+<title>ورقة تركيب ثيرمو 24</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Readex+Pro:wght@500;700&display=swap">
@@ -89,15 +89,18 @@ button { font: inherit; font-size: 14px; border: 1px solid var(--line); backgrou
   border-radius: 6px; padding: 4px 12px; cursor: pointer; }
 button:focus-visible { outline: 2px solid var(--power); outline-offset: 2px; }
 td.fill { min-width: 90px; }
-@media print { section { break-inside: avoid-page; } button { display: none; } }
+@page { size: A4; margin: 12mm; }
+@media print { body { font-size: 12.5px; background: #fff; } .wrap { padding: 0; gap: 12px; max-width: none; }
+  section { break-inside: avoid-page; border: none; padding: 0; } svg { min-width: 0; } .scroll { overflow: visible; }
+  .fig img { max-height: 120mm; width: auto; margin: 0 auto; } }
 </style>
 
 <div class="wrap" dir="rtl">
 
 <header>
-  <div class="eyebrow">THERMO 24-CH · REV A4 · firmware fd14a32 · 2026-10-24</div>
-  <h1>بوردة الحماية 24 قناة: التوصيل ويوم البنش</h1>
-  <p class="lead">ورقة واحدة للفني ولينا. فيها مكان كل طرف على البوردة، وإيه يتوصّل فيه، وخطوات أول يوم البورد توصل بالترتيب، وإيه تعمل لو حاجة مش شغالة. اطبعها وخليها جنب البنش.</p>
+  <div class="eyebrow">THERMO 24-CH · REV A4 · INSTALLATION SHEET</div>
+  <h1>بوردة الحماية 24 قناة: ورقة التركيب</h1>
+  <p class="lead">أماكن الأطراف على البوردة، وتوصيل كل طرف في اللوحة، وخريطة القنوات اللي بتتملي وقت التركيب.</p>
 </header>
 
 <section aria-labelledby="r">
@@ -272,7 +275,7 @@ td.fill { min-width: 90px; }
 
 <section aria-labelledby="ch">
   <h2 id="ch">خريطة القنوات (تتملي وقت التركيب)</h2>
-  <p class="lead">اكتب مكان كل حساس واسمه وحدوده هنا، وخلّي نسخة في اللوحة. أي قناة فاضية: النوع OFF.</p>
+  <p class="lead">مكان كل حساس واسمه وحدوده. نسخة منها تتحط جوّه اللوحة. أي قناة فاضية: النوع OFF.</p>
   <div class="scroll"><table>
     <thead><tr><th class="n">CH</th><th>الفيشة · الأطراف</th><th>مكان الحساس على الموتور</th><th>الاسم (6 حروف)</th><th>K / J / OFF</th><th class="n">Alarm °C</th><th class="n">Trip °C</th></tr></thead>
     <tbody>
@@ -305,194 +308,4 @@ td.fill { min-width: 90px; }
   <p class="cap">PIN القائمة على بوردة جديدة: <span class="m">0000</span>، وأول ضبط بيطلب PIN جديد. اكتبه في مكان آمن. لو اتنسى: امسك ACK و SET مع بعض وانت بتشغّل البوردة، وبعدين SET. الـ PIN بيرجع <span class="m">0000</span> والإعدادات بتفضل زي ما هي.</p>
 </section>
 
-<section aria-labelledby="bench">
-  <h2 id="bench">يوم البنش خطوة بخطوة</h2>
-  <p class="lead">علّم على كل خطوة لما تخلص (العلامات بتتحفظ على الجهاز ده بس). لو أي خطوة طلعت غلط، وقف وابعتلي الرقم أو التقرير.</p>
-  <div class="row-actions"><button type="button" id="clear">امسح العلامات</button></div>
-  <div class="steps">
-
-    <div class="step"><h3><span class="k">0</span> قبل ما البورد توصل</h3>
-      <ul class="chk">
-        <li><input type="checkbox" id="c01"><label for="c01">اشتري أدوات البنش: باور سبلاي 0-30 فولت بحد تيار، ملتيميتر، USBasp مع محوّل 10 لـ 6 رجل، محوّل USB-RS485، ترمومتر K مرجعي، مفك 2.5 مم، فيش 8 رجل زيادة.</label></li>
-        <li><input type="checkbox" id="c02"><label for="c02">وصّل الـ USBasp في الكمبيوتر. لو ويندوز ما عرفهوش، نزّل له درايفر بـ Zadig (libusbK). جرّب <code>avrdude -c usbasp -p m1284p</code> من غير بوردة: المفروض يقول إن الشريحة مش بترد، مش إنه مش لاقي الجهاز.</label></li>
-        <li><input type="checkbox" id="c03"><label for="c03">وصّل محوّل USB-RS485 واتأكد إنه ظهر COM في Device Manager، واكتب رقمه.</label></li>
-        <li><input type="checkbox" id="c04"><label for="c04">جهّز للبنش: فيشة J401 فيها سلك قصير بين الطرفين، وفيشة 8 رجل عليها حساس على قناة 1، وكابل الشاشة.</label></li>
-        <li><input type="checkbox" id="c05"><label for="c05">ابني ملف البرنامج وجرّب السكريبت (دقيقة واحدة):</label></li>
-      </ul>
-<pre>pwsh -File firmware\family\build.ps1 -AvrOnly -CompileOnly
-pwsh -File firmware\family\program.ps1 -DryRun     # PROGRAM PASS ... CLEAN</pre>
-    </div>
-
-    <div class="step"><h3><span class="k">1</span> فحص بالعين (من غير كهربا)</h3>
-      <ul class="chk">
-        <li><input type="checkbox" id="c11"><label for="c11">اكتب رقم على كل بوردة بقلم: 01 لحد 05.</label></li>
-        <li><input type="checkbox" id="c12"><label for="c12">مفيش لحام لازق بين رجول الشريحة الكبيرة (U501) ولا شرايح الـ ADC الـ 3 (U101 U201 U301)، والكونكتورات كلها راكبة مستقيمة.</label></li>
-        <li><input type="checkbox" id="c13"><label for="c13">بالملتيميتر: مفيش قصر بين +24V و 0V على J601.</label></li>
-      </ul>
-    </div>
-
-    <div class="step"><h3><span class="k">2</span> أول تشغيل من غير برنامج</h3>
-      <p>السبلاي على 24.0 فولت، وحد التيار 150 مللي أمبير. مفيش حاجة متوصّلة غير J601 (‎+24V و 0V). قيس كل نقطة على الأرضي المكتوب جنبها:</p>
-      <div class="scroll"><table>
-        <thead><tr><th>النقطة</th><th>على</th><th>المفروض</th><th>01</th><th>02</th><th>03</th><th>04</th><th>05</th></tr></thead>
-        <tbody>
-          <tr><td class="m">TP603 24V</td><td class="m">TP601 GND</td><td class="m n">23.3 – 24.0 V</td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td><td class="fill"></td></tr>
-          <tr><td class="m">TP602 5V</td><td class="m">TP601 GND</td><td class="m n">4.85 – 5.15 V</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td class="m">TP501 RST</td><td class="m">TP601 GND</td><td class="m n">4.8 – 5.15 V</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td class="m">TP407 5VI</td><td class="m">TP402 GNDI</td><td class="m n">4.5 – 6.5 V</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td class="m">TP401 3V3I</td><td class="m">TP402 GNDI</td><td class="m n">3.23 – 3.37 V</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td class="m">TP404 VREF</td><td class="m">TP402 GNDI</td><td class="m n">2.99 – 3.01 V</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td class="m">TP403 VMID</td><td class="m">TP402 GNDI</td><td class="m n">1.60 – 1.70 V</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td class="m">TP405 VBIAS</td><td class="m">TP402 GNDI</td><td class="m n">1.60 – 1.70 V</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td class="m">TP406 REFOK</td><td class="m">TP402 GNDI</td><td class="m n">J401 open: &gt; 3.0 V</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td>تيار الدخل</td><td>شاشة السبلاي</td><td class="m n">&lt; 100 mA</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td>GND – GNDI (مطفية)</td><td>أوم</td><td class="m n">&gt; 10 MΩ</td><td></td><td></td><td></td><td></td><td></td></tr>
-        </tbody>
-      </table></div>
-      <div class="note">لو أي رقم بره المدى، أو التيار وصل للحد: اطفي على طول، وابعتلي الرقم. ما تكمّلش على البوردة دي.</div>
-    </div>
-
-    <div class="step"><h3><span class="k">3</span> البرمجة</h3>
-      <ul class="chk">
-        <li><input type="checkbox" id="c31"><label for="c31">اطفي. شيل جمبر 5V من الـ USBasp. وصّل كابل البرمجة في J501، والخط الأحمر عند رجل 1 (المربعة).</label></li>
-        <li><input type="checkbox" id="c32"><label for="c32">ارفع حد تيار السبلاي لـ 0.5 أمبير، وشغّل البوردة على 24 فولت، وبعدين:</label></li>
-      </ul>
-<pre>pwsh -File firmware\family\program.ps1</pre>
-      <p>بياخد دقيقة أو اتنين. السكريبت بيكتب الـ fuses ويقراها تاني، وبعدين يكتب البرنامج ويقارنه. لازم يطبع في الآخر سطر <code>PROGRAM PASS board 24 …</code>. بعدها اطفي وشيل الـ USBasp.</p>
-    </div>
-
-    <div class="step"><h3><span class="k">4</span> تقرير الصيانة (البوردة بتفحص نفسها)</h3>
-      <ul class="chk">
-        <li><input type="checkbox" id="c41"><label for="c41">ركّب فيشة J401 اللي فيها السلك القصير، والحساس على قناة 1، والشاشة. وصّل USB-RS485 على J703: A في A، و B في B، و GND في GND.</label></li>
-        <li><input type="checkbox" id="c42"><label for="c42">امسك زرار SET وانت بتشغّل البوردة. الشاشة هتكتب <code>SERVICE MODE</code>.</label></li>
-        <li><input type="checkbox" id="c43"><label for="c43">التقرير بيطلع على الكمبيوتر (9600). شغّل الأمر ده وسيبه يسجّل، وابعتلي الملف:</label></li>
-      </ul>
-<pre>pwsh -File firmware\family\read_report.ps1 -Board 01</pre>
-      <p>القنوات اللي مفيهاش حساس هتطلع <code>OPEN … FAIL</code>، وده طبيعي. أي FAIL تاني أنا هقولك معناه. بعد التقرير البوردة بتسأل على الاختبارات اليدوية. قبلها افصل أي حاجة متوصّلة على J701 و J702، وبعدين:</p>
-      <ul class="chk">
-        <li><input type="checkbox" id="c44"><label for="c44">A01 الزراير: دوس كل زرار لما الشاشة تطلبه.</label></li>
-        <li><input type="checkbox" id="c45"><label for="c45">A02 ريلاي الإنذار، و A03 و A04 ريلاي التشغيل: SET وبس، والبوردة بتقيس لوحدها.</label></li>
-        <li><input type="checkbox" id="c46"><label for="c46">A05 الذاكرة: SET. أما A06 و A07 (المعايرة) فاعمل لهم ESC دلوقتي، وهنعملهم في خطوة 6.</label></li>
-      </ul>
-    </div>
-
-    <div class="step"><h3><span class="k">5</span> الإعداد من الشاشة</h3>
-      <ul class="chk">
-        <li><input type="checkbox" id="c51"><label for="c51">شغّل عادي. الشاشة هتكتب <code>LOCKED: SETUP</code>، وده طبيعي على بوردة جديدة.</label></li>
-        <li><input type="checkbox" id="c52"><label for="c52">امسك SET 3 ثواني، والـ PIN <code>0000</code>، وبعدين اختار PIN جديد واكتبه.</label></li>
-        <li><input type="checkbox" id="c53"><label for="c53">CHANNELS: لكل قناة: النوع (K أو J أو OFF)، والوضع (TRIP أو ALARM ONLY)، والاسم، وحد الحساس، وحد الإنذار، وحد الفصل، والـ Band. القنوات الفاضية OFF. احفظ.</label></li>
-      </ul>
-      <p class="cap">على البنش بحساس واحد: قناة 1 بنوع K وحدود منخفضة للتجربة (إنذار 40، فصل 50)، والباقي OFF. ESC = UP و DOWN مع بعض، أو زرار ESC.</p>
-    </div>
-
-    <div class="step"><h3><span class="k">6</span> المعايرة (مرة واحدة لكل بوردة)</h3>
-      <ul class="chk">
-        <li><input type="checkbox" id="c61"><label for="c61">الشاشة دلوقتي هتكتب <code>LOCKED: CALIBRATE</code>. اطفي، ووصّل كل الحساسات اللي هتشتغل.</label></li>
-        <li><input type="checkbox" id="c62"><label for="c62">امسك SET وانت بتشغّل البوردة، وفوّت الاختبارات لحد A06 <code>CAL REF</code>، ودوس SET.</label></li>
-        <li><input type="checkbox" id="c63"><label for="c63">A07 <code>LEARN BURNOUT</code>: الشاشة هتعرض القنوات اللي لاقية فيها حساس. اتأكد إنها هي اللي وصّلتها بالظبط، ودوس SET.</label></li>
-        <li><input type="checkbox" id="c64"><label for="c64">اطفي وشغّل عادي. المفروض <code>LOCKED</code> تختفي.</label></li>
-      </ul>
-      <div class="note">لو غيّرت نوع قناة بعد كده (مثلاً من K لـ J)، المعايرة بتاعتها لازم تتعاد (A07).</div>
-    </div>
-
-    <div class="step"><h3><span class="k">7</span> القراية صح؟</h3>
-      <ul class="chk">
-        <li><input type="checkbox" id="c71"><label for="c71">الحساس في مية بتلج: البوردة المفروض تقرا حوالي 0 درجة، والترمومتر المرجعي جنبه.</label></li>
-        <li><input type="checkbox" id="c72"><label for="c72">في مية بتغلي: حوالي 100 درجة. اكتب الفرق بين البوردة والترمومتر.</label></li>
-        <li><input type="checkbox" id="c73"><label for="c73">سخّن الحساس بإيدك: القناة الصح هي اللي بتعلى، والرقم بيزيد مش بيقل.</label></li>
-      </ul>
-    </div>
-
-    <div class="step"><h3><span class="k">8</span> الفصل والـ ACK</h3>
-      <ul class="chk">
-        <li><input type="checkbox" id="c81"><label for="c81">دوس ACK. الشاشة تكتب <code>RUN OK</code>، ولمبة RUN تنوّر، والملتيميتر يقول إن C-NO على J701 مقفول.</label></li>
-        <li><input type="checkbox" id="c82"><label for="c82">حط الحساس في مية سخنة أعلى من حد الفصل: الشاشة تكتب <code>TRIP 01 …</code>، ولمبة RUN تطفى، و C-NO يفتح في أقل من 2 ثانية. صوّر بالموبايل بالتصوير البطيء، عشان تحسب الوقت.</label></li>
-        <li><input type="checkbox" id="c83"><label for="c83">دوس ACK والحساس لسه سخن: لازم يترفض (<code>R4 CH 01 HOT/FAULT</code>). برّده، واستنى ثانية، ودوس ACK: يرجع <code>RUN OK</code>.</label></li>
-        <li><input type="checkbox" id="c84"><label for="c84">شيل فيشة الحساس وهو شغال: لازم يفصل (OPEN). رجّعها، وACK.</label></li>
-        <li><input type="checkbox" id="c85"><label for="c85">شيل فيشة J401: لازم يفصل (<code>ENGINE REF LOST</code>). رجّعها، وACK.</label></li>
-        <li><input type="checkbox" id="c86"><label for="c86">اقطع الكهربا وارجّعها: البوردة تبدأ مقفولة ومستنية ACK، ومش بتشغّل لوحدها.</label></li>
-      </ul>
-    </div>
-
-    <div class="step"><h3><span class="k">9</span> بعد ما تخلص</h3>
-      <ul class="chk">
-        <li><input type="checkbox" id="c91"><label for="c91">ابعتلي ملفات التقارير، والأرقام اللي في جدول خطوة 2، وفرق الثلج والغليان، وفيديو الفصل.</label></li>
-        <li><input type="checkbox" id="c92"><label for="c92">رجّع حدود قناة 1 للحدود الحقيقية قبل التركيب، وظبّط كل القنوات من خريطة القنوات.</label></li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<section aria-labelledby="fix">
-  <h2 id="fix">لو حاجة مش شغالة</h2>
-  <div class="scroll"><table>
-    <thead><tr><th>اللي بيحصل</th><th>غالباً السبب</th><th>تعمل إيه</th></tr></thead>
-    <tbody>
-      <tr><td>التيار وصل للحد أول ما شغّلت</td><td>قصر، أو قطعة لافة</td><td>اطفي على طول. ما تكمّلش، وابعتلي صورة.</td></tr>
-      <tr><td>TP602 (5V) غلط</td><td>دايرة الـ 5 فولت (U601)</td><td>وقف، وابعتلي الرقم.</td></tr>
-      <tr><td>5VI أو 3V3I غلط</td><td>الجزء المعزول (U401 و U402)</td><td>وقف، وابعتلي الرقم.</td></tr>
-      <tr><td><code>program.ps1</code>: مش لاقي USB device</td><td>درايفر الـ USBasp</td><td>Zadig، ونزّل libusbK للـ USBasp.</td></tr>
-      <tr><td>الشريحة مش بترد (initialization failed / target doesn't answer)</td><td>البوردة مطفية، أو الكابل معكوس، أو المبرمجة سريعة</td><td>اتأكد من 24 فولت ورجل 1. لو لسه: حط جمبر السرعة البطيئة (JP3) على الـ USBasp.</td></tr>
-      <tr><td><code>Image validation failed … HEAD</code></td><td>ملف البرنامج أقدم من آخر commit</td><td>اعمل البناء السريع (خطوة 0) وجرّب تاني.</td></tr>
-      <tr><td>الشاشة فاضية أو مربعات</td><td>التباين</td><td>لف <code>LCD CONTRAST</code> على البوردة بمفك، واتأكد إن رجل 1 في رجل 1.</td></tr>
-      <tr><td>مفيش تقرير على الكمبيوتر</td><td>COM غلط، أو A و B معكوسين</td><td>بدّل A و B، واتأكد إنك مسكت SET وقت التشغيل.</td></tr>
-      <tr><td><code>LOCKED: SETUP</code></td><td>بوردة جديدة</td><td>خطوة 5.</td></tr>
-      <tr><td><code>LOCKED: CALIBRATE</code></td><td>المعايرة ناقصة</td><td>خطوة 6.</td></tr>
-      <tr><td><code>ENGINE REF LOST</code> (G08)</td><td>J401 مش متوصّل</td><td>على البنش: السلك القصير. في الموقع: السلكين للموتور.</td></tr>
-      <tr><td>قناة فاضية بتفصل (OPEN)</td><td>القناة مش متعمّلة OFF</td><td>القائمة، والقناة، والنوع OFF.</td></tr>
-      <tr><td>الرقم بيقل لما تسخّن</td><td>سلكين الحساس معكوسين</td><td>بدّلهم في الفيشة.</td></tr>
-      <tr><td>الرقم بعيد عن الترمومتر بكام درجة</td><td>تعويض الطرف البارد</td><td>ابعتلي القرايتين.</td></tr>
-      <tr><td>ACK مرفوض: <code>R1</code></td><td>الزرار مش متساب</td><td>سيب الزرار ودوس تاني.</td></tr>
-      <tr><td><code>R2 WAIT FOR SCAN</code></td><td>البوردة لسه بتقرا</td><td>استنى ثانية ودوس تاني.</td></tr>
-      <tr><td><code>R3 FAULT Gnn/Bnn</code></td><td>فيه عطل لسه موجود</td><td>شوف الكود، وصلّح السبب، أو ابعتهولي.</td></tr>
-      <tr><td><code>R4 CH nn HOT/FAULT</code></td><td>القناة دي لسه سخنة أو فيها عطل</td><td>استنى لحد ما تبرد تحت الحد بالـ Band.</td></tr>
-      <tr><td><code>R6 RELAY CHECK</code></td><td>الريلاي مش زي ما البوردة متوقعة</td><td>وقف، وابعتلي.</td></tr>
-    </tbody>
-  </table></div>
-</section>
-
-<section aria-labelledby="left">
-  <h2 id="left">اللي فاضل لحد ما نخلص</h2>
-  <div class="todo">
-    <div><h3>البرنامج</h3><ul>
-      <li><span class="st done">خلص</span> كل اللي في المواصفات اتكتب واتجرّب على الكمبيوتر وعلى محاكي الشريحة.</li>
-      <li><span class="st done">خلص</span> سكريبت البرمجة وملف البرنامج جاهزين (fd14a32).</li>
-      <li><span class="st open">ناقص</span> يتجرّب على البوردة الحقيقية: الخطوات اللي فوق.</li>
-      <li><span class="st later">بعدين</span> مراجعة Astra أخيرة بعد 29 أكتوبر (اختياري).</li>
-    </ul></div>
-    <div><h3>الطلب</h3><ul>
-      <li><span class="st open">ناقص</span> ترفع ملفات A4 الجديدة على سلة JLC (السلة فيها ملفات قديمة) أو NORI.</li>
-      <li><span class="st open">ناقص</span> وقت الطلب: تراجع صورة تركيب القطع (اتجاه رجل 1).</li>
-      <li><span class="st open">ناقص</span> فيش الحساسات 8 رجل (6 لكل بوردة + زيادة) تتطلب مع الطلب.</li>
-    </ul></div>
-    <div><h3>الشراء من مصر</h3><ul>
-      <li><span class="st open">ناقص</span> أدوات البنش (خطوة 0).</li>
-      <li><span class="st open">ناقص</span> شاشة 2004A، و5 زراير LA38، وكابل 16 سلك، وستاندات نايلون.</li>
-      <li><span class="st open">ناقص</span> فيوز اللوحة: 1A بطيء، 80VDC أو أكتر. الموديل بالظبط لسه ما اتحددش.</li>
-      <li><span class="st later">بعدين</span> العلبة، والجلاندات، ورش الحماية (coating).</li>
-    </ul></div>
-    <div><h3>التركيب على الموتور</h3><ul>
-      <li><span class="st done">خلص</span> رسمة التوصيل وجدول الأطراف (الصفحة دي).</li>
-      <li><span class="st open">ناقص</span> خريطة القنوات تتملي من الموقع.</li>
-      <li><span class="st later">بعدين</span> رسمة فتحات الباب للشاشة والزراير، لما العلبة والشاشة يبقوا في إيدنا.</li>
-      <li><span class="st later">بعدين</span> نوع كابل التمديد KX، لو أي حساس سلكه قصير.</li>
-    </ul></div>
-  </div>
-</section>
-
 </div>
-<script>
-(function () {
-  var boxes = document.querySelectorAll('ul.chk input[type=checkbox]');
-  function load() { try { return JSON.parse(localStorage.getItem('t24-bench') || '{}'); } catch (e) { return {}; } }
-  function save(s) { try { localStorage.setItem('t24-bench', JSON.stringify(s)); } catch (e) {} }
-  var state = load();
-  boxes.forEach(function (b) {
-    b.checked = !!state[b.id];
-    b.addEventListener('change', function () { state[b.id] = b.checked; save(state); });
-  });
-  document.getElementById('clear').addEventListener('click', function () {
-    state = {}; save(state); boxes.forEach(function (b) { b.checked = false; });
-  });
-})();
-</script>
