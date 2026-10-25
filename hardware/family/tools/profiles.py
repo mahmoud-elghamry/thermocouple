@@ -15,7 +15,7 @@ class Profile(dict):
         return value
 PROFILES = {}
 for key, folder, adcs in (
-        ('24', '24ch', ('U101', 'U201', 'U301')), ('8', '8ch-new', ('U101',)),
+        ('24', '24ch', ('U101', 'U201', 'U301')), ('8', '8ch-4l', ('U101',)),
         ('40', '40ch', ('U101', 'U201', 'U301', 'U801', 'U901'))):
     PROFILES[key] = Profile(
         key=key, project='thermo' + key, folder=ROOT / 'hardware' / folder,

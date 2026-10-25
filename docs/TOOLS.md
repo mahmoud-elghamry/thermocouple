@@ -24,7 +24,7 @@ Freerouting and the JRE are **not** in the repository. Override the paths with
 ## Hardware — source-preserving validation
 
 ```powershell
-pwsh -File hardware\8ch\run_all.ps1
+pwsh -File hardware\8ch-old\run_all.ps1
 ```
 
 This is now the default: copy the four KiCad source files into a fresh
@@ -34,7 +34,7 @@ unconnected pads and parity failures stop the run; warnings are reported.
 KiCad ERC exit 5 can mean warnings, so its report is parsed before accepting it.
 
 ```powershell
-pwsh -File hardware\8ch\test_gates.ps1  # injected native/report failures
+pwsh -File hardware\8ch-old\test_gates.ps1  # injected native/report failures
 ```
 
 ## Hardware — regeneration
@@ -43,7 +43,7 @@ The explicit `run_all.ps1 -Regenerate` path checks every native exit and report,
 and refuses while KiCad editors are open. **Authorized since the owner lifted
 the REV A0 freeze on 2026-09-15** (`docs/decisions/0014`). It re-routes the
 whole board, so everything after it has to be re-verified. The individual
-commands, from `hardware/8ch/`:
+commands, from `hardware/8ch-old/`:
 
 ```powershell
 $py  = 'C:\Program Files\KiCad\10.0\bin\python.exe'
@@ -85,7 +85,7 @@ on the REV A2 run (2026-09-28):
 ### After any generator run that ADDED parts
 
 ```powershell
-python hardware\8ch\check_mpn_consistency.py          # --fix rewrites mismatches
+python hardware\8ch-old\check_mpn_consistency.py          # --fix rewrites mismatches
 ```
 
 `kicad-tool` creates a new symbol by cloning an existing one of the same type,
@@ -143,12 +143,12 @@ New-Item -ItemType Directory -Path $out | Out-Null     # fails if it exists: new
 ```
 
 The technician's kit (every through-hole part plus what is not on the board;
-`0027`): `<KiCad python> hardware\8ch\kit_list.py <release>\technician_kit.csv 3`.
+`0027`): `<KiCad python> hardware\8ch-old\kit_list.py <release>\technician_kit.csv 3`.
 
 Copy `docs/STATE.md`'s check numbers into the release folder as well. A
 fabrication package without the report it passed is not a package.
 
-## Schematic layout (`I-002`, `I-062`) - `hardware/8ch/sch_layout/`
+## Schematic layout (`I-002`, `I-062`) - `hardware/8ch-old/sch_layout/`
 
 **The schematic is six files, all A4, since 2026-09-26** (`0019`, `0021`):
 `thermocouple_8ch.kicad_sch` (the root, an index of sheet blocks),
@@ -166,8 +166,8 @@ pins), and carry a rename to the board with
 `kicad-tool pcb sync` - sync alone renames pads and leaves tracks behind.
 
 ```sh
-python hardware/8ch/sch_layout/build.py              # scratch copy, prints the gate
-python hardware/8ch/sch_layout/build.py --in-place   # rewrite the schematic
+python hardware/8ch-old/sch_layout/build.py              # scratch copy, prints the gate
+python hardware/8ch-old/sch_layout/build.py --in-place   # rewrite the schematic
 ```
 
 Measured 2026-09-24 in the cloud: about a minute; netlist IDENTICAL, ERC 0/0,
@@ -204,9 +204,9 @@ Two ways to change the hardware, and a guard that tells them apart -
 `AGENTS.md` rules 8 and 9, `docs/decisions/0012`.
 
 ```powershell
-python hardware\8ch\board_provenance.py --status   # report, never fails
-python hardware\8ch\board_provenance.py --check    # exit 1 if writing would lose work
-python hardware\8ch\board_provenance.py --record   # after a generator run
+python hardware\8ch-old\board_provenance.py --status   # report, never fails
+python hardware\8ch-old\board_provenance.py --check    # exit 1 if writing would lose work
+python hardware\8ch-old\board_provenance.py --record   # after a generator run
 ```
 
 `--check` fails for two reasons, and the message says which:
@@ -336,7 +336,7 @@ what is still missing.
 | Workstation | Cloud equivalent |
 |---|---|
 | `pwsh -File firmware\8ch-legacy\build.ps1` (old 8-ch) | `make -C firmware/8ch-legacy all test` (build.ps1 needs MSVC) |
-| `pwsh -File hardware\8ch\run_all.ps1` | `pwsh -File hardware/8ch/validate.ps1` |
+| `pwsh -File hardware\8ch-old\run_all.ps1` | `pwsh -File hardware/8ch-old/validate.ps1` |
 | `run_all.ps1 -Regenerate` | by hand, measured 2026-09-24: Temurin JRE 25 (`github.com/adoptium/temurin25-binaries`) and `freerouting-2.4.1.jar` (`github.com/freerouting/freerouting` releases) into `~/.local/opt`; KiCad's footprints copied out of the image; then `apply_rules.py`, `kicad-tool pcb sync`, and `generate_board.py` / `route.py` / `close_gaps.py` run with the image's `python3` (`docker run --user root` with `/tmp`, `/home`, `~/.local` mounted, `FREEROUTING_JAR`, `FREEROUTING_JAVA`, `JAVA_TOOL_OPTIONS=` cleared). Routing takes ~12 min. |
 
 **Cloud work lives only in the container until it is pushed.** Commit and push
@@ -510,7 +510,7 @@ named parts and drops only their own-net tracks; then `finish.py dangling`, `fin
 * Paths with backslashes written through a bash heredoc can turn `\b`/`\a` into control characters; check
   with `python -m py_compile` and a grep for control characters.
 
-## Family boards (`hardware/family/`, `hardware/8ch-new/`, `hardware/40ch/`) - 2026-10-14
+## Family boards (`hardware/family/`, `hardware/8ch-4l/`, `hardware/40ch/`) - 2026-10-14
 
 * Schematic: `python hardware/family/gen/build.py 8|40 --out hardware/<board>` (ERC, netlist check, BOM);
   all gates incl. the 24-ch release compare: `powershell -ExecutionPolicy Bypass -File hardware/family/gen/gate.ps1`

@@ -10,7 +10,7 @@
 The owner clarified that the project must read **24 thermocouples**. A prior
 proposal was to split acquisition over multiple boards communicating with a
 master. That proposal was not recorded as a complete implemented architecture.
-The current `hardware/8ch/` and firmware implement one eight-channel unit.
+The current `hardware/8ch-old/` and firmware implement one eight-channel unit.
 
 The owner subsequently said boards would be in the same panel, or not far
 apart. More distant placement is a possible option to consider, not an

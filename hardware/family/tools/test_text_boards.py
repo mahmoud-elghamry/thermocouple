@@ -16,7 +16,7 @@ HERE = Path(__file__).resolve().parent
 
 class BoardProofs(unittest.TestCase):
     def test_current_boards_are_clear_without_kicad(self):
-        for folder, stem in (('40ch','thermo40'),('8ch-new','thermo8'),('8ch-2l','thermo8')):
+        for folder, stem in (('40ch','thermo40'),('8ch-4l','thermo8'),('8ch-2l','thermo8')):
             with self.subTest(board=folder):
                 path = ROOT/'hardware'/folder/(stem+'.kicad_pcb')
                 hashes = {p:hashlib.sha256(p.read_bytes()).hexdigest()

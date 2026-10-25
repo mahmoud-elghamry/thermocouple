@@ -165,7 +165,7 @@ board under another board's TC terminals or converters.
 
 | Worker | Does | Never touches |
 |---|---|---|
-| **W1, Claude Code on the workstation** | The only writer of `hardware/8ch/` (schematic, board, generator): floor plan first, shown to the owner, then REV A3 | — |
+| **W1, Claude Code on the workstation** | The only writer of `hardware/8ch-old/` (schematic, board, generator): floor plan first, shown to the owner, then REV A3 | — |
 | **W2, Codex on the workstation** | Calculations and project documents (power, fuse, `CALCULATIONS.md`, decisions); core firmware (per-channel limits, EEPROM, timing, ACK) | hardware sources |
 | **W3, Claude Code cloud session** | RS-485 protocol, supervisor and master display, in **new** firmware files and tests, on a `claude/*` branch, delivered by PR | existing files, hardware |
 

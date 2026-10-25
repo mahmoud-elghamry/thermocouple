@@ -15,7 +15,7 @@ A protection system for **K- and J-type thermocouples** (per channel, `0038`) on
 family on the 24-ch architecture** - banks of one AD7124-8 each: 8 ch = 1 bank, 24 ch = 3, 40 ch = 5 + a PT100 bank (`0039`) -
 and **one firmware** for all of them. **`hardware/24ch/` (REV A4 `0041` on the cost-down `0036`) is the
 board being ordered**; `0031` holds its architecture (grounded, insulated or mixed probes).
-`hardware/8ch/` (REV A2, MAX31856) is reference; the new 8-ch (`hardware/8ch-new/`) and 40-ch (`hardware/40ch/`) derive from it via `hardware/family/` (`0039`).
+`hardware/8ch-old/` (REV A2, MAX31856) is reference; the new 8-ch (`hardware/8ch-4l/`) and 40-ch (`hardware/40ch/`) derive from it via `hardware/family/` (`0039`).
 Any channel trips the common run-permit contact.
 Earlier eight-channel basis: cylinder-body probes, roughly 50 m cables, no VFD.
 Per-channel setpoints and manual ACK (`0029`): family firmware, 24-ch only so far (`0043`). Supply: engine battery, nominal 24 V (`0016`). HMI selection/mounting is delegated to the design team (`0029`).
@@ -46,8 +46,9 @@ rots — that has already happened here once.
 
 ```
 hardware/24ch/            the 24-channel board REV A4 - being ordered (README, STATE.md there)
-hardware/8ch/             the 8-channel board REV A2 - reference; the new 8-ch derives from 24ch
-hardware/8ch-new/, 40ch/  new 8-ch REV B0 (8ch-2l: 2 layers, 0040) and 40-ch (40 TC + 3 PT100); family/ = shared lib (0039)
+hardware/8ch-4l/, 8ch-2l/ new 8-ch REV B0 from the 24-ch design: 4 layers, and 2 layers for local fab (0039, 0040)
+hardware/40ch/            40-ch REV A0 (40 TC + 3 PT100); hardware/family/ = generator + tools shared by 8/24/40 (0039)
+hardware/8ch-old/         old 8-ch REV A2 (MAX31856) - reference only; see hardware/README.md
 hardware/single-channel/  superseded board, kept for reference - DO NOT MODIFY
 firmware/                 family/ = the one firmware (24-ch first), spec/ = its spec, 8ch-legacy/ = old 8-ch REV A2
 simulation/               Proteus simulation project
@@ -85,7 +86,7 @@ placement files, renders and netlists belong in `production/` or are ignored.
    single file, so a second agent - or an open KiCad window - silently
    overwrites the first. On 2026-09-07 the board was rewritten at 01:23 while a
    KiCad window held unsaved edits from 00:59. Run
-   `python hardware/8ch/board_provenance.py --check` before writing the board;
+   `python hardware/8ch-old/board_provenance.py --check` before writing the board;
    it refuses while KiCad holds a `~*.lck`. **Do not close KiCad to get past
    it** - it may be holding unsaved work. Every 24-ch tool that saves the board goes
    through `gen/guard.py`: it refuses while KiCad holds a `~*.lck` or another tool holds `output/.writer.json`. Working in `firmware/`
@@ -121,14 +122,14 @@ touching placement or routing** - generative until placement is frozen, incremen
 check `padcheck.py` before any long router run. The short version:
 
 ```powershell
-pwsh -File hardware\8ch\run_all.ps1      # validate a snapshot; source hardware stays unchanged
+pwsh -File hardware\8ch-old\run_all.ps1      # validate a snapshot; source hardware stays unchanged
 pwsh -File firmware\family\build.ps1   # 24-ch family firmware: build, host tests, AVR profiler; then
 pwsh -File firmware\family\test\build_core.ps1; pwsh -File firmware\family\test\build_acceptance.ps1
 ```
 
 Both must be run before claiming anything about the current state. In a cloud
 (Linux) session use `make -C firmware/8ch-legacy all test` (legacy 8-ch only) and
-`pwsh -File hardware/8ch/validate.ps1`; see `docs/TOOLS.md`, "Cloud sessions".
+`pwsh -File hardware/8ch-old/validate.ps1`; see `docs/TOOLS.md`, "Cloud sessions".
 `run_all.ps1 -Regenerate` rewrites and re-routes the whole board. The owner
 lifted the REV A0 freeze on 2026-09-15 (`docs/decisions/0014`), so it is
 authorized - run `board_provenance.py --check` first.

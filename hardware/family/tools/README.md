@@ -39,7 +39,7 @@ algorithms into files below 300 lines; they share their entry module's context.
 The older full tool comparison harness still writes to `hardware/family/tools-test/`.
 Relocate its scratch copies under a board's `output/coord/` before running it
 for this coordination task. The plain-Python profile tests already put temporary
-files under `hardware/8ch-new/output/coord/profile-tests/`:
+files under `hardware/8ch-4l/output/coord/profile-tests/`:
 
 ```powershell
 python -B hardware/family/tools/test_profiles.py

@@ -19,7 +19,7 @@ ROOT = HERE.parents[2]
 @contextlib.contextmanager
 def scratch_folder():
     # Windows sandbox rejects Python 3.11 TemporaryDirectory's private ACL.
-    folder = ROOT / 'hardware/8ch-new/output/coord/profile-tests' / ('guard-test-' + uuid.uuid4().hex)
+    folder = ROOT / 'hardware/8ch-4l/output/coord/profile-tests' / ('guard-test-' + uuid.uuid4().hex)
     folder.mkdir(parents=True)
     try:
         yield folder
@@ -95,7 +95,7 @@ class ProfilesTests(unittest.TestCase):
         self.assertTrue(profiles.PROFILES['24']['silk']['label_by_net'])
 
     def test_environment_and_copy_precedence(self):
-        r = self.probe(('--board=8', '--pcb', str(ROOT / 'hardware/8ch-new/output/coord/profile-tests/copy.kicad_pcb'),
+        r = self.probe(('--board=8', '--pcb', str(ROOT / 'hardware/8ch-4l/output/coord/profile-tests/copy.kicad_pcb'),
                         'via', 'C1', '2'),
                        {'THERMO_BOARD': '40', 'THERMO8_BOARD': 'unused.kicad_pcb'})
         self.assertEqual(r.returncode, 0, r.stderr)
@@ -173,7 +173,7 @@ class ProfilesTests(unittest.TestCase):
             self.assertIn(f'("{net}", "{expected}")', donor)
 
     def test_family_project_hole_severities_and_relay_zone_guard(self):
-        for board in ('8ch-new', '8ch-2l', '40ch'):
+        for board in ('8ch-4l', '8ch-2l', '40ch'):
             src = (ROOT / 'hardware' / board / 'gen/rules.py').read_text(encoding='utf-8')
             self.assertLess(len(src.splitlines()), 300, board)
             funcs = [n for n in ast.parse(src).body if isinstance(n, ast.FunctionDef)

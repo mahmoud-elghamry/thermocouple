@@ -106,7 +106,7 @@ happen. So: `BOARD_REV = "A2"`, the netlist contract is
 
 These are generative changes (`0012`), because a new part and two new
 footprints mean re-placing. The schematic changes live in
-`hardware/8ch/sch_layout/reva2.py`, which `fixes.py` applies to the label-only
+`hardware/8ch-old/sch_layout/reva2.py`, which `fixes.py` applies to the label-only
 base. `build.py` therefore still reproduces the whole schematic from source.
 Then: `kicad-tool pcb sync`, `generate_board.py`, `route.py`, and the gates.
 `populate_schematic.py` was updated to match, for the record.

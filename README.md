@@ -16,8 +16,8 @@ the contact, so the engine cannot start.
 | | |
 |---|---|
 | **The board being ordered** | `hardware/24ch/` (REV A4 `0041`, 3x AD7124-8, cost-down variant `0036`, LCD and buttons on the door `0042`) — README and STATE.md there |
-| **8-channel board** | `hardware/8ch/` (REV A2, MAX31856) — reference; the new 8-ch derives from the 24-ch board (`0037`) |
-| **New 8- and 40-channel boards** | `hardware/8ch-new/`, `hardware/40ch/` (40 TC + 3 PT100), shared `hardware/family/` — release candidates in `production/` (`0039`, `0040`); no firmware for them yet |
+| **8-channel board** | `hardware/8ch-old/` (REV A2, MAX31856) — reference; the new 8-ch derives from the 24-ch board (`0037`) |
+| **New 8- and 40-channel boards** | `hardware/8ch-4l/`, `hardware/40ch/` (40 TC + 3 PT100), shared `hardware/family/` — release candidates in `production/` (`0039`, `0040`); no firmware for them yet |
 | **Firmware** | `firmware/family/` — the family firmware, 24-ch REV A4 only so far (`0043`); spec in `firmware/spec/`; old 8-ch REV A2 images in `firmware/8ch-legacy/` |
 | **What is done and what is next** | `docs/STATE.md` (index), then each product's `STATE.md` |
 | **Open problems** | `docs/ISSUES.md` |

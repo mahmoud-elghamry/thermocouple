@@ -1,4 +1,4 @@
-"""Net classes, isolation rules, pours and barrier keep-outs for the 2-layer 8-ch board REV B0-2L (from 8ch-new).
+"""Net classes, isolation rules, pours and barrier keep-outs for the 2-layer 8-ch board REV B0-2L (from 8ch-4l).
 2 layers for a local fab: no planes; F.Cu and B.Cu are poured with the domain's ground, power runs as tracks.
 Local-fab rules: 0.2 mm track and space (Island 0.15 only if the router cannot leave the AD7124 LFCSP),
 vias 0.7 / 0.3 mm (0.2 mm ring).

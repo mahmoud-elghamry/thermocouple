@@ -25,7 +25,7 @@ Lay the top level out by **discipline and lifecycle**, which is the convention
 for hardware/firmware monorepos:
 
 ```
-hardware/8ch/             active board
+hardware/8ch-old/             active board
 hardware/single-channel/  superseded board, kept for reference
 firmware/                 AVR C plus host tests
 simulation/               Proteus project

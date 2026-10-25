@@ -2,7 +2,7 @@
 
 2 layers: everything is routed, grounds included (their tracks merge with the F/B ground pours afterwards).
 --ground-off drops the ground nets from the DSN instead (one pin each, fanout copper protected): Freerouting
-then stops after pass 1 ("interrupted", 2026-10-14), so it is not used. Same method as hardware/8ch-new/route.py otherwise (order: rules.py --route-prep, fanout.py, route24.py, rules.py), and DSN clearances get a small pad so Freerouting's
+then stops after pass 1 ("interrupted", 2026-10-14), so it is not used. Same method as hardware/8ch-4l/route.py otherwise (order: rules.py --route-prep, fanout.py, route24.py, rules.py), and DSN clearances get a small pad so Freerouting's
 rounding still meets KiCad's DRC. Run with KiCad's python:
     python route24.py --passes 30 --threads 4
 """

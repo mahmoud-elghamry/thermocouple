@@ -1019,7 +1019,7 @@
 				(justify left bottom)
 			)
 		)
-		(property "Sheetfile" "isolation_1.kicad_sch"
+		(property "Sheetfile" "isolation_1_supply.kicad_sch"
 			(at 177.8 140.92 0)
 			(effects
 				(font
@@ -1061,7 +1061,7 @@
 				(justify left bottom)
 			)
 		)
-		(property "Sheetfile" "isolation_2.kicad_sch"
+		(property "Sheetfile" "isolation_2_clamp_engine_ref.kicad_sch"
 			(at 254 140.92 0)
 			(effects
 				(font
@@ -1145,7 +1145,7 @@
 				(justify left bottom)
 			)
 		)
-		(property "Sheetfile" "bank_a_1.kicad_sch"
+		(property "Sheetfile" "bank_a_1_inputs.kicad_sch"
 			(at 25.4 176.48 0)
 			(effects
 				(font
@@ -1187,7 +1187,7 @@
 				(justify left bottom)
 			)
 		)
-		(property "Sheetfile" "bank_a_2.kicad_sch"
+		(property "Sheetfile" "bank_a_2_adc.kicad_sch"
 			(at 101.6 176.48 0)
 			(effects
 				(font

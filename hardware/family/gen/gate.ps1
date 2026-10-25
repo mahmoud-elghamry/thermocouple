@@ -1,12 +1,17 @@
 # Circuit gate; generated files and logs stay in the coordination scratch area.
 [CmdletBinding()]
 param(
-    [string]$Release = 'production/24ch-reva4-20261023-094411-02daef',
+    [string]$Release = '',   # default: the current production/24ch-reva4-* release
     [string]$Python = 'python',
     [string]$PriceCache = ''
 )
 $ErrorActionPreference = 'Stop'
 $repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..'))
+if (-not $Release) {
+    $current = @(Get-ChildItem -LiteralPath (Join-Path $repo 'production') -Directory -Filter '24ch-reva4-*' | Sort-Object Name)
+    if ($current.Count -ne 1) { throw "Expected one current production/24ch-reva4-* release, found $($current.Count); pass -Release" }
+    $Release = $current[0].FullName
+}
 if (-not [IO.Path]::IsPathRooted($Release)) { $Release = [IO.Path]::GetFullPath((Join-Path $repo $Release)) }
 $cli = 'C:\Program Files\KiCad\10.0\bin\kicad-cli.exe'
 # No pcbnew step is needed; KiCad's python.exe is deliberately not used.
@@ -14,7 +19,7 @@ $results = [ordered]@{}
 $oldCli = $env:KICAD_CLI
 $oldOut = $env:THERMO24_SCH_OUT
 $oldBytecode = $env:PYTHONDONTWRITEBYTECODE
-$run = Join-Path $repo ('hardware\8ch-new\output\coord\family-gates\gate-' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff'))
+$run = Join-Path $repo ('hardware\8ch-4l\output\coord\family-gates\gate-' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff'))
 
 function Get-HardwareHashes {
     $hashes = @{}

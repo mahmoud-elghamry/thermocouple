@@ -96,7 +96,7 @@ class DocsTests(unittest.TestCase):
             with self.subTest(board=key):
                 for field in required:
                     self.assertIsNotNone(p.require(field), field)
-                folder = ROOT / 'hardware' / ('8ch-new' if key == '8' else '40ch')
+                folder = ROOT / 'hardware' / ('8ch-4l' if key == '8' else '40ch')
                 with (folder / 'BOM.csv').open(encoding='utf-8-sig', newline='') as f:
                     rows = list(csv.DictReader(f))
                 refs = {r.strip() for row in rows for r in row['Designator'].split(',')}

@@ -11,7 +11,7 @@ current release; this page is the map.
 | `40ch-reva0-*` | 40-ch REV A0 - release candidate (owner: probably never built, `0043` 9) |
 | `reference/` | the old 8-ch REV A2 (MAX31856) release and the board-size map - reference only |
 | `reviews/` | review reports (Astra, Codex, Claude), one folder per review |
-| `validation/` | validation runs (`hardware/8ch/validate.ps1`, firmware validation copies) |
+| `validation/` | validation runs (`hardware/8ch-old/validate.ps1`, firmware validation copies) |
 | `bench/` | firmware bench reports (`firmware/family/read_report.ps1`), created when used |
 | `_OLD_DO_NOT_ORDER/` | every superseded release (incl. 24-ch REV A3 `4b1601` and its NORI zips) - **never order from it** |
 

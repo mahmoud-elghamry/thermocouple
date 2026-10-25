@@ -1,4 +1,4 @@
-"""Place the 2-layer 8-ch board REV B0-2L: the routed 4-layer board (hardware/8ch-new) spread out.
+"""Place the 2-layer 8-ch board REV B0-2L: the routed 4-layer board (hardware/8ch-4l) spread out.
 
 The 4-layer placement is proven (decoupling at its pins, every power/contact path above the LCD header row),
 so it is kept and opened up for routing on two layers: every big part (IC, connector, relay, switch, hole) is
@@ -17,7 +17,7 @@ import pcbnew
 HERE = os.path.dirname(os.path.abspath(__file__))
 HW = os.path.dirname(HERE)
 BOARD = os.environ.get("THERMO8L_BOARD", os.path.join(HW, "thermo8.kicad_pcb"))
-SRC = os.path.join(os.path.dirname(HW), "8ch-new", "thermo8.kicad_pcb")
+SRC = os.path.join(os.path.dirname(HW), "8ch-4l", "thermo8.kicad_pcb")
 W0, H0 = 130.0, 137.0
 W, H = 150.0, 154.0
 SX, SY = W / W0, H / H0

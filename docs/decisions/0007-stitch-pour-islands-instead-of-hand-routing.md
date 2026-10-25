@@ -6,7 +6,7 @@
 
 ## Context
 
-`I-001` had between nine and sixteen connections open on `hardware/8ch`,
+`I-001` had between nine and sixteen connections open on `hardware/8ch-old`,
 varying from run to run. The issue described them as short links to plane nets
 that would have to be finished by hand in KiCad.
 
@@ -58,7 +58,7 @@ exactly that put 88 shorts and 16 hole-clearance errors on the board.
 
 ## Consequences
 
-`hardware/8ch/drc-report.rpt`, 2026-09-07: **0 errors, 0 unconnected items,
+`hardware/8ch-old/drc-report.rpt`, 2026-09-07: **0 errors, 0 unconnected items,
 0 schematic-parity issues.** Nine warnings remain — six silkscreen overlaps,
 two silkscreen-over-pad, one dangling via (`I-024`).
 

@@ -9,7 +9,7 @@
 #   avr-gcc + host cc      make -C firmware/8ch-legacy all test   (legacy 8-ch; family build.ps1 needs MSVC)
 #   kicad-cli (KiCad 10)   ERC / DRC / netlist, via kicad-tool
 #   kicad-tool             uv tool, from mash/kicad-skills (never pip kiutils)
-#   pwsh                   hardware/8ch/validate.ps1 / run_all.ps1
+#   pwsh                   hardware/8ch-old/validate.ps1 / run_all.ps1
 #   Konnect                the KiCad MCP, same version as the workstation
 #
 # Not available in the cloud: -Regenerate (needs KiCad's pcbnew Python and
@@ -99,7 +99,7 @@ EOF
 fi
 
 # The symbol libraries on the host, for Konnect (it runs outside the
-# container): hardware/8ch/sch_layout relinks U12 from them.
+# container): hardware/8ch-old/sch_layout relinks U12 from them.
 ksym="$LOCAL/share/kicad/symbols"
 if [ ! -f "$ksym/Device.kicad_sym" ] && docker image inspect "$KICAD_IMAGE" >/dev/null 2>&1; then
   step "KiCad symbol libraries"
@@ -166,7 +166,7 @@ done
 have kicad-cli && ! kicad10 && missing="$missing kicad-cli(not-10)"
 echo "Thermo cloud setup (.claude/hooks/session-start.sh):"
 echo "  firmware:  make -C firmware/8ch-legacy all test   (legacy 8-ch; firmware/family is Windows/MSVC only)"
-echo "  hardware:  pwsh -File hardware/8ch/validate.ps1"
+echo "  hardware:  pwsh -File hardware/8ch-old/validate.ps1"
 echo "  not here:  run_all.ps1 -Regenerate, KiCad GUI, Proteus"
 if [ -n "$missing" ]; then
   echo "  MISSING:$missing  - see $LOG. Say so; do not claim a check you could not run."

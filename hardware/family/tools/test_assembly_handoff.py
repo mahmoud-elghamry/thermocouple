@@ -10,7 +10,7 @@ import unittest
 import uuid
 
 HERE = Path(__file__).resolve().parent
-SCRATCH = HERE.parents[1] / '8ch-new' / 'output' / 'coord' / 'assembly-tests'
+SCRATCH = HERE.parents[1] / '8ch-4l' / 'output' / 'coord' / 'assembly-tests'
 sys.path.insert(0, str(HERE))
 
 

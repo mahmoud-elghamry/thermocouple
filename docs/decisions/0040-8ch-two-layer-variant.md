@@ -2,12 +2,12 @@
 
 * Status: accepted (owner request 2026-10-14 evening; layout choices delegated to Claude)
 * Date: 2026-10-14
-* Products: `hardware/8ch-2l/` (new), `hardware/8ch-new/` (4-layer REV B0, unchanged)
+* Products: `hardware/8ch-2l/` (new), `hardware/8ch-4l/` (4-layer REV B0, unchanged)
 
 ## Context
 
 The owner wants an 8-ch board "that anyone in Egypt can make and solder". The 4-layer REV B0 is finished
-(`production/8ch-revb0-20261014-203721-5e720e`, DRC 0/0/0). Sol's desk study (2026-10-14, `8ch-new/STATE.md`
+(`production/8ch-revb0-20261014-203721-5e720e`, DRC 0/0/0). Sol's desk study (2026-10-14, `8ch-4l/STATE.md`
 step L): Egyptian 2-layer PTH fabs publish 0.2/0.2 mm (Piclaro) to 0.15/0.15 mm (ERI, 1-6 layers); local SMT
 (NORI, Fares) is credible, LFCSP/X-ray UNVERIFIED. The AD7124-8 has no coarser package.
 

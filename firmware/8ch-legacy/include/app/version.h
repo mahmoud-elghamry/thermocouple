@@ -4,7 +4,7 @@
 /* Firmware identity (I-023).
  *
  * The board silkscreen carries THERMO-8CH REV A2 2026-09 (BOARD_REV and
- * BOARD_DATE in hardware/8ch/board/config.py).  Until this existed
+ * BOARD_DATE in hardware/8ch-old/board/config.py).  Until this existed
  * a programmed unit carried nothing at all: there was no way to tell which
  * image was on a chip, or whether it matched the board it was sitting in.
  *

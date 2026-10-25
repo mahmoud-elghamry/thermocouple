@@ -1,7 +1,7 @@
 # 0037 - One board family (8 / 24 / 36 channels), one firmware, products as folders
 
 > 2026-10-14: the 36-ch board became **40 TC fitted + 4 PT100** in `hardware/40ch/`, and the new 8-ch is
-> `hardware/8ch-new/` (`0039`). The text below keeps the original wording.
+> `hardware/8ch-4l/` (`0039`). The text below keeps the original wording.
 
 * Status: accepted (owner, 2026-10-14) for the direction; each product's details are decided in its own work
 * Date: 2026-10-14
@@ -20,7 +20,7 @@ branch and `docs/STATE.md` held one product, so parallel work would collide in o
 blocks: banks of one AD7124-8 (8 differential channels) with TMP126 cold-junction sensors, input
 protection, CA-IS3761 isolation, the LM5164 supply, trip and alarm relays, 20x4 LCD and buttons, isolated RS-485/Modbus
 (fitted: owner 2026-10-14, reversing `0036` D2). A board differs by its number of banks: 8 ch = 1, 24 ch = 3,
-36 ch = 5 (40 inputs, 36 used). The REV A2 8-ch board (MAX31856, `hardware/8ch/`) becomes reference
+36 ch = 5 (40 inputs, 36 used). The REV A2 8-ch board (MAX31856, `hardware/8ch-old/`) becomes reference
 only; a new 8-ch board is derived from the 24-ch one.
 * Not decided here: the 36-ch board's isolated supply, size and scan time (5 banks change all three) -
   reviewed in its own work before any layout.
@@ -39,7 +39,7 @@ for one chat's work, which the owner merges (agents never merge, AGENTS rule 3).
 with the original parts is kept as tag `24ch-premium` (commit c0dca80).
 
 **D4 - State per product.** `docs/STATE.md` becomes a short index and the cross-product state.
-Each product keeps its own `STATE.md` (`hardware/24ch/`, `hardware/8ch/`, `firmware/`, later
+Each product keeps its own `STATE.md` (`hardware/24ch/`, `hardware/8ch-old/`, `firmware/`, later
 `hardware/36ch/`), each at most 60 lines and checked by `docs/check_docs.py`. `docs/ISSUES.md`
 stays one file; a new row starts with its product in brackets ([24ch], [8ch], [36ch], [fw], [all]);
 rows without a tag are 24-ch.

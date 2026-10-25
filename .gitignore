@@ -54,22 +54,22 @@ venv/
 production/*
 !production/README.md
 # production/ is local. When a revision is actually ORDERED, copy its upload zip
-# to hardware/8ch/fabricated/<rev>/ and commit it - the same reason the
+# to hardware/8ch-old/fabricated/<rev>/ and commit it - the same reason the
 # single-channel Gerbers below are tracked: once the sources move on, that zip
 # is the only way to know what a board in the field is.
-hardware/8ch/output/
-hardware/8ch/gerbers/
-hardware/8ch/tmp/
-hardware/8ch/tmp-*/
+hardware/8ch-old/output/
+hardware/8ch-old/gerbers/
+hardware/8ch-old/tmp/
+hardware/8ch-old/tmp-*/
 # Scratch an agent leaves behind. On 2026-09-07 a delegated run's experiment
 # folder and seven half-built sheet files were swept into a commit by
 # `git add -A` while that agent was still writing them.
-hardware/8ch/route.log
-hardware/8ch/*.net
+hardware/8ch-old/route.log
+hardware/8ch-old/*.net
 # The netlist-baseline-*.json files are NOT ignored: they are the
 # connectivity contract every schematic edit is checked against
 # (netlist_fingerprint.py). Only the raw exported *.net above is scratch.
-hardware/8ch/BOM.csv
+hardware/8ch-old/BOM.csv
 # Superseded local archive; keep it out of version control.
 /_old/
 

@@ -169,7 +169,7 @@ class NativeTests(unittest.TestCase):
                      'real fixtures: set ROUTING_BOARD_PROOFS=1 with KiCad Python')
 class BoardProofs(unittest.TestCase):
     def test_current_boards_and_old_snapshot(self):
-        cases = [('40ch/thermo40', (0, 0, 0)), ('8ch-new/thermo8', (0, 0, 0)),
+        cases = [('40ch/thermo40', (0, 0, 0)), ('8ch-4l/thermo8', (0, 0, 0)),
                  ('8ch-2l/thermo8', (0, 0, 0)),
                  ('40ch/output/pre-r10/thermo40', (25, 11, 34))]
         for path, expected in cases:
@@ -187,7 +187,7 @@ class BoardProofs(unittest.TestCase):
                     self.assertEqual(own_pairs, native_pairs)
 
     def test_saved_pour_copies(self):
-        for folder, stem, count in (('40ch', 'thermo40', 1212), ('8ch-new', 'thermo8', 502),
+        for folder, stem, count in (('40ch', 'thermo40', 1212), ('8ch-4l', 'thermo8', 502),
                                     ('8ch-2l', 'thermo8', 318)):
             with self.subTest(board=folder):
                 path = ROOT/'hardware'/folder/'output/toolkit-proof'/(stem+'.kicad_pcb')

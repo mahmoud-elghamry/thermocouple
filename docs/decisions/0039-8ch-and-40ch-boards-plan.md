@@ -7,7 +7,7 @@
   `0037` (family, one firmware), `0038` (K or J per channel)
 * Owner input 2026-10-14: 8-ch derived from the 24-ch, 4 layers first (a 2-layer version for a fab in Egypt is
   studied after), keep trip + alarm relays, RS-485, five buttons + panel header, LCD header on standoffs (or a
-  cable to the door); folder `hardware/8ch-new/`. The big board: 5 banks **all 40 TC channels fitted** (was
+  cable to the door); folder `hardware/8ch-4l/`. The big board: 5 banks **all 40 TC channels fitted** (was
   "36 ch" in `0037`) plus **4 PT100 points**, because one input cannot serve both sensor types.
 
 ## Facts that shape the plan (24-ch sources)
@@ -24,8 +24,8 @@
 ## Decisions proposed
 
 **D1 - Folders.** `hardware/family/gen/` = a narrow shared circuit library (blocks + board configs).
-`hardware/8ch-new/` and `hardware/40ch/` = the boards, each with its own placement script, rules geometry,
-README (with a pin-map table for the firmware chat) and STATE. `hardware/24ch/` is not touched; `hardware/8ch/`
+`hardware/8ch-4l/` and `hardware/40ch/` = the boards, each with its own placement script, rules geometry,
+README (with a pin-map table for the firmware chat) and STATE. `hardware/24ch/` is not touched; `hardware/8ch-old/`
 (REV A2) stays reference. Placement and routing stay per board; routing tools get board size/geometry as
 parameters, not a general framework.
 

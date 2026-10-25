@@ -49,7 +49,7 @@ which nothing in the project could previously detect: `netlist_fingerprint.py`
 compares the *schematic's* connectivity and never looks at the PCB, and
 `validate.ps1` hashes files only within a single run.
 
-So a guard was added: `hardware/8ch/board_provenance.py`.
+So a guard was added: `hardware/8ch-old/board_provenance.py`.
 
 - `--record` stores the SHA-256 of `thermocouple_8ch.kicad_pcb` and
   `.kicad_sch` as the generator left them. Run it after every generator run.

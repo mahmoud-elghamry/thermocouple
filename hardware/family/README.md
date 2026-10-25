@@ -22,7 +22,7 @@ failed build/export, original-vs-release discrepancy, family-vs-release discrepa
 uncaught deliberate fault or change to `hardware/24ch/` fails the gate.
 A baseline discrepancy stops the 8- and 40-channel builds and the scratch fault proof.
 
-Each run writes `hardware/8ch-new/output/coord/family-gates/gate-<timestamp>/`, including per-stage logs, ERC reports,
+Each run writes `hardware/8ch-4l/output/coord/family-gates/gate-<timestamp>/`, including per-stage logs, ERC reports,
 exported XML, BOM/DNP files, comparison SHA256 manifests and `gate-summary.txt`.
 Gate A requires zero ERC messages, zero pin mismatches/missing parts and zero
 release differences for the original and shared 24-channel generators. Gate B
@@ -35,9 +35,9 @@ messages, rather than accepting just any nonzero result.
 Individual entry points (all KiCad-dependent commands run by the orchestrator):
 
 ```powershell
-python -B hardware/family/gen/build.py 24 --out hardware/8ch-new/output/coord/family-gates/manual/24
-python -B hardware/family/gen/build.py 8 --out hardware/8ch-new/output/coord/family-gates/manual/8
-python -B hardware/family/gen/build.py 40 --out hardware/8ch-new/output/coord/family-gates/manual/40
+python -B hardware/family/gen/build.py 24 --out hardware/8ch-4l/output/coord/family-gates/manual/24
+python -B hardware/family/gen/build.py 8 --out hardware/8ch-4l/output/coord/family-gates/manual/8
+python -B hardware/family/gen/build.py 40 --out hardware/8ch-4l/output/coord/family-gates/manual/40
 ```
 
 Comparison independently reads exported XML, retaining every component field,

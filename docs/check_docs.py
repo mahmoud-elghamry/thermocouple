@@ -23,7 +23,7 @@ import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PRODUCT_STATE = ["hardware/24ch/STATE.md", "hardware/8ch/STATE.md", "hardware/8ch-new/STATE.md",
+PRODUCT_STATE = ["hardware/24ch/STATE.md", "hardware/8ch-old/STATE.md", "hardware/8ch-4l/STATE.md",
                  "hardware/8ch-2l/STATE.md", "hardware/40ch/STATE.md", "hardware/family/STATE.md",
                  "firmware/STATE.md"]   # 0037 D4
 ENTRY = ["AGENTS.md", "README.md", "docs/GOAL.md", "docs/STATE.md", "docs/ISSUES.md",

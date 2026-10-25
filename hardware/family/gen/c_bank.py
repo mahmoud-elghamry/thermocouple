@@ -51,9 +51,11 @@ def bank(b, config):
                         f"TC CH{8*b-7+4*h}-{8*b-4+4*h}", nets, HDR_FP,
                         "WJ15EDGRC-3.81-8P", "C14235", "KANGNEX",
                         "pluggable header; mating plug WJ15EDGK-3.81-08P (C14234)"))
-    s.block("Thermocouple terminals (TC+ / TC- per channel; shield goes to the panel-entry bar)", hdr)
+    s.block("Thermocouple terminals (TC+ / TC- per channel; shield goes to the panel-entry bar)", hdr,
+            short="terminals", page="inputs")
     for k in range(1, 9):
-        s.block(f"Channel {8*(b-1)+k}: limiter, clamp, filter, bias", channel(b, k, config.bank_bases[b - 1]))
+        s.block(f"Channel {8*(b-1)+k}: limiter, clamp, filter, bias", channel(b, k, config.bank_bases[b - 1]),
+                short=("ch {} front end", 8*(b-1)+k))
     ain = {}
     for k in range(1, 9):
         n = 8 * (b - 1) + k
@@ -68,7 +70,7 @@ def bank(b, config):
         "AVSS": GND, "DGND": GND, "EP": GND}),
         "Package_CSP:LFCSP-32-1EP_5x5mm_P0.5mm_EP3.6x3.6mm", "AD7124-8BCPZ", "C97314", "ADI",
         "internal clock, gain 32, EP to AVSS")
-    s.block(f"AD7124-8 #{b} and its decoupling", [
+    s.block(f"AD7124-8 #{b} and its decoupling", short="AD7124-8", page="adc", parts=[
         adc,
         C(f"C{u+91}", "100n", f"REFOUT_{letter}", GND, "CC0805KRX7R9BB104", "C49678", desc="REFOUT, never joined"),
         C(f"C{u+92}", "100n", f"REGCAPA_{letter}", GND, "CC0805KRX7R9BB104", "C49678"),
@@ -95,5 +97,5 @@ def bank(b, config):
             f"cold junction at header J{u+1+i}; SIO on DOUT, written through {command_path}; "
             "ALERT unused, grounded (datasheet allows) (0036)"))
         cj.append(C(f"C{u+99-9*i}", "100n", ISO, GND, "CC0805KRX7R9BB104", "C49678"))
-    s.block("Cold-junction sensors (one per 4-channel header)", cj)
+    s.block("Cold-junction sensors (one per 4-channel header)", cj, short="cold-junction sensors")
     return s

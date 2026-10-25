@@ -71,10 +71,12 @@ def rtd_bank(config):
            Part(f"J{BASE+2}", "Connector_Generic:Conn_01x03", "PT100 3 (A B C)",
                 {str(j + 1): f"RTD3_{lead}" for j, lead in enumerate("ABC")},
                 HDR3, "WJ15EDGRC-3.81-03P", "C8406", "KANGNEX", "mating plug WJ15EDGK-3.81-03P (C8413); " + note)]
-    s.block("PT100 terminals: A = single-wire end, B + C = the two wires of the other end", hdr)
+    s.block("PT100 terminals: A = single-wire end, B + C = the two wires of the other end", hdr,
+            short="terminals", page="inputs")
     for r in range(1, 4):
-        s.block(f"PT100 {r}: excitation and sense branches, filter, return", rtd(r))
-    s.block("Check channel (0039 P5 (b)): a precision resistor through the same network, read every scan", [
+        s.block(f"PT100 {r}: excitation and sense branches, filter, return", rtd(r),
+                short=("PT100 {} front end", r))
+    s.block("Check channel (0039 P5 (b)): a precision resistor through the same network, read every scan", short="check channel", parts=[
         R(f"R{BASE+95}", "150R 0.1%", "CHK_A", "CHK_BC", "RT0805BRD07150RL", "C513734", mfr="YAGEO",
           desc="check resistor in the PT100 range (~130 degC): proves R_ref, IOUT, gain and the network")]
         + rtd(CHECK))
@@ -93,7 +95,7 @@ def rtd_bank(config):
         "AVSS": GND, "DGND": GND, "EP": GND}),
         "Package_CSP:LFCSP-32-1EP_5x5mm_P0.5mm_EP3.6x3.6mm", "AD7124-8BCPZ", "C97314", "ADI",
         "RTD bank: IOUT 2 x 250 uA swapped each reading, gain 16, REFIN1 = R_ref (ratiometric), EP to AVSS")
-    s.block("AD7124-8 (RTD), reference resistor and decoupling", [
+    s.block("AD7124-8 (RTD), reference resistor and decoupling", short="AD7124-8", page="adc", parts=[
         adc,
         R(f"R{u+92}", "2.49k 0.1%", "RTD_RET", "RTD_REFN", "RT0805BRD072K49L", "C375522",
           mfr="YAGEO", desc="R_ref, Kelvin: REFIN1+ at its top pad, REFIN1- at its bottom pad"),

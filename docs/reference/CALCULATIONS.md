@@ -529,7 +529,7 @@ Context: `0031`, I-096/I-102. Candidate budget, **not qualification**.
 For this architecture, this section replaces the estimates in 1.1/1.8,
 5.4/5.5 and the three-module fuse case in 6.2; their history is retained.
 Topology and existing capacitor values were read from REV A2
-`hardware/8ch/power.kicad_sch` and `isolation.kicad_sch`.
+`hardware/8ch-old/power.kicad_sch` and `isolation.kicad_sch`.
 “Worst” below means the stated screening envelope, including assumptions;
 it is not a guaranteed sum of manufacturer maxima. No parts are selected here.
 
@@ -2021,7 +2021,7 @@ owner gets the real quote from the release files.
 
 ### 9.11 8-ch floor plan v1 and v2 (Claude, 2026-10-14)
 
-`hardware/8ch-new/gen/place.py`: 130 x 125 mm (66 % of the 24-ch area). The 20x4 LCD (98 x 60 mm on standoffs
+`hardware/8ch-4l/gen/place.py`: 130 x 125 mm (66 % of the 24-ch area). The 20x4 LCD (98 x 60 mm on standoffs
 H6-H9) sets the size: the top edge carries the field terminals and the RS-485 pocket, the LCD shadow holds only
 parts lower than ~7 mm (relays G6K 5.2 mm, inductor 4.8 mm; LCD standoffs >= 11 mm), buttons/LEDs/J503 are in
 the right column, the barrier band is y 79-82, and the island (bank A, supply, references, engine reference) is

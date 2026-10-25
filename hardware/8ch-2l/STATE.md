@@ -1,7 +1,7 @@
 # 8-ch board REV B0-2L (two layers, local fab) - state
 
 Decision: `docs/decisions/0040` (owner request 2026-10-14 evening). Same circuit as the 4-layer REV B0
-(`hardware/8ch-new/`, schematic from `hardware/family/gen` config "8"); 2 layers, 150 x 154 mm, rules for an
+(`hardware/8ch-4l/`, schematic from `hardware/family/gen` config "8"); 2 layers, 150 x 154 mm, rules for an
 Egyptian 2-layer PTH fab (0.2/0.2 mm, vias 0.7/0.3; island nets 0.15 mm because of the AD7124 LFCSP).
 
 ## Done (2026-10-14)

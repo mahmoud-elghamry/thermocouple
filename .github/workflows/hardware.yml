@@ -45,19 +45,19 @@ jobs:
         run: |
           kicad-cli sch export netlist \
             --output /tmp/current.net \
-            hardware/8ch/thermocouple_8ch.kicad_sch
+            hardware/8ch-old/thermocouple_8ch.kicad_sch
 
       - name: Compare against the REV A2 connectivity contract
         run: |
-          python3 hardware/8ch/netlist_fingerprint.py \
-            hardware/8ch/netlist-baseline-reva2.json \
+          python3 hardware/8ch-old/netlist_fingerprint.py \
+            hardware/8ch-old/netlist-baseline-reva2.json \
             /tmp/current.net
 
       - name: No ERC errors
         run: |
           kicad-cli sch erc --severity-error --exit-code-violations \
-            --output /tmp/erc.rpt hardware/8ch/thermocouple_8ch.kicad_sch \
+            --output /tmp/erc.rpt hardware/8ch-old/thermocouple_8ch.kicad_sch \
             || { cat /tmp/erc.rpt; exit 1; }
 
       - name: Every passive still has an orderable part number
-        run: python3 hardware/8ch/source_passives.py --check
+        run: python3 hardware/8ch-old/source_passives.py --check

@@ -30,7 +30,7 @@ relay driver; the silkscreen matters for looks.
 collected here as a REV A1 change set, to be applied together in one
 regeneration if and when a respin is worth it.
 
-`hardware/8ch/netlist-baseline-reva0.json` records the connectivity REV A0 was
+`hardware/8ch-old/netlist-baseline-reva0.json` records the connectivity REV A0 was
 routed from - 167 components, 154 nets, 555 pins. Any schematic edit is checked
 against it with `netlist_fingerprint.py`, and a match is the proof that the
 board does not need regenerating. That is what allows `I-002` - redrawing the

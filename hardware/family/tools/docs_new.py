@@ -92,7 +92,7 @@ def _texts(key, ep, accessories):
 def apply(PROFILES, P24):
     """Register board-specific assembly tables and compatible four/three-arg renderers."""
     for key, folder, rev, width, height in (
-            ('8', '8ch-new', 'REV B0', 130.0, 137.0), ('8l', '8ch-2l', 'REV B0-2L', 150.0, 154.0),
+            ('8', '8ch-4l', 'REV B0', 130.0, 137.0), ('8l', '8ch-2l', 'REV B0-2L', 150.0, 154.0),
             ('40', '40ch', 'REV A0', 250.0, 145.0)):
         if key not in PROFILES:
             continue

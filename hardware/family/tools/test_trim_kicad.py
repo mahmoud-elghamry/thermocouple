@@ -15,7 +15,7 @@ except ImportError:
 class PlanTests(unittest.TestCase):
     def test_native_guard_recognises_its_live_parent(self):
         import guard
-        folder = Path(__file__).resolve().parents[2] / '8ch-new/output/coord/guard-native' / uuid.uuid4().hex
+        folder = Path(__file__).resolve().parents[2] / '8ch-4l/output/coord/guard-native' / uuid.uuid4().hex
         folder.mkdir(parents=True)
         board = folder / 'copy.txt'
         board.write_text('copy-only fixture')

@@ -1,6 +1,6 @@
 # Shared family circuit library - state
 
-**Last updated:** 2026-10-24 (Claude, coordination with the 24-ch after the merge). Plan: `docs/decisions/0039`. **Hard limit: 60 lines.**
+**Last updated:** 2026-10-25 (Claude, page names and folder renames). Plan: `docs/decisions/0039`. **Hard limit: 60 lines.**
 
 ## What is here
 
@@ -28,25 +28,16 @@
 * Cost: `gen/cost.py` has no offline price cache; parts cost not yet computed for 8 / 40.
 * Generated output (`out/`) is ignored; the boards' own folders take a copy when their layout starts.
 
-## REV A4 family regression sync (2026-10-19, plain Python only)
+## REV A4 family regression sync (2026-10-19)
 
-* Config 24 matches the read-only 24-ch REV A4 model exactly, including every part field/description (`0041`):
-  gated U411, PD5 -> U405 channel C, R439 pull-up, D501/D502 ESC diodes. New `sio_a4` / `esc_diodes` options
-  are enabled only for B24; B8/B40 explicitly disable both. Revision/title now A4.
-* Profile 24: U411 supply-pin check matches the source; driver ref, revision, release prefix and silk updated.
-  Updated A3-specific subset/count expectations and the HTML golden check's revision only; donor comparison retained.
-* Gates: `python -m unittest test_family`: **8 tests OK** (24: 470 components, 96 BOM lines, 449 fitted);
-  `python -m unittest test_profiles test_docs_new`: **13 tests OK**. Python 3.11.15 used because `py -3`
-  reports no installed Python. No KiCad/kicad-cli/pcbnew execution; no ERC/DRC or release-generation claim.
-* Before/after dumps: `out/a4-proof/{before,after}/`, reproducible via `out/a4-proof/snapshot.py`;
-  models B8/B40, full sheets (including RTD), root parts and profiles 8/8l/40 are **byte-identical (9/9)**.
-  Identity hashes/report: `out/a4-proof/identity.txt`. Board folders and docs unchanged. No commit.
+* Config 24 matches the 24-ch REV A4 model exactly (`0041`: U411, PD5 -> U405 C, R439, D501/D502; `sio_a4` /
+  `esc_diodes` on B24 only); test_family 8, profiles/docs 13 OK; proof dumps in `out/a4-proof/`.
 
 ## Board audit toolkit (2026-10-19, Sol, from its routing-round scripts)
 
 * KiCad-based: `holes.py` (drill spacing, via hole to SMD land), `route_report.py` (pair lengths/vias, Kelvin
   shared runs), `pourcheck.py`; no-KiCad (stdlib, `python -S`): `board_text.py`, `text_check.py` (clearance,
-  keepouts, holes; matches KiCad's 25 pre-r10 hole pairs by UUID). 0 findings on 40ch / 8ch-new / 8ch-2l.
+  keepouts, holes; matches KiCad's 25 pre-r10 hole pairs by UUID). 0 findings on 40ch / 8ch-4l / 8ch-2l.
   Tests: 47 plain + 14 KiCad OK. Commands in `docs/TOOLS.md`.
 
 ## Coordination with the 24-ch (2026-10-24, Sol audit + implementation, reviewed by Claude, b93eb61)
@@ -57,3 +48,11 @@
   every final file. U411.5 cap check on 8/8l/40; hole severities written by the generators; profile 24 net labels.
 * `gate.ps1` baseline = 24-ch A4 `02daef`, builds 24/8/40: FAMILY GATES PASS; tests 63 plain + 17 KiCad, test_family 9.
 * 8l: `decoupling_report.py` (routed-supply criterion <= 5 mm, <= 1 via): AVDD 11.5 -> 3.9 mm, IOVDD 6.8 -> 2.9 mm (8ch-2l STATE).
+
+## Page names and folder renames (2026-10-25, Claude)
+
+* Split pages are named by content (`bank_a_1_inputs`, `bank_a_2_adc`, `isolation_1_supply`, `rtd_2_adc`...) and their
+  titles list the blocks (`Sheet.block(short=, page=)`); sheet names (UUID seed, local-net prefix) unchanged.
+  8ch-4l/8ch-2l/40ch regenerated: ERC 0/0, compare_release vs current releases **0 differences**, PCB parity 0 (8ch-2l: I-140).
+* Folders: `hardware/8ch` -> `8ch-old`, `8ch-new` -> `8ch-4l` (`hardware/README.md`). `gate.ps1` picks the one current
+  `production/24ch-reva4-*` (now `040133`): FAMILY GATES PASS; tools tests plain OK, KiCad 17 + board proofs 14 OK.
