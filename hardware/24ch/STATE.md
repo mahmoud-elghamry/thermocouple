@@ -9,7 +9,8 @@
   SIO_WR_N -> U405 ch C -> U411 74LVC1G125 -> R446 220R -> DOUT; R445 10k, R447 100k, C421, R439 10k;
   R443 removed. ESC kept: D501/D502 1N4148W pull UP and DOWN together (firmware: UP+DOWN = ESC).
   Otherwise the `0036` cost-down board: TMP126 x6, CA-IS3761HW x3, RS-485 fitted (`0036` D9).
-* Release: **`production/24ch-reva4-20261025-040133-02daef`** (2026-10-25, clean commit `b3ffb74`, I-133 closed).
+* Release: **`production/24ch-reva4-20261025-205319-02daef`** (2026-10-25, clean commit `0a2531b`, I-133 closed;
+  schematic PDF with page-content lines and Rev A4; 040133 and 204529 of the same day in `_OLD_DO_NOT_ORDER`).
   One run of `gen/fab.py`: DRC 0/0/0 refilled; warnings 18 Description-field mismatches + 6 junction vias (via_dangling,
   kept); holes/pour audit PASS (0 hole pairs, 817/817 on their pour, 11 same-net vias at pads all disclosed to the
   supplier, U405.15 cut by 0.075 mm, owner 2026-10-25: leave them); zips compared with the loose files; MANIFEST 53
@@ -33,7 +34,7 @@
 
 ## Next
 
-1. New quotes for A4 from release 040133: JLCPCB and NORI (I-078, I-123); owner decides where to order.
+1. New quotes for A4 from release 205319: JLCPCB and NORI (I-078, I-123); owner decides where to order.
 2. When the order is placed: review the assembler's placement preview (pin-1 of every polarised part).
 3. Installation drawing + bench guide done 2026-10-24: `install-guide/index.html` (published as an artifact); channel map filled on site.
 4. Firmware (`firmware/STATE.md`, `0041` firmware requirements); bench P2 when boards arrive (I-120, I-101,

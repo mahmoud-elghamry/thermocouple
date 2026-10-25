@@ -16,7 +16,7 @@ pwsh -NoProfile -File hardware/family/gen/gate.ps1
 The gate uses `C:\Program Files\KiCad\10.0\bin\kicad-cli.exe` and ordinary
 Python (`-Python <absolute-python-path>` overrides PATH). It does not need KiCad's
 Python. `-Release <release-directory>` overrides the default REV A4 release
-`production/24ch-reva4-20261025-040133-02daef`.
+`production/24ch-reva4-20261025-205319-02daef`.
 Exit 0 and `FAMILY GATES: PASS` mean every required stage passed. Any missing tool,
 failed build/export, original-vs-release discrepancy, family-vs-release discrepancy,
 uncaught deliberate fault or change to `hardware/24ch/` fails the gate.

@@ -1,7 +1,7 @@
 # Circuit gate; generated files and logs stay in the coordination scratch area.
 [CmdletBinding()]
 param(
-    [string]$Release = 'production/24ch-reva4-20261025-040133-02daef',
+    [string]$Release = 'production/24ch-reva4-20261025-205319-02daef',
     [string]$Python = 'python',
     [string]$PriceCache = ''
 )
