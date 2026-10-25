@@ -10,4 +10,7 @@
 #define APP_ADC_RDY_MIN_MS 36u
 #define APP_ADC_RDY_MAX_MS 69u
 #define APP_SERVICE_RELAY_MS 1000u
+/* Service check P15 (08/3, I-138): scan gap incl. the REF self-test, worst ~1.07 s (03/10.2); a bench
+ * limit with margin, kept below the 1500 ms G05 deadline. Not a protection limit. */
+#define APP_SERVICE_SCAN_MS 1200u
 #endif

@@ -7,6 +7,7 @@ comes back, reopen it in `ISSUES.md` under the same number.
 
 | # | Closed | What fixed it |
 |---|---|---|
+| I-137 | 2026-10-25 | Branch `24ch-rev-a4` fast-forwarded to main `ca6c05e` (has `94e7e54`, PORTD init 0x7C); build.ps1, build_core (125511/0) and acceptance (14361/14361) PASS on the branch; the image is rebuilt from the branch commit before programming. |
 | I-129 | 2026-10-24 | Relay clearance exception no longer covers pours (`A.Type != 'Zone' && B.Type != 'Zone'` in `relay_area`): 24-ch A4 (release 011858+), 8ch-2l, 40ch, and 8ch-new (gen/rules.py + thermo8.kicad_dru, release `8ch-revb0-20261024-141437-3238f9`, DRC 0/0/0). |
 | I-131 | 2026-10-24 | Drill-hole overlaps and via holes in small SMD lands: 0 on 40ch/8ch-new/8ch-2l (`family/tools/holes.py`), 24-ch A4 fixed except U405.15 (same net, 0.075 mm, accepted). `hole_to_hole`/`holes_co_located` are errors in every project and the family generators now write those severities themselves (b93eb61). |
 | I-124 | 2026-10-19 | 24-ch REV A4 (`0041`, branch `24ch-rev-a4`, merged into main 2026-10-19): gated TMP126 SIO driver U411 + R446 replaces R443 22k (the 8-ch REV B0 and 40-ch boards had it from `0039` P2). |
