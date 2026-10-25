@@ -1,6 +1,6 @@
 """I-111 repair of the LM5164 stage (U601) on the routed board - local, `0034` D3.
 
-TI LM5164 section 7.4 (as on the 8-ch board, `0026`, hardware/8ch/board/powerstage.py):
+TI LM5164 section 7.4 (as on the 8-ch board, `0026`, hardware/8ch-old/board/powerstage.py):
 input ceramics C602/C603 beside VIN/GND, bootstrap C604 at BST/SW, a short wide SW
 node in line with L601, the FB divider at FB. U601 itself does not move.
 

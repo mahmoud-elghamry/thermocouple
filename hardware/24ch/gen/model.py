@@ -43,11 +43,16 @@ class Sheet:
     def __init__(self, name, file, title, paper="A3"):
         self.name, self.file, self.title, self.paper = name, file, title, paper
         self.blocks = []          # (title, [Part])
+        self.shorts = {}          # block title -> short text for a split page's title
         self.flags = []           # nets that get a PWR_FLAG here
         self.notes = []           # free text notes
 
-    def block(self, title, parts):
+    def block(self, title, parts, short=None):
+        """`short` (text, or (label, number) to merge runs such as channels 6-8) names the block
+        in a split page's title (as in the family generator; file names stay, the board refers to them)."""
         self.blocks.append((title, list(parts)))
+        if short:
+            self.shorts[title] = short
 
     def parts(self):
         return [p for _, ps in self.blocks for p in ps]

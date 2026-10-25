@@ -44,7 +44,7 @@ def sio_driver():
 
 def isolation():
     s = Sheet("ISOLATION", "isolation.kicad_sch", "Isolation, island supply and references", "A3")
-    s.block("Island supply: 1 W isolated module, LDO, minimum-load preload", [
+    s.block("Island supply: 1 W isolated module, LDO, minimum-load preload", short="island supply", parts=[
         Part("U401", "Converter_DCDC_Isolated:CRE1S0505SC", "B0505S-1WR2",
              {"-VIN": "GND", "+VIN": "+5V", "-VOUT": GND_I, "+VOUT": "+5V_ISO_RAW"},
              "Converter_DCDC:Converter_DCDC_Murata_CRE1xxxxxxSC_THT", "B0505S-1WR2", "C2992393",
@@ -63,7 +63,7 @@ def isolation():
         TP("TP401", ISO), TP("TP402", GND_I), TP("TP407", "+5V_ISO_RAW"),
     ])
     cs_c = ["CS_ADC1", "CS_ADC2", "CS_ADC3"] + [f"CS_CJ{i}" for i in range(1, 7)]
-    s.block("Digital isolators: SPI to the three AD7124 and six TMP126", (
+    s.block("Digital isolators: SPI to the three AD7124 and six TMP126", short="isolators", parts=(
         isolator("U403", ["SCK", "MOSI", "CS_ADC1", "CS_ADC2", "CS_ADC3"], "MISO_ISO",
                  ["SCLK_ISO_RAW", "DIN_ISO_RAW", "CS_ADC1_ISO", "CS_ADC2_ISO", "CS_ADC3_ISO"],
                  "DOUT_ISO_RAW", "C407", "C408")
@@ -71,21 +71,21 @@ def isolation():
                    [f"CS_CJ{i}_ISO" for i in range(1, 6)], "REFOK_ISO", "C409", "C410")
         + isolator("U405", ["CS_CJ6", "REFTEST", "SIO_WR_N", "GND", "GND"], NC,
                    ["CS_CJ6_ISO", "REFTEST_ISO", "SIO_WR_N_ISO", NC, NC], GND_I, "C411", "C412")))
-    s.block("Series damping, MISO contention resistor, pull-ups", [
+    s.block("Series damping, MISO contention resistor, pull-ups", short="pull-ups", parts=[
         R("R402", "33R", "SCLK_ISO_RAW", "SCLK_ISO", "0805W8F330JT5E", "C17634"),
         R("R403", "33R", "DIN_ISO_RAW", "DIN_ISO", "0805W8F330JT5E", "C17634"),
         R("R404", "33R", "DOUT_ISO", "DOUT_ISO_RAW", "0805W8F330JT5E", "C17634"),
         R("R405", "2k2", "MISO_ISO", "MISO", "0805W8F2201T5E", "C17520", desc="ISP contention"),
     ] + [R(f"R{430+i}", "10k", c, "+5V", *C10K, desc="control CS pull-up during MCU reset")
          for i, c in enumerate(cs_c + ["SIO_WR_N"])])
-    s.block("External 3.0 V reference (cross-check of the AD7124 internal reference)", [
+    s.block("External 3.0 V reference (cross-check of the AD7124 internal reference)", short="3.0 V ref", parts=[
         Part("U406", "Reference_Voltage:REF3030", "REF3030AIDBZR",
              {"IN": ISO, "GND": GND_I, "OUT": "VREF_EXT"}, "Package_TO_SOT_SMD:SOT-23",
              "REF3030AIDBZR", "C38423", "TI"),
         c100("C413", ISO, GND_I), c100("C414", "VREF_EXT", GND_I),
         TP("TP404", "VREF_EXT"),
     ])
-    s.block("Mid-rail V_MID for the 20M thermocouple bias", [
+    s.block("Mid-rail V_MID for the 20M thermocouple bias", short="V_MID", parts=[
         R("R416", "100k 1%", ISO, "V_MID_DIV", "0805W8F1003T5E", "C149504"),
         R("R417", "100k 1%", "V_MID_DIV", GND_I, "0805W8F1003T5E", "C149504"),
         c100("C415", "V_MID_DIV", GND_I),
@@ -101,7 +101,7 @@ def isolation():
              "Package_TO_SOT_SMD:SOT-23", "BAV199,215", "C40919", "Nexperia"),
         c100("C418", "V_BIAS", GND_I), TP("TP405", "V_BIAS"), TP("TP406", "REFOK_ISO"),
     ])
-    s.block("AVDD shunt clamp at ~3.5 V (clamp-current sink beyond the preload, review M1)", [
+    s.block("AVDD shunt clamp at ~3.5 V (clamp-current sink beyond the preload, review M1)", short="AVDD clamp", parts=[
         Part("U409", "Reference_Voltage:TL431DBZ", "TL431",
              {"K": "CLAMP_K", "REF": "CLAMP_REF", "A": GND_I}, "Package_TO_SOT_SMD:SOT-23",
              "TL431BIDBZR", "C41283", "TI", "TI part only: pin 1 = K; 3.5 V = 2.495 x (1 + 4.02k/10k)"),
@@ -114,7 +114,7 @@ def isolation():
         R("R441", "22R 1W", "CLAMP_C", GND_I, "25121WF220JT4E", "C118189", fp="Resistor_SMD:R_2512_6332Metric",
           desc="limits the clamp to ~150 mA; 0.5 W at full clamp"),
     ])
-    s.block("Engine reference wire: feed + sense, continuity comparator, self-test", [
+    s.block("Engine reference wire: feed + sense, continuity comparator, self-test", short="engine reference wire", parts=[
         Part("J401", "Connector_Generic:Conn_01x02", "ENGINE REF FEED/SENSE",
              {"1": "REF_FEED", "2": "REF_SENSE_IN"},
              "Connector_Phoenix_MC:PhoenixContact_MC_1,5_2-G-3.81_1x02_P3.81mm_Horizontal",
@@ -141,6 +141,7 @@ def isolation():
              "Package_TO_SOT_SMD:SOT-23", "2N7002", "C8545", "CJ", "self-test: pulls sense low"),
         R("R425", "1k", "REF_TEST_D", "REF_SENSE", "0805W8F1001T5E", "C17513"),
     ])
-    s.block("TMP126 command driver (REV A4, I-124): DIN drives SIO only while SIO_WR_N is low", sio_driver())
+    s.block("TMP126 command driver (REV A4, I-124): DIN drives SIO only while SIO_WR_N is low", sio_driver(),
+            short="SIO driver")
     s.flags = []
     return s
