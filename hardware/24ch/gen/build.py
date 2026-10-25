@@ -67,7 +67,8 @@ def paginate(s, all_nets):
     out = []
     base = s.file[:-len(".kicad_sch")]
     for i, blocks in enumerate(pages, 1):
-        t = Sheet(f"{s.name}_{i}", f"{base}_{i}.kicad_sch", f"{s.title} - page {i}/{len(pages)}: {page_summary(s, blocks)}", "A4")
+        t = Sheet(f"{s.name}_{i}", f"{base}_{i}.kicad_sch", f"{s.title} - page {i}/{len(pages)}", "A4")
+        t.content = "On this page: " + page_summary(s, blocks)   # title-block comment: the title field is too narrow
         t.blocks = blocks
         t.notes = s.notes if i == 1 else []
         out.append(t)
