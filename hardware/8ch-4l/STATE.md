@@ -28,10 +28,13 @@ buttons and panel-button header as the 24-ch. 4 layers first; 2-layer / local-fa
   pour sliver beside J501 (14.56, 20.5). Then `vbias_pour.py` (bank A guard), `fiducials.py`, `silk.py`
   (profile 8 silk in `family/tools/profiles_new.py`; silk.py reads `bus_text`/`isp_dy`); DRC 0/0 after each.
   Backups in `output/`: drc-zero, vbias, fid (.kicad_pcb).
+* **2026-10-30 staircases straightened (I-141, `family/tools/straighten.py`, commit `955bb1a`): 13 chains, 390 -> 49 segments,
+  tiny < 0.15 mm 523 -> 194; copy vs original all-severity DRC identical, holes 0, fill 496/496. Release
+  `production/8ch-revb0-20261030-013232-ca16ba/`**: DRC 0/0/0, warnings silk only (3 + 1).
 * 2026-10-19 (I-131): 12 hole_to_hole + 11 co-located holes and 3 vias into SMD lands fixed (Sol `output/sol-holes.txt`,
   23 rips / 3 adds; backup `output/pre-holes/`); DRC 0/0/0 with hole rules now errors, via hole to land >= 0.157 mm,
   pincaps 0. 2026-10-24 coordination with the 24-ch: I-129 relay rule (pours out of `relay_area`, gen + DRU), Sol trim
-  (`output/coord/trim8.txt`, 1 track + 8 via dangling -> 0); **release `production/8ch-revb0-20261024-141437-3238f9/`**:
+  (`output/coord/trim8.txt`, 1 track + 8 via dangling -> 0); release `3238f9` (archived):
   DRC 0/0/0, warnings silk only, pincaps 0, holes 0, fill 496/496, MANIFEST 56/56, CPL-JLC (preview check) + POWER-ON-TEST
   + WHICH-FILE-WHERE; 113258, 042934, 5e720e archived. Older notes:
 * Release `8ch-revb0-20261014-203721-5e720e` (archived; `fab.py --board 8`, then
