@@ -171,6 +171,12 @@ may be needed. Plans include a source hash; `finish apply` rejects stale hashes
 or missing UUIDs before saving. The final coordination lists are consolidated
 against the original source bytes, with independent replay proofs.
 
+`python -S straighten.py --board KEY [--pcb COPY] --out LIST [--report JSON]` (I-141, stdlib) plans
+clean 45/90-degree routing for the grid router's staircases: chains of one net with >= 4 segments
+< 0.15 mm are string-pulled between their fixed ends; segments another same-net item touches stay; each
+new piece keeps the resolved clearance + 0.005 mm (text_rules) and no turn is sharper than 90 degrees.
+Apply like a trim plan (copy, `finish.py apply`, all-severity DRC, holes, pourcheck, decoupling_report).
+
 `decoupling_report.py --board 8l --pcb REFILLED_COPY` reports a **proposed** routed
 ADC supply criterion: <=5 mm centreline to a 100 nF bypass, <=1 supply via, with
 both ADC ground and bypass return connected to saved ground fill. It does not
