@@ -1,8 +1,8 @@
-# hardware/24ch — the 24-channel board (REV A3)
+# hardware/24ch — the 24-channel board (REV A4, being ordered)
 
 One board for all 24 thermocouples, K or J per channel in firmware (`0038`) (`docs/decisions/0031`), front end
 and parts per `docs/decisions/0032` (read all three revisions at its end).
-`hardware/8ch/` (REV A2) stays as the reference design and is not modified.
+`hardware/8ch-old/` (REV A2) stays as the reference design and is not modified.
 
 ## The schematic is generated
 
@@ -21,7 +21,7 @@ pin in the exported netlist matches the model in `gen/c_*.py`.
 | `gen/c_power.py` | battery input, PTC, protection, LM5164 5 V buck, 5 V crowbar |
 | `gen/c_mcu.py` | ATmega1284P, crystal, ISP, LCD header, five buttons |
 | `gen/c_iso.py` | B0505S, LP2985, preload, AVDD clamp, 3x CA-IS3761HW (ISO7761 pinout, `0036`), gated TMP126 SIO driver U411/R446 (REV A4, `0041`), REF3030, V_MID/V_BIAS, engine-reference feed/sense |
-| `gen/c_out.py` | trip relay (poles in series), alarm relay, isolated RS-485 (DNP in the `0036` variant: footprints only) |
+| `gen/c_out.py` | trip relay (poles in series), alarm relay, isolated RS-485 (fitted, `0036` D9) |
 | `gen/c_bank.py` | one bank: 2 headers, 8 input networks, AD7124-8, 2 TMP126 (used three times, `0036`) |
 | `gen/model.py`, `emit.py`, `libs.py`, `sexp.py`, `customlib.py` | the generator itself |
 | `lib/thermo24.kicad_sym` | AD7124-8 and TMP126 symbols (generated) |
@@ -46,19 +46,18 @@ Run with KiCad's python (`C:/Program Files/KiCad/10.0/bin/python.exe`), in order
 | 4 | `rules.py` | domains by pad position (a net in two domains stops it), net classes, `.kicad_dru`, planes, barrier keep-outs, U601 thermal vias |
 | 5 | `route24.py --passes 30 --threads 4 [--board copy --tag x]` | Freerouting via DSN/SES, then zone refill |
 | 6 | `finish.py` / `maze.py` | **incremental only, after a routing result is kept**: DRC, stubs, lock, hand routes (`add`), maze router + rip-up |
-| - | `guard.py`, `fab.py` | `guard.py`: write guard for every tool that saves the board (refuses while KiCad has it open or another tool holds `output/.writer.json`; `guard.sha256`). `fab.py`: a NEW `production/24ch-reva3-<time>-<sha6>/` per run, DRC and plots on a snapshot copy (source never saved), `MANIFEST.txt` (commit, hashes, DRC, KiCad version), `ORDER-NOTES.txt` (I-106/I-105) |
+| - | `guard.py`, `fab.py` | `guard.py`: write guard for every tool that saves the board (refuses while KiCad has it open or another tool holds `output/.writer.json`; `guard.sha256`). `fab.py`: the whole release in one run - a NEW `production/24ch-reva4-<time>-<sha6>/`, DRC and plots on a snapshot copy (source never saved), holes/pour audit (`release_audit.py`, family `holes.py`/`pourcheck.py`), `ORDER-NOTES.txt`, `CPL-JLC.csv` (`jlc_cpl.py`), `ASSEMBLY-SPEC.pdf`/`POWER-ON-TEST` (`assembly_spec.py`), the PURCHASING and FOR-REVIEWER zips (`package.py`, checked against the loose files) and `MANIFEST.txt` last (every file's hash, checked). Supplier facts in one place: `release_text.py` |
 | 7 | `buck24.py`, `move.py`, `capnear.py`, `fiducials.py`, `vbias_pour.py`, `silk.py` | **local repairs (`0034` D3, `0035`)**: buck stage, move parts, put a cap beside its pin (`capnear.py U403 1 C407 --apply`, `capnear.py via REF PAD`), fiducials, V_BIAS guard pours, silkscreen; then `finish.py dangling`/`dedupe`, `maze.py`, `pincaps.py` |
 | - | `cost.py`, `view.py`, `kicad_ui.ps1`, `padcheck.py` | BOM cost from LCSC (skips DNP); render a region; drive the KiCad GUI; pad-gap check before routing |
-| - | `assembly_spec.py` | `ASSEMBLY-SPEC.pdf` for the assembler: build preferences, power-on test with expected test-point values and map, what we ask back (`0036` D8; needs PyMuPDF, `py -3`) |
+| - | `assembly_spec.py` | run by `fab.py`: `ASSEMBLY-SPEC.pdf` for the assembler - build preferences, power-on test with expected test-point values and map, what we ask back (`0036` D8; needs PyMuPDF) |
 | - | `delta.py` | carry a schematic change onto the routed board: replace/add/remove footprints, re-net pads, DNP flags, `OLD>NEW@DEG` reuse (`0036`) |
 
 Domains: sensor island = x < 42 or y > 103 (mm, y down); barrier bands x 42-45
 and y 100-103, 3 mm copper-free on all layers; RS-485 bus pocket x 55-84,
 y < 22. `fpinfo.py` lists courtyard sizes.
 
-## Not done yet
+## Open items
 
-See `docs/STATE.md`. Board repairs from the Astra review (`docs/decisions/0034`):
-I-111 decoupling/buck parts beside their pins, I-112 fiducials, I-113 RUN PERMIT
-label, I-114 CJ sensors, button header (`0034` D2), I-115 gates, I-116 accessory BOM.
-Then `gen/fab.py` again. Every "check" item in `0032` still applies.
+`STATE.md` (Next) and the [24ch] rows of `docs/ISSUES.md`. The Astra repairs of `0034`/`0035` (I-111 to I-116,
+except I-114 which is a bench measurement) are done and closed; their history is in those decisions.
+Every "check" item in `0032` still applies on the bench.

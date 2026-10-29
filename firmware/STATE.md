@@ -1,7 +1,7 @@
 # Firmware - state
 
 **Hard limit: 60 lines.** Index of all products: `docs/STATE.md`. Read `docs/ISSUES.md` in full too.
-**Last updated:** 2026-10-23.
+**Last updated:** 2026-10-25.
 
 ## Where it stands
 
@@ -51,6 +51,8 @@
 * Thermocouple type per channel (OFF / K / J, `0038`) implemented; bench check pending.
 * 2026-10-24 (Claude, Sol audit): DOWN key PD3 had no pull-up (PORTD init 0x74 -> 0x7C, no external pull-up on
   the A4 board); fixed, `test_hardware.c` now checks every key pin is an input with its pull-up.
+* 2026-10-25: branch fast-forwarded to main (I-137 closed); P15 bench limit 750 -> 1200 ms (`APP_SERVICE_SCAN_MS`,
+  I-138: gaps with the REF test reach ~1.05 s); gates PASS: core 125511/0, acceptance 14361/14361, AVR worst 19.471 ms.
 
 ## Preserve
 

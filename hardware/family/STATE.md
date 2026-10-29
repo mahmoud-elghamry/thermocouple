@@ -55,4 +55,4 @@
   titles list the blocks (`Sheet.block(short=, page=)`); sheet names (UUID seed, local-net prefix) unchanged.
   8ch-4l/8ch-2l/40ch regenerated: ERC 0/0, compare_release vs current releases **0 differences**, PCB parity 0 (8ch-2l: I-140).
 * Folders: `hardware/8ch` -> `8ch-old`, `8ch-new` -> `8ch-4l` (`hardware/README.md`). `gate.ps1` picks the one current
-  `production/24ch-reva4-*` (now `040133`): FAMILY GATES PASS; tools tests plain OK, KiCad 17 + board proofs 14 OK.
+  `24ch-reva4-*` (main or 24-ch worktree `production/`; now `205319`): FAMILY GATES PASS; tools tests plain OK, KiCad 17 + board proofs 14 OK.

@@ -137,7 +137,7 @@ static void passive(void) {
     case 13:count=board()->channels; (void)snprintf(name,sizeof name,"CH%02u_BURN",(unsigned)item+1u);value=d->burnout_nV[item];
         ok=(value>=1500000 && value<=10000000) || !settings_good || settings->ch[item].type==CH_TYPE_OFF;break;
     case 14:strcpy(name,"ENGREF");value=gpio_read(board()->refok);ok=value==0 && d->ref_test_ok;break;
-    case 15:strcpy(name,"SCAN");value=d->duration_ms;ok=value<=750;break;
+    case 15:strcpy(name,"SCAN");value=d->duration_ms;ok=value<=APP_SERVICE_SCAN_MS;break;
     case 16:
         if(item==0) { strcpy(name,"LOOP");value=worst;ok=value<=APP_LOOP_BUDGET_MS;count=2;break; }
         strcpy(name,"STACK_BYTES");value=app_stack_highwater();ok=value<APP_STACK_BYTES;count=2;break;

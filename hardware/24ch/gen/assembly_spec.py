@@ -12,6 +12,8 @@ import zipfile
 
 import fitz
 
+from release_text import ACCESSORIES, EXPOSED_PADS, FAB_LIMITS, OUTLINE, VIA_NOTE
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 BOARD = os.path.join(os.path.dirname(HERE), "thermo24.kicad_pcb")
 KICAD_CLI = r"C:\Program Files\KiCad\10.0\bin\kicad-cli.exe"
@@ -35,13 +37,13 @@ ORIENT = [
     ("U101, U201, U301", "AD7124-8, LFCSP-32", "pin-1 dot; exposed pad soldered"),
     ("U601", "LM5164, HSOP-8", "pin-1 dot; exposed pad soldered"),
     ("U501", "ATmega1284P, TQFP-44", "pin-1 dot"),
-    ("U403, U404, U405", "CA-IS3761, SOIC-16W", "pin-1 mark (they straddle the isolation slot)"),
+    ("U403, U404, U405", "CA-IS3761, SOIC-16W", "pin-1 mark (they straddle the isolation gap)"),
     ("U102, U103, U202, U203, U302, U303", "TMP126, SC-70-6", "pin-1 mark"),
     ("U401", "B0505S module, THT", "pin 1 to the marked pad"),
     ("C601", "22 uF 100 V electrolytic, THT", "minus stripe to the marked side"),
     ("D601, D602, D603, D701, D711", "SS310, SMBJ60A, SMBJ5.0A, 1N4148W", "cathode band"),
     ("D702 (green RUN), D712 (red ALARM)", "3 mm LEDs, THT", "flat side / short lead to the marked side"),
-    ("U703", "ADM2587E, SOIC-20W", "pin-1 mark (straddles the RS-485 isolation slot)"),
+    ("U703", "ADM2587E, SOIC-20W", "pin-1 mark (straddles the RS-485 isolation gap)"),
     ("J601, J701, J702, J703", "5.00 mm screw terminals", "wire entry toward the board edge (fits both ways)"),
     ("J101-J302, J401", "3.81 mm pluggable headers", "plug opening toward the board edge"),
 ]
@@ -101,9 +103,12 @@ differently or see a better or cheaper way, please tell us and we will discuss i
 {table(["File", "Content"], [
     ["thermo24-gerbers.zip", "Gerbers, drill, 4 copper layers, paste layer with the exposed-pad openings"],
     ["BOM.csv", f"{c['lines']} lines, {c['parts']} parts. The LCSC column is a reference number only; equivalents welcome"],
-    ["CPL.csv", f"placement of all {c['parts']} parts (top side)"],
+    ["CPL.csv", f"placement of all {c['parts']} parts (top side), KiCad rotations"],
+    ["CPL-JLC.csv", "the same placement with rotations matched to JLCPCB's part models (for a JLCPCB order)"],
+    ["thermo24-schematic.pdf", "schematic, for reference"],
+    ["POWER-ON-TEST.pdf / .zip", "the power-on test of section 8 alone, with the test-point map (.zip: same PDF)"],
     ["DNP.txt", "footprints that stay empty (section 6)" if dnp else "every footprint is fitted"],
-    ["ACCESSORIES.csv", "loose items: mating plugs, cable housing, LCD socket, standoffs"],
+    ["ACCESSORIES.csv", "loose items we would like quoted: mating plugs, XH housing and contacts (section 12)"],
     ["ORDER-NOTES.txt", "short version of this file"],
     ["ASSEMBLY-SPEC.pdf", "this file"]])}
 
@@ -116,6 +121,8 @@ before the rest, please tell us what that changes in price and time.</p>
     ["Material, thickness", "FR-4, 1.6 mm, 1 oz copper on all 4 layers"],
     ["Surface finish", "<b>ENIG</b> (fine-pitch and exposed-pad parts). If your price is for HASL, please show the difference"],
     ["Solder mask / silkscreen", "green / white; vias covered (tented)"],
+    ["Smallest features (please confirm)", FAB_LIMITS],
+    ["Outline", OUTLINE],
     ["Electrical test", "bare-board test (flying probe or fixture)"]])}
 
 <h2>4. Assembly (preferred)</h2>
@@ -123,8 +130,8 @@ before the rest, please tell us what that changes in price and time.</p>
     ["SMD parts", f"{c['smd']} parts, machine placement and reflow"],
     ["Stencil", "laser-cut steel, about 0.12 mm (0.5 mm pitch parts); the paste layer already has the windows"],
     ["Solder paste", "your standard paste (lead-free or leaded both fine; please tell us which)"],
-    ["Exposed pads", "AD7124-8 x3 (U101, U201, U301) and LM5164 (U601) have a pad underneath that must be soldered. "
-                     "X-ray check if you have it; otherwise the power-on test in section 8 proves U601"],
+    ["Exposed pads", EXPOSED_PADS],
+    ["Vias at pads", VIA_NOTE],
     ["Moisture-sensitive ICs", "handled or baked per their MSL rating"],
     ["Through-hole parts", f"{c['tht']} ({c['n_tht']} parts): hand or selective soldering, seated flat"],
     ["Cleaning", "<b>please wash off the flux</b> (IPA or aqueous) and dry. The thermocouple inputs are "
@@ -177,9 +184,7 @@ testing, with connectors, pin headers, buttons, relays, test points and the LCD 
 If not, we will do it ourselves.</p>
 
 <h2>12. Accessories (ACCESSORIES.csv)</h2>
-<p>Mating plugs 3.81 mm 8-pin x6 and 2-pin x1, XH 6-pin housing with contacts, LCD 16-pin socket,
-2.54 mm jumper shunts x3 (loose, for JP731-JP733),
-M3 x 10 standoffs. If you also have the 3.81 mm plugs and headers in other colours, please quote them.</p>
+<p>{ACCESSORIES}</p>
 """
 
 
@@ -260,8 +265,9 @@ JLCPCB website order (only these reach JLC):
   Assembly remark        paste the text below (the website has no other file of ours)
 
 E-mail quotation / support / another assembler (NORI etc.):
-  PURCHASING zip = gerbers + BOM + CPL + CPL-JLC + ASSEMBLY-SPEC.pdf + POWER-ON-TEST.pdf + ORDER-NOTES.txt
-                   + schematic + ACCESSORIES + DNP (ORDER-NOTES lists them for the reader)
+  PURCHASING zip = gerbers + BOM + CPL + CPL-JLC + ASSEMBLY-SPEC.pdf + POWER-ON-TEST.pdf/.zip + ORDER-NOTES.txt
+                   + schematic + ACCESSORIES + DNP (ORDER-NOTES lists them for the reader). fab.py builds it
+                   from the loose files and checks each zipped copy is identical; MANIFEST is written last.
 
 Outside reviewer (expert): FOR-REVIEWER zip = schematic PDF, BOM, gerbers, ASSEMBLY-SPEC.pdf, KiCad project.
 

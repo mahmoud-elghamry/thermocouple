@@ -1,6 +1,6 @@
 """Route the 24-ch board with Freerouting (pcbnew -> DSN -> Freerouting -> SES -> pcbnew).
 
-Same method as hardware/8ch/route.py, In1/In2 are planes and fanout.py has already
+Same method as hardware/8ch-old/route.py, In1/In2 are planes and fanout.py has already
 connected every plane pad (order: rules.py --route-prep, fanout.py, route24.py, rules.py), and DSN clearances get a small pad so Freerouting's
 rounding still meets KiCad's DRC. Run with KiCad's python:
     python route24.py --passes 30 --threads 4

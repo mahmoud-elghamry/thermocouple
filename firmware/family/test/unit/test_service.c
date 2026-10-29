@@ -1,5 +1,6 @@
 #include "app/service.h"
 #include "app/image_identity.h"
+#include "app/timing.h"
 #include "drivers/keys.h"
 #include "drivers/rs485.h"
 #include "drivers/iso_spi.h"
@@ -38,6 +39,12 @@ void test_service(void) {
         CHECK(strstr(fake_uart_log,expected)!=NULL);
     }
     CHECK(strstr(fake_uart_log,"P16 STACK_BYTES 0 OK")!=NULL);
+    { /* I-138: P15 judges the scan gap against the bench limit, not the old 750 ms */
+        const char *p=strstr(fake_uart_log,"P15 SCAN "); long ms=-1; char verdict[8]="";
+        CHECK(p!=NULL && sscanf(p+9,"%ld %7s",&ms,verdict)==2 && ms>0);
+        CHECK(!strcmp(verdict,ms<=(long)APP_SERVICE_SCAN_MS?"OK":"FAIL"));
+        printf("service: P15 SCAN %ld ms %s (limit %u)\n",ms,verdict,APP_SERVICE_SCAN_MS);
+    }
     confirm(); /* A01: every requested key must also be released. */
     for(i=0;i<4;i++) {
         fake_pin(board()->keys[i],false); loop(220); CHECK(svc_active_step()==1);

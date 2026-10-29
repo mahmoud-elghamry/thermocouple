@@ -5,7 +5,7 @@ current release; this page is the map.
 
 | Folder | What it is |
 |---|---|
-| `24ch-reva4-*` | **24-ch REV A4 - the board being ordered.** Made in the 24-ch worktree (`.claude/worktrees/24ch-rev-a4`); fix I-133 before sending |
+| `24ch-reva4-*` | **24-ch REV A4 - the board being ordered.** Lives only in the 24-ch worktree, `.claude/worktrees/24ch-rev-a4/production/` (current release and its `_OLD_DO_NOT_ORDER`), so the 24-ch line stays apart (owner 2026-10-25); made by `hardware/24ch/gen/fab.py` in one run |
 | `8ch-revb0-*` | new 8-ch REV B0, 4 layers - release candidate |
 | `8ch-revb0-2l-*` | new 8-ch REV B0-2L, 2 layers, local fab - release candidate |
 | `40ch-reva0-*` | 40-ch REV A0 - release candidate (owner: probably never built, `0043` 9) |

@@ -4,9 +4,12 @@ production/24ch-reva4-<YYYYMMDD-HHMMSS>-<sha256 of the board, 6 hex>/ (never reu
 The source board is only read. A snapshot (board, .kicad_pro, .kicad_dru, schematic set)
 is copied into <release>/source-snapshot/; DRC (--schematic-parity --refill-zones
 --save-board) runs on that copy, and Gerbers, drill, pos, BOM and PDF come from it. Writes
-MANIFEST.txt (git commit, hashes, DRC counts, KiCad version) and ORDER-NOTES.txt (I-106,
-I-105). Refuses unless DRC is 0 errors / 0 unconnected / 0 parity errors, and while KiCad
-has the board open (guard.py). Any kicad-cli failure stops it.
+ORDER-NOTES.txt (I-106, I-105), then CPL-JLC (jlc_cpl.py), ASSEMBLY-SPEC/POWER-ON-TEST/WHICH-FILE-WHERE
+(assembly_spec.py), the PURCHASING and FOR-REVIEWER zips (package.py, compared with the loose files) and
+MANIFEST.txt last (git commit, DRC counts, KiCad version, every file's hash; checked after writing).
+Refuses unless DRC is 0 errors / 0 unconnected / 0 parity errors, no dangling track, the holes/pour audit
+passes (release_audit.py) and pincaps passes, and while KiCad has the board open (guard.py).
+Any kicad-cli or step failure stops it.
 Run with normal python:  python fab.py
 Test: THERMO24_FAB_PCB / THERMO24_FAB_SCH / THERMO24_FAB_OUT point at a copy and a scratch root.
 """
@@ -16,11 +19,14 @@ import os
 import re
 import shutil
 import subprocess
+import textwrap
 import time
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 
 import guard
+import package
+from release_text import EXPOSED_PADS, FAB_LIMITS, OUTLINE, VIA_NOTE
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 HW = os.path.dirname(HERE)
@@ -149,8 +155,8 @@ def board_size(pcb):
 
 
 def supplier_accessories(src, dst):
-    """The supplier's copy of accessories.csv: only what they could supply (an LCSC reference, the
-    board standoffs or the RS-485 jumper shunts), no internal status notes (0036 D8)."""
+    """The supplier's copy of accessories.csv: only the rows we ask them to quote (Source LCSC); everything
+    else is bought locally. No internal status notes (0036 D8). One scope for the loose and zipped copies (I-133)."""
     with open(src, encoding="utf-8") as fi:
         rows = list(csv.DictReader(fi))
     with open(dst, "w", newline="", encoding="utf-8") as fo:
@@ -158,9 +164,13 @@ def supplier_accessories(src, dst):
         w.writerow(["Item", "Qty per board", "Reference part (LCSC)", "MPN", "Maker"])
         for r in rows:
             item = r["Item"]
-            if not (r["LCSC"] or item.lower().startswith(("board standoffs", "jumper shunts"))):
+            if r["Source"].strip() != "LCSC":
                 continue
             w.writerow([item, r["Qty per board"], r["LCSC"], r["MPN"], r["Maker"]])
+
+
+def wrap(text):
+    return textwrap.fill(text, 104, subsequent_indent="  ")
 
 
 def write_order_notes(out, pcb, name):
@@ -180,18 +190,24 @@ FILES
 - CPL-JLC.csv          : the same placement list with rotations matched to JLCPCB's part models
                          (checked on the JLC preview). Use this one for a JLCPCB order.
 - POWER-ON-TEST.pdf    : the power-on test after assembly (no firmware needed), with expected values.
+- POWER-ON-TEST.zip    : the same PDF zipped (JLC's "Function test" box takes zip/rar only).
+- thermo24-schematic.pdf : the schematic, for reference.
 - DNP.txt              : footprints that stay empty on this order (not in the BOM or CPL).
-- ACCESSORIES.csv      : loose items (mating plugs, standoffs). Please quote them if you can supply them.
+- ACCESSORIES.csv      : loose items (mating plugs, XH housing and contacts). Please quote them if you can
+                         supply them; standoffs, jumper shunts, the LCD and its cable we buy locally.
 - ASSEMBLY-SPEC.pdf    : the full build preferences, the power-on test with expected values, and
                          what we would like back with the boards.
 
 PCB (preferred)
 - FR4, 1.6 mm, 1 oz copper on all layers, ENIG finish (several fine-pitch and exposed-pad parts).
 - Vias covered by solder mask (tented).
+- {wrap("Smallest features: " + FAB_LIMITS)}
+- {wrap(OUTLINE)}
 
 ASSEMBLY (preferred)
-- Stencil and reflow for the SMD parts. The three AD7124-8 (5x5 mm LFCSP) and the LM5164 have an
-  exposed pad underneath that must be soldered; the paste layer in the Gerbers already has the openings.
+- Stencil and reflow for the SMD parts; the paste layer in the Gerbers already has the exposed-pad openings.
+- {wrap(EXPOSED_PADS)}
+- {wrap(VIA_NOTE)}
 - The green screw terminals J601, J701, J702, J703 face outward: the wire entry is toward the board edge,
   as drawn on the silkscreen (the part fits either way round, so please check this one).
 - Please wash off the flux after soldering. Several inputs are high-impedance, and flux residue there
@@ -251,6 +267,8 @@ def release(out, name, src_sha):
         raise SystemExit(f"DRC not clean {counts} - no fabrication files written")
     warnings = drc_warnings(out, pcb)
     kpy = os.environ.get("KICAD_PYTHON", r"C:\Program Files\KiCad\10.0\bin\python.exe")
+    if subprocess.run([kpy, "-B", os.path.join(HERE, "release_audit.py"), out]).returncode != 0:
+        raise SystemExit("release_audit.py: holes/pour audit failed (HOLES-POUR.txt) - no fabrication files written")
     r = subprocess.run([kpy, os.path.join(HERE, "pincaps.py"), pcb], capture_output=True, text=True)
     with open(os.path.join(out, "pincaps.txt"), "w", encoding="utf-8") as f:
         f.write(r.stdout)
@@ -274,7 +292,12 @@ def release(out, name, src_sha):
         raise SystemExit("hardware/24ch/accessories.csv missing (I-116)")
     supplier_accessories(acc, os.path.join(out, "ACCESSORIES.csv"))
     write_order_notes(out, pcb, name)
-    write_manifest(out, snap, src_sha, counts, bom, warnings)
+    subprocess.run([kpy, "-B", os.path.join(HERE, "jlc_cpl.py"), out], check=True)
+    # ASSEMBLY-SPEC, POWER-ON-TEST, WHICH-FILE-WHERE and the website remark in ORDER-NOTES
+    subprocess.run([package.fitz_python(), "-B", os.path.join(HERE, "assembly_spec.py"), out], check=True)
+    package.zips(out)                      # built from the loose files and compared byte for byte
+    write_manifest(out, snap, src_sha, counts, bom, warnings)   # last: covers every file (I-133)
+    package.check_manifest(out)
 
 
 def main():

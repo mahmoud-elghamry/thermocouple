@@ -1,14 +1,16 @@
 # Circuit gate; generated files and logs stay in the coordination scratch area.
 [CmdletBinding()]
 param(
-    [string]$Release = '',   # default: the current production/24ch-reva4-* release
+    [string]$Release = '',   # default: the one current 24ch-reva4-* release (24-ch worktree's production/, owner 2026-10-25)
     [string]$Python = 'python',
     [string]$PriceCache = ''
 )
 $ErrorActionPreference = 'Stop'
 $repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..'))
 if (-not $Release) {
-    $current = @(Get-ChildItem -LiteralPath (Join-Path $repo 'production') -Directory -Filter '24ch-reva4-*' | Sort-Object Name)
+    $places = @((Join-Path $repo 'production'), (Join-Path $repo '.claude\worktrees\24ch-rev-a4\production')) |
+        Where-Object { Test-Path -LiteralPath $_ }
+    $current = @($places | ForEach-Object { Get-ChildItem -LiteralPath $_ -Directory -Filter '24ch-reva4-*' } | Sort-Object Name)
     if ($current.Count -ne 1) { throw "Expected one current production/24ch-reva4-* release, found $($current.Count); pass -Release" }
     $Release = $current[0].FullName
 }

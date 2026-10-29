@@ -68,10 +68,24 @@ def paginate(s, all_nets):
     base = s.file[:-len(".kicad_sch")]
     for i, blocks in enumerate(pages, 1):
         t = Sheet(f"{s.name}_{i}", f"{base}_{i}.kicad_sch", f"{s.title} - page {i}/{len(pages)}", "A4")
+        t.content = "On this page: " + page_summary(s, blocks)   # title-block comment: the title field is too narrow
         t.blocks = blocks
         t.notes = s.notes if i == 1 else []
         out.append(t)
     return out
+
+
+def page_summary(s, blocks):
+    """What a split page holds, e.g. 'channels 6-8 front end, AD7124-8, cold-junction sensors'."""
+    items = []
+    for title, _ in blocks:
+        short = s.shorts.get(title) or title.split(" (")[0].split(":")[0]
+        if isinstance(short, tuple) and items and isinstance(items[-1], list) and items[-1][0] == short[0]:
+            items[-1][2] = short[1]
+        else:
+            items.append([short[0], short[1], short[1]] if isinstance(short, tuple) else short)
+    return ", ".join(i if isinstance(i, str) else
+                     i[0].format(f"{i[1]}-{i[2]}" if i[2] != i[1] else i[1]) for i in items)
 
 
 def root_parts():

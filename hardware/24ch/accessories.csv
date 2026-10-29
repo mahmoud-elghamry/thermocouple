@@ -20,4 +20,4 @@ BENCH: adjustable lab power supply 0-30 V 3 A with current limit,1,,MR-3005D,,Ma
 BENCH: digital multimeter with mV range and continuity,1,,,,local (often already in hand),"POWER-ON-TEST.pdf voltages; probe polarity check"
 BENCH: reference thermometer (handheld K-type meter) + ice water and boiling water,1,,,,local,"0 C and ~100 C points to compare the board readings"
 BENCH: small flat screwdriver 2.5 mm,1,,,,local,"for the 3.81 mm terminal plugs"
-BENCH: spare TC plugs 8 pin 3.81 mm,2,C14234,WJ15EDGK-3.81-08P-14-00A,KANGNEX,LCSC,"order with the JLC parts; 6 per board x 5 + spares"
+Spare TC plugs 8 pin 3.81 mm (per order - not per board),2 per order,C14234,WJ15EDGK-3.81-08P-14-00A,KANGNEX,LCSC,"order with the JLC parts; 6 per board x 5 + spares"

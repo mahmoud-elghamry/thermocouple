@@ -8,7 +8,7 @@ Hard limit: 60 lines, and so is every product STATE.md.**
 
 | Product | Folder | State file | Headline |
 |---|---|---|---|
-| 24-ch board REV A4 | `hardware/24ch/` | `hardware/24ch/STATE.md` | gated TMP126 SIO driver (`0041`), door LCD/buttons (`0042`); release `production/24ch-reva4-20261023-094411-02daef`; install guide `hardware/24ch/install-guide/` |
+| 24-ch board REV A4 | `hardware/24ch/` | `hardware/24ch/STATE.md` | gated TMP126 SIO driver (`0041`), door LCD/buttons (`0042`); release `24ch-reva4-20261025-205319-02daef` (in the 24-ch worktree `production/`); install guide `hardware/24ch/install-guide/` |
 | 8-ch board | `hardware/8ch-old/` (REV A2), `hardware/8ch-4l/` (REV B0), `hardware/8ch-2l/` (REV B0-2L) | `hardware/8ch-4l/STATE.md`, `hardware/8ch-2l/STATE.md` | REV A2 (MAX31856) is reference; REV B0 (4 layers, 130 x 137) DRC 0/0/0, release candidate in `production/` (`0039`); REV B0-2L (2 layers, local fab, 150 x 154) DRC 0/0/0, release candidate in `production/` (`0040`) |
 | 40-ch board | `hardware/40ch/` | `hardware/40ch/STATE.md` | 40 TC + 3 PT100 (`0039`); DRC 0/0/0 with parity, Astra: send for quotation; release candidate `production/40ch-reva0-20261024-141240-35825e` |
 | Firmware | `firmware/` | `firmware/STATE.md` | family firmware `firmware/family/` F0-F8, **24-ch only** (`0043` 9); host + AVR-simulator tests pass, bench pending; 8-ch REV A2 in `firmware/8ch-legacy/` |
