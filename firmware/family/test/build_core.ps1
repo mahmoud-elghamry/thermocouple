@@ -48,10 +48,12 @@ if ($Gcc) {
     } finally { Pop-Location }
 }
 # AVR compile-only enforces the requested GCC warnings and 16-bit-int arithmetic.
-$avr = Join-Path $env:USERPROFILE '.platformio/packages/toolchain-atmelavr/bin/avr-gcc.exe'
-if (-not (Test-Path -LiteralPath $avr)) {
+$avr = if ($env:USERPROFILE) { Join-Path $env:USERPROFILE '.platformio/packages/toolchain-atmelavr/bin/avr-gcc.exe' } else { '' }
+if (-not $avr -or -not (Test-Path -LiteralPath $avr)) {
     $avr='C:\Program Files (x86)\Labcenter Electronics\Proteus 8 Professional\Tools\ARDUINO\hardware\tools\avr\bin\avr-gcc.exe'
 }
+# Linux and CI (I-084): the avr-gcc on PATH.
+if (-not (Test-Path -LiteralPath $avr) -and (Get-Command avr-gcc -ErrorAction SilentlyContinue)) { $avr=(Get-Command avr-gcc).Source }
 if (-not (Test-Path -LiteralPath $avr)) { throw 'avr-gcc missing (strict compile gate)' }
 foreach ($src in ($sources | Where-Object { $_ -like '*src/*' -or $_ -like '*src\*' })) {
     $obj=Join-Path $out ((Split-Path $src -Leaf)+'.o')

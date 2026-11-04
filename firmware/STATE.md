@@ -1,7 +1,7 @@
 # Firmware - state
 
 **Hard limit: 60 lines.** Index of all products: `docs/STATE.md`. Read `docs/ISSUES.md` in full too.
-**Last updated:** 2026-10-25.
+**Last updated:** 2026-11-04 (cloud: family host suites pass on Linux gcc and run in CI `family-host-tests`, I-084).
 
 ## Where it stands
 

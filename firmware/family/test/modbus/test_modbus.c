@@ -114,7 +114,8 @@ static void maps(void) {
             request(r,fn,a,1); memset(out,0xA5,sizeof out); n=mb_build(&s,r,8,out,sizeof out);
             CHECK(n==(mapped?7:5)); CHECK(crc(out,n)==0); CHECK(out[0]==17);
             if(mapped) { CHECK(out[1]==fn && out[2]==2); value=(uint16_t)((uint16_t)out[3]<<8)|out[4];
-                if(value!=expected(a)) printf("board %u fn %u reg %u got %u expected %u\n",boards[b],fn,a,value,expected(a)); CHECK(value==expected(a)); }
+                if(value!=expected(a)) printf("board %u fn %u reg %u got %u expected %u\n",boards[b],fn,a,value,expected(a));
+                CHECK(value==expected(a)); }
             else CHECK(out[1]==(fn|0x80) && out[2]==2);
             CHECK(out[n]==0xA5);
         }

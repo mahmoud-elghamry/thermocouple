@@ -61,3 +61,40 @@ jobs:
 
       - name: Every passive still has an orderable part number
         run: python3 hardware/8ch-old/source_passives.py --check
+
+  # 24-ch board (I-084): the generator rebuilds the schematic, which must come
+  # out identical to the committed sheets; build.py itself fails on any ERC
+  # error/warning or a netlist pin that differs from its model. Then DRC with
+  # schematic parity and refilled zones, as fab.py runs it. Not here: pincaps.py
+  # and the other pcbnew gates, which need KiCad's python.
+  board-24ch:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/kicad/kicad:10.0
+      options: --user root
+    env:
+      KICAD_CLI: kicad-cli
+      KICAD10_SYMBOL_DIR: /usr/share/kicad/symbols
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stock library tables (without them ERC warns lib_symbol_issues)
+        run: |
+          mkdir -p "$HOME/.config/kicad/10.0"
+          cp /usr/share/kicad/template/sym-lib-table /usr/share/kicad/template/fp-lib-table "$HOME/.config/kicad/10.0/"
+
+      - name: Schematic regenerates; ERC 0/0; netlist matches the model
+        working-directory: hardware/24ch/gen
+        run: python3 build.py
+
+      - name: Regenerated sheets equal the committed ones
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git diff --exit-code --stat -- 'hardware/24ch/*.kicad_sch'
+
+      - name: DRC with schematic parity and refilled zones
+        run: |
+          kicad-cli pcb drc --schematic-parity --refill-zones --severity-error \
+            --exit-code-violations --output /tmp/drc.rpt hardware/24ch/thermo24.kicad_pcb \
+            || { cat /tmp/drc.rpt; exit 1; }
+          cat /tmp/drc.rpt

@@ -22,3 +22,22 @@ jobs:
         run: make -C firmware/8ch-legacy all
       - name: Run host tests (application logic, application integration, bank driver)
         run: make -C firmware/8ch-legacy test
+
+  # Family firmware (24-ch) host suites with gcc + ASan/UBSan, and the strict
+  # avr-gcc compile (I-084). Not here: MSVC, cppcheck, the AVR-simulator
+  # timing/cycle gates, the image build and the soak - those stay in
+  # firmware/family/build.ps1 on the workstation.
+  family-host-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install AVR toolchain
+        run: sudo apt-get update && sudo apt-get install -y gcc-avr avr-libc binutils-avr
+      - name: Core (protection, settings, events, faults, TC math, scenarios)
+        run: pwsh -NoProfile -File firmware/family/test/build_core.ps1 -Gcc
+      - name: Acceptance
+        run: pwsh -NoProfile -File firmware/family/test/build_acceptance.ps1 -Gcc
+      - name: UI
+        run: pwsh -NoProfile -File firmware/family/test/build_ui.ps1 -Gcc
+      - name: Modbus (cycle gate not run)
+        run: pwsh -NoProfile -File firmware/family/test/build_modbus.ps1 -Gcc -NoCycleGate

@@ -1,4 +1,4 @@
-param([switch]$Gcc)
+param([switch]$Gcc,[switch]$NoCycleGate)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $include = Join-Path $root 'include'
@@ -27,18 +27,23 @@ if ($Gcc) {
 }
 & $exe | Tee-Object -FilePath (Join-Path $out 'test-results.txt')
 if ($LASTEXITCODE -ne 0) { throw 'Modbus host tests failed' }
-$avr = Join-Path $env:USERPROFILE '.platformio/packages/toolchain-atmelavr/bin/avr-gcc.exe'
-if (-not (Test-Path -LiteralPath $avr)) {
+$avr = if ($env:USERPROFILE) { Join-Path $env:USERPROFILE '.platformio/packages/toolchain-atmelavr/bin/avr-gcc.exe' } else { '' }
+if (-not $avr -or -not (Test-Path -LiteralPath $avr)) {
     $avr='C:\Program Files (x86)\Labcenter Electronics\Proteus 8 Professional\Tools\ARDUINO\hardware\tools\avr\bin\avr-gcc.exe'
 }
+# Linux and CI (I-084): the avr-gcc on PATH.
+if (-not (Test-Path -LiteralPath $avr) -and (Get-Command avr-gcc -ErrorAction SilentlyContinue)) { $avr=(Get-Command avr-gcc).Source }
 if (-not (Test-Path -LiteralPath $avr)) { throw 'avr-gcc missing' }
 foreach ($src in $modules) {
     $obj=Join-Path $out ((Split-Path $src -Leaf)+'.o')
     & $avr '-std=c11' '-Os' '-mmcu=atmega1284p' '-Wall' '-Wextra' '-Werror' '-fstack-usage' "-I$include" '-c' $src '-o' $obj
     if ($LASTEXITCODE -ne 0) { throw "AVR compile failed: $src" }
 }
-& (Join-Path (Split-Path $avr) 'avr-size.exe') @($modules | ForEach-Object { Join-Path $out ((Split-Path $_ -Leaf)+'.o') }) | Tee-Object -FilePath "$out/avr-size.txt"
+$size=Join-Path (Split-Path $avr) 'avr-size.exe'; if(-not (Test-Path -LiteralPath $size)) { $size=Join-Path (Split-Path $avr) 'avr-size' }
+& $size @($modules | ForEach-Object { Join-Path $out ((Split-Path $_ -Leaf)+'.o') }) | Tee-Object -FilePath "$out/avr-size.txt"
 if ($LASTEXITCODE -ne 0) { throw 'AVR size failed' }
+# The cycle gate needs avr-gdb's simulator (Windows toolchain); -NoCycleGate is for CI (I-084).
+if($NoCycleGate) { Write-Host 'Modbus host tests + strict AVR compilation: PASS (cycle gate NOT RUN, -NoCycleGate)'; exit 0 }
 & python "$PSScriptRoot/modbus/profile.py" $avr
 if ($LASTEXITCODE -ne 0) { throw 'Modbus AVR cycle gate failed' }
 Write-Host 'Modbus host tests + strict AVR compilation + cycle gate: PASS'

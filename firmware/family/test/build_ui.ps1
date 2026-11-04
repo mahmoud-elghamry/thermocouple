@@ -45,7 +45,9 @@ if($Gcc) {
 & $gestureExe | Tee-Object -FilePath (Join-Path $out 'gesture-results.txt')
 if($LASTEXITCODE) { throw 'UI gesture tests failed' }
 $bin='C:/Program Files (x86)/Labcenter Electronics/Proteus 8 Professional/Tools/ARDUINO/hardware/tools/avr/bin'
-$avr=Join-Path $bin 'avr-gcc.exe'
+$avr=if(Test-Path -LiteralPath $bin) { Join-Path $bin 'avr-gcc.exe' } else { '' }
+# Linux and CI (I-084): the avr-gcc on PATH and its avr-size.
+if((-not $avr -or -not (Test-Path -LiteralPath $avr)) -and (Get-Command avr-gcc -ErrorAction SilentlyContinue)) { $avr=(Get-Command avr-gcc).Source; $bin=Split-Path $avr }
 if (-not (Test-Path -LiteralPath $avr)) { throw 'avr-gcc missing' }
 $objects=@()
 foreach ($src in ($sources | Where-Object { $_ -match 'src[/\\]app[/\\]ui' })) {
@@ -53,7 +55,8 @@ foreach ($src in ($sources | Where-Object { $_ -match 'src[/\\]app[/\\]ui' })) {
     & $avr '-std=c11' '-Os' '-fshort-enums' '-Wall' '-Wextra' '-Werror' '-mmcu=atmega1284p' '-DF_CPU=8000000UL' "-I$include" '-fstack-usage' '-c' $src '-o' $obj
     if ($LASTEXITCODE -ne 0) { throw "AVR compile failed: $src" }
 }
-$sections=& (Join-Path $bin 'avr-size.exe') '-A' @objects
+$size=Join-Path $bin 'avr-size.exe'; if(-not (Test-Path -LiteralPath $size)) { $size=Join-Path $bin 'avr-size' }
+$sections=& $size '-A' @objects
 $sections | Tee-Object -FilePath (Join-Path $out 'avr-size.txt')
 if ($LASTEXITCODE -ne 0) { throw 'AVR size report failed' }
 $ram=0

@@ -24,7 +24,8 @@ static void test_navigation(void) {
     fake_key(KEY_ESC); fake_ms+=60001; fake_pump(); CHECK(has("RUN OK"));
     CHECK(!ui_key(KEY_ACK)); CHECK(memcmp(&prot,&fake_protection,sizeof prot)==0);
     CHECK(memcmp(&before,&fake_settings,sizeof before)==0); CHECK(fake_commits==0);
-    for(i=0;i<1000;i++) ui_task(0); CHECK(fake_commits==0);
+    for(i=0;i<1000;i++) ui_task(0);
+    CHECK(fake_commits==0);
     fake_key(KEY_SET); fake_ms+=60001; fake_pump(); CHECK(has("RUN OK"));
 }
 static void test_pin(void) {
@@ -223,9 +224,11 @@ static void test_editor_boundaries(void) {
     u.work[0].epoch=63;u.field=UF_TYPE;ui_edit_begin(&u);ui_edit_key(&u,KEY_UP);ui_edit_key(&u,KEY_SET);
     CHECK(u.work[0].epoch==63 && (u.work[0].type&3u)==CH_TYPE_J);
     u.field=UF_BAND;ui_edit_begin(&u);for(n=0;n<100;n++) ui_edit_key(&u,KEY_UP);CHECK(u.edit_value==50);
-    for(n=0;n<100;n++) ui_edit_key(&u,KEY_DOWN);CHECK(u.edit_value==2);
+    for(n=0;n<100;n++) ui_edit_key(&u,KEY_DOWN);
+    CHECK(u.edit_value==2);
     u.field=UF_ADDRESS;ui_edit_begin(&u);for(n=0;n<300;n++) ui_edit_key(&u,KEY_UP);CHECK(u.edit_value==247);
-    for(n=0;n<300;n++) ui_edit_key(&u,KEY_DOWN);CHECK(u.edit_value==1);
+    for(n=0;n<300;n++) ui_edit_key(&u,KEY_DOWN);
+    CHECK(u.edit_value==1);
     fake_reset(true);fake_key(KEY_SET_LONG);pin(0);pin(0x1111);pin(0x1111);
     times(KEY_DOWN,3);fake_key(KEY_SET);CHECK(has("SAVE CHANGES?"));fake_key(KEY_SET);
     if(!has("INVALID SETTINGS")) printf("All-OFF frame: %.80s\n",fake_frame);

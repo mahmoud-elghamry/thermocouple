@@ -3,7 +3,7 @@ import copy
 import os
 from sexp import parse, find, findall, Sym
 
-KICAD_SYM = r"C:\Program Files\KiCad\10.0\share\kicad\symbols"
+KICAD_SYM = os.environ.get("KICAD10_SYMBOL_DIR") or r"C:\Program Files\KiCad\10.0\share\kicad\symbols"
 _cache = {}
 
 
