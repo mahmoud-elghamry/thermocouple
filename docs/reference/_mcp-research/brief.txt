@@ -1,0 +1,12 @@
+<goal>Compare the KiCad tooling of project D:\tasks\thermo with KiCad MCP servers, and search the web for KiCad MCP servers better than the one we use. Output: D:\tasks\_mcp-research\KICAD-MCP-REPORT.md (only this file).</goal>
+<context>
+Read (read-only) D:\tasks\thermo\AGENTS.md, docs/TOOLS.md, docs/decisions/0013-konnect-over-ipc-for-incremental-edits.md, ~/.codex/config.toml (Konnect section), and the tool docstrings in D:\tasks\thermo\hardware\family\tools\*.py (finish, move, maze, pincaps, silk, fab, holes, route_report, pourcheck, board_text, text_check) and hardware/24ch/gen (route.py: Freerouting).
+We use: Konnect = our KiCad MCP (talks IPC to a running KiCad 10, or edits files when KiCad is closed); our own pcbnew scripts (generator, placement, maze router, route-list apply, DRC gates, release); stdlib text checkers; Freerouting for bulk routing (fails on our custom inter-domain .kicad_dru rules).
+</context>
+<task>
+1. Explain plainly the difference between an MCP server and our scripts (who calls what, when each is the right tool).
+2. Web search (2026): KiCad MCP servers and AI-PCB tools (e.g. Konnect, kicad-mcp variants, KiCad IPC API based servers, AI autorouters such as DeepPCB/Quilter-like services, Freerouting successors). For each: repo/URL, last activity, KiCad 10 support, capabilities (read, edit, DRC, routing, footprints/symbols, IPC vs file), licence, maturity, Windows support.
+3. Verdict: is anything clearly better than what we have for (a) incremental board edits, (b) finishing the last connections / routing with custom clearance rules, (c) schematic work, (d) DRC/reporting? What would it replace, what would it cost to adopt. Say UNVERIFIED for claims you could not confirm from a primary source.
+</task>
+<rules>Read-only except the one output file. Install nothing. No git.</rules>
+<report>The verdict table and your top recommendation.</report>
