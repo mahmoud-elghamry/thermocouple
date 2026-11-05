@@ -70,7 +70,9 @@ jobs:
   board-24ch:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/kicad/kicad:10.0
+      # Pinned to the workstation's KiCad (docs/TOOLS.md): 10.0.8's stock
+      # library renamed Relay:G6K-2 (now Omron_G6K-2), which the generator uses.
+      image: ghcr.io/kicad/kicad:10.0.6
       options: --user root
     env:
       KICAD_CLI: kicad-cli

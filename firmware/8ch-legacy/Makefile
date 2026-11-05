@@ -92,7 +92,7 @@ $(TARGET_LEGACY_6675).elf: $(BASE_OBJECTS) $(APP_LEGACY_OBJECTS) \
 
 size: $(TARGET_8CH).elf $(TARGET_8CH_SIM).elf \
 	$(TARGET_LEGACY_31856).elf $(TARGET_LEGACY_6675).elf
-	$(SIZE) -C --mcu=$(MCU) $^
+	$(SIZE) -C --mcu=$(MCU) $^ 2>/dev/null || $(SIZE) $^   # newer binutils-avr dropped -C
 
 $(TEST_TARGET): tests/test_app_logic.c $(addprefix src/,$(HOST_TEST_SOURCES))
 	@mkdir -p $(dir $@)
