@@ -1,7 +1,7 @@
 # 24-channel board - state
 
 **Hard limit: 60 lines.** Index of all products: `docs/STATE.md`. Read `docs/ISSUES.md` in full too.
-**Last updated:** 2026-10-25 (branch `24ch-rev-a4`, merged into main `7a31f0c` 2026-10-24 and level with main `ca6c05e` since).
+**Last updated:** 2026-11-10 (live JLC order preparation; hardware unchanged, branch `24ch-rev-a4`).
 
 ## Where it stands
 
@@ -15,7 +15,7 @@
   kept); holes/pour audit PASS (0 hole pairs, 817/817 on their pour, 11 same-net vias at pads all disclosed to the
   supplier, U405.15 cut by 0.075 mm, owner 2026-10-25: leave them); zips compared with the loose files; MANIFEST 53
   files. Gerbers/BOM/CPL/CPL-JLC identical to 094411 (`_OLD_DO_NOT_ORDER`); only supplier texts changed.
-  JLC cart 2026-10-16 (PCBA x5, $650.09) holds OLD gerbers: upload THIS release (gerber, BOM, CPL-JLC) before paying.
+  JLC 2026-11-10: red Y5 cart from THIS release, 5 boards; old green Y4 remains unselected. Not paid; CAM pending.
 * History (A4, 2026-10-15..23): Astra review 3 removed 3 overlapping vias and moved 7 vias out of pads;
   2026-10-23 `gen/dangling.py` trimmed 7 dangling overshoots found by an outside kicad-review (errors-only DRC
   hid them) and `fab.py` gained the warnings pass. Hole rules are errors (main's drill row, 10-19).
@@ -34,8 +34,8 @@
 
 ## Next
 
-1. New quotes for A4 from release 205319: JLCPCB and NORI (I-078, I-123); owner decides where to order.
-2. When the order is placed: review the assembler's placement preview (pin-1 of every polarised part).
+1. Red JLC Y5 saved: 96/96 BOM codes match, 449 placements selected. $727.11 with estimated shipping/coupon EXCLUDES advanced fees ($8.27 photos, $1.24 cleaning, test/X-ray quote pending). CAM I-140 and supplier production review remain; evidence `production/reviews/review-20261110-jlc-preparation/prepared-order.json`.
+2. Meeting kit/checklist: `production/reviews/review-20261110-jlc-preparation/24ch-Y5-MEETING-20261110.zip` + `MEETING-GUIDE-AR.md` (same folder). Resolve CAM, rail removal and final fees; review assembler production preview (pin-1 of every polarised part).
 3. Installation drawing + bench guide done 2026-10-24: `install-guide/index.html` (published as an artifact); channel map filled on site.
 4. Firmware (`firmware/STATE.md`, `0041` firmware requirements); bench P2 when boards arrive (I-120, I-101,
    I-105, I-114, I-004, I-013).
